@@ -2,5 +2,10 @@
     "files.associations": {
         "stdexcept": "cpp",
         "exception": "cpp"
+    },
+    "files.exclude": {
+        ".sconsign.dblite": true,
+        "**/*.o": true,
+        "**/*.os": true
     }
 }

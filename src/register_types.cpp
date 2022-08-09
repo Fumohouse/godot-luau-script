@@ -5,9 +5,9 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/core/class_db.hpp>
 
-#ifdef FH_DEBUG
+#ifdef DEBUG_ENABLED
 #include "luau_test.h"
-#endif // FH_DEBUG
+#endif // DEBUG_ENABLED
 
 using namespace godot;
 
@@ -92,9 +92,9 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level)
 
     UtilityFunctions::print_verbose("luau script: initializing...");
 
-#ifdef FH_DEBUG
+#ifdef DEBUG_ENABLED
     ClassDB::register_class<LuauTest>();
-#endif // FH_DEBUG
+#endif // DEBUG_ENABLED
 }
 
 void uninitialize_luau_script_module(ModuleInitializationLevel p_level)

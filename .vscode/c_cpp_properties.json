@@ -11,7 +11,7 @@
             "../godot-cpp/gen/include/"
         ],
         "defaultDefines": [
-            "FH_DEBUG"
+            "DEBUG_ENABLED"
         ]
     },
     "configurations": [

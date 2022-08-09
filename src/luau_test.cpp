@@ -1,4 +1,4 @@
-#ifdef FH_DEBUG
+#ifdef DEBUG_ENABLED
 #include "luau_test.h"
 
 #include <lua.h>
@@ -39,4 +39,4 @@ void LuauTest::_bind_methods()
 
     ClassDB::bind_method(D_METHOD("set_top", "index"), &LuauTest::_set_top);
 }
-#endif // FH_DEBUG
+#endif // DEBUG_ENABLED

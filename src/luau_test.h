@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef FH_DEBUG
+#ifdef DEBUG_ENABLED
 #include <lua.h>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -45,4 +45,4 @@ public:
     LuauTest();
     ~LuauTest();
 };
-#endif // FH_DEBUG
+#endif // DEBUG_ENABLED

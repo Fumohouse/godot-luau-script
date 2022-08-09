@@ -13,9 +13,6 @@ luau_includes = [
 env.Append(CPPPATH=["src/"])
 env.Append(CPPPATH=[luau_dir + subdir + "/include/" for subdir in luau_includes])
 
-if env["target"] == "debug":
-    env.Append(CPPDEFINES=["FH_DEBUG"])
-
 sources = Glob("src/*.cpp")
 for subdir in luau_includes:
     sources += Glob("{}{}/src/*.cpp".format(luau_dir, subdir))
