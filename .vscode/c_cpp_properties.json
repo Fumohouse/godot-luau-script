@@ -1,0 +1,33 @@
+{
+    "env": {
+        "defaultIncludes": [
+            "src/**",
+            "extern/luau/Compiler/include/",
+            "extern/luau/Ast/include/",
+            "extern/luau/Common/include/",
+            "extern/luau/VM/include/",
+            "../godot-cpp/include/",
+            "../godot-cpp/godot-headers/",
+            "../godot-cpp/gen/include/"
+        ],
+        "defaultDefines": [
+            "FH_DEBUG"
+        ]
+    },
+    "configurations": [
+        {
+            "name": "Linux",
+            "includePath": [
+                "${defaultIncludes}"
+            ],
+            "defines": [
+                "${defaultDefines}"
+            ],
+            "compilerPath": "/usr/bin/clang++",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "linux-clang-x64"
+        }
+    ],
+    "version": 4
+}

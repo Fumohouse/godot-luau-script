@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "linux editor debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/bin/godot4",
+            "args": [
+                "-v",
+                "-e"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/test"
+        },
+        {
+            "name": "linux scene debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${userHome}/bin/godot4",
+            "args": [
+                "-v",
+                "main.tscn"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/test"
+        }
+    ]
+}
