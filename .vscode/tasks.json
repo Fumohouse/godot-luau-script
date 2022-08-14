@@ -16,6 +16,21 @@
             "problemMatcher": "$gcc"
         },
         {
+            "label": "build debug with bindings",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=debug",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "generate_luau_bindings=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
             "label": "build release",
             "type": "shell",
             "command": "scons",
@@ -25,6 +40,21 @@
                     "target=release",
                     "platform=linux",
                     "use_llvm=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build release with bindings",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=release",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "generate_luau_bindings=yes"
                 ]
             },
             "problemMatcher": "$gcc"
