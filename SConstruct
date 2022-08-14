@@ -1,6 +1,33 @@
 #!/usr/bin/env python
 
+import os
+from luau_binding_generator import scons_emit_files, scons_generate_bindings
+
 env = SConscript("../godot-cpp/SConstruct")
+env["ENV"]["TERM"] = os.environ["TERM"]  # clang colors
+
+# Using this option makes a warning. Too bad!
+opts = Variables([], ARGUMENTS)
+opts.Add(BoolVariable("generate_luau_bindings",
+         "Force generation of Luau bindings.", False))
+
+opts.Update(env)
+
+env.Append(BUILDERS={"GenerateLuauBindings": Builder(
+    action=scons_generate_bindings, emitter=scons_emit_files)})
+
+luau_bindings = env.GenerateLuauBindings(
+    env.Dir("."),
+    [
+        os.path.join(
+            os.getcwd(), "../godot-cpp/godot-headers/extension_api.json"),
+        os.path.join(
+            os.getcwd(), "../godot-cpp/godot-headers/godot/gdnative_interface.h")
+    ]
+)
+
+if env["generate_luau_bindings"]:
+    AlwaysBuild(luau_bindings)
 
 luau_dir = "extern/luau/"
 luau_includes = [
@@ -10,12 +37,16 @@ luau_includes = [
     "VM",
 ]
 
-env.Append(CPPPATH=["src/"])
-env.Append(CPPPATH=[luau_dir + subdir + "/include/" for subdir in luau_includes])
+env.Append(CPPPATH=[
+    "src/",
+    "gen/include/"
+] + [luau_dir + subdir + "/include/" for subdir in luau_includes])
 
 sources = Glob("src/*.cpp")
 for subdir in luau_includes:
     sources += Glob("{}{}/src/*.cpp".format(luau_dir, subdir))
+
+sources.extend([f for f in luau_bindings if str(f).endswith(".cpp")])
 
 if env["platform"] == "macos":
     library = env.SharedLibrary(

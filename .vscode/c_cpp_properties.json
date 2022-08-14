@@ -2,6 +2,7 @@
     "env": {
         "defaultIncludes": [
             "src/**",
+            "gen/include/",
             "extern/luau/Compiler/include/",
             "extern/luau/Ast/include/",
             "extern/luau/Common/include/",

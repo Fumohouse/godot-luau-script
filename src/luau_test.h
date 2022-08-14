@@ -39,7 +39,42 @@ protected:
     LUAU_TEST_STACK_OPS(float, number);
     LUAU_TEST_STACK_OPS(String, string);
 
+    // lol
+    LUAU_TEST_STACK_OPS(Vector2, vector2);
+    LUAU_TEST_STACK_OPS(Vector2i, vector2i);
+    LUAU_TEST_STACK_OPS(Rect2, rect2);
+    LUAU_TEST_STACK_OPS(Rect2i, rect2i);
+    LUAU_TEST_STACK_OPS(Vector3, vector3);
+    LUAU_TEST_STACK_OPS(Vector3i, vector3i);
+    LUAU_TEST_STACK_OPS(Transform2D, transform2D);
+    LUAU_TEST_STACK_OPS(Vector4, vector4);
+    LUAU_TEST_STACK_OPS(Vector4i, vector4i);
+    LUAU_TEST_STACK_OPS(Plane, plane);
+    LUAU_TEST_STACK_OPS(Quaternion, quaternion);
+    LUAU_TEST_STACK_OPS(AABB, aabb);
+    LUAU_TEST_STACK_OPS(Basis, basis);
+    LUAU_TEST_STACK_OPS(Transform3D, transform3D);
+    LUAU_TEST_STACK_OPS(Projection, projection);
+    LUAU_TEST_STACK_OPS(Color, color);
+    LUAU_TEST_STACK_OPS(StringName, string_name);
+    LUAU_TEST_STACK_OPS(NodePath, node_path);
+    LUAU_TEST_STACK_OPS(RID, rid);
+    LUAU_TEST_STACK_OPS(Callable, callable);
+    LUAU_TEST_STACK_OPS(Signal, signal);
+    LUAU_TEST_STACK_OPS(Dictionary, dictionary);
+    LUAU_TEST_STACK_OPS(Array, array);
+    LUAU_TEST_STACK_OPS(PackedByteArray, packed_byte_array);
+    LUAU_TEST_STACK_OPS(PackedInt32Array, packed_int32_array);
+    LUAU_TEST_STACK_OPS(PackedInt64Array, packed_int64_array);
+    LUAU_TEST_STACK_OPS(PackedFloat32Array, packed_float32_array);
+    LUAU_TEST_STACK_OPS(PackedFloat64Array, packed_float64_array);
+    LUAU_TEST_STACK_OPS(PackedStringArray, packed_string_array);
+    LUAU_TEST_STACK_OPS(PackedVector2Array, packed_vector2_array);
+    LUAU_TEST_STACK_OPS(PackedVector3Array, packed_vector3_array);
+    LUAU_TEST_STACK_OPS(PackedColorArray, packed_color_aray);
+
     void _set_top(int index);
+    bool _gc_step(int size);
 
 public:
     LuauTest();

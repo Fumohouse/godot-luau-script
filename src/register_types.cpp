@@ -23,6 +23,21 @@ using namespace godot;
 
     Requirements:
     - [ ] Binding of Godot APIs to Luau
+        - [ ] Binding of Variant builtins
+            - [ ] __index and __newindex
+            - [ ] Basic method binding to Luau
+            - [ ] Operators
+            - [ ] Special operators (not considered by Godot as operators, e.g. __len)
+            - [ ] Super special operators (not considered by Luau as operators, e.g. bitwise)
+            - [ ] __namecall support
+        - [ ] Binding of builtin Object classes
+            - [ ] __index and __newindex
+            - [ ] Basic method binding to Luau
+            - [ ] __namecall support
+        - [ ] Manual binding of GDExtension Object classes
+            - Push extension initialization earlier (SERVERS)
+            - Interface between extensions with a singleton and named method calls
+            - Create an interface source file/header which can be pulled into a GDExtension and used for convenience
     - [ ] Creation of custom classes in Luau, extending native classes
     - [ ] Extending/referencing custom Luau classes
     - Godot feature support:
