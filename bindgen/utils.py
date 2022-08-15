@@ -1,0 +1,40 @@
+import importlib.machinery
+import importlib.util
+
+from pathlib import Path
+from . import constants
+
+
+def write_file(path, lines):
+    with path.open("w+") as file:
+        file.write("\n".join(lines))
+
+
+def should_skip_class(class_name):
+    to_skip = ["Nil", "bool", "int", "float", "String"]
+
+    return class_name in to_skip
+
+
+def append(source, indent_level, line):
+    lines = [
+        constants.indent * indent_level + l if len(l) > 0 else ""
+        for l in line.split("\n")
+    ]
+    source.append("\n".join(lines))
+
+
+def load_cpp_binding_generator():
+    # lol
+
+    godot_cpp_path = Path(__file__).parent / \
+        "../../godot-cpp/binding_generator.py"
+
+    loader = importlib.machinery.SourceFileLoader("binding_generator",
+                                                  str(godot_cpp_path))
+
+    spec = importlib.util.spec_from_loader("binding_generator", loader)
+    binding_generator = importlib.util.module_from_spec(spec)
+    loader.exec_module(binding_generator)
+
+    return binding_generator
