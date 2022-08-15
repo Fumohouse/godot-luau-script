@@ -31,4 +31,9 @@ func _ready():
 	push_transform3D(test_transform)
 	assert_eq(get_transform3D(-1), test_transform)
 
+	const TEST_CONSTRUCTOR := "return Vector3(1, 2, 3)"
+	var result := exec(TEST_CONSTRUCTOR)
+	assert(result.status == OK)
+	assert_eq(get_vector3(-1), Vector3(1, 2, 3))
+
 	set_top(0)

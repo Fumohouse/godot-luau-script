@@ -3,6 +3,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/variant/builtin_types.hpp>
+#include <godot_cpp/classes/object.hpp>
 
 using namespace godot;
 
@@ -27,6 +28,26 @@ using namespace godot;
 LUA_BASIC_STACK_OP(bool, boolean, boolean);
 LUA_BASIC_STACK_OP(int, integer, number);
 LUA_BASIC_STACK_OP(float, number, number);
+
+/* FOR BINDINGS */
+
+// this is only a little bit shady. don't worry about it
+LUA_BASIC_STACK_OP(double, number, number);
+LUA_BASIC_STACK_OP(int64_t, number, number);
+
+// TODO: dummy stuff so it doesn't crash. do properly using variants.
+
+template <>
+bool LuaStackOp<Object *>::is(lua_State *L, int index)
+{
+    return false;
+}
+
+template <>
+Object *LuaStackOp<Object *>::get(lua_State *L, int index)
+{
+    return nullptr;
+}
 
 /* STRING */
 

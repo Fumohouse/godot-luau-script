@@ -75,6 +75,7 @@ protected:
 
     void _set_top(int index);
     bool _gc_step(int size);
+    Dictionary _exec(String source);
 
 public:
     LuauTest();

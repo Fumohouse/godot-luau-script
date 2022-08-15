@@ -1,7 +1,14 @@
 {
     "files.associations": {
         "stdexcept": "cpp",
-        "exception": "cpp"
+        "exception": "cpp",
+        "array": "cpp",
+        "compare": "cpp",
+        "functional": "cpp",
+        "ratio": "cpp",
+        "tuple": "cpp",
+        "type_traits": "cpp",
+        "utility": "cpp"
     },
     "files.exclude": {
         ".sconsign.dblite": true,
