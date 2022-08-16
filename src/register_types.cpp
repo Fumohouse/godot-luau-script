@@ -24,6 +24,7 @@ using namespace godot;
     Requirements:
     - [ ] Binding of Godot APIs to Luau
         - [ ] Binding of Variant builtins
+            - [x] Constructors
             - [ ] __index and __newindex
             - [ ] Basic method binding to Luau
             - [ ] Operators
@@ -31,6 +32,7 @@ using namespace godot;
             - [ ] Super special operators (not considered by Luau as operators, e.g. bitwise)
             - [ ] __namecall support
         - [ ] Binding of builtin Object classes
+            - [ ] Constructors
             - [ ] __index and __newindex
             - [ ] Basic method binding to Luau
             - [ ] __namecall support

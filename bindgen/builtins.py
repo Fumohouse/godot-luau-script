@@ -147,7 +147,6 @@ def generate_luau_builtins(src_dir, classes):
 void luaGD_openbuiltins(lua_State *L)
 {
     LUAGD_LOAD_GUARD(L, "_gdBuiltinsLoaded");
-    const char *meta_type_key = "__fortype";
 """)
 
     indent_level = 1
@@ -162,24 +161,12 @@ void luaGD_openbuiltins(lua_State *L)
         indent_level += 1
 
         metatable_name = constants.builtin_metatable_prefix + class_name
+
+        # Create tables
         append(src, indent_level,
-               f"const char *metatable_name = \"{metatable_name}\";")
+               f"luaGD_newlib(L, \"{class_name}\", \"{metatable_name}\");\n")
 
-        # Create metatable
-        append(src, indent_level, "luaL_newmetatable(L, metatable_name);")
-
-        # TODO
-
-        # Pop metatable
-        append(src, indent_level, "lua_pop(L, 1);\n")
-
-        # Create global table
-        append(src, indent_level, """\
-lua_newtable(L); // global table
-lua_createtable(L, 0, 3); // metatable
-lua_pushstring(L, metatable_name);
-lua_setfield(L, -2, meta_type_key);
-""")
+        # TODO: methods, fields, operators, namecall, etc.
 
         # Constructor
         if "constructors" in b_class:
@@ -193,10 +180,12 @@ lua_setfield(L, -2, meta_type_key);
 
         # TODO: methods on global table
 
+        # Set readonly for metatables. Global will be done by sandbox.
+        # Pop the 3 tables from the stack
         append(src, indent_level, f"""\
+lua_setreadonly(L, -3, true);
 lua_setreadonly(L, -1, true);
-lua_setmetatable(L, -2);
-lua_setglobal(L, \"{class_name}\");\
+lua_pop(L, 3);\
 """)
 
         indent_level -= 1

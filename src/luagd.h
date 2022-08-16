@@ -19,6 +19,8 @@
 
 lua_State *luaGD_newstate();
 
+void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name);
+
 template <typename T>
 void luaGD_push(lua_State *L, const T &value)
 {
