@@ -1,6 +1,7 @@
 from . import constants
 from . import utils
 from .utils import append
+from .ptrcall import generate_arg
 
 binding_generator = utils.load_cpp_binding_generator()
 
@@ -25,7 +26,7 @@ def generate_ctor_help_literal(class_name, constructors):
     return "\n".join([constants.indent + f"\"{line}\\n\"" for line in lines])
 
 
-def generate_builtin_constructor(class_name, constructors):
+def generate_builtin_constructor(class_name, constructors, builtin_classes):
     label_format = "gd_builtin_ctor_{}_{}"
 
     ctor = []
@@ -79,22 +80,14 @@ if (argc != {expected_arg_count})
                 arg_type = binding_generator.correct_type(argument["type"])
                 arg_name = "p_" + argument["name"]
 
-                encoded_arg, encoded_name = binding_generator.get_encoded_arg(
-                    arg_name, argument["type"], argument["meta"] if "meta" in argument else None)
-
-                if len(encoded_arg) > 0:
-                    encoded_arg = "\n" + \
-                        "\n".join([e[1:] for e in encoded_arg])
-                else:
-                    encoded_arg = ""
-
-                arg_names.append(encoded_name)
+                decl, call, name = generate_arg(
+                    arg_name, arg_type, idx, builtin_classes)
+                arg_names.append(name)
 
                 append(ctor, indent_level, f"""\
-if (!LuaStackOp<{arg_type}>::is(L, {idx}))
+{decl}
+if (!{call})
     {break_line}
-
-{arg_type} {arg_name} = LuaStackOp<{arg_type}>::get(L, {idx});{encoded_arg}
 """)
 
         # Allocate userdata & call constructor
@@ -140,6 +133,7 @@ def generate_luau_builtins(src_dir, classes):
 #include "luagd.h"
 #include "luagd_stack.h"
 #include "luagd_builtins_stack.gen.h"
+#include "luagd_ptrcall.gen.h"
 
 #include <lua.h>
 #include <lualib.h>
@@ -191,7 +185,8 @@ lua_setfield(L, -2, meta_type_key);
         if "constructors" in b_class:
             append(src, indent_level, generate_builtin_constructor(
                 class_name,
-                b_class["constructors"]))
+                b_class["constructors"],
+                classes))
 
             src.append("")
             append(src, indent_level, "lua_setfield(L, -2, \"__call\");\n")

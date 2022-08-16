@@ -6,6 +6,7 @@ from pathlib import Path
 
 from bindgen.stack_ops import generate_stack_ops
 from bindgen.builtins import generate_luau_builtins
+from bindgen.ptrcall import generate_ptrcall
 
 
 def scons_emit_files(target, source, env):
@@ -15,7 +16,11 @@ def scons_emit_files(target, source, env):
 
         # Stack
         env.File("gen/include/luagd_builtins_stack.gen.h"),
-        env.File("gen/src/luagd_builtins_stack.gen.cpp")
+        env.File("gen/src/luagd_builtins_stack.gen.cpp"),
+
+        # Ptrcall
+        env.File("gen/include/luagd_ptrcall.gen.h"),
+        env.File("gen/src/luagd_ptrcall.gen.cpp"),
     ]
 
     env.Clean(files, target)
@@ -45,5 +50,6 @@ def scons_generate_bindings(target, source, env):
 
     generate_stack_ops(src_dir, include_dir, builtin_classes)
     generate_luau_builtins(src_dir, builtin_classes)
+    generate_ptrcall(src_dir, include_dir)
 
     return None

@@ -32,6 +32,11 @@ template class LuaStackOp<String>;
 /* FOR BINDINGS */
 
 template class LuaStackOp<double>;
+template class LuaStackOp<int8_t>;
+template class LuaStackOp<uint8_t>;
+template class LuaStackOp<int16_t>;
+template class LuaStackOp<uint16_t>;
+template class LuaStackOp<uint32_t>;
 template class LuaStackOp<int64_t>;
 template class LuaStackOp<Object *>;
 

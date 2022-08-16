@@ -33,6 +33,11 @@ LUA_BASIC_STACK_OP(float, number, number);
 
 // this is only a little bit shady. don't worry about it
 LUA_BASIC_STACK_OP(double, number, number);
+LUA_BASIC_STACK_OP(int8_t, number, number);
+LUA_BASIC_STACK_OP(uint8_t, unsigned, number);
+LUA_BASIC_STACK_OP(int16_t, number, number);
+LUA_BASIC_STACK_OP(uint16_t, unsigned, number);
+LUA_BASIC_STACK_OP(uint32_t, unsigned, number);
 LUA_BASIC_STACK_OP(int64_t, number, number);
 
 // TODO: dummy stuff so it doesn't crash. do properly using variants.

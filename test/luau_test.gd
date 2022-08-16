@@ -36,4 +36,9 @@ func _ready():
 	assert(result.status == OK)
 	assert_eq(get_vector3(-1), Vector3(1, 2, 3))
 
+	const TEST_REF_CONSTRUCTOR := "return Vector3(Vector3i(1, 2, 3))"
+	var result2 := exec(TEST_REF_CONSTRUCTOR)
+	assert(result2.status == OK)
+	assert_eq(get_vector3(-1), Vector3(1, 2, 3))
+
 	set_top(0)
