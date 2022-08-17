@@ -54,6 +54,18 @@ Object *LuaStackOp<Object *>::get(lua_State *L, int index)
     return nullptr;
 }
 
+template <>
+Object *LuaStackOp<Object *>::check(lua_State *L, int index)
+{
+    luaL_error(L, "Object stack operations are not supported yet");
+}
+
+template <>
+void LuaStackOp<Object *>::push(lua_State *L, Object *const &value)
+{
+    luaL_error(L, "Object stack operations are not supported yet");
+}
+
 /* STRING */
 
 template <>

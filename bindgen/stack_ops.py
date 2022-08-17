@@ -1,5 +1,8 @@
 from . import constants
-from .utils import should_skip_class, write_file
+from . import utils
+from .utils import should_skip_class, write_file, append
+
+binding_generator = utils.load_cpp_binding_generator()
 
 
 def generate_stack_ops(src_dir, include_dir, classes):
@@ -9,6 +12,11 @@ def generate_stack_ops(src_dir, include_dir, classes):
     src.append("""\
 #include "luagd_stack.h"
 #include "luagd_builtins_stack.gen.h"
+
+#include <lualib.h>
+#include <cmath>
+#include <godot_cpp/variant/builtin_types.hpp>
+#include <godot_cpp/variant/variant.hpp>
 """)
 
     header.append("""\
@@ -17,15 +25,15 @@ def generate_stack_ops(src_dir, include_dir, classes):
 #include "luagd_stack.h"
 
 #include <godot_cpp/variant/builtin_types.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 using namespace godot;
 """)
 
-    for b_class in classes:
-        class_name = b_class["name"]
-        if should_skip_class(class_name):
-            continue
+    classes_filtered = [b_class for b_class in classes if not should_skip_class(b_class["name"])]
 
+    for b_class in classes_filtered:
+        class_name = b_class["name"]
         metatable_name = constants.builtin_metatable_prefix + class_name
 
         if "has_destructor" in b_class and b_class["has_destructor"]:
@@ -36,6 +44,121 @@ using namespace godot;
                 f"LUA_UDATA_STACK_OP({class_name}, {metatable_name}, NO_DTOR);")
 
         header.append(f"template class LuaStackOp<{class_name}>;")
+
+    # Variant
+
+    indent_level = 0
+
+    # TODO: The Object case is not handled yet! That's bad!
+
+    # push
+    src.append("""\
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wswitch"
+
+template <>
+void LuaStackOp<Variant>::push(lua_State *L, const Variant &value)
+{
+    switch (value.get_type())
+    {
+        case Variant::Type::NIL:
+            lua_pushnil(L);
+            return;
+
+        case Variant::Type::BOOL:
+            lua_pushboolean(L, value.operator bool());
+            return;
+
+        case Variant::Type::INT:
+            lua_pushinteger(L, value.operator int());
+            return;
+
+        case Variant::Type::FLOAT:
+            lua_pushnumber(L, value.operator float());
+            return;
+
+        case Variant::Type::STRING:
+            LuaStackOp<String>::push(L, value.operator String());
+            return;
+""")
+
+    indent_level += 2
+
+    for b_class in classes_filtered:
+        class_name = b_class["name"]
+        class_snake = binding_generator.camel_to_snake(class_name).upper()
+
+        append(src, indent_level, f"""\
+case Variant::Type::{class_snake}:
+    LuaStackOp<{class_name}>::push(L, value.operator {class_name}());
+    return;\
+""")
+
+        if b_class != classes_filtered[-1]:
+            src.append("")
+
+    indent_level -= 2
+
+    src.append("""\
+    }
+}
+
+#pragma GCC diagnostic pop
+""")
+
+    # get
+    src.append("""\
+template <>
+Variant LuaStackOp<Variant>::get(lua_State *L, int index)
+{
+    if (lua_isnil(L, index))
+        return Variant();
+
+    if (lua_isboolean(L, index))
+        return Variant(lua_toboolean(L, index));
+
+    // TODO: this is rather frail...
+    if (lua_isnumber(L, index))
+    {
+        double value = lua_tonumber(L, index);
+        double int_part;
+
+        if (std::modf(value, &int_part) == 0.0)
+            return Variant(lua_tointeger(L, index));
+        else
+            return Variant(value);
+    }
+
+    if (lua_isstring(L, index))
+        return Variant(LuaStackOp<String>::get(L, index));
+""")
+
+    indent_level += 1
+
+    for b_class in classes_filtered:
+        class_name = b_class["name"]
+
+        append(src, indent_level, f"""\
+if (LuaStackOp<{class_name}>::is(L, index))
+    return Variant(LuaStackOp<{class_name}>::get(L, index));
+""")
+
+    indent_level -= 1
+    src.append("""\
+    luaL_error(L, "stack position %d: expected Variant-compatible type, got %s", index, lua_typename(L, lua_type(L, index)));
+}\
+""")
+
+    # check
+    src.append("""
+template <>
+Variant LuaStackOp<Variant>::check(lua_State *L, int index)
+{
+    return LuaStackOp<Variant>::get(L, index);
+}
+""")
+
+    header.append("\ntemplate class LuaStackOp<Variant>;")
 
     # Save
     write_file(src_dir / "luagd_builtins_stack.gen.cpp", src)

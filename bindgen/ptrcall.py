@@ -24,26 +24,55 @@ conv_types = [
 ]
 
 
+def use_ptr(class_name, builtin_classes):
+    return not utils.should_skip_class(class_name) and (True in [class_name == b_class["name"] for b_class in builtin_classes])
+
+
 def generate_arg(arg_name, arg_type, index, builtin_classes):
     correct_type = binding_generator.correct_type(arg_type)
-    call = f"LuaPtrcallArg<{correct_type}>::get(L, {index}, &{arg_name})"
 
     if correct_type.endswith("*"):
         decl = f"void *{arg_name};"
+        call = f"LuaPtrcallArg<{correct_type}>::get_obj(L, {index}, &{arg_name})"
 
-        return (decl, call, arg_name)
-    elif not utils.should_skip_class(correct_type) and (True in [correct_type == b_class["name"] for b_class in builtin_classes]):
+        return decl, call, arg_name
+    elif use_ptr(correct_type, builtin_classes):
         decl = f"{correct_type} *{arg_name};"
         call = f"LuaPtrcallArg<{correct_type} *>::get(L, {index}, &{arg_name})"
 
-        return (decl, call, arg_name)
+        return decl, call, arg_name
     else:
         enc_type = binding_generator.get_gdnative_type(correct_type)
 
         decl = f"{enc_type} {arg_name};"
+        call = f"LuaPtrcallArg<{correct_type}>::get(L, {index}, &{arg_name})"
         name = f"&{arg_name}"
 
-        return (decl, call, name)
+        return decl, call, name
+
+
+def generate_arg_required(arg_name, arg_type, index, builtin_classes):
+    correct_type = binding_generator.correct_type(arg_type)
+    call = f"LuaPtrcallArg<{correct_type}>::check(L, {index})"
+
+    if correct_type.endswith("*"):
+        decl = f"void *{arg_name} = {call};"
+        varcall = f"Variant((Object *){arg_name})"
+
+        return decl, arg_name, varcall
+    elif use_ptr(correct_type, builtin_classes):
+        decl = f"{correct_type} *{arg_name} = LuaPtrcallArg<{correct_type} *>::check(L, {index});"
+        varcall = f"Variant(*{arg_name})"
+
+        return decl, arg_name, varcall
+    else:
+        enc_type = binding_generator.get_gdnative_type(correct_type)
+
+        decl = f"{enc_type} {arg_name} = {call};"
+        name = f"&{arg_name}"
+        varcall = f"Variant({arg_name})"
+
+        return decl, name, varcall
 
 
 def generate_ptrcall(src_dir, include_dir):
@@ -82,6 +111,11 @@ public:
 
         return true;
     }
+
+    static T check(lua_State *L, int index)
+    {
+        return LuaStackOp<T>::check(L, index);
+    }
 };
 
 template <typename T>
@@ -99,8 +133,13 @@ public:
         return true;
     }
 
+    static T *check(lua_State *L, int index)
+    {
+        return LuaStackOp<T>::check_ptr(L, index);
+    }
+
     // Objects
-    static bool get(lua_State *L, int index, void **ptr)
+    static bool get_obj(lua_State *L, int index, void **ptr)
     {
         if (!LuaStackOp<Object *>::is(L, index))
             return false;
@@ -109,6 +148,11 @@ public:
         *ptr = obj->_owner;
 
         return true;
+    }
+
+    static void *check_obj(lua_State *L, int index)
+    {
+        return LuaStackOp<Object *>::check(L, index)->_owner;
     }
 };
 """)
@@ -129,6 +173,14 @@ bool LuaPtrcallArg<{c_type}>::get(lua_State *L, int index, {enc_type} *ptr)
 
     return true;
 }}
+
+{enc_type} LuaPtrcallArg<{c_type}>::check(lua_State *L, int index)
+{{
+    {enc_type} encoded;
+    PtrToArg<{c_type}>::encode(LuaStackOp<{c_type}>::check(L, index), &encoded);
+
+    return encoded;
+}}
 """)
 
         header.append(f"""\
@@ -137,6 +189,7 @@ class LuaPtrcallArg<{c_type}>
 {{
 public:
     static bool get(lua_State *L, int index, {enc_type} *ptr);
+    static {enc_type} check(lua_State *L, int index);
 }};
 """)
 

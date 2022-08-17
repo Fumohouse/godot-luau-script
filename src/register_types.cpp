@@ -26,11 +26,11 @@ using namespace godot;
         - [ ] Binding of Variant builtins
             - [x] Constructors
             - [ ] __index and __newindex
-            - [ ] Basic method binding to Luau
+            - [x] Basic method binding to Luau
             - [ ] Operators
             - [ ] Special operators (not considered by Godot as operators, e.g. __len)
             - [ ] Super special operators (not considered by Luau as operators, e.g. bitwise)
-            - [ ] __namecall support
+            - [x] __namecall support
         - [ ] Binding of builtin Object classes
             - [ ] Constructors
             - [ ] __index and __newindex

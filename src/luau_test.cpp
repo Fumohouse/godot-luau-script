@@ -35,6 +35,11 @@ bool LuauTest::_gc_step(int size)
     return lua_gc(L, LUA_GCSTEP, size);
 }
 
+void LuauTest::_set_global(String key)
+{
+    lua_setglobal(L, key.utf8().get_data());
+}
+
 Dictionary LuauTest::_exec(String source)
 {
     Luau::CompileOptions opts;
@@ -119,5 +124,6 @@ void LuauTest::_bind_methods()
     ClassDB::bind_method(D_METHOD("set_top", "index"), &LuauTest::_set_top);
     ClassDB::bind_method(D_METHOD("gc_step", "size"), &LuauTest::_gc_step);
     ClassDB::bind_method(D_METHOD("exec", "source"), &LuauTest::_exec);
+    ClassDB::bind_method(D_METHOD("set_global", "key"), &LuauTest::_set_global);
 }
 #endif // DEBUG_ENABLED

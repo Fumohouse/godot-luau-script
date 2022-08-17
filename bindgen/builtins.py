@@ -1,7 +1,7 @@
 from . import constants
 from . import utils
 from .utils import append
-from .ptrcall import generate_arg
+from .ptrcall import generate_arg, generate_arg_required
 
 binding_generator = utils.load_cpp_binding_generator()
 
@@ -26,7 +26,7 @@ def generate_ctor_help_literal(class_name, constructors):
     return "\n".join([constants.indent + f"\"{line}\\n\"" for line in lines])
 
 
-def generate_builtin_constructor(class_name, constructors, builtin_classes):
+def generate_builtin_constructor(class_name, variant_type, constructors, builtin_classes):
     label_format = "gd_builtin_ctor_{}_{}"
 
     ctor = []
@@ -59,9 +59,6 @@ def generate_builtin_constructor(class_name, constructors, builtin_classes):
         indent_level += 1
 
         # Get constructor info
-        variant_type = "GDNATIVE_VARIANT_TYPE_" + \
-            binding_generator.camel_to_snake(class_name).upper()
-
         append(ctor, indent_level,
                "static GDNativePtrConstructor __constructor = " +
                f"internal::gdn_interface->variant_get_ptr_constructor({variant_type}, {index});\n")
@@ -124,6 +121,127 @@ luaL_error(
     return "\n".join(ctor)
 
 
+def snake_to_pascal(snake):
+    segments = [s[0].upper() + s[1:] for s in snake.split("_")]
+    return "".join(segments)
+
+
+def generate_method(class_name, variant_type, method, builtin_classes):
+    method_name = method["name"]
+    method_hash = method["hash"]
+    is_static = method["is_static"]
+    is_vararg = method["is_vararg"]
+
+    src = []
+
+    map_name = "__static_funcs" if is_static else "__methods"
+
+    src.append(f"""\
+{map_name}["{snake_to_pascal(method_name)}"] = [](lua_State *L) -> int
+{{\
+""")
+
+    indent_level = 1
+
+    append(src, indent_level, "static GDNativePtrBuiltInMethod __method = " +
+           f"internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, \"{method_name}\", {method_hash});\n")
+
+    arg_start_index = 1
+    required_argc = 0
+
+    self_name = "nullptr"
+
+    if not is_static:
+        arg_start_index = 2
+        decl, arg_name, varcall = generate_arg_required(
+            "self", class_name, 1, builtin_classes
+        )
+
+        self_name = arg_name
+
+        append(src, indent_level, decl + "\n")
+
+    append(src, indent_level, f"""\
+int argc = lua_gettop(L);
+
+Vector<GDNativeTypePtr> args;
+args.resize(argc - {arg_start_index - 1});
+""")
+
+    if is_vararg:
+        append(src, indent_level, f"""\
+Vector<Variant> varargs;
+varargs.resize(argc - {arg_start_index - 1});
+""")
+
+    if "arguments" in method:
+        arguments = method["arguments"]
+        required_argc = len(arguments)
+
+        arg_index = arg_start_index
+
+        for argument in arguments:
+            decl, arg_name, varcall = generate_arg_required(
+                # for some reason one method name has a space at the beginning
+                "p_" + argument["name"].strip(), argument["type"], arg_index, builtin_classes)
+
+            append(src, indent_level, decl)
+
+            if is_vararg:
+                vararg_index = arg_index - arg_start_index
+
+                append(src, indent_level, f"""\
+varargs.set({vararg_index}, {varcall});
+
+const Variant &val = varargs.get({vararg_index});
+args.set({vararg_index}, (void *)&val);
+""")
+            else:
+                append(src, indent_level,
+                       f"args.set({arg_index - arg_start_index}, {arg_name});\n")
+
+            arg_index += 1
+
+    if is_vararg:
+        append(src, indent_level, f"""\
+for (int i = {((arg_start_index - 1) + required_argc) + 1}; i <= argc; i++)
+{{
+    varargs.set(i - {arg_start_index}, LuaStackOp<Variant>::get(L, i));
+
+    const Variant &val = varargs.get(i - {arg_start_index});
+    args.set(i - {arg_start_index}, (void *)&val);
+}}
+""")
+
+    # Call
+    return_type = None
+    ret_ptr_name = "nullptr"
+
+    if "return_type" in method:
+        return_type = method["return_type"]
+        return_type = binding_generator.correct_type(return_type)
+
+        append(src, indent_level, f"{return_type} ret;")
+        ret_ptr_name = "&ret"
+
+    append(src, indent_level,
+           f"__method({self_name}, args.ptr(), {ret_ptr_name}, args.size());")
+
+    if return_type:
+        append(src, indent_level, f"""\
+LuaStackOp<{return_type}>::push(L, ret);
+
+return 1;\
+""")
+    else:
+        append(src, indent_level, "\nreturn 0;")
+
+    indent_level -= 1
+    src.append("};")
+
+    return "\n".join(src)
+
+
 def generate_luau_builtins(src_dir, classes):
     src = [constants.header_comment, ""]
 
@@ -135,6 +253,8 @@ def generate_luau_builtins(src_dir, classes):
 #include "luagd_builtins_stack.gen.h"
 #include "luagd_ptrcall.gen.h"
 
+#include <string>
+#include <unordered_map>
 #include <lua.h>
 #include <lualib.h>
 #include <godot/gdnative_interface.h>
@@ -143,6 +263,59 @@ def generate_luau_builtins(src_dir, classes):
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/core/method_ptrcall.hpp>
 #include <godot_cpp/core/builtin_ptrcall.hpp>
+#include <godot_cpp/templates/vector.hpp>
+
+typedef std::unordered_map<std::string, lua_CFunction> MethodMap;
+
+static MethodMap *luaGD_getmethodmap(lua_State *L, int index)
+{
+    return reinterpret_cast<MethodMap *>(
+        lua_tolightuserdata(L, lua_upvalueindex(index))
+    );
+}
+
+static int luaGD_builtin_namecall(lua_State *L)
+{
+    const char *class_name =
+        lua_tostring(L, lua_upvalueindex(1));
+
+    MethodMap *methods = luaGD_getmethodmap(L, 2);
+
+    if (const char *name = lua_namecallatom(L, nullptr))
+    {
+        if (methods->count(name) > 0)
+            return (methods->at(name))(L);
+
+        luaL_error(L, "%s is not a valid method of %s", name, class_name);
+    }
+
+    luaL_error(L, "no namecallatom");
+}
+
+static int luaGD_builtin_global_index(lua_State *L)
+{
+    const char *class_name =
+        lua_tostring(L, lua_upvalueindex(1));
+
+    MethodMap *statics = luaGD_getmethodmap(L, 2);
+    MethodMap *methods = luaGD_getmethodmap(L, 3);
+
+    const char *key = luaL_checkstring(L, 2);
+
+    if (statics->count(key) > 0)
+    {
+        lua_pushcfunction(L, statics->at(key), key);
+        return 1;
+    }
+
+    if (methods->count(key) > 0)
+    {
+        lua_pushcfunction(L, methods->at(key), key);
+        return 1;
+    }
+
+    luaL_error(L, "%s is not a valid member of %s", key, class_name);
+}
 
 void luaGD_openbuiltins(lua_State *L)
 {
@@ -153,6 +326,8 @@ void luaGD_openbuiltins(lua_State *L)
 
     for b_class in classes:
         class_name = b_class["name"]
+        variant_type = "GDNATIVE_VARIANT_TYPE_" + \
+            binding_generator.camel_to_snake(class_name).upper()
 
         if utils.should_skip_class(class_name):
             continue
@@ -166,19 +341,61 @@ void luaGD_openbuiltins(lua_State *L)
         append(src, indent_level,
                f"luaGD_newlib(L, \"{class_name}\", \"{metatable_name}\");\n")
 
-        # TODO: methods, fields, operators, namecall, etc.
+        # Methods - Initialization
+        if "methods" in b_class:
+            # TODO: May want to use Godot's HashMap, except right now the godot-cpp version doesn't compile
+
+            append(src, indent_level, """\
+// Methods
+static MethodMap __static_funcs;
+static MethodMap __methods;
+
+if (__static_funcs.empty() && __methods.empty())
+{\
+""")
+
+            indent_level += 1
+
+            methods = b_class["methods"]
+            for method in methods:
+                append(src, indent_level, generate_method(
+                    class_name, variant_type, method, classes))
+
+                if method != methods[-1]:
+                    src.append("")
+
+            indent_level -= 1
+            append(src, indent_level, "}\n")
+
+            # __namecall
+            append(src, indent_level, f"""\
+lua_pushstring(L, "{class_name}");
+lua_pushlightuserdata(L, &__methods);
+lua_pushcclosure(L, luaGD_builtin_namecall, "{metatable_name}.__namecall", 2);
+lua_setfield(L, -4, "__namecall");
+""")
+
+        # TODO: fields, operators, namecall, etc.
 
         # Constructor
         if "constructors" in b_class:
             append(src, indent_level, generate_builtin_constructor(
                 class_name,
+                variant_type,
                 b_class["constructors"],
                 classes))
 
             src.append("")
             append(src, indent_level, "lua_setfield(L, -2, \"__call\");\n")
 
-        # TODO: methods on global table
+        # Index
+        append(src, indent_level, f"""\
+lua_pushstring(L, "{class_name}");
+lua_pushlightuserdata(L, &__static_funcs);
+lua_pushlightuserdata(L, &__methods);
+lua_pushcclosure(L, luaGD_builtin_global_index, "{class_name}.__index", 3);
+lua_setfield(L, -2, "__index");
+""")
 
         # Set readonly for metatables. Global will be done by sandbox.
         # Pop the 3 tables from the stack
