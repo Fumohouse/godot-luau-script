@@ -52,7 +52,7 @@ using namespace godot;
     # TODO: The Object case is not handled yet! That's bad!
 
     # push
-    src.append("""\
+    src.append("""
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
 
@@ -88,9 +88,15 @@ void LuaStackOp<Variant>::push(lua_State *L, const Variant &value)
         class_name = b_class["name"]
         class_snake = binding_generator.camel_to_snake(class_name).upper()
 
+        operator_name = class_name
+
+        # Fixes VSCode errors with certain operators
+        if class_name == "RID" or class_name == "AABB":
+            operator_name = "godot::" + class_name
+
         append(src, indent_level, f"""\
 case Variant::Type::{class_snake}:
-    LuaStackOp<{class_name}>::push(L, value.operator {class_name}());
+    LuaStackOp<{class_name}>::push(L, value.operator {operator_name}());
     return;\
 """)
 

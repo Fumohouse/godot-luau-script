@@ -25,6 +25,8 @@ using namespace godot;
     - [ ] Binding of Godot APIs to Luau
         - [ ] Binding of Variant builtins
             - [x] Constructors
+            - [ ] Constants
+            - [ ] Enums
             - [ ] __index and __newindex
             - [x] Basic method binding to Luau
             - [ ] Operators
@@ -33,6 +35,8 @@ using namespace godot;
             - [x] __namecall support
         - [ ] Binding of builtin Object classes
             - [ ] Constructors
+            - [ ] Constants
+            - [ ] Enums
             - [ ] __index and __newindex
             - [ ] Basic method binding to Luau
             - [ ] __namecall support

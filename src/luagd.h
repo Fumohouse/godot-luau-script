@@ -2,9 +2,14 @@
 
 #include <lua.h>
 #include <cstdlib>
+#include <unordered_map>
+#include <string>
 
 #include "luagd_stack.h"
 #include "luagd_builtins_stack.gen.h" // this is just a little bit janky
+
+// TODO: May want to use Godot's HashMap, except right now the godot-cpp version doesn't compile
+typedef std::unordered_map<std::string, lua_CFunction> MethodMap;
 
 #define LUAGD_LOAD_GUARD(L, key)             \
     lua_getfield(L, LUA_REGISTRYINDEX, key); \
