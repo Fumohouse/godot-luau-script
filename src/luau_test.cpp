@@ -119,7 +119,9 @@ void LuauTest::_bind_methods()
     LUAU_TEST_BIND_STACK_OPS(packed_string_array);
     LUAU_TEST_BIND_STACK_OPS(packed_vector2_array);
     LUAU_TEST_BIND_STACK_OPS(packed_vector3_array);
-    LUAU_TEST_BIND_STACK_OPS(packed_color_aray);
+    LUAU_TEST_BIND_STACK_OPS(packed_color_array);
+
+    LUAU_TEST_BIND_STACK_OPS(variant);
 
     ClassDB::bind_method(D_METHOD("set_top", "index"), &LuauTest::_set_top);
     ClassDB::bind_method(D_METHOD("gc_step", "size"), &LuauTest::_gc_step);

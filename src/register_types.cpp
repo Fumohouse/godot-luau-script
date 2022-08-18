@@ -27,7 +27,7 @@ using namespace godot;
             - [x] Constructors
             - [ ] Constants
             - [ ] Enums
-            - [ ] __index and __newindex
+            - [x] __index and __newindex
             - [x] Basic method binding to Luau
             - [ ] Operators
             - [ ] Special operators (not considered by Godot as operators, e.g. __len)
@@ -72,6 +72,8 @@ using namespace godot;
 
 /*
     Design considerations
+
+    ! Is it advisable to disable setters on Vectors, Transforms, etc? Nothing in Lua is passed by value
 
     - Sandboxing:
         - Unsafe Godot APIs (OS, File, etc.) MUST be restricted to certain privileged, trusted scripts (that is the whole point!!!)

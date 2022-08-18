@@ -71,7 +71,9 @@ protected:
     LUAU_TEST_STACK_OPS(PackedStringArray, packed_string_array);
     LUAU_TEST_STACK_OPS(PackedVector2Array, packed_vector2_array);
     LUAU_TEST_STACK_OPS(PackedVector3Array, packed_vector3_array);
-    LUAU_TEST_STACK_OPS(PackedColorArray, packed_color_aray);
+    LUAU_TEST_STACK_OPS(PackedColorArray, packed_color_array);
+
+    LUAU_TEST_STACK_OPS(Variant, variant);
 
     void _set_top(int index);
     bool _gc_step(int size);

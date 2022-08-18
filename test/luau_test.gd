@@ -10,7 +10,16 @@ func assert_eq(got: Variant, expected: Variant):
 		assert(got == expected)
 
 
-func _ready():
+func assert_eval_eq(src: String, expected: Variant):
+	var result := exec(src)
+	if result.has("error"):
+		push_error("Luau Error: ", result.error)
+
+	assert(result.status == OK)
+	assert_eq(get_variant(-1), expected)
+
+
+func _test_stack_ops():
 	const TEST_BOOL := true
 	push_boolean(TEST_BOOL)
 	assert_eq(get_boolean(-1), TEST_BOOL)
@@ -31,26 +40,41 @@ func _ready():
 	push_transform3D(test_transform)
 	assert_eq(get_transform3D(-1), test_transform)
 
-	var result := exec("return Vector3(1, 2, 3)")
-	assert(result.status == OK)
-	assert_eq(get_vector3(-1), Vector3(1, 2, 3))
+	set_top(0)
 
-	var result2 := exec("return Vector3(Vector3i(1, 2, 3))")
-	assert(result2.status == OK)
-	assert_eq(get_vector3(-1), Vector3(1, 2, 3))
 
-	var result3 = exec("return Vector2(1, 2):Dot(Vector2(1, 2))")
-	assert(result3.status == OK)
-	assert_eq(get_number(-1), 5)
+func _test_builtins():
+	# constructor
+	assert_eval_eq("return Vector3(1, 2, 3)", Vector3(1, 2, 3))
 
-	var result4 = exec("return Vector2.Dot(Vector2(3, 4), Vector2(5, 6))")
-	assert(result4.status == OK)
-	assert_eq(get_number(-1), 39)
+	# constructor w/ other builtin
+	assert_eval_eq("return Vector3(Vector3i(4, 5, 6))", Vector3(4, 5, 6))
 
-	var result5 = exec("return Vector2.FromAngle(5)")
-	assert(result5.status == OK)
-	assert_eq(get_vector2(-1), Vector2.from_angle(5))
+	# method
+	assert_eval_eq("return Vector2(1, 2):Dot(Vector2(1, 2))", 5)
 
+	# method invoked from global table
+	assert_eval_eq("return Vector2.Dot(Vector2(3, 4), Vector2(5, 6))", 39)
+
+	# static function
+	assert_eval_eq("return Vector2.FromAngle(5)", Vector2.from_angle(5))
+
+	# member access
+	assert_eval_eq("return Vector2(123, 456).y", 456)
+
+	# index access
+	assert_eval_eq("return Vector2(123, 456)[2]", 456)
+
+	# member/index set
+	assert_eval_eq("""\
+local a = Vector2(1, 2)
+a.x = 3
+a[2] = 4
+
+return a
+""", Vector2(3, 4))
+
+	# varargs (not working)
 	"""
 	var a: int
 	const A := 1
@@ -78,3 +102,8 @@ func _ready():
 	"""
 
 	set_top(0)
+
+
+func _ready():
+	_test_stack_ops()
+	_test_builtins()

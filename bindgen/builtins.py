@@ -335,6 +335,164 @@ lua_pushcclosure(L, luaGD_builtin_namecall, "{metatable_name}.__namecall", 2);
 lua_setfield(L, -4, "__namecall");
 """)
 
+        # __index
+        has_members = "members" in b_class
+        has_indexer = "indexing_return_type" in b_class
+
+        # TODO: Keying is kind of suspicious. is_keyed is set true for most builtin types
+        #       yet it seems that setters/getters are registered only for Object/Variant.
+        #       Also, key/return type is not indicated anywhere and it isn't really safe to assume Variant.
+        #is_keyed = b_class["is_keyed"]
+
+        if has_members or has_indexer:
+            decl, arg_name, varcall = generate_arg_required(
+                "self", class_name, 1, classes)
+
+            append(src, indent_level, f"""\
+lua_pushcfunction(L, [](lua_State *L) -> int
+{{
+    {decl}
+    Variant key = LuaStackOp<Variant>::check(L, 2);\
+""")
+            indent_level += 1
+
+            # Member access
+            if has_members:
+                members = b_class["members"]
+
+                append(src, indent_level, """
+if (key.get_type() == Variant::Type::STRING)
+{
+    String key_str = key;
+""")
+                indent_level += 1
+
+                for member in members:
+                    member_name = member["name"]
+                    member_correct_type = binding_generator.correct_type(
+                        member["type"])
+
+                    append(src, indent_level, f"""\
+if (key_str == "{member_name}")
+{{
+    static GDNativePtrGetter __getter = internal::gdn_interface->variant_get_ptr_getter({variant_type}, "{member_name}");
+
+    {member_correct_type} ret;
+    __getter({arg_name}, &ret);
+
+    LuaStackOp<{member_correct_type}>::push(L, ret);
+    return 1;
+}}\
+""")
+
+                    if member != members[-1]:
+                        src.append("")
+
+                indent_level -= 1
+                append(src, indent_level, "}")
+
+            # Index access
+            if has_indexer:
+                indexer_type = binding_generator.correct_type(
+                    b_class["indexing_return_type"])
+
+                append(src, indent_level, f"""
+if (key.get_type() == Variant::Type::INT)
+{{
+    static GDNativePtrIndexedGetter __getter = internal::gdn_interface->variant_get_ptr_indexed_getter({variant_type});
+
+    {indexer_type} ret;
+    __getter({arg_name}, key.operator int64_t() - 1, &ret);
+
+    LuaStackOp<{indexer_type}>::push(L, ret);
+    return 1;
+}}\
+""")
+
+            indent_level -= 1
+            append(src, indent_level, f"""
+    luaL_error(L, "%s is not a valid member of {class_name}", key.operator String().utf8().get_data());
+}}, "{metatable_name}.__index");
+
+lua_setfield(L, -4, "__index");
+""")
+
+        # __newindex
+        if has_members or has_indexer:
+            decl, arg_name, varcall = generate_arg_required(
+                "self", class_name, 1, classes)
+
+            append(src, indent_level, f"""\
+lua_pushcfunction(L, [](lua_State *L) -> int
+{{
+    {decl}
+    Variant key = LuaStackOp<Variant>::check(L, 2);\
+""")
+
+            indent_level += 1
+
+            # Member set
+            if has_members:
+                members = b_class["members"]
+
+                append(src, indent_level, """
+if (key.get_type() == Variant::Type::STRING)
+{
+    String key_str = key;
+""")
+
+                indent_level += 1
+
+                for member in members:
+                    member_name = member["name"]
+
+                    val_decl, val_name, val_varcall = generate_arg_required(
+                        "value", member["type"], 3, classes)
+
+                    append(src, indent_level, f"""\
+if (key_str == "{member_name}")
+{{
+    static GDNativePtrSetter __setter = internal::gdn_interface->variant_get_ptr_setter({variant_type}, "{member_name}");
+
+    {val_decl}
+    __setter({arg_name}, {val_name});
+    return 0;
+}}\
+""")
+
+                    if member != members[-1]:
+                        src.append("")
+
+                indent_level -= 1
+                append(src, indent_level, "}")
+
+            # Index set
+            if has_indexer:
+                indexer_type = binding_generator.correct_type(
+                    b_class["indexing_return_type"])
+
+                val_decl, val_name, val_varcall = generate_arg_required(
+                    "value", indexer_type, 3, classes)
+
+                append(src, indent_level, f"""
+if (key.get_type() == Variant::Type::INT)
+{{
+    static GDNativePtrIndexedSetter __setter = internal::gdn_interface->variant_get_ptr_indexed_setter({variant_type});
+
+    {val_decl}
+    __setter({arg_name}, key.operator int64_t() - 1, {val_name});
+    return 0;
+}}\
+""")
+
+            indent_level -= 1
+            append(src, indent_level, f"""
+    luaL_error(L, "%s is not a valid member of {class_name}", key.operator String().utf8().get_data());
+}}, "{metatable_name}.__newindex");
+
+lua_setfield(L, -4, "__newindex");
+""")
+
         # TODO: fields, operators, etc.
 
         # Constructor
