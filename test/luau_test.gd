@@ -93,6 +93,18 @@ return a
 
 	assert_eval_eq("return #testArr", arr.size())
 
+	# constants
+	assert_eval_eq("return Vector2.ONE", Vector2.ONE)
+
+	# constants are pushed anew each time
+	assert_eval_eq("""\
+Vector2.ONE.x = 0
+return Vector2.ONE
+""", Vector2.ONE)
+
+	# enums
+	assert_eval_eq("return Vector3.Axis.AXIS_Z", 2)
+
 	# varargs (not working)
 	"""
 	var a: int

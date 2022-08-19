@@ -23,14 +23,7 @@ using namespace godot;
 
     Requirements:
     - [ ] Binding of Godot APIs to Luau
-        - [ ] Binding of Variant builtins
-            - [x] Constructors
-            - [ ] Constants
-            - [ ] Enums
-            - [x] __index and __newindex
-            - [x] Basic method binding to Luau
-            - [x] Operators
-            - [x] __namecall support
+        - [x] Binding of Variant builtins
         - [ ] Binding of builtin Object classes
             - [ ] Constructors
             - [ ] Constants
@@ -38,6 +31,8 @@ using namespace godot;
             - [ ] __index and __newindex
             - [ ] Basic method binding to Luau
             - [ ] __namecall support
+        - [ ] Binding / replacement of certain Godot global functions
+        - [ ] Binding of global enums
         - [ ] Manual binding of GDExtension Object classes
             - Push extension initialization earlier (SERVERS)
             - Interface between extensions with a singleton and named method calls

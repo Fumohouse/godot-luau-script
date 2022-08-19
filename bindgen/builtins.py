@@ -643,6 +643,60 @@ lua_setfield(L, -4, "__newindex");
             append(src, indent_level, generate_op(
                 class_name, metatable_name, variant_type, b_class["operators"], classes))
 
+        # Constants
+        consts_ptr_name = "nullptr"
+
+        if "constants" in b_class:
+            append(src, indent_level, """\
+// Constants
+static MethodMap __consts;
+
+if (__consts.empty())
+{\
+""")
+
+            consts_ptr_name = "&__consts"
+            indent_level += 1
+
+            b_constants = b_class["constants"]
+            for constant in b_constants:
+                const_name = constant["name"]
+                const_type = binding_generator.correct_type(constant["type"])
+
+                append(
+                    src, indent_level, f"__consts[\"{const_name}\"] = LUA_BUILTIN_CONST({variant_type}, {const_name}, {const_type});")
+
+            indent_level -= 1
+            append(src, indent_level, "}\n")
+
+        # Enums
+        if "enums" in b_class:
+            append(src, indent_level, "// Enums")
+
+            enums = b_class["enums"]
+            for enum in enums:
+                enum_values = enum["values"]
+
+                append(src, indent_level, f"""\
+{{
+    lua_createtable(L, 0, {len(enum_values)});
+""")
+
+                indent_level += 1
+
+                for value in enum_values:
+                    append(src, indent_level, f"""\
+lua_pushinteger(L, {value["value"]});
+lua_setfield(L, -2, "{value["name"]}");
+""")
+
+                indent_level -= 1
+                append(src, indent_level, f"""\
+    lua_setreadonly(L, -1, true);
+    lua_setfield(L, -3, "{enum["name"]}");
+}}
+""")
+
         # Constructor
         if "constructors" in b_class:
             append(src, indent_level, generate_builtin_constructor(
@@ -659,7 +713,8 @@ lua_setfield(L, -4, "__newindex");
 lua_pushstring(L, "{class_name}");
 lua_pushlightuserdata(L, {statics_ptr_name});
 lua_pushlightuserdata(L, {methods_ptr_name});
-lua_pushcclosure(L, luaGD_builtin_global_index, "{class_name}.__index", 3);
+lua_pushlightuserdata(L, {consts_ptr_name});
+lua_pushcclosure(L, luaGD_builtin_global_index, "{class_name}.__index", 4);
 lua_setfield(L, -2, "__index");
 """)
 
