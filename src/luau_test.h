@@ -3,6 +3,7 @@
 #ifdef DEBUG_ENABLED
 #include <lua.h>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/wrapped.hpp>
 

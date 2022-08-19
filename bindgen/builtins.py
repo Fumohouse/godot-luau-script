@@ -247,6 +247,149 @@ return 1;\
     return "\n".join(src)
 
 
+def op_priority(op):
+    if not ("right_type" in op):
+        return 0
+
+    right_type = binding_generator.correct_type(op["right_type"])
+    if right_type == "Variant":
+        return 1
+
+    return 0
+
+
+def generate_op(class_name, metatable_name, variant_type, operators, builtin_classes):
+    label_format = "gd_builtin_op_{}_{}_{}"
+
+    # since Variant is basically a catch-all type, comparison to Variant should always be last
+    # otherwise the output could be unexpected
+    ops_sorted = sorted(operators, key=op_priority)
+
+    src = []
+
+    metatable_operators = {
+        "==": "eq",
+        "<": "lt",
+        "<=": "le",
+        "+": "add",
+        "-": "sub",
+        "*": "mul",
+        "/": "div",
+        "%": "mod",
+        "unary-": "unm"
+    }
+
+    indent_level = 0
+
+    left_decl, left_name, left_varcall = generate_arg_required(
+        "left", class_name, 1, builtin_classes)
+
+    for gd_op, mt_key in metatable_operators.items():
+        if not (True in [op["name"] == gd_op for op in operators]):
+            continue
+
+        variant_op_name = "GDNATIVE_VARIANT_OP_" + \
+            binding_generator.get_operator_id_name(gd_op).upper()
+
+        append(src, indent_level, f"""\
+// __{mt_key}
+lua_pushcfunction(L, [](lua_State *L) -> int
+{{
+    {left_decl}
+""")
+
+        indent_level += 1
+
+        op_overload_index = 0
+
+        for operator in ops_sorted:
+            if operator["name"] != gd_op:
+                continue
+
+            if op_overload_index != 0:
+                append(src, indent_level, label_format.format(
+                    class_name, mt_key, op_overload_index) + ":")
+
+            break_line = "goto " + \
+                label_format.format(class_name, mt_key,
+                                    op_overload_index + 1) + ";"
+
+            right_variant_type = "GDNATIVE_VARIANT_TYPE_NIL"
+            if "right_type" in operator:
+                right_variant_type = "GDNATIVE_VARIANT_TYPE_" + \
+                    binding_generator.camel_to_snake(
+                        operator["right_type"]).upper()
+
+            append(src, indent_level, f"""\
+{{
+    static GDNativePtrOperatorEvaluator __op = internal::gdn_interface->variant_get_ptr_operator_evaluator({variant_op_name}, {variant_type}, {right_variant_type});
+""")
+            indent_level += 1
+
+            right_ptr_name = "nullptr"
+
+            if "right_type" in operator:
+                right_type = operator["right_type"]
+
+                right_decl, right_call, right_name = generate_arg(
+                    "right", right_type, 2, builtin_classes)
+
+                right_ptr_name = right_name
+
+                append(src, indent_level, f"""\
+{right_decl}
+if (!{right_call})
+    {break_line}
+""")
+
+            ret_type = binding_generator.correct_type(operator["return_type"])
+            ret_type_gdn = binding_generator.get_gdnative_type(ret_type)
+            append(src, indent_level, f"""\
+LuaStackOp<{ret_type}>::push(L, internal::_call_builtin_operator_ptr<{ret_type_gdn}>(__op, {left_name}, {right_ptr_name}));
+return 1;\
+""")
+
+            indent_level -= 1
+            append(src, indent_level, "}\n")
+
+            op_overload_index += 1
+
+        catchall = f"luaL_error(L, \"{metatable_name}.__{mt_key}: no operators matched\");"
+        if gd_op == "==":
+            catchall = """\
+lua_pushboolean(L, false);
+return 1;\
+"""
+
+        append(src, indent_level,
+               f"{label_format.format(class_name, mt_key, op_overload_index)}:")
+        append(src, indent_level, catchall)
+
+        indent_level -= 1
+        append(src, indent_level, f"""\
+}}, "{metatable_name}.__{mt_key}");
+
+lua_setfield(L, -4, "__{mt_key}");
+""")
+
+    # Special case: Array length
+    if class_name.endswith("Array"):
+        append(src, indent_level, f"""\
+// __len
+lua_pushcfunction(L, [](lua_State *L) -> int
+{{
+    {left_decl}
+
+    LuaStackOp<int64_t>::push(L, {left_name}->size());
+    return 1;
+}}, "{metatable_name}.__len");
+
+lua_setfield(L, -4, "__len");
+""")
+
+    return "\n".join(src)
+
+
 def generate_luau_builtins(src_dir, classes):
     src = [constants.header_comment, ""]
 
@@ -349,6 +492,7 @@ lua_setfield(L, -4, "__namecall");
                 "self", class_name, 1, classes)
 
             append(src, indent_level, f"""\
+// __index
 lua_pushcfunction(L, [](lua_State *L) -> int
 {{
     {decl}
@@ -423,6 +567,7 @@ lua_setfield(L, -4, "__index");
                 "self", class_name, 1, classes)
 
             append(src, indent_level, f"""\
+// __newindex
 lua_pushcfunction(L, [](lua_State *L) -> int
 {{
     {decl}
@@ -493,7 +638,10 @@ if (key.get_type() == Variant::Type::INT)
 lua_setfield(L, -4, "__newindex");
 """)
 
-        # TODO: fields, operators, etc.
+        # Operators
+        if "operators" in b_class:
+            append(src, indent_level, generate_op(
+                class_name, metatable_name, variant_type, b_class["operators"], classes))
 
         # Constructor
         if "constructors" in b_class:

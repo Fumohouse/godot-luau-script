@@ -74,6 +74,25 @@ a[2] = 4
 return a
 """, Vector2(3, 4))
 
+	# operator: equality
+	assert_eval_eq("return Vector2(1, 2) == Vector2(1, 2)", true)
+
+	# operator: inequality
+	assert_eval_eq("return Vector2(1, 2) ~= Vector2(1, 2)", false)
+
+	# operator: addition
+	assert_eval_eq("return Vector2(1, 2) + Vector2(3, 4)", Vector2(4, 6))
+
+	# operator: unary minus
+	assert_eval_eq("return -Vector2(1, 2)", Vector2(-1, -2))
+
+	# operator special case: length
+	var arr := PackedStringArray(["a", "b", "c", "d", "e", "f"])
+	push_packed_string_array(arr)
+	set_global("testArr")
+
+	assert_eval_eq("return #testArr", arr.size())
+
 	# varargs (not working)
 	"""
 	var a: int

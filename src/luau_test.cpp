@@ -72,7 +72,9 @@ Dictionary LuauTest::_exec(String source)
     }
 
     output["status"] = FAILED;
-    output["error"] = "Failed to load";
+    output["error"] = luaGD_get<String>(L, -1);
+    lua_pop(L, 1);
+
     return output;
 }
 
