@@ -6,7 +6,7 @@
 #include <string>
 
 #include "luagd_stack.h"
-#include "luagd_builtins_stack.gen.h" // this is just a little bit janky
+#include "luagd_bindings_stack.gen.h" // this is just a little bit janky
 
 // TODO: May want to use Godot's HashMap, except right now the godot-cpp version doesn't compile
 typedef std::unordered_map<std::string, lua_CFunction> MethodMap;
@@ -23,8 +23,6 @@ typedef std::unordered_map<std::string, lua_CFunction> MethodMap;
     lua_setfield(L, LUA_REGISTRYINDEX, key);
 
 lua_State *luaGD_newstate();
-
-void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name);
 
 template <typename T>
 void luaGD_push(lua_State *L, const T &value)

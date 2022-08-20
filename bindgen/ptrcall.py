@@ -86,7 +86,7 @@ def generate_ptrcall(src_dir, include_dir):
 #include <godot_cpp/core/method_ptrcall.hpp>
 
 #include "luagd_stack.h"
-#include "luagd_builtins_stack.gen.h"
+#include "luagd_bindings_stack.gen.h"
 """)
 
     header.append("""\
@@ -97,7 +97,7 @@ def generate_ptrcall(src_dir, include_dir):
 
 #include "luagd_ptrcall.h"
 #include "luagd_stack.h"
-#include "luagd_builtins_stack.gen.h"
+#include "luagd_bindings_stack.gen.h"
 """)
 
     # ! godot-cpp get_encoded_arg

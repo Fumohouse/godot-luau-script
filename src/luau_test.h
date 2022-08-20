@@ -6,6 +6,7 @@
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/classes/node.hpp>
 #include <godot_cpp/classes/wrapped.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 
 #include "luagd.h"
 
@@ -75,9 +76,10 @@ protected:
     LUAU_TEST_STACK_OPS(PackedColorArray, packed_color_array);
 
     LUAU_TEST_STACK_OPS(Variant, variant);
+    LUAU_TEST_STACK_OPS(Object *, object);
 
     void _set_top(int index);
-    bool _gc_step(int size);
+    bool _gc_collect();
     Dictionary _exec(String source);
     void _set_global(String key);
 

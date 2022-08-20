@@ -4,7 +4,7 @@
 #include <godot_cpp/classes/object.hpp>
 
 #include "luagd_stack.h"
-#include "luagd_builtins_stack.gen.h"
+#include "luagd_bindings_stack.gen.h"
 
 // Specialized templates are generated in luagd_ptrcall.gen.h.
 

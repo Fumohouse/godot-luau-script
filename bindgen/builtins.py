@@ -394,12 +394,12 @@ def generate_luau_builtins(src_dir, classes):
     src = [constants.header_comment, ""]
 
     src.append("""\
-#include "luagd_builtins.h"
+#include "luagd_bindings.h"
 
 #include "luagd.h"
 
 #include "luagd_stack.h"
-#include "luagd_builtins_stack.gen.h"
+#include "luagd_bindings_stack.gen.h"
 
 #include "luagd_ptrcall.h"
 #include "luagd_ptrcall.gen.h"
@@ -433,12 +433,12 @@ void luaGD_openbuiltins(lua_State *L)
         metatable_name = constants.builtin_metatable_prefix + class_name
 
         # Class definition
-        append(src, indent_level, "{ // " + class_name)
-        indent_level += 1
+        append(src, indent_level, f"""\
+{{ // {class_name}
+    luaGD_newlib(L, \"{class_name}\", \"{metatable_name}\");
+""")
 
-        # Create tables
-        append(src, indent_level,
-               f"luaGD_newlib(L, \"{class_name}\", \"{metatable_name}\");\n")
+        indent_level += 1
 
         # Methods - Initialization
         statics_ptr_name = "nullptr"
@@ -718,13 +718,8 @@ lua_pushcclosure(L, luaGD_builtin_global_index, "{class_name}.__index", 4);
 lua_setfield(L, -2, "__index");
 """)
 
-        # Set readonly for metatables. Global will be done by sandbox.
-        # Pop the 3 tables from the stack
-        append(src, indent_level, f"""\
-lua_setreadonly(L, -3, true);
-lua_setreadonly(L, -1, true);
-lua_pop(L, 3);\
-""")
+        # Readonlies, clean up
+        append(src, indent_level, "luaGD_poplib(L, false);");
 
         indent_level -= 1
         append(src, indent_level, "} // " + class_name)
@@ -732,7 +727,7 @@ lua_pop(L, 3);\
         if b_class != classes[-1]:
             src.append("")
 
-    src.append("}\n")
+    src.append("}")
 
     # Save
     utils.write_file(src_dir / "luagd_builtins.gen.cpp", src)

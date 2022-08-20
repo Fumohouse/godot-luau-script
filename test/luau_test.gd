@@ -135,6 +135,27 @@ return Vector2.ONE
 	set_top(0)
 
 
+func _test_refcount():
+	var test_refcounted := PhysicsRayQueryParameters3D.new()
+
+	push_object(test_refcounted)
+	set_top(0)
+	gc_collect()
+
+	var weak_ref = weakref(test_refcounted)
+	assert(is_instance_valid(weak_ref.get_ref()))
+
+	return weak_ref
+
+
+func _test_classes():
+	# reference counting
+	assert_eq(is_instance_valid(_test_refcount().get_ref()), false)
+
+	set_top(0)
+
+
 func _ready():
 	_test_stack_ops()
 	_test_builtins()
+	_test_classes()

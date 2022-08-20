@@ -5,18 +5,19 @@ from .utils import should_skip_class, write_file, append
 binding_generator = utils.load_cpp_binding_generator()
 
 
-def generate_stack_ops(src_dir, include_dir, classes):
+def generate_stack_ops(src_dir, include_dir, api):
     src = [constants.header_comment, ""]
     header = [constants.header_comment, ""]
 
     src.append("""\
 #include "luagd_stack.h"
-#include "luagd_builtins_stack.gen.h"
+#include "luagd_bindings_stack.gen.h"
 
 #include <lualib.h>
 #include <cmath>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
+#include <godot_cpp/classes/object.hpp>
 """)
 
     header.append("""\
@@ -26,14 +27,27 @@ def generate_stack_ops(src_dir, include_dir, classes):
 
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
-
-using namespace godot;
 """)
 
-    classes_filtered = [
-        b_class for b_class in classes if not should_skip_class(b_class["name"])]
+    # Object includes
+    skip_classes = ["Object", "ClassDB"]
+    classes = [g_class for g_class in api["classes"]
+               if not (g_class["name"] in skip_classes)]
 
-    for b_class in classes_filtered:
+    for g_class in classes:
+        snake_name = binding_generator.camel_to_snake(g_class["name"])
+        include = f"#include <godot_cpp/classes/{snake_name}.hpp>"
+        src.append(include)
+        header.append(include)
+
+    src.append("")
+    header.append("\nusing namespace godot;\n")
+
+    # Builtin classes
+    builtins_filtered = [
+        b_class for b_class in api["builtin_classes"] if not should_skip_class(b_class["name"])]
+
+    for b_class in builtins_filtered:
         class_name = b_class["name"]
         metatable_name = constants.builtin_metatable_prefix + class_name
 
@@ -46,13 +60,26 @@ using namespace godot;
 
         header.append(f"template class LuaStackOp<{class_name}>;")
 
+    src.append("")
+    header.append("")
+
+    # Object classes
+    for g_class in classes:
+        class_name = g_class["name"]
+        metatable_name = constants.class_metatable_prefix + class_name
+
+        src.append(f"LUA_OBJECT_STACK_OP({class_name}, {metatable_name});")
+        header.append(f"template class LuaStackOp<{class_name} *>;")
+
+    src.append("")
+    header.append("")
+
     # Variant
 
     indent_level = 0
 
-    # TODO: The Object case is not handled yet! That's bad!
     # push
-    src.append("""
+    src.append("""\
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
 
@@ -80,11 +107,15 @@ void LuaStackOp<Variant>::push(lua_State *L, const Variant &value)
         case Variant::Type::STRING:
             LuaStackOp<String>::push(L, value.operator String());
             return;
+
+        case Variant::Type::OBJECT:
+            LuaStackOp<Object *>::push(L, value.operator Object *());
+            return;
 """)
 
     indent_level += 2
 
-    for b_class in classes_filtered:
+    for b_class in builtins_filtered:
         class_name = b_class["name"]
         class_snake = binding_generator.camel_to_snake(class_name).upper()
 
@@ -100,7 +131,7 @@ case Variant::Type::{class_snake}:
     return;\
 """)
 
-        if b_class != classes_filtered[-1]:
+        if b_class != builtins_filtered[-1]:
             src.append("")
 
     indent_level -= 2
@@ -137,11 +168,15 @@ Variant LuaStackOp<Variant>::get(lua_State *L, int index)
 
     if (lua_isstring(L, index))
         return Variant(LuaStackOp<String>::get(L, index));
+
+    Object *obj_ptr = LuaStackOp<Object *>::get(L, index);
+    if (obj_ptr != nullptr)
+        return Variant(obj_ptr);
 """)
 
     indent_level += 1
 
-    for b_class in classes_filtered:
+    for b_class in builtins_filtered:
         class_name = b_class["name"]
 
         append(src, indent_level, f"""\
@@ -157,7 +192,6 @@ if (LuaStackOp<{class_name}>::is(L, index))
 
     # is
     # TODO: What types are listed here should probably change (e.g. Callable support, if table arg support is added for lists/dicts)
-    # TODO: Does not cover the Object case.
     src.append("""
 template <>
 bool LuaStackOp<Variant>::is(lua_State *L, int index)
@@ -169,12 +203,14 @@ bool LuaStackOp<Variant>::is(lua_State *L, int index)
         return false;
 
     if (lua_type(L, index) == LUA_TUSERDATA)
-    {\
+    {
+        if (LuaStackOp<Object *>::is(L, index))
+            return true;
 """)
 
     indent_level += 2
 
-    for b_class in classes_filtered:
+    for b_class in builtins_filtered:
         class_name = b_class["name"]
 
         append(src, indent_level, f"""\
@@ -203,5 +239,5 @@ Variant LuaStackOp<Variant>::check(lua_State *L, int index)
     header.append("\ntemplate class LuaStackOp<Variant>;")
 
     # Save
-    write_file(src_dir / "luagd_builtins_stack.gen.cpp", src)
-    write_file(include_dir / "luagd_builtins_stack.gen.h", header)
+    write_file(src_dir / "luagd_bindings_stack.gen.cpp", src)
+    write_file(include_dir / "luagd_bindings_stack.gen.h", header)

@@ -22,6 +22,10 @@
 
 // The corresponding source file for this method is generated.
 void luaGD_openbuiltins(lua_State *L);
+void luaGD_openclasses(lua_State *L);
+
+void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name);
+void luaGD_poplib(lua_State *L, bool is_obj);
 
 int luaGD_builtin_namecall(lua_State *L);
 int luaGD_builtin_global_index(lua_State *L);

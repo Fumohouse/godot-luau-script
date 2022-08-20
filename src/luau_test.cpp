@@ -8,7 +8,7 @@
 #include <godot_cpp/classes/global_constants.hpp>
 
 #include "luagd.h"
-#include "luagd_builtins.h"
+#include "luagd_bindings.h"
 
 LuauTest::LuauTest()
 {
@@ -16,6 +16,7 @@ LuauTest::LuauTest()
 
     L = luaGD_newstate();
     luaGD_openbuiltins(L);
+    luaGD_openclasses(L);
 }
 
 LuauTest::~LuauTest()
@@ -30,9 +31,9 @@ void LuauTest::_set_top(int index)
     lua_settop(L, index);
 }
 
-bool LuauTest::_gc_step(int size)
+bool LuauTest::_gc_collect()
 {
-    return lua_gc(L, LUA_GCSTEP, size);
+    return lua_gc(L, LUA_GCCOLLECT, 0);
 }
 
 void LuauTest::_set_global(String key)
@@ -124,9 +125,10 @@ void LuauTest::_bind_methods()
     LUAU_TEST_BIND_STACK_OPS(packed_color_array);
 
     LUAU_TEST_BIND_STACK_OPS(variant);
+    LUAU_TEST_BIND_STACK_OPS(object);
 
     ClassDB::bind_method(D_METHOD("set_top", "index"), &LuauTest::_set_top);
-    ClassDB::bind_method(D_METHOD("gc_step", "size"), &LuauTest::_gc_step);
+    ClassDB::bind_method(D_METHOD("gc_collect"), &LuauTest::_gc_collect);
     ClassDB::bind_method(D_METHOD("exec", "source"), &LuauTest::_exec);
     ClassDB::bind_method(D_METHOD("set_global", "key"), &LuauTest::_set_global);
 }
