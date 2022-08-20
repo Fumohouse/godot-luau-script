@@ -56,17 +56,5 @@ int luaGD_builtin_global_index(lua_State *L)
     if (consts && consts->count(key) > 0)
         return consts->at(key)(L);
 
-    // Fall back to table
-    lua_pushvalue(L, 2);
-    lua_rawget(L, 1);
-
-    if (lua_isnil(L, -1))
-    {
-        lua_pop(L, 1);
-        luaL_error(L, "%s is not a valid member of %s", key, class_name);
-
-        return 0;
-    }
-
-    return 1;
+    luaL_error(L, "%s is not a valid member of %s", key, class_name);
 }
