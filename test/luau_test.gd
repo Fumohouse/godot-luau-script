@@ -164,6 +164,9 @@ func _test_classes():
 	gc_collect()
 	assert_eq(is_instance_valid(obj.get_ref()), false)
 
+	# singleton
+	assert_eval_eq("return PhysicsServer3D.GetSingleton()", PhysicsServer3D)
+
 	set_top(0)
 
 
