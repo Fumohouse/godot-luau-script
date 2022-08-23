@@ -2,7 +2,9 @@ from . import utils
 from .utils import append
 from . import constants
 
-def generate_luau_classes(src_dir, classes):
+def generate_luau_classes(src_dir, api):
+    classes = api["classes"]
+
     src = [constants.header_comment, ""]
 
     src.append("""\
@@ -31,6 +33,18 @@ void luaGD_openclasses(lua_State *L)
 """)
 
         indent_level += 1
+
+        # Constructors
+        ctor_name = "luaGD_class_no_ctor"
+        if g_class["is_instantiable"] and not class_name == "ClassDB":
+            ctor_name = "luaGD_class_ctor"
+
+        append(src, indent_level, f"""\
+// Constructor
+lua_pushstring(L, "{class_name}");
+lua_pushcclosure(L, {ctor_name}, "{class_name}.__call", 1);
+lua_setfield(L, -2, "__call");
+""")
 
         # Set magic flag, readonlies & clean up
         append(src, indent_level, "luaGD_poplib(L, true);")

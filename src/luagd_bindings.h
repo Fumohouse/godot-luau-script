@@ -20,7 +20,7 @@
         return 1;                                                                                                            \
     }
 
-// The corresponding source file for this method is generated.
+// The corresponding source files for these methods are generated.
 void luaGD_openbuiltins(lua_State *L);
 void luaGD_openclasses(lua_State *L);
 
@@ -29,3 +29,6 @@ void luaGD_poplib(lua_State *L, bool is_obj);
 
 int luaGD_builtin_namecall(lua_State *L);
 int luaGD_builtin_global_index(lua_State *L);
+
+int luaGD_class_ctor(lua_State *L);
+int luaGD_class_no_ctor(lua_State *L);

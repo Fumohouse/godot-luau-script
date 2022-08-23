@@ -10,12 +10,16 @@ func assert_eq(got: Variant, expected: Variant):
 		assert(got == expected)
 
 
-func assert_eval_eq(src: String, expected: Variant):
+func assert_eval_ok(src: String):
 	var result := exec(src)
 	if result.has("error"):
 		push_error("Luau Error: ", result.error)
 
 	assert(result.status == OK)
+
+
+func assert_eval_eq(src: String, expected: Variant):
+	assert_eval_ok(src)
 	assert_eq(get_variant(-1), expected)
 
 
@@ -151,6 +155,14 @@ func _test_refcount():
 func _test_classes():
 	# reference counting
 	assert_eq(is_instance_valid(_test_refcount().get_ref()), false)
+
+	# constructor & collecting
+	assert_eval_ok("return PhysicsRayQueryParameters3D()")
+	var obj = weakref(get_object(-1))
+	assert_eq(obj.get_ref().get_class(), "PhysicsRayQueryParameters3D")
+	set_top(0)
+	gc_collect()
+	assert_eq(is_instance_valid(obj.get_ref()), false)
 
 	set_top(0)
 

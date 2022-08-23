@@ -25,13 +25,13 @@ using namespace godot;
     - [ ] Binding of Godot APIs to Luau
         - [x] Binding of Variant builtins
         - [ ] Binding of builtin Object classes
-            - [ ] Constructors
+            - [x] Constructors
             - [ ] Constants
             - [ ] Enums
             - [ ] __index and __newindex
             - [ ] Basic method binding to Luau
             - [ ] __namecall support
-        - [ ] Singletons
+            - [ ] Singletons
         - [ ] Binding / replacement of certain Godot global functions
         - [ ] Binding of global enums
         - [ ] Manual binding of GDExtension Object classes

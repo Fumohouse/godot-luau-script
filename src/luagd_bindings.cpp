@@ -1,7 +1,14 @@
 #include "luagd_bindings.h"
 
+#include <godot/gdnative_interface.h>
+#include <godot_cpp/godot.hpp>
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <lua.h>
 #include <lualib.h>
+
+using namespace godot;
 
 void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name)
 {
@@ -89,4 +96,29 @@ int luaGD_builtin_global_index(lua_State *L)
         return consts->at(key)(L);
 
     luaL_error(L, "%s is not a valid member of %s", key, class_name);
+}
+
+int luaGD_class_ctor(lua_State *L)
+{
+    const char *class_name = lua_tostring(L, lua_upvalueindex(1));
+
+    GDNativeObjectPtr native_ptr = internal::gdn_interface->classdb_construct_object(class_name);
+    GDObjectInstanceID id = internal::gdn_interface->object_get_instance_id(native_ptr);
+
+    Object* obj = ObjectDB::get_instance(id);
+    LuaStackOp<Object *>::push(L, obj);
+
+    // refcount is instantiated to 1.
+    // we add a ref in the call above, so it's ok to decrement now to avoid object getting leaked
+    RefCounted *rc = Object::cast_to<RefCounted>(obj);
+    if (rc != nullptr)
+        rc->unreference();
+
+    return 1;
+}
+
+int luaGD_class_no_ctor(lua_State *L)
+{
+    const char *class_name = lua_tostring(L, lua_upvalueindex(1));
+    luaL_error(L, "class %s is not instantiable", class_name);
 }

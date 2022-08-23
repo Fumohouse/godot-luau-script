@@ -54,6 +54,6 @@ def scons_generate_bindings(target, source, env):
     generate_ptrcall(src_dir, include_dir)
 
     generate_luau_builtins(src_dir, api["builtin_classes"])
-    generate_luau_classes(src_dir, api["classes"])
+    generate_luau_classes(src_dir, api)
 
     return None
