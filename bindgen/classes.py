@@ -1,6 +1,6 @@
-from . import utils
+from . import utils, constants, common
 from .utils import append
-from . import constants
+
 
 def generate_luau_classes(src_dir, api):
     classes = api["classes"]
@@ -35,6 +35,20 @@ void luaGD_openclasses(lua_State *L)
 """)
 
         indent_level += 1
+
+        # Integer constants
+        if "constants" in g_class:
+            append(src, indent_level, "// Constants")
+
+            for constant in g_class["constants"]:
+                append(src, indent_level, f"""\
+lua_pushinteger(L, {constant["value"]});
+lua_setfield(L, -3, "{constant["name"]}");
+""")
+
+        # Enums
+        if "enums" in g_class:
+            append(src, indent_level, common.generate_enums(g_class["enums"]))
 
         # Constructors
         ctor_name = "luaGD_class_no_ctor"

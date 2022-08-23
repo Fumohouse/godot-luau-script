@@ -167,6 +167,12 @@ func _test_classes():
 	# singleton
 	assert_eval_eq("return PhysicsServer3D.GetSingleton()", PhysicsServer3D)
 
+	# constants
+	assert_eval_eq("return Object.NOTIFICATION_PREDELETE", 1)
+
+	# enums
+	assert_eval_eq("return Object.ConnectFlags.CONNECT_ONESHOT", 4)
+
 	set_top(0)
 
 

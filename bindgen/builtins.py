@@ -1,5 +1,4 @@
-from . import constants
-from . import utils
+from . import constants, utils, common
 from .utils import append
 from .ptrcall import generate_arg, generate_arg_required
 
@@ -671,31 +670,7 @@ if (__consts.empty())
 
         # Enums
         if "enums" in b_class:
-            append(src, indent_level, "// Enums")
-
-            enums = b_class["enums"]
-            for enum in enums:
-                enum_values = enum["values"]
-
-                append(src, indent_level, f"""\
-{{
-    lua_createtable(L, 0, {len(enum_values)});
-""")
-
-                indent_level += 1
-
-                for value in enum_values:
-                    append(src, indent_level, f"""\
-lua_pushinteger(L, {value["value"]});
-lua_setfield(L, -2, "{value["name"]}");
-""")
-
-                indent_level -= 1
-                append(src, indent_level, f"""\
-    lua_setreadonly(L, -1, true);
-    lua_setfield(L, -3, "{enum["name"]}");
-}}
-""")
+            append(src, indent_level, common.generate_enums(b_class["enums"]))
 
         # Constructor
         if "constructors" in b_class:
@@ -719,7 +694,7 @@ lua_setfield(L, -2, "__index");
 """)
 
         # Readonlies, clean up
-        append(src, indent_level, "luaGD_poplib(L, false);");
+        append(src, indent_level, "luaGD_poplib(L, false);")
 
         indent_level -= 1
         append(src, indent_level, "} // " + class_name)

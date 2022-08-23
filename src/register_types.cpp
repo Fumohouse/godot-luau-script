@@ -26,8 +26,8 @@ using namespace godot;
         - [x] Binding of Variant builtins
         - [ ] Binding of builtin Object classes
             - [x] Constructors
-            - [ ] Constants
-            - [ ] Enums
+            - [x] Constants
+            - [x] Enums
             - [ ] __index and __newindex
             - [ ] Basic method binding to Luau
             - [ ] __namecall support
