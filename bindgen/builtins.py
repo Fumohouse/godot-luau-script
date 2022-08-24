@@ -124,6 +124,7 @@ def generate_method(class_name, variant_type, method, api):
     method_name = method["name"]
     method_hash = method["hash"]
     is_static = method["is_static"]
+    is_vararg = method["is_vararg"]
 
     src = []
 
@@ -131,11 +132,15 @@ def generate_method(class_name, variant_type, method, api):
 
     src.append(f"""\
 {map_name}["{utils.snake_to_pascal(method_name)}"] = [](lua_State *L) -> int
-{{
-    static GDNativePtrBuiltInMethod __method = internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, "{method_name}", {method_hash});
+{{\
 """)
 
     indent_level = 1
+
+    # Find method
+    if not is_vararg:
+        append(src, indent_level,
+               f"static GDNativePtrBuiltInMethod __method = internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, \"{method_name}\", {method_hash});")
 
     # Pull arguments
     args_src, self_name = common.generate_method_args(class_name, method, api)
@@ -147,13 +152,32 @@ def generate_method(class_name, variant_type, method, api):
 
     if "return_type" in method:
         return_type = method["return_type"]
-        return_type = binding_generator.correct_type(return_type)
+        return_type = common.get_luau_type(return_type, api)
 
-        append(src, indent_level, f"{return_type} ret;")
-        ret_ptr_name = "&ret"
+        if not is_vararg:
+            append(src, indent_level, f"{return_type} ret;")
+            ret_ptr_name = "&ret"
 
-    append(src, indent_level,
-           f"__method({self_name}, args.ptr(), {ret_ptr_name}, args.size());")
+
+    if is_vararg:
+        append(src, indent_level,
+               f"""\
+static StringName __method_name = "{method_name}";
+
+Variant ret;\
+""")
+
+        if is_static:
+            append(src, indent_level,
+                   f"internal::gdn_interface->variant_call_static({variant_type}, &__method_name, args.ptr(), args.size(), {ret_ptr_name}, nullptr);")
+        else:
+            append(src, indent_level, f"""\
+Variant v_self = *{self_name};
+internal::gdn_interface->variant_call(&v_self, &__method_name, args.ptr(), args.size(), &ret, nullptr);\
+""")
+    else:
+        append(src, indent_level,
+               f"__method({self_name}, args.ptr(), {ret_ptr_name}, args.size());")
 
     if return_type:
         append(src, indent_level, f"""\

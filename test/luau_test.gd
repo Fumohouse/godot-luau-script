@@ -54,6 +54,29 @@ func _test_stack_ops():
 	set_top(0)
 
 
+func _test_builtin_varargs():
+	const A := 1
+	const B := "hello world!"
+	const C := Vector2(4, 2)
+
+	var output := {}
+
+	var callable := func(p_a, p_b, p_c):
+		output.a = p_a
+		output.b = p_b
+		output.c = p_c
+	;
+
+	push_callable(callable)
+	set_global("testCallable")
+
+	var result4 = exec("testCallable:Call(1, \"hello world!\", Vector2(4, 2))")
+	assert(result4.status == OK)
+	assert_eq(output.a, A)
+	assert_eq(output.b, B)
+	assert_eq(output.c, C)
+
+
 func _test_builtins():
 	# constructor
 	assert_eval_eq("return Vector3(1, 2, 3)", Vector3(1, 2, 3))
@@ -116,32 +139,8 @@ return Vector2.ONE
 	# enums
 	assert_eval_eq("return Vector3.Axis.AXIS_Z", 2)
 
-	# varargs (not working)
-	"""
-	var a: int
-	const A := 1
-
-	var b: String
-	const B := "hello world!"
-
-	var c: Vector2
-	const C := Vector2(4, 2)
-
-	var callable := func(p_a, p_b, p_c):
-		a = p_a
-		b = p_b
-		c = p_c
-	;
-
-	push_callable(callable)
-	set_global("testCallable")
-
-	var result4 = exec("testCallable:Call(1, \"hello world!\", Vector2(4, 2))")
-	assert(result4.status == OK)
-	assert_eq(a, A)
-	assert_eq(b, B)
-	assert_eq(c, C)
-	"""
+	# varargs
+	_test_builtin_varargs()
 
 	set_top(0)
 
