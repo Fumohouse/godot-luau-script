@@ -1,6 +1,13 @@
 extends LuauTest
 
 
+class TestObject extends Object:
+	var member := "hello world"
+
+	func test_method(x: int):
+		return x + 5
+
+
 func assert_eq(got: Variant, expected: Variant):
 	print("Got: %s, Expected: %s" % [got, expected])
 
@@ -172,6 +179,20 @@ func _test_classes():
 
 	# enums
 	assert_eval_eq("return Object.ConnectFlags.CONNECT_ONESHOT", 4)
+
+	# vararg
+	var test_obj := TestObject.new()
+	push_object(test_obj)
+	set_global("testObject")
+	assert_eval_eq("return testObject:Call(StringName(\"test_method\"), 5)", 10)
+
+	# method
+	assert_eval_eq("return testObject:Get(StringName(\"member\"))", "hello world")
+
+	# function
+	assert_eval_eq("return Object.Get(testObject, StringName(\"member\"))", "hello world")
+
+	test_obj.free()
 
 	set_top(0)
 

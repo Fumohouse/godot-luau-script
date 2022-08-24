@@ -1,6 +1,5 @@
-from . import utils
+from . import utils, constants, common
 from .utils import write_file
-from . import constants
 
 binding_generator = utils.load_cpp_binding_generator()
 
@@ -28,8 +27,9 @@ def use_ptr(class_name, builtin_classes):
     return not utils.should_skip_class(class_name) and (True in [class_name == b_class["name"] for b_class in builtin_classes])
 
 
-def generate_arg(arg_name, arg_type, index, builtin_classes):
-    correct_type = binding_generator.correct_type(arg_type)
+def generate_arg(arg_name, arg_type, index, api):
+    builtin_classes = api["builtin_classes"]
+    correct_type = common.get_luau_type(arg_type, api)
 
     if correct_type.endswith("*"):
         decl = f"void *{arg_name};"
@@ -51,12 +51,14 @@ def generate_arg(arg_name, arg_type, index, builtin_classes):
         return decl, call, name
 
 
-def generate_arg_required(arg_name, arg_type, index, builtin_classes):
-    correct_type = binding_generator.correct_type(arg_type)
+def generate_arg_required(arg_name, arg_type, index, api):
+    builtin_classes = api["builtin_classes"]
+    correct_type = common.get_luau_type(arg_type, api)
+
     call = f"LuaPtrcallArg<{correct_type}>::check(L, {index})"
 
     if correct_type.endswith("*"):
-        decl = f"void *{arg_name} = {call};"
+        decl = f"void *{arg_name} = LuaPtrcallArg<{correct_type}>::check_obj(L, {index});"
         varcall = f"Variant((Object *){arg_name})"
 
         return decl, arg_name, varcall

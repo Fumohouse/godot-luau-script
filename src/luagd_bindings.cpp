@@ -42,9 +42,10 @@ void luaGD_poplib(lua_State *L, bool is_obj)
     lua_pop(L, 3);
 }
 
-static MethodMap *luaGD_getmethodmap(lua_State *L, int index)
+template <typename T>
+static T *luaGD_lightudataup(lua_State *L, int index)
 {
-    return reinterpret_cast<MethodMap *>(
+    return reinterpret_cast<T *>(
         lua_tolightuserdata(L, lua_upvalueindex(index))
     );
 }
@@ -54,7 +55,7 @@ int luaGD_builtin_namecall(lua_State *L)
     const char *class_name =
         lua_tostring(L, lua_upvalueindex(1));
 
-    MethodMap *methods = luaGD_getmethodmap(L, 2);
+    MethodMap *methods = luaGD_lightudataup<MethodMap>(L, 2);
 
     if (const char *name = lua_namecallatom(L, nullptr))
     {
@@ -75,7 +76,7 @@ int luaGD_builtin_global_index(lua_State *L)
     const char *key = luaL_checkstring(L, 2);
 
     // Static functions
-    MethodMap *statics = luaGD_getmethodmap(L, 2);
+    MethodMap *statics = luaGD_lightudataup<MethodMap>(L, 2);
     if (statics && statics->count(key) > 0)
     {
         lua_pushcfunction(L, statics->at(key), key);
@@ -83,7 +84,7 @@ int luaGD_builtin_global_index(lua_State *L)
     }
 
     // Instance methods
-    MethodMap *methods = luaGD_getmethodmap(L, 3);
+    MethodMap *methods = luaGD_lightudataup<MethodMap>(L, 3);
     if (methods && methods->count(key) > 0)
     {
         lua_pushcfunction(L, methods->at(key), key);
@@ -91,7 +92,7 @@ int luaGD_builtin_global_index(lua_State *L)
     }
 
     // Constants
-    MethodMap *consts = luaGD_getmethodmap(L, 4);
+    MethodMap *consts = luaGD_lightudataup<MethodMap>(L, 4);
     if (consts && consts->count(key) > 0)
         return consts->at(key)(L);
 
@@ -121,4 +122,62 @@ int luaGD_class_no_ctor(lua_State *L)
 {
     const char *class_name = lua_tostring(L, lua_upvalueindex(1));
     luaL_error(L, "class %s is not instantiable", class_name);
+}
+
+int luaGD_class_namecall(lua_State *L)
+{
+    const char *class_name = lua_tostring(L, lua_upvalueindex(1));
+    ClassRegistry *class_reg = luaGD_lightudataup<ClassRegistry>(L, 2);
+
+    ClassInfo *current_class = &class_reg->at(class_name);
+
+    if (const char *name = lua_namecallatom(L, nullptr))
+    {
+        while (true)
+        {
+            if (current_class->methods.count(name) > 0)
+                return current_class->methods.at(name)(L);
+
+            if (current_class->has_parent)
+                current_class = &class_reg->at(current_class->parent);
+            else
+                break;
+        }
+
+        luaL_error(L, "%s is not a valid method of %s", name, class_name);
+    }
+
+    luaL_error(L, "no namecallatom");
+}
+
+int luaGD_class_global_index(lua_State *L)
+{
+    const char *class_name = lua_tostring(L, lua_upvalueindex(1));
+    ClassRegistry *class_reg = luaGD_lightudataup<ClassRegistry>(L, 2);
+
+    const char *key = luaL_checkstring(L, 2);
+
+    ClassInfo *current_class = &class_reg->at(class_name);
+
+    while (true)
+    {
+        if (current_class->static_funcs.count(key) > 0)
+        {
+            lua_pushcfunction(L, current_class->static_funcs.at(key), key);
+            return 1;
+        }
+
+        if (current_class->methods.count(key) > 0)
+        {
+            lua_pushcfunction(L, current_class->methods.at(key), key);
+            return 1;
+        }
+
+        if (current_class->has_parent)
+            current_class = &class_reg->at(current_class->parent);
+        else
+            break;
+    }
+
+    luaL_error(L, "%s is not a valid member of %s", key, class_name);
 }

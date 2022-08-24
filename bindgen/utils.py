@@ -38,3 +38,8 @@ def load_cpp_binding_generator():
     loader.exec_module(binding_generator)
 
     return binding_generator
+
+
+def snake_to_pascal(snake):
+    segments = [s[0].upper() + s[1:] for s in snake.split("_")]
+    return "".join(segments)

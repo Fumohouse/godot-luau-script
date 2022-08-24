@@ -25,7 +25,7 @@ def generate_ctor_help_literal(class_name, constructors):
     return "\n".join([constants.indent + f"\"{line}\\n\"" for line in lines])
 
 
-def generate_builtin_constructor(class_name, variant_type, constructors, builtin_classes):
+def generate_builtin_constructor(class_name, variant_type, constructors, api):
     label_format = "gd_builtin_ctor_{}_{}"
 
     ctor = []
@@ -77,7 +77,7 @@ if (argc != {expected_arg_count})
                 arg_name = "p_" + argument["name"]
 
                 decl, call, name = generate_arg(
-                    arg_name, arg_type, idx, builtin_classes)
+                    arg_name, arg_type, idx, api)
                 arg_names.append(name)
 
                 append(ctor, indent_level, f"""\
@@ -120,102 +120,26 @@ luaL_error(
     return "\n".join(ctor)
 
 
-def snake_to_pascal(snake):
-    segments = [s[0].upper() + s[1:] for s in snake.split("_")]
-    return "".join(segments)
-
-
-def generate_method(class_name, variant_type, method, builtin_classes):
+def generate_method(class_name, variant_type, method, api):
     method_name = method["name"]
     method_hash = method["hash"]
     is_static = method["is_static"]
-    is_vararg = method["is_vararg"]
 
     src = []
 
     map_name = "__static_funcs" if is_static else "__methods"
 
     src.append(f"""\
-{map_name}["{snake_to_pascal(method_name)}"] = [](lua_State *L) -> int
-{{\
+{map_name}["{utils.snake_to_pascal(method_name)}"] = [](lua_State *L) -> int
+{{
+    static GDNativePtrBuiltInMethod __method = internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, "{method_name}", {method_hash});
 """)
 
     indent_level = 1
 
-    # Get method ptr
-    append(src, indent_level, "static GDNativePtrBuiltInMethod __method = " +
-           f"internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, \"{method_name}\", {method_hash});\n")
-
-    arg_start_index = 1
-    required_argc = 0
-
-    self_name = "nullptr"
-
-    # Get self
-    if not is_static:
-        arg_start_index = 2
-        decl, arg_name, varcall = generate_arg_required(
-            "self", class_name, 1, builtin_classes
-        )
-
-        self_name = arg_name
-
-        append(src, indent_level, decl + "\n")
-
-    # Define arg lists
-    append(src, indent_level, f"""\
-int argc = lua_gettop(L);
-
-Vector<GDNativeTypePtr> args;
-args.resize(argc - {arg_start_index - 1});
-""")
-
-    if is_vararg:
-        append(src, indent_level, f"""\
-Vector<Variant> varargs;
-varargs.resize(argc - {arg_start_index - 1});
-""")
-
-    # Get required args
-    if "arguments" in method:
-        arguments = method["arguments"]
-        required_argc = len(arguments)
-
-        arg_index = arg_start_index
-
-        for argument in arguments:
-            decl, arg_name, varcall = generate_arg_required(
-                # for some reason one method name has a space at the beginning
-                "p_" + argument["name"].strip(), argument["type"], arg_index, builtin_classes)
-
-            append(src, indent_level, decl)
-
-            if is_vararg:
-                vararg_index = arg_index - arg_start_index
-
-                append(src, indent_level, f"""\
-varargs.set({vararg_index}, {varcall});
-
-const Variant &val = varargs.get({vararg_index});
-args.set({vararg_index}, (void *)&val);
-""")
-            else:
-                append(src, indent_level,
-                       f"args.set({arg_index - arg_start_index}, {arg_name});\n")
-
-            arg_index += 1
-
-    # Get varargs
-    if is_vararg:
-        append(src, indent_level, f"""\
-for (int i = {((arg_start_index - 1) + required_argc) + 1}; i <= argc; i++)
-{{
-    varargs.set(i - {arg_start_index}, LuaStackOp<Variant>::get(L, i));
-
-    const Variant &val = varargs.get(i - {arg_start_index});
-    args.set(i - {arg_start_index}, (void *)&val);
-}}
-""")
+    # Pull arguments
+    args_src, self_name = common.generate_method_args(class_name, method, api)
+    append(src, indent_level, args_src)
 
     # Call
     return_type = None
@@ -257,7 +181,7 @@ def op_priority(op):
     return 0
 
 
-def generate_op(class_name, metatable_name, variant_type, operators, builtin_classes):
+def generate_op(class_name, metatable_name, variant_type, operators, api):
     label_format = "gd_builtin_op_{}_{}_{}"
 
     # since Variant is basically a catch-all type, comparison to Variant should always be last
@@ -281,7 +205,7 @@ def generate_op(class_name, metatable_name, variant_type, operators, builtin_cla
     indent_level = 0
 
     left_decl, left_name, left_varcall = generate_arg_required(
-        "left", class_name, 1, builtin_classes)
+        "left", class_name, 1, api)
 
     for gd_op, mt_key in metatable_operators.items():
         if not (True in [op["name"] == gd_op for op in operators]):
@@ -331,7 +255,7 @@ lua_pushcfunction(L, [](lua_State *L) -> int
                 right_type = operator["right_type"]
 
                 right_decl, right_call, right_name = generate_arg(
-                    "right", right_type, 2, builtin_classes)
+                    "right", right_type, 2, api)
 
                 right_ptr_name = right_name
 
@@ -389,7 +313,9 @@ lua_setfield(L, -4, "__len");
     return "\n".join(src)
 
 
-def generate_luau_builtins(src_dir, classes):
+def generate_luau_builtins(src_dir, api):
+    builtin_classes = api["builtin_classes"]
+
     src = [constants.header_comment, ""]
 
     src.append("""\
@@ -420,7 +346,7 @@ void luaGD_openbuiltins(lua_State *L)
 
     indent_level = 1
 
-    for b_class in classes:
+    for b_class in builtin_classes:
         # Names
         class_name = b_class["name"]
         if utils.should_skip_class(class_name):
@@ -461,7 +387,7 @@ if (__static_funcs.empty() && __methods.empty())
             methods = b_class["methods"]
             for method in methods:
                 append(src, indent_level, generate_method(
-                    class_name, variant_type, method, classes))
+                    class_name, variant_type, method, api))
 
                 if method != methods[-1]:
                     src.append("")
@@ -488,7 +414,7 @@ lua_setfield(L, -4, "__namecall");
 
         if has_members or has_indexer:
             decl, arg_name, varcall = generate_arg_required(
-                "self", class_name, 1, classes)
+                "self", class_name, 1, api)
 
             append(src, indent_level, f"""\
 // __index
@@ -563,7 +489,7 @@ lua_setfield(L, -4, "__index");
         # __newindex
         if has_members or has_indexer:
             decl, arg_name, varcall = generate_arg_required(
-                "self", class_name, 1, classes)
+                "self", class_name, 1, api)
 
             append(src, indent_level, f"""\
 // __newindex
@@ -591,7 +517,7 @@ if (key.get_type() == Variant::Type::STRING)
                     member_name = member["name"]
 
                     val_decl, val_name, val_varcall = generate_arg_required(
-                        "value", member["type"], 3, classes)
+                        "value", member["type"], 3, api)
 
                     append(src, indent_level, f"""\
 if (key_str == "{member_name}")
@@ -616,7 +542,7 @@ if (key_str == "{member_name}")
                     b_class["indexing_return_type"])
 
                 val_decl, val_name, val_varcall = generate_arg_required(
-                    "value", indexer_type, 3, classes)
+                    "value", indexer_type, 3, api)
 
                 append(src, indent_level, f"""
 if (key.get_type() == Variant::Type::INT)
@@ -640,7 +566,7 @@ lua_setfield(L, -4, "__newindex");
         # Operators
         if "operators" in b_class:
             append(src, indent_level, generate_op(
-                class_name, metatable_name, variant_type, b_class["operators"], classes))
+                class_name, metatable_name, variant_type, b_class["operators"], api))
 
         # Constants
         consts_ptr_name = "nullptr"
@@ -678,7 +604,7 @@ if (__consts.empty())
                 class_name,
                 variant_type,
                 b_class["constructors"],
-                classes))
+                api))
 
             src.append("")
             append(src, indent_level, "lua_setfield(L, -2, \"__call\");\n")
@@ -699,7 +625,7 @@ lua_setfield(L, -2, "__index");
         indent_level -= 1
         append(src, indent_level, "} // " + class_name)
 
-        if b_class != classes[-1]:
+        if b_class != builtin_classes[-1]:
             src.append("")
 
     src.append("}")

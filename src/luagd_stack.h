@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
 
 using namespace godot;
 
@@ -42,6 +43,8 @@ template class LuaStackOp<uint16_t>;
 template class LuaStackOp<uint32_t>;
 template class LuaStackOp<int64_t>;
 template class LuaStackOp<Object *>;
+
+template class LuaStackOp<Error>;
 
 /* USERDATA */
 

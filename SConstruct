@@ -13,6 +13,11 @@ opts.Add(BoolVariable("generate_luau_bindings",
 
 opts.Update(env)
 
+# We do not want to export any symbols we don't need to.
+# Strictly speaking, only the init function must be exported.
+if not env.get("is_msvc", False):
+    env.Append(CXXFLAGS=["-fvisibility=hidden"])
+
 env.Append(BUILDERS={"GenerateLuauBindings": Builder(
     action=scons_generate_bindings, emitter=scons_emit_files)})
 

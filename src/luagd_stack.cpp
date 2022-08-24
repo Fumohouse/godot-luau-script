@@ -8,6 +8,7 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
 
 using namespace godot;
 
@@ -16,18 +17,18 @@ using namespace godot;
 
 /* BASIC TYPES */
 
-#define LUA_BASIC_STACK_OP(type, op_name, is_name)                                                \
-    template <>                                                                                   \
-    void LuaStackOp<type>::push(lua_State *L, const type &value) { lua_push##op_name(L, value); } \
-                                                                                                  \
-    template <>                                                                                   \
-    type LuaStackOp<type>::get(lua_State *L, int index) { return lua_to##op_name(L, index); }     \
-                                                                                                  \
-    template <>                                                                                   \
-    bool LuaStackOp<type>::is(lua_State *L, int index) { return lua_is##is_name(L, index); }      \
-                                                                                                  \
-    template <>                                                                                   \
-    type LuaStackOp<type>::check(lua_State *L, int index) { return luaL_check##op_name(L, index); }
+#define LUA_BASIC_STACK_OP(type, op_name, is_name)                                                               \
+    template <>                                                                                                  \
+    void LuaStackOp<type>::push(lua_State *L, const type &value) { lua_push##op_name(L, value); }                \
+                                                                                                                 \
+    template <>                                                                                                  \
+    type LuaStackOp<type>::get(lua_State *L, int index) { return static_cast<type>(lua_to##op_name(L, index)); } \
+                                                                                                                 \
+    template <>                                                                                                  \
+    bool LuaStackOp<type>::is(lua_State *L, int index) { return lua_is##is_name(L, index); }                     \
+                                                                                                                 \
+    template <>                                                                                                  \
+    type LuaStackOp<type>::check(lua_State *L, int index) { return static_cast<type>(luaL_check##op_name(L, index)); }
 
 LUA_BASIC_STACK_OP(bool, boolean, boolean);
 LUA_BASIC_STACK_OP(int, integer, number);
@@ -43,6 +44,7 @@ LUA_BASIC_STACK_OP(int16_t, number, number);
 LUA_BASIC_STACK_OP(uint16_t, unsigned, number);
 LUA_BASIC_STACK_OP(uint32_t, unsigned, number);
 LUA_BASIC_STACK_OP(int64_t, number, number);
+LUA_BASIC_STACK_OP(Error, integer, number);
 
 /* STRING */
 

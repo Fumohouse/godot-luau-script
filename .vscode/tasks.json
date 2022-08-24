@@ -58,6 +58,21 @@
                 ]
             },
             "problemMatcher": "$gcc"
+        },
+        {
+            "label": "run test without debugger",
+            "type": "shell",
+            "command": "godot4",
+            "linux": {
+                "args": [
+                    "-v",
+                    "main.tscn"
+                ],
+                "options": {
+                    "cwd": "${workspaceRoot}/test"
+                }
+            },
+            "problemMatcher": "$gcc" // shut up about the problem matcher
         }
     ]
 }

@@ -29,8 +29,8 @@ using namespace godot;
             - [x] Constants
             - [x] Enums
             - [ ] __index and __newindex
-            - [ ] Basic method binding to Luau
-            - [ ] __namecall support
+            - [x] Basic method binding to Luau
+            - [x] __namecall support
             - [x] Singletons
         - [ ] Binding / replacement of certain Godot global functions
         - [ ] Binding of global enums
@@ -122,9 +122,11 @@ void uninitialize_luau_script_module(ModuleInitializationLevel p_level)
     UtilityFunctions::print_verbose("luau script: uninitializing...");
 }
 
+#define GD_LIB_EXPORT __attribute__((visibility("default")))
+
 extern "C"
 {
-    GDNativeBool luau_script_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization)
+    GD_LIB_EXPORT GDNativeBool luau_script_init(const GDNativeInterface *p_interface, const GDNativeExtensionClassLibraryPtr p_library, GDNativeInitialization *r_initialization)
     {
         godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
 
