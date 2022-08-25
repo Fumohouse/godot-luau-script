@@ -41,5 +41,17 @@ def load_cpp_binding_generator():
 
 
 def snake_to_pascal(snake):
-    segments = [s[0].upper() + s[1:] for s in snake.split("_")]
-    return "".join(segments)
+    segments = [s[0].upper() + s[1:] for s in snake.split("_") if len(s) > 0]
+    output = "".join(segments)
+
+    if (snake.startswith("_")):
+        output = "_" + output
+
+    return output
+
+
+def snake_to_camel(snake):
+    pascal = snake_to_pascal(snake)
+
+    begin_idx = [idx for idx, c in enumerate(pascal) if c.upper() != c.lower()][0]
+    return pascal[:(begin_idx + 1)].lower() + pascal[(begin_idx + 1):]

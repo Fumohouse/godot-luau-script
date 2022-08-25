@@ -421,6 +421,7 @@ if (__static_funcs.empty() && __methods.empty())
 
             # __namecall
             append(src, indent_level, f"""\
+// __namecall
 lua_pushstring(L, "{class_name}");
 lua_pushlightuserdata(L, &__methods);
 lua_pushcclosure(L, luaGD_builtin_namecall, "{metatable_name}.__namecall", 2);
@@ -462,11 +463,12 @@ if (key.get_type() == Variant::Type::STRING)
 
                 for member in members:
                     member_name = member["name"]
+                    member_key = utils.snake_to_camel(member_name)
                     member_correct_type = binding_generator.correct_type(
                         member["type"])
 
                     append(src, indent_level, f"""\
-if (key_str == "{member_name}")
+if (key_str == "{member_key}")
 {{
     static GDNativePtrGetter __getter = internal::gdn_interface->variant_get_ptr_getter({variant_type}, "{member_name}");
 
@@ -511,79 +513,10 @@ lua_setfield(L, -4, "__index");
 """)
 
         # __newindex
-        if has_members or has_indexer:
-            decl, arg_name, varcall = generate_arg_required(
-                "self", class_name, 1, api)
-
-            append(src, indent_level, f"""\
+        append(src, indent_level, f"""
 // __newindex
-lua_pushcfunction(L, [](lua_State *L) -> int
-{{
-    {decl}
-    Variant key = LuaStackOp<Variant>::check(L, 2);\
-""")
-
-            indent_level += 1
-
-            # Member set
-            if has_members:
-                members = b_class["members"]
-
-                append(src, indent_level, """
-if (key.get_type() == Variant::Type::STRING)
-{
-    String key_str = key;
-""")
-
-                indent_level += 1
-
-                for member in members:
-                    member_name = member["name"]
-
-                    val_decl, val_name, val_varcall = generate_arg_required(
-                        "value", member["type"], 3, api)
-
-                    append(src, indent_level, f"""\
-if (key_str == "{member_name}")
-{{
-    static GDNativePtrSetter __setter = internal::gdn_interface->variant_get_ptr_setter({variant_type}, "{member_name}");
-
-    {val_decl}
-    __setter({arg_name}, {val_name});
-    return 0;
-}}\
-""")
-
-                    if member != members[-1]:
-                        src.append("")
-
-                indent_level -= 1
-                append(src, indent_level, "}")
-
-            # Index set
-            if has_indexer:
-                indexer_type = binding_generator.correct_type(
-                    b_class["indexing_return_type"])
-
-                val_decl, val_name, val_varcall = generate_arg_required(
-                    "value", indexer_type, 3, api)
-
-                append(src, indent_level, f"""
-if (key.get_type() == Variant::Type::INT)
-{{
-    static GDNativePtrIndexedSetter __setter = internal::gdn_interface->variant_get_ptr_indexed_setter({variant_type});
-
-    {val_decl}
-    __setter({arg_name}, key.operator int64_t() - 1, {val_name});
-    return 0;
-}}\
-""")
-
-            indent_level -= 1
-            append(src, indent_level, f"""
-    luaL_error(L, "%s is not a valid member of {class_name}", key.operator String().utf8().get_data());
-}}, "{metatable_name}.__newindex");
-
+lua_pushstring(L, "{class_name}");
+lua_pushcclosure(L, luaGD_builtin_newindex, "{metatable_name}.__newindex", 1);
 lua_setfield(L, -4, "__newindex");
 """)
 
@@ -593,30 +526,17 @@ lua_setfield(L, -4, "__newindex");
                 class_name, metatable_name, variant_type, b_class["operators"], api))
 
         # Constants
-        consts_ptr_name = "nullptr"
-
         if "constants" in b_class:
-            append(src, indent_level, """\
-// Constants
-static MethodMap __consts;
-
-if (__consts.empty())
-{\
-""")
-
-            consts_ptr_name = "&__consts"
-            indent_level += 1
+            append(src, indent_level, "// Constants")
 
             b_constants = b_class["constants"]
             for constant in b_constants:
                 const_name = constant["name"]
                 const_type = binding_generator.correct_type(constant["type"])
 
-                append(
-                    src, indent_level, f"__consts[\"{const_name}\"] = LUA_BUILTIN_CONST({variant_type}, {const_name}, {const_type});")
+                append(src, indent_level, f"LUA_BUILTIN_CONST({variant_type}, {const_name}, {const_type})")
 
-            indent_level -= 1
-            append(src, indent_level, "}\n")
+            src.append("")
 
         # Enums
         if "enums" in b_class:
@@ -635,11 +555,11 @@ if (__consts.empty())
 
         # Global __index
         append(src, indent_level, f"""\
+// Global __index
 lua_pushstring(L, "{class_name}");
 lua_pushlightuserdata(L, {statics_ptr_name});
 lua_pushlightuserdata(L, {methods_ptr_name});
-lua_pushlightuserdata(L, {consts_ptr_name});
-lua_pushcclosure(L, luaGD_builtin_global_index, "{class_name}.__index", 4);
+lua_pushcclosure(L, luaGD_builtin_global_index, "{class_name}.__index", 3);
 lua_setfield(L, -2, "__index");
 """)
 

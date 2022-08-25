@@ -99,15 +99,6 @@ func _test_builtins():
 	# index access
 	assert_eval_eq("return Vector2(123, 456)[2]", 456)
 
-	# member/index set
-	assert_eval_eq("""\
-local a = Vector2(1, 2)
-a.x = 3
-a[2] = 4
-
-return a
-""", Vector2(3, 4))
-
 	# operator: equality
 	assert_eval_eq("return Vector2(1, 2) == Vector2(1, 2)", true)
 
@@ -129,12 +120,6 @@ return a
 
 	# constants
 	assert_eval_eq("return Vector2.ONE", Vector2.ONE)
-
-	# constants are pushed anew each time
-	assert_eval_eq("""\
-Vector2.ONE.x = 0
-return Vector2.ONE
-""", Vector2.ONE)
 
 	# enums
 	assert_eval_eq("return Vector3.Axis.AXIS_Z", 2)
@@ -192,6 +177,17 @@ func _test_classes():
 	assert_eval_eq("return Object.Get(testObject, StringName(\"member\"))", "hello world")
 
 	test_obj.free()
+
+	# getters and setters
+	var test_node := Node3D.new()
+	add_child(test_node)
+	push_object(test_node)
+	set_global("testNode")
+
+	assert_eval_ok("testNode.globalTransform = testNode.globalTransform:Translated(Vector3(0, 1, 2))")
+	assert_eq(test_node.global_transform.origin, Vector3(0, 1, 2))
+
+	test_node.queue_free()
 
 	set_top(0)
 

@@ -195,7 +195,7 @@ if (first_init)
         if "inherits" in g_class:
             inherits = g_class["inherits"]
             parent_idx_result = [idx for idx, c in enumerate(classes_filtered) if c["name"] == inherits]
-            append(class_src, c_indent, f"__class_info.parent_idx = {parent_idx_result[0]};")
+            append(class_src, c_indent, f"__class_info.parent_idx = {parent_idx_result[0]};\n")
         else:
             class_src.append("")
 
@@ -209,8 +209,26 @@ if (first_init)
                 append(class_src, c_indent, generate_method(
                     class_name, method, api))
 
-                if method != methods_filtered[-1]:
-                    class_src.append("")
+                class_src.append("")
+
+        # Properties
+        if "properties" in g_class:
+            properties = g_class["properties"]
+
+            for prop in properties:
+                prop_name = utils.snake_to_camel(prop["name"])
+                getter_name = utils.snake_to_pascal(prop["getter"])
+                setter_name = utils.snake_to_pascal(prop["setter"])
+
+                append(class_src, c_indent, f"""\
+{{
+    LuauProperty __property_info;
+    __property_info.getter_name = "{getter_name}";
+    __property_info.setter_name = "{setter_name}";
+
+    __class_info.properties["{prop_name}"] = __property_info;
+}}
+""")
 
         append(class_src, c_indent,
                f"classes->set({class_idx}, __class_info);")
@@ -221,6 +239,7 @@ if (first_init)
         # __namecall
         if "methods" in g_class:
             append(class_src, c_indent, f"""\
+// __namecall
 lua_pushstring(L, "{class_name}");
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
@@ -228,6 +247,26 @@ lua_pushcclosure(L, luaGD_class_namecall, "{metatable_name}.__namecall", 3);
 lua_setfield(L, -4, "__namecall");
 """)
 
+        if "properties" in g_class:
+            # __index
+            append(class_src, c_indent, f"""\
+// __index
+lua_pushstring(L, "{class_name}");
+lua_pushinteger(L, {class_idx});
+lua_pushlightuserdata(L, classes);
+lua_pushcclosure(L, luaGD_class_index, "{metatable_name}.__index", 3);
+lua_setfield(L, -4, "__index");
+""")
+
+            # __newindex
+            append(class_src, c_indent, f"""\
+// __newindex
+lua_pushstring(L, "{class_name}");
+lua_pushinteger(L, {class_idx});
+lua_pushlightuserdata(L, classes);
+lua_pushcclosure(L, luaGD_class_newindex, "{metatable_name}.__newindex", 3);
+lua_setfield(L, -4, "__newindex");
+""")
 
         # Integer constants
         if "constants" in g_class:
@@ -258,6 +297,7 @@ lua_setfield(L, -2, "__call");
 
         # Global __index
         append(class_src, c_indent, f"""\
+// Global __index
 lua_pushstring(L, "{class_name}");
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);

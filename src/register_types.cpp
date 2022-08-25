@@ -24,14 +24,7 @@ using namespace godot;
     Requirements:
     - [ ] Binding of Godot APIs to Luau
         - [x] Binding of Variant builtins
-        - [ ] Binding of builtin Object classes
-            - [x] Constructors
-            - [x] Constants
-            - [x] Enums
-            - [ ] __index and __newindex
-            - [x] Basic method binding to Luau
-            - [x] __namecall support
-            - [x] Singletons
+        - [x] Binding of builtin Object classes
         - [ ] Binding / replacement of certain Godot global functions
         - [ ] Binding of global enums
         - [ ] Manual binding of GDExtension Object classes
@@ -66,8 +59,6 @@ using namespace godot;
 
 /*
     Design considerations
-
-    ! Is it advisable to disable setters on Vectors, Transforms, etc? Nothing in Lua is passed by value
 
     - Sandboxing:
         - Unsafe Godot APIs (OS, File, etc.) MUST be restricted to certain privileged, trusted scripts (that is the whole point!!!)
