@@ -127,9 +127,10 @@ int luaGD_class_no_ctor(lua_State *L)
 int luaGD_class_namecall(lua_State *L)
 {
     const char *class_name = lua_tostring(L, lua_upvalueindex(1));
-    ClassRegistry *class_reg = luaGD_lightudataup<ClassRegistry>(L, 2);
+    int class_idx = lua_tointeger(L, lua_upvalueindex(2));
+    ClassRegistry *class_reg = luaGD_lightudataup<ClassRegistry>(L, 3);
 
-    ClassInfo *current_class = &class_reg->at(class_name);
+    const ClassInfo *current_class = &(*class_reg)[class_idx];
 
     if (const char *name = lua_namecallatom(L, nullptr))
     {
@@ -138,8 +139,8 @@ int luaGD_class_namecall(lua_State *L)
             if (current_class->methods.count(name) > 0)
                 return current_class->methods.at(name)(L);
 
-            if (current_class->has_parent)
-                current_class = &class_reg->at(current_class->parent);
+            if (current_class->parent_idx >= 0)
+                current_class = &(*class_reg)[current_class->parent_idx];
             else
                 break;
         }
@@ -153,11 +154,12 @@ int luaGD_class_namecall(lua_State *L)
 int luaGD_class_global_index(lua_State *L)
 {
     const char *class_name = lua_tostring(L, lua_upvalueindex(1));
-    ClassRegistry *class_reg = luaGD_lightudataup<ClassRegistry>(L, 2);
+    int class_idx = lua_tointeger(L, lua_upvalueindex(2));
+    ClassRegistry *class_reg = luaGD_lightudataup<ClassRegistry>(L, 3);
 
     const char *key = luaL_checkstring(L, 2);
 
-    ClassInfo *current_class = &class_reg->at(class_name);
+    const ClassInfo *current_class = &(*class_reg)[class_idx];
 
     while (true)
     {
@@ -173,8 +175,8 @@ int luaGD_class_global_index(lua_State *L)
             return 1;
         }
 
-        if (current_class->has_parent)
-            current_class = &class_reg->at(current_class->parent);
+        if (current_class->parent_idx >= 0)
+            current_class = &(*class_reg)[current_class->parent_idx];
         else
             break;
     }

@@ -108,10 +108,12 @@ def generate_luau_classes(src_dir, include_dir, api):
     class_dir = src_dir / "classes"
     class_dir.mkdir(parents=True, exist_ok=True)
 
+    classes_filtered = [c for c in classes if not skip_class(c["name"])]
+
     src = [constants.header_comment, ""]
     header = [constants.header_comment, ""]
 
-    src.append("""\
+    src.append(f"""\
 #include "luagd_bindings.h"
 
 #include <lua.h>
@@ -121,11 +123,13 @@ def generate_luau_classes(src_dir, include_dir, api):
 #include "luagd_classes.gen.h"
 
 void luaGD_openclasses(lua_State *L)
-{
+{{
     LUAGD_LOAD_GUARD(L, "_gdClassesLoaded");
 
     static ClassRegistry __classes;
-    bool __first_init = __classes.empty();
+    __classes.resize({len(classes_filtered)});
+
+    static bool __first_init = true;
 """)
 
     header.append("""\
@@ -140,12 +144,9 @@ void luaGD_openclasses(lua_State *L)
 
     indent_level = 1
 
-    for g_class in classes:
+    for class_idx, g_class in enumerate(classes_filtered):
         # Names
         class_name = g_class["name"]
-        if skip_class(class_name):
-            continue
-
         metatable_name = constants.class_metatable_prefix + class_name
 
         open_name = f"luaGD_openclass_{binding_generator.camel_to_snake(class_name)}"
@@ -193,10 +194,8 @@ if (first_init)
         # Parent
         if "inherits" in g_class:
             inherits = g_class["inherits"]
-            append(class_src, c_indent, f"""\
-__class_info.has_parent = true;
-__class_info.parent = "{inherits}";
-""")
+            parent_idx_result = [idx for idx, c in enumerate(classes_filtered) if c["name"] == inherits]
+            append(class_src, c_indent, f"__class_info.parent_idx = {parent_idx_result[0]};")
         else:
             class_src.append("")
 
@@ -213,19 +212,22 @@ __class_info.parent = "{inherits}";
                 if method != methods_filtered[-1]:
                     class_src.append("")
 
-            # __namecall
-            append(class_src, c_indent, f"""\
-lua_pushstring(L, "{class_name}");
-lua_pushlightuserdata(L, classes);
-lua_pushcclosure(L, luaGD_class_namecall, "{metatable_name}.__namecall", 2);
-lua_setfield(L, -4, "__namecall");
-""")
-
         append(class_src, c_indent,
-               f"classes->insert({{\"{class_name}\", __class_info}});")
+               f"classes->set({class_idx}, __class_info);")
 
         c_indent -= 1
         append(class_src, c_indent, "}\n")
+
+        # __namecall
+        if "methods" in g_class:
+            append(class_src, c_indent, f"""\
+lua_pushstring(L, "{class_name}");
+lua_pushinteger(L, {class_idx});
+lua_pushlightuserdata(L, classes);
+lua_pushcclosure(L, luaGD_class_namecall, "{metatable_name}.__namecall", 3);
+lua_setfield(L, -4, "__namecall");
+""")
+
 
         # Integer constants
         if "constants" in g_class:
@@ -257,8 +259,9 @@ lua_setfield(L, -2, "__call");
         # Global __index
         append(class_src, c_indent, f"""\
 lua_pushstring(L, "{class_name}");
+lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
-lua_pushcclosure(L, luaGD_class_global_index, "{class_name}.__index", 2);
+lua_pushcclosure(L, luaGD_class_global_index, "{class_name}.__index", 3);
 lua_setfield(L, -2, "__index");
 """)
 
@@ -288,7 +291,7 @@ lua_setfield(L, -3, "GetSingleton");
         append(class_src, c_indent, "luaGD_poplib(L, true);")
 
         c_indent -= 1
-        append(class_src, c_indent, "} // " + class_name)
+        append(class_src, c_indent, "}")
 
         if g_class != classes[-1]:
             class_src.append("")
@@ -296,7 +299,10 @@ lua_setfield(L, -3, "GetSingleton");
         # Save class file
         utils.write_file(get_src_path(src_dir, class_name), class_src)
 
-    src.append("}")
+    src.append("""
+    __first_init = false;
+}\
+""")
 
     # Save
     utils.write_file(src_dir / "luagd_classes.gen.cpp", src)

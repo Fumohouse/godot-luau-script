@@ -3,6 +3,7 @@
 #include <lua.h>
 #include <unordered_map>
 #include <string>
+#include <godot_cpp/templates/vector.hpp>
 
 #include "luagd.h"
 
@@ -11,14 +12,13 @@ typedef std::unordered_map<std::string, lua_CFunction> MethodMap;
 
 struct ClassInfo
 {
-    bool has_parent = false;
-    std::string parent;
+    int parent_idx = -1;
 
     MethodMap methods;
     MethodMap static_funcs;
 };
 
-typedef std::unordered_map<std::string, ClassInfo> ClassRegistry;
+typedef Vector<ClassInfo> ClassRegistry;
 
 #define LUA_BUILTIN_CONST(variant_type, const_name, const_type)                                                              \
     [](lua_State *L) -> int                                                                                                  \
