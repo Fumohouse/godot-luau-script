@@ -120,6 +120,7 @@ def generate_luau_classes(src_dir, include_dir, api):
 
 #include "luagd.h"
 
+#include "luagd_classes.h"
 #include "luagd_classes.gen.h"
 
 void luaGD_openclasses(lua_State *L)
@@ -136,10 +137,8 @@ void luaGD_openclasses(lua_State *L)
 #pragma once
 
 #include <lua.h>
-#include <lualib.h>
-#include <godot_cpp/templates/vector.hpp>
 
-#include "luagd_bindings.h"
+#include "luagd_classes.h"
 """)
 
     indent_level = 1
@@ -158,8 +157,6 @@ void luaGD_openclasses(lua_State *L)
 
         class_src = [constants.header_comment, ""]
         class_src.append("""\
-#include "luagd_classes.gen.h"
-
 #include <lua.h>
 
 #include "luagd_stack.h"
@@ -169,6 +166,7 @@ void luaGD_openclasses(lua_State *L)
 #include "luagd_ptrcall.gen.h"
 
 #include "luagd_bindings.h"
+#include "luagd_classes.h"
 """)
 
         c_indent = 0
@@ -183,10 +181,11 @@ void {open_name}(lua_State *L, bool first_init, ClassRegistry *classes)
         c_indent += 1
 
         # Class info initialization
-        append(class_src, c_indent, """\
+        append(class_src, c_indent, f"""\
 if (first_init)
-{
-    ClassInfo __class_info;\
+{{
+    ClassInfo __class_info;
+    __class_info.class_name = "{class_name}";\
 """)
 
         c_indent += 1
@@ -205,6 +204,7 @@ if (first_init)
 
             methods_filtered = [
                 m for m in g_class["methods"] if not m["is_virtual"]]
+
             for method in methods_filtered:
                 append(class_src, c_indent, generate_method(
                     class_name, method, api))
@@ -240,10 +240,9 @@ if (first_init)
         if "methods" in g_class:
             append(class_src, c_indent, f"""\
 // __namecall
-lua_pushstring(L, "{class_name}");
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
-lua_pushcclosure(L, luaGD_class_namecall, "{metatable_name}.__namecall", 3);
+lua_pushcclosure(L, luaGD_class_namecall, "{metatable_name}.__namecall", 2);
 lua_setfield(L, -4, "__namecall");
 """)
 
@@ -251,20 +250,18 @@ lua_setfield(L, -4, "__namecall");
             # __index
             append(class_src, c_indent, f"""\
 // __index
-lua_pushstring(L, "{class_name}");
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
-lua_pushcclosure(L, luaGD_class_index, "{metatable_name}.__index", 3);
+lua_pushcclosure(L, luaGD_class_index, "{metatable_name}.__index", 2);
 lua_setfield(L, -4, "__index");
 """)
 
             # __newindex
             append(class_src, c_indent, f"""\
 // __newindex
-lua_pushstring(L, "{class_name}");
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
-lua_pushcclosure(L, luaGD_class_newindex, "{metatable_name}.__newindex", 3);
+lua_pushcclosure(L, luaGD_class_newindex, "{metatable_name}.__newindex", 2);
 lua_setfield(L, -4, "__newindex");
 """)
 
@@ -298,10 +295,9 @@ lua_setfield(L, -2, "__call");
         # Global __index
         append(class_src, c_indent, f"""\
 // Global __index
-lua_pushstring(L, "{class_name}");
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
-lua_pushcclosure(L, luaGD_class_global_index, "{class_name}.__index", 3);
+lua_pushcclosure(L, luaGD_class_global_index, "{class_name}.__index", 2);
 lua_setfield(L, -2, "__index");
 """)
 
