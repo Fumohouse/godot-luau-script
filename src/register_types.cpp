@@ -26,7 +26,7 @@ using namespace godot;
         - [x] Binding of Variant builtins
         - [x] Binding of builtin Object classes
         - [ ] Binding / replacement of certain Godot global functions
-        - [ ] Binding of global enums
+        - [x] Binding of global enums
         - [ ] Manual binding of GDExtension Object classes
             - Push extension initialization earlier (SERVERS)
             - Interface between extensions with a singleton and named method calls

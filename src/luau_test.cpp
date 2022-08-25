@@ -17,6 +17,7 @@ LuauTest::LuauTest()
     L = luaGD_newstate();
     luaGD_openbuiltins(L);
     luaGD_openclasses(L);
+    luaGD_openglobals(L);
 }
 
 LuauTest::~LuauTest()

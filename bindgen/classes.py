@@ -125,7 +125,7 @@ def generate_luau_classes(src_dir, include_dir, api):
 
 void luaGD_openclasses(lua_State *L)
 {{
-    LUAGD_LOAD_GUARD(L, "_gdClassesLoaded");
+    LUAGD_LOAD_GUARD(L, "_gdClassesLoaded")
 
     static ClassRegistry __classes;
     __classes.resize({len(classes_filtered)});
@@ -277,6 +277,7 @@ lua_setfield(L, -3, "{constant["name"]}");
 
         # Enums
         if "enums" in g_class:
+            append(class_src, c_indent, "// Enums")
             append(class_src, c_indent,
                    common.generate_enums(g_class["enums"]))
 

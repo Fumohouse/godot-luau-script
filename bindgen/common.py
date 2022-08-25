@@ -1,4 +1,5 @@
 from . import utils
+from .utils import append
 from .ptrcall import generate_arg_required
 
 binding_generator = utils.load_cpp_binding_generator()
@@ -13,25 +14,39 @@ def get_luau_type(type_name, api):
 
     return binding_generator.correct_type(type_name)
 
-def generate_enums(enums):
+
+def generate_enums(enums, stack_idx=-3):
     src = []
 
-    src.append("// Enums")
-
     for enum in enums:
+        enum_name = enum["name"].replace(".", "")
         enum_values = enum["values"]
 
-        src.append(f"lua_createtable(L, 0, {len(enum_values)});")
-
-        for value in enum_values:
-            src.append(f"""\
-lua_pushinteger(L, {value["value"]});
-lua_setfield(L, -2, "{value["name"]}");
-""")
+        enum_prefix = binding_generator.camel_to_snake(enum_name).upper() + "_"
 
         src.append(f"""\
-lua_setreadonly(L, -1, true);
-lua_setfield(L, -3, "{enum["name"]}");
+{{ // {enum_name}
+    lua_createtable(L, 0, {len(enum_values)});
+""")
+
+        indent_level = 1
+
+        for value in enum_values:
+            value_name = value["name"]
+            if value_name.startswith(enum_prefix):
+                value_name = value_name[len(enum_prefix):]
+
+            append(src, indent_level, f"""\
+lua_pushinteger(L, {value["value"]});
+lua_setfield(L, -2, "{value_name}");
+""")
+
+        indent_level -= 1
+
+        src.append(f"""\
+    lua_setreadonly(L, -1, true);
+    lua_setfield(L, {stack_idx}, "{enum_name}");
+}} // {enum_name}
 """)
 
     return "\n".join(src)
@@ -95,7 +110,8 @@ varargs.set({vararg_index}, {varcall});
 args.set({vararg_index}, const_cast<Variant *>(&varargs[{vararg_index}]));
 """)
             else:
-                src.append(f"args.set({arg_index - arg_start_index}, {arg_name});\n")
+                src.append(
+                    f"args.set({arg_index - arg_start_index}, {arg_name});\n")
 
             arg_index += 1
 

@@ -367,7 +367,7 @@ def generate_luau_builtins(src_dir, api):
 
 void luaGD_openbuiltins(lua_State *L)
 {
-    LUAGD_LOAD_GUARD(L, "_gdBuiltinsLoaded");
+    LUAGD_LOAD_GUARD(L, "_gdBuiltinsLoaded")
 """)
 
     indent_level = 1
@@ -542,6 +542,7 @@ lua_setfield(L, -4, "__newindex");
 
         # Enums
         if "enums" in b_class:
+            append(src, indent_level, "// Enums")
             append(src, indent_level, common.generate_enums(b_class["enums"]))
 
         # Constructor

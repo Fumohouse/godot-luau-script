@@ -7,6 +7,7 @@ from pathlib import Path
 from bindgen.stack_ops import generate_stack_ops
 from bindgen.builtins import generate_luau_builtins
 from bindgen.classes import generate_luau_classes, get_luau_class_sources
+from bindgen.globals import generate_luau_globals
 from bindgen.ptrcall import generate_ptrcall
 
 
@@ -40,6 +41,9 @@ def scons_emit_files(target, source, env):
         # Ptrcall
         env.File("gen/include/luagd_ptrcall.gen.h"),
         env.File("gen/src/luagd_ptrcall.gen.cpp"),
+
+        # Globals
+        env.File("gen/src/luagd_globals.gen.cpp")
     ] + get_luau_class_sources(src_dir, api, env)
 
     env.Clean(files, target)
@@ -64,5 +68,6 @@ def scons_generate_bindings(target, source, env):
 
     generate_luau_builtins(src_dir, api)
     generate_luau_classes(src_dir, include_dir, api)
+    generate_luau_globals(src_dir, api)
 
     return None

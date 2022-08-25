@@ -122,7 +122,7 @@ func _test_builtins():
 	assert_eval_eq("return Vector2.ONE", Vector2.ONE)
 
 	# enums
-	assert_eval_eq("return Vector3.Axis.AXIS_Z", 2)
+	assert_eval_eq("return Vector3.Axis.Z", 2)
 
 	# varargs
 	_test_builtin_varargs()
@@ -192,7 +192,15 @@ func _test_classes():
 	set_top(0)
 
 
+func _test_globals():
+	# enums
+	assert_eval_eq("return Enum.VariantOperator.OP_BIT_NEGATE", 19)
+
+	set_top(0)
+
+
 func _ready():
 	_test_stack_ops()
 	_test_builtins()
 	_test_classes()
+	_test_globals()
