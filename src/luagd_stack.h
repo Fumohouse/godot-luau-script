@@ -8,6 +8,8 @@
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 using namespace godot;
 
@@ -126,35 +128,42 @@ template class LuaStackOp<Error>;
 
 /* OBJECTS */
 
-#define LUA_OBJECT_STACK_OP(type, metatable_name)                   \
-    template <>                                                     \
-    void LuaStackOp<type *>::push(lua_State *L, type *const &value) \
-    {                                                               \
-        LuaStackOp<Object *>::push(L, value);                       \
-    }                                                               \
-                                                                    \
-    template <>                                                     \
-    type *LuaStackOp<type *>::get(lua_State *L, int index)          \
-    {                                                               \
-        Object *obj = LuaStackOp<Object *>::get(L, index);          \
-        if (obj == nullptr)                                         \
-            return nullptr;                                         \
-                                                                    \
-        return Object::cast_to<type>(obj);                          \
-    }                                                               \
-                                                                    \
-    template <>                                                     \
-    bool LuaStackOp<type *>::is(lua_State *L, int index)            \
-    {                                                               \
-        return LuaStackOp<type *>::get(L, index) != nullptr;        \
-    }                                                               \
-                                                                    \
-    template <>                                                     \
-    type *LuaStackOp<type *>::check(lua_State *L, int index)        \
-    {                                                               \
-        type *ptr = LuaStackOp<type *>::get(L, index);              \
-        if (ptr == nullptr)                                         \
-            luaL_typeerrorL(L, index, #type);                       \
-                                                                    \
-        return ptr;                                                 \
+#define LUA_OBJECT_STACK_OP(type, metatable_name)                               \
+    template <>                                                                 \
+    void LuaStackOp<type *>::push(lua_State *L, type *const &value)             \
+    {                                                                           \
+        LuaStackOp<Object *>::push(L, value);                                   \
+    }                                                                           \
+                                                                                \
+    template <>                                                                 \
+    type *LuaStackOp<type *>::get(lua_State *L, int index)                      \
+    {                                                                           \
+        Object *obj = LuaStackOp<Object *>::get(L, index);                      \
+        if (obj == nullptr)                                                     \
+            return nullptr;                                                     \
+                                                                                \
+        return Object::cast_to<type>(obj);                                      \
+    }                                                                           \
+                                                                                \
+    template <>                                                                 \
+    bool LuaStackOp<type *>::is(lua_State *L, int index)                        \
+    {                                                                           \
+        if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index)) \
+            return false;                                                       \
+                                                                                \
+        lua_getfield(L, -1, "__gdparents");                                     \
+        Vector<String> *parents =                                               \
+            reinterpret_cast<Vector<String> *>(lua_tolightuserdata(L, -1));     \
+                                                                                \
+        lua_pop(L, 2);                                                          \
+        return parents->has(#type);                                             \
+    }                                                                           \
+                                                                                \
+    template <>                                                                 \
+    type *LuaStackOp<type *>::check(lua_State *L, int index)                    \
+    {                                                                           \
+        if (!LuaStackOp<type *>::is(L, index))                                  \
+            luaL_typeerrorL(L, index, #type);                                   \
+                                                                                \
+        return LuaStackOp<type *>::get(L, index);                               \
     }

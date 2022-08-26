@@ -62,6 +62,10 @@ public:
 
     static void *check_obj(lua_State *L, int index)
     {
-        return LuaStackOp<Object *>::check(L, index)->_owner;
+        Object *ptr = LuaStackOp<Object *>::check(L, index);
+        if (ptr == nullptr)
+            return nullptr;
+
+        return ptr->_owner;
     }
 };

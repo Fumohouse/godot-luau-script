@@ -127,6 +127,9 @@ func _test_builtins():
 	# varargs
 	_test_builtin_varargs()
 
+	# tostring
+	assert_eval_eq("return tostring(Vector3(0, 1, 2))", "(0, 1, 2)")
+
 	set_top(0)
 
 
@@ -187,7 +190,13 @@ func _test_classes():
 	assert_eval_ok("testNode.globalTransform = testNode.globalTransform:Translated(Vector3(0, 1, 2))")
 	assert_eq(test_node.global_transform.origin, Vector3(0, 1, 2))
 
-	test_node.queue_free()
+	# tostring
+	assert_eval_eq("return tostring(testNode)", str(test_node))
+
+	test_node.free()
+
+	# tostring freed
+	assert_eval_eq("return tostring(testNode)", str(test_node))
 
 	set_top(0)
 

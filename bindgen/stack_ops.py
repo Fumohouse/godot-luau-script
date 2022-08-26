@@ -169,9 +169,8 @@ Variant LuaStackOp<Variant>::get(lua_State *L, int index)
     if (lua_isstring(L, index))
         return Variant(LuaStackOp<String>::get(L, index));
 
-    Object *obj_ptr = LuaStackOp<Object *>::get(L, index);
-    if (obj_ptr != nullptr)
-        return Variant(obj_ptr);
+    if (LuaStackOp<Object *>::is(L, index))
+        return Variant(LuaStackOp<Object *>::get(L, index));
 """)
 
     indent_level += 1

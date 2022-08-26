@@ -112,22 +112,28 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *const &value)
 }
 
 template <>
-Object *LuaStackOp<Object *>::get(lua_State *L, int index)
+bool LuaStackOp<Object *>::is(lua_State *L, int index)
 {
     if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
-        return nullptr;
+        return false;
 
     lua_getfield(L, -1, "__isgdobj");
     if (!lua_isboolean(L, -1))
     {
         lua_pop(L, 2);
-        return nullptr;
+        return false;
     }
 
     bool is_obj = lua_toboolean(L, -1);
     lua_pop(L, 2);
 
-    if (!is_obj)
+    return is_obj;
+}
+
+template <>
+Object *LuaStackOp<Object *>::get(lua_State *L, int index)
+{
+    if (!LuaStackOp<Object *>::is(L, index))
         return nullptr;
 
     GDObjectInstanceID *udata = reinterpret_cast<GDObjectInstanceID *>(lua_touserdata(L, index));
@@ -137,17 +143,10 @@ Object *LuaStackOp<Object *>::get(lua_State *L, int index)
 }
 
 template <>
-bool LuaStackOp<Object *>::is(lua_State *L, int index)
-{
-    return LuaStackOp<Object *>::get(L, index) != nullptr;
-}
-
-template <>
 Object *LuaStackOp<Object *>::check(lua_State *L, int index)
 {
-    Object *ptr = LuaStackOp<Object *>::get(L, index);
-    if (ptr == nullptr)
+    if (!LuaStackOp<Object *>::is(L, index))
         luaL_typeerrorL(L, index, "Object");
 
-    return ptr;
+    return LuaStackOp<Object *>::get(L, index);
 }

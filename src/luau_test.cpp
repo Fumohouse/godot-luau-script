@@ -15,6 +15,7 @@ LuauTest::LuauTest()
     UtilityFunctions::print("LuauTest initializing...");
 
     L = luaGD_newstate();
+    luaL_openlibs(L);
     luaGD_openbuiltins(L);
     luaGD_openclasses(L);
     luaGD_openglobals(L);

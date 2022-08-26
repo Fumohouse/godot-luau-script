@@ -52,7 +52,7 @@ lua_setfield(L, -2, "{value_name}");
     return "\n".join(src)
 
 
-def generate_method_args(class_name, method, api):
+def generate_method_args(class_name, method, api, is_object=False):
     src = []
 
     is_static = method["is_static"]
@@ -72,7 +72,14 @@ def generate_method_args(class_name, method, api):
 
         self_name = arg_name
 
-        src.append(decl + "\n")
+        src.append(decl)
+        if is_object:
+            src.append(f"""\
+if ({self_name} == nullptr)
+    luaL_error(L, "Object has been freed");\
+""")
+
+        src.append("")
 
     # Define arg lists
     src.append(f"""\

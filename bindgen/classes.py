@@ -35,7 +35,7 @@ def generate_method(class_name, method, api):
 
     # Pull arguments
     args_src, self_name = common.generate_method_args(
-        class_name, method, api)
+        class_name, method, api, True)
     append(src, indent_level, args_src)
 
     # Call
@@ -158,6 +158,8 @@ void luaGD_openclasses(lua_State *L)
         class_src = [constants.header_comment, ""]
         class_src.append("""\
 #include <lua.h>
+#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 #include "luagd_stack.h"
 #include "luagd_bindings_stack.gen.h"
@@ -179,6 +181,22 @@ void {open_name}(lua_State *L, bool first_init, ClassRegistry *classes)
 """)
 
         c_indent += 1
+
+        # Parent list
+        check_class = g_class
+        parents = []
+
+        while "inherits" in check_class:
+            parents.append(check_class["inherits"])
+            check_class = [c for c in classes_filtered if c["name"] == check_class["inherits"]][0]
+
+        parents_initializer = ", ".join([f"\"{p}\"" for p in parents])
+        append(class_src, c_indent, f"""\
+// Parents
+static Vector<String> __parents = {{ {parents_initializer} }};
+lua_pushlightuserdata(L, &__parents);
+lua_setfield(L, -4, "__gdparents");
+""")
 
         # Class info initialization
         append(class_src, c_indent, f"""\
