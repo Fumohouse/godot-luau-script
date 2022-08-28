@@ -205,6 +205,12 @@ func _test_globals():
 	# enums
 	assert_eval_eq("return Enum.VariantOperator.OP_BIT_NEGATE", 19)
 
+	# utility function
+	assert_eval_eq("return lerp(0.0, 1.0, 0.75)", 0.75)
+
+	# utility function (vararg)
+	assert_eval_ok("print_rich(1, 2, false, \"[color=red]hey![/color]\")")
+
 	set_top(0)
 
 

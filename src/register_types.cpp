@@ -22,11 +22,7 @@ using namespace godot;
     - [ ] Luau - runtime (manages actual states, etc.)
 
     Requirements:
-    - [ ] Binding of built in Godot APIs to Luau
-        - [x] Binding of Variant builtins
-        - [x] Binding of builtin Object classes
-        - [ ] Binding / replacement of certain Godot global functions
-        - [x] Binding of global enums
+    - [x] Binding of built in Godot APIs to Luau
     - [ ] Manual binding of GDExtension Object classes
         - Push extension initialization earlier (SERVERS)
         - Interface between extensions with a singleton and named method calls

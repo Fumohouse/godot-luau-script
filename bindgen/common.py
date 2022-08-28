@@ -55,7 +55,7 @@ lua_setfield(L, -2, "{value_name}");
 def generate_method_args(class_name, method, api, is_object=False):
     src = []
 
-    is_static = method["is_static"]
+    is_static = method["is_static"] if "is_static" in method else True
     is_vararg = method["is_vararg"]
 
     arg_start_index = 1
