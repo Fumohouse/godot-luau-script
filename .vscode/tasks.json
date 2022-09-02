@@ -62,7 +62,7 @@
         {
             "label": "run test without debugger",
             "type": "shell",
-            "command": "godot4",
+            "command": "${userHome}/bin/godot4",
             "linux": {
                 "args": [
                     "-v",

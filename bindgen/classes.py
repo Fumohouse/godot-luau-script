@@ -11,9 +11,7 @@ def get_src_path(src_dir, class_name):
 # To save as much time as possible, some classes should be ignored
 # (and probably have little to no utility in Luau anyway)
 def skip_class(class_name):
-    # TODO: VisualScript is getting removed soon.
-    return class_name.startswith("VisualScript") or \
-        class_name.startswith("VisualShaderNode")
+    return class_name.startswith("VisualShaderNode")
 
 
 def generate_method(class_name, method, api):
