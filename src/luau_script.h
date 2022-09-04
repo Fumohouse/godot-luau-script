@@ -11,6 +11,7 @@
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/classes/resource_format_loader.hpp>
 #include <godot_cpp/classes/resource_format_saver.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
 
 using namespace godot;
 
@@ -28,6 +29,7 @@ public:
     virtual bool _has_source_code() const override;
     virtual String _get_source_code() const override;
     virtual void _set_source_code(const String &p_code) override;
+    Error load_source_code(const String &p_path);
 
     virtual ScriptLanguage *_get_language() const override;
 
@@ -95,11 +97,16 @@ public:
 
 class LuauLanguage : public ScriptLanguageExtension
 {
+    GDCLASS(LuauLanguage, ScriptLanguageExtension);
+
 private:
     static LuauLanguage *singleton;
     bool finalized = false;
 
     void finalize();
+
+protected:
+    static void _bind_methods();
 
 public:
     static LuauLanguage *get_singleton() { return singleton; }
@@ -124,9 +131,6 @@ public:
 
     /*
     virtual void _init();
-    virtual Ref<Script> _make_template(const String &_template, const String &class_name, const String &base_class_name) const;
-    virtual Array _get_built_in_templates(const StringName &object) const;
-    virtual bool _is_using_templates();
     virtual Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const;
     virtual bool _can_inherit_from_file() const;
     virtual int64_t _find_function(const String &class_name, const String &function_name) const;
@@ -139,6 +143,10 @@ public:
     virtual void _frame();
 
     // To implement later (or never)
+    virtual Ref<Script> _make_template(const String &_template, const String &class_name, const String &base_class_name) const;
+    virtual Array _get_built_in_templates(const StringName &object) const;
+    virtual bool _is_using_templates();
+
     virtual Error _open_in_external_editor(const Ref<Script> &script, int64_t line, int64_t column);
     virtual bool _overrides_external_editor();
 
@@ -198,23 +206,16 @@ public:
 class ResourceFormatLoaderLuauScript : public ResourceFormatLoader
 {
 public:
-    /*
-    virtual PackedStringArray _get_recognized_extensions() const;
-    virtual bool _handles_type(const StringName &type) const;
-    virtual String _get_resource_type(const String &path) const;
-    virtual Variant _load(const String &path, const String &original_path, bool use_sub_threads, int64_t cache_mode) const;
-
-    // Later/never
-    virtual PackedStringArray _get_dependencies(const String &path, bool add_types) const;
-    */
+    virtual PackedStringArray _get_recognized_extensions() const override;
+    virtual bool _handles_type(const StringName &p_type) const override;
+    virtual String _get_resource_type(const String &p_path) const override;
+    virtual Variant _load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int64_t p_cache_mode) const override;
 };
 
 class ResourceFormatSaverLuauScript : public ResourceFormatSaver
 {
 public:
-    /*
-    virtual int64_t _save(const String &path, const Ref<Resource> &resource, int64_t flags);
-    virtual bool _recognize(const Ref<Resource> &resource) const;
-    virtual PackedStringArray _get_recognized_extensions(const Ref<Resource> &resource) const;
-    */
+    virtual PackedStringArray _get_recognized_extensions(const Ref<Resource> &p_resource) const override;
+    virtual bool _recognize(const Ref<Resource> &p_resource) const override;
+    virtual int64_t _save(const Ref<Resource> &p_resource, const String &p_path, int64_t p_flags) override;
 };

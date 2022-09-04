@@ -3,6 +3,12 @@
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/file.hpp>
 
 using namespace godot;
 
@@ -32,6 +38,23 @@ void LuauScript::_set_source_code(const String &p_code)
 ScriptLanguage *LuauScript::_get_language() const
 {
     return LuauLanguage::get_singleton();
+}
+
+Error LuauScript::load_source_code(const String &p_path)
+{
+    Ref<File> file = memnew(File);
+    Error err = file->open(p_path, File::ModeFlags::READ);
+
+    ERR_FAIL_COND_V_MSG(err != OK, err, "Failed to read file: '" + p_path + "'.");
+
+    PackedByteArray bytes = file->get_buffer(file->get_length());
+
+    String src;
+    src.parse_utf8(reinterpret_cast<const char *>(bytes.ptr()));
+
+    set_source_code(src);
+
+    return OK;
 }
 
 /////////////////////
@@ -115,7 +138,7 @@ String LuauLanguage::_get_type() const
 
 String LuauLanguage::_get_extension() const
 {
-    return "luau";
+    return "lua";
 }
 
 PackedStringArray LuauLanguage::_get_recognized_extensions() const
@@ -203,4 +226,87 @@ PackedStringArray LuauLanguage::_get_string_delimiters() const
 Object *LuauLanguage::_create_script() const
 {
     return memnew(LuauScript);
+}
+
+void LuauLanguage::_bind_methods()
+{
+}
+
+//////////////
+// RESOURCE //
+//////////////
+
+// Loader
+
+PackedStringArray ResourceFormatLoaderLuauScript::_get_recognized_extensions() const
+{
+    PackedStringArray extensions;
+    extensions.push_back("lua");
+
+    return extensions;
+}
+
+bool ResourceFormatLoaderLuauScript::_handles_type(const StringName &p_type) const
+{
+    return p_type == StringName("Script") || p_type == LuauLanguage::get_singleton()->_get_type();
+}
+
+String ResourceFormatLoaderLuauScript::_get_resource_type(const String &p_path) const
+{
+    return p_path.get_extension().to_lower() == "lua" ? LuauLanguage::get_singleton()->_get_type() : "";
+}
+
+Variant ResourceFormatLoaderLuauScript::_load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int64_t p_cache_mode) const
+{
+    Ref<LuauScript> script = memnew(LuauScript);
+    Error err = script->load_source_code(p_path);
+
+    ERR_FAIL_COND_V_MSG(err != OK, Ref<LuauScript>(), "Cannot load Luau script file '" + p_path + "'.");
+
+    script->set_path(p_original_path);
+    script->reload();
+
+    return script;
+}
+
+// Saver
+
+PackedStringArray ResourceFormatSaverLuauScript::_get_recognized_extensions(const Ref<Resource> &p_resource) const
+{
+    PackedStringArray extensions;
+
+    if (Object::cast_to<LuauScript>(const_cast<Resource *>(p_resource.ptr())))
+        extensions.push_back("lua");
+
+    return extensions;
+}
+
+bool ResourceFormatSaverLuauScript::_recognize(const Ref<Resource> &p_resource) const
+{
+    return Object::cast_to<LuauScript>(const_cast<Resource *>(p_resource.ptr())) != nullptr;
+}
+
+int64_t ResourceFormatSaverLuauScript::_save(const Ref<Resource> &p_resource, const String &p_path, int64_t p_flags)
+{
+    Ref<LuauScript> script = p_resource;
+    ERR_FAIL_COND_V(script.is_null(), ERR_INVALID_PARAMETER);
+
+    String source = script->get_source_code();
+
+    {
+        Ref<File> file = memnew(File);
+        Error err = file->open(p_path, File::ModeFlags::WRITE);
+        ERR_FAIL_COND_V_MSG(err != OK, err, "Cannot save Luau script file '" + p_path + "'.");
+
+        file->store_string(source);
+
+        if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF)
+            return ERR_CANT_CREATE;
+    }
+
+    // TODO: Godot's default language implementations have a check here. It isn't possible in extensions (yet).
+    //if (ScriptServer::is_reload_scripts_on_save_enabled())
+    LuauLanguage::get_singleton()->_reload_tool_script(p_resource, false);
+
+    return OK;
 }
