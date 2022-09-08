@@ -165,7 +165,7 @@ func _test_classes():
 	assert_eval_eq("return Object.NOTIFICATION_PREDELETE", 1)
 
 	# enums
-	assert_eval_eq("return Object.ConnectFlags.CONNECT_ONESHOT", 4)
+	assert_eval_eq("return Object.ConnectFlags.CONNECT_ONE_SHOT", 4)
 
 	# vararg
 	var test_obj := TestObject.new()

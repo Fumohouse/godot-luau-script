@@ -12,7 +12,7 @@ static int luaGD_variant_tostring(lua_State *L)
 {
     // Special case - freed objects
     if (LuaStackOp<Object *>::is(L, 1) && LuaStackOp<Object *>::get(L, 1) == nullptr)
-        lua_pushstring(L, "[Freed Object]");
+        lua_pushstring(L, "<Freed Object>");
     else
     {
         Variant v = LuaStackOp<Variant>::check(L, 1);

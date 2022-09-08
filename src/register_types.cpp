@@ -95,6 +95,7 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level)
     UtilityFunctions::print_verbose("luau script: initializing...");
 
     ClassDB::register_class<LuauScript>();
+    ClassDB::register_class<LuauLanguage>();
 
     script_language_luau = memnew(LuauLanguage);
     // TODO: Not enough is done to allow this without crashes
