@@ -1,6 +1,7 @@
 {
     "version": "2.0.0",
     "tasks": [
+        // basic build tasks
         {
             "label": "build debug",
             "type": "shell",
@@ -59,6 +60,72 @@
             },
             "problemMatcher": "$gcc"
         },
+
+        // sccache variants
+        {
+            "label": "build debug sccache",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=debug",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "use_sccache=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build debug with bindings sccache",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=debug",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "generate_luau_bindings=yes",
+                    "use_sccache=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build release sccache",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=release",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "use_sccache=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build release with bindings sccache",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=release",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "generate_luau_bindings=yes",
+                    "use_sccache=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+
+        // run without debugger
         {
             "label": "run test without debugger",
             "type": "shell",

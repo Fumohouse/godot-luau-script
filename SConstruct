@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
 import os
+import subprocess
+import json
 from luau_binding_generator import scons_emit_files, scons_generate_bindings
 
 env = SConscript("../godot-cpp/SConstruct")
@@ -11,7 +13,28 @@ opts = Variables([], ARGUMENTS)
 opts.Add(BoolVariable("generate_luau_bindings",
          "Force generation of Luau bindings.", False))
 
+opts.Add(BoolVariable("use_sccache",
+         "Use sccache distributed compiling (must be on PATH).", False))
+
 opts.Update(env)
+
+if env["use_sccache"]:
+    env.Append(ENV={
+        "PATH": os.environ["PATH"]
+    })
+
+    # set job count according to server info
+    sccache_status = subprocess.check_output(["sccache", "--dist-status"])
+    sccache_status = json.loads(sccache_status)
+
+    cpus = sccache_status["SchedulerStatus"][1]["num_cpus"]
+    cpus = cpus if cpus <= 4 else cpus - 1
+
+    env.SetOption("num_jobs", cpus)
+    print(f"sccache: Now using {cpus} cores.")
+
+    env["CC"] = "sccache " + env["CC"]
+    env["CXX"] = "sccache " + env["CXX"]
 
 # We do not want to export any symbols we don't need to.
 # Strictly speaking, only the init function must be exported.
