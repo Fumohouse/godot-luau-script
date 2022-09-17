@@ -1,8 +1,8 @@
 #pragma once
 
 #include <lua.h>
-#include <unordered_map>
-#include <string>
+#include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
 
 #include "luagd_bindings.h"
@@ -15,7 +15,7 @@ struct LuauProperty
     const char *setter_name;
 };
 
-typedef std::unordered_map<std::string, LuauProperty> PropertyMap;
+typedef HashMap<StringName, LuauProperty> PropertyMap;
 
 struct ClassInfo
 {

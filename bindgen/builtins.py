@@ -399,7 +399,7 @@ void luaGD_openbuiltins(lua_State *L)
 static MethodMap __static_funcs;
 static MethodMap __methods;
 
-if (__static_funcs.empty() && __methods.empty())
+if (__static_funcs.is_empty() && __methods.is_empty())
 {\
 """)
 

@@ -57,8 +57,8 @@ int luaGD_class_namecall(lua_State *L)
     {
         while (true)
         {
-            if (current_class->methods.count(name) > 0)
-                return current_class->methods.at(name)(L);
+            if (current_class->methods.has(name))
+                return current_class->methods[name](L);
 
             INHERIT_OR_BREAK
         }
@@ -77,15 +77,15 @@ int luaGD_class_global_index(lua_State *L)
 
     while (true)
     {
-        if (current_class->static_funcs.count(key) > 0)
+        if (current_class->static_funcs.has(key))
         {
-            lua_pushcfunction(L, current_class->static_funcs.at(key), key);
+            lua_pushcfunction(L, current_class->static_funcs[key], key);
             return 1;
         }
 
-        if (current_class->methods.count(key) > 0)
+        if (current_class->methods.has(key))
         {
-            lua_pushcfunction(L, current_class->methods.at(key), key);
+            lua_pushcfunction(L, current_class->methods[key], key);
             return 1;
         }
 
@@ -103,12 +103,11 @@ int luaGD_class_index(lua_State *L)
 
     while (true)
     {
-        if (current_class->properties.count(key) > 0)
+        if (current_class->properties.has(key))
         {
             lua_remove(L, 2);
 
-            return current_class->methods
-                .at(current_class->properties.at(key).getter_name)(L);
+            return current_class->methods[current_class->properties[key].getter_name](L);
         }
 
         INHERIT_OR_BREAK
@@ -125,12 +124,11 @@ int luaGD_class_newindex(lua_State *L)
 
     while (true)
     {
-        if (current_class->properties.count(key) > 0)
+        if (current_class->properties.has(key))
         {
             lua_remove(L, 2);
 
-            return current_class->methods
-                .at(current_class->properties.at(key).setter_name)(L);
+            return current_class->methods[current_class->properties[key].setter_name](L);
         }
 
         INHERIT_OR_BREAK

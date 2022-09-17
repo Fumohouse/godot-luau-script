@@ -1,11 +1,10 @@
 #pragma once
 
 #include <lua.h>
-#include <unordered_map>
-#include <string>
+#include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 
-// TODO: May want to use Godot's HashMap, except right now the godot-cpp version doesn't compile
-typedef std::unordered_map<std::string, lua_CFunction> MethodMap;
+typedef godot::HashMap<godot::StringName, lua_CFunction> MethodMap;
 
 template <typename T>
 T *luaGD_lightudataup(lua_State *L, int index)
