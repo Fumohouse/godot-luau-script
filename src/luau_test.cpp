@@ -8,24 +8,20 @@
 #include <godot_cpp/classes/global_constants.hpp>
 
 #include "luagd.h"
-#include "luagd_bindings.h"
+#include "luagd_permissions.h"
 
 LuauTest::LuauTest()
 {
     UtilityFunctions::print("LuauTest initializing...");
 
-    L = luaGD_newstate();
-    luaL_openlibs(L);
-    luaGD_openbuiltins(L);
-    luaGD_openclasses(L);
-    luaGD_openglobals(L);
+    L = luaGD_newstate(PERMISSION_INTERNAL);
 }
 
 LuauTest::~LuauTest()
 {
     UtilityFunctions::print("LuauTest uninitializing...");
 
-    lua_close(L);
+    luaGD_close(L);
 }
 
 void LuauTest::_set_top(int index)

@@ -14,8 +14,28 @@ def skip_class(class_name):
     return class_name.startswith("VisualShaderNode")
 
 
-def generate_method(class_name, method, api):
+def gen_method_permission_check(class_name, method_name, class_permissions):
+    permission = "INTERNAL"
+
+    if class_name in class_permissions:
+        permission_data = class_permissions[class_name]
+        if "default" in permission_data:
+            permission = permission_data["default"]
+
+        if "methods" in permission_data:
+            methods = permission_data["methods"]
+            if method_name in methods:
+                permission = methods["method_name"]
+
+    if permission == "BASE":
+        return ""
+
+    return f"luaGD_checkpermissions(L, \"{class_name}.{method_name}\", PERMISSION_{permission});"
+
+
+def generate_method(class_name, method, api, class_permissions):
     method_name = method["name"]
+    method_name_pascal = utils.snake_to_pascal(method_name)
     method_hash = method["hash"]
     is_static = method["is_static"]
 
@@ -24,12 +44,16 @@ def generate_method(class_name, method, api):
     map_name = "__class_info.static_funcs" if is_static else "__class_info.methods"
 
     src.append(f"""\
-{map_name}["{utils.snake_to_pascal(method_name)}"] = [](lua_State *L) -> int
+{map_name}["{method_name_pascal}"] = [](lua_State *L) -> int
 {{
     static GDNativeMethodBindPtr __method_bind = internal::gdn_interface->classdb_get_method_bind("{class_name}", "{method_name}", {method_hash});
 """)
 
     indent_level = 1
+
+    permission_check = gen_method_permission_check(class_name, method_name_pascal, class_permissions)
+    if permission_check != "":
+        append(src, indent_level, permission_check + "\n")
 
     # Pull arguments
     args_src, self_name = common.generate_method_args(
@@ -99,6 +123,10 @@ def get_luau_class_sources(src_dir, api, env):
     return src_files
 
 
+def find_by(items, name, key="name"):
+    return [c for c in items if c[key] == name][0]
+
+
 def generate_luau_classes(src_dir, include_dir, api):
     classes = api["classes"]
     singletons = api["singletons"]
@@ -108,6 +136,49 @@ def generate_luau_classes(src_dir, include_dir, api):
 
     classes_filtered = [c for c in classes if not skip_class(c["name"])]
 
+    # Permissions
+
+    """
+    Notes:
+    - Object gets INTERNAL permissions since Call, etc. can bypass these permission checks
+    - RefCounted, because they are often used for some "data only" objects, is BASE by default aside from singletons
+    """
+
+    # TODO: audit this
+
+    class_permissions = {
+        # Special permissions
+        "OS": { "default": "OS" },
+
+        "File": { "default": "FILE" },
+        "Directory": { "default": "FILE" },
+
+        "HTTPClient": { "default": "HTTP" },
+        "HTTPRequest": { "default": "HTTP" }
+    }
+
+    child_defaults = {
+        "Node": "BASE"
+    }
+
+    for g_class in classes_filtered:
+        class_name = g_class["name"]
+
+        if class_name in class_permissions:
+            continue
+
+        check_class = g_class
+        while "inherits" in check_class:
+            check_name = check_class["name"]
+            if check_name in child_defaults:
+                class_permissions[class_name] = { "default": child_defaults[check_name] }
+                break
+            elif check_name == "RefCounted":
+                if len([s for s in singletons if s["type"] == class_name]) == 0:
+                    class_permissions[class_name] = { "default": "BASE" }
+
+            check_class = find_by(classes_filtered, check_class["inherits"])
+
     src = [constants.header_comment, ""]
     header = [constants.header_comment, ""]
 
@@ -116,7 +187,7 @@ def generate_luau_classes(src_dir, include_dir, api):
 
 #include <lua.h>
 
-#include "luagd.h"
+#include "luagd_builtins.h"
 
 #include "luagd_classes.h"
 #include "luagd_classes.gen.h"
@@ -159,6 +230,8 @@ void luaGD_openclasses(lua_State *L)
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string.hpp>
 
+#include "luagd_permissions.h"
+
 #include "luagd_stack.h"
 #include "luagd_bindings_stack.gen.h"
 
@@ -186,7 +259,7 @@ void {open_name}(lua_State *L, bool first_init, ClassRegistry *classes)
 
         while "inherits" in check_class:
             parents.append(check_class["inherits"])
-            check_class = [c for c in classes_filtered if c["name"] == check_class["inherits"]][0]
+            check_class = find_by(classes_filtered, check_class["inherits"])
 
         parents_initializer = ", ".join([f"\"{p}\"" for p in parents])
         append(class_src, c_indent, f"""\
@@ -209,8 +282,10 @@ if (first_init)
         # Parent
         if "inherits" in g_class:
             inherits = g_class["inherits"]
-            parent_idx_result = [idx for idx, c in enumerate(classes_filtered) if c["name"] == inherits]
-            append(class_src, c_indent, f"__class_info.parent_idx = {parent_idx_result[0]};\n")
+            parent_idx_result = [idx for idx, c in enumerate(
+                classes_filtered) if c["name"] == inherits]
+            append(class_src, c_indent,
+                   f"__class_info.parent_idx = {parent_idx_result[0]};\n")
         else:
             class_src.append("")
 
@@ -223,7 +298,7 @@ if (first_init)
 
             for method in methods_filtered:
                 append(class_src, c_indent, generate_method(
-                    class_name, method, api))
+                    class_name, method, api, class_permissions))
 
                 class_src.append("")
 

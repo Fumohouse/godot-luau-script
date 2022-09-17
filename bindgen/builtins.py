@@ -345,8 +345,6 @@ def generate_luau_builtins(src_dir, api):
     src.append("""\
 #include "luagd_bindings.h"
 
-#include "luagd.h"
-
 #include "luagd_builtins.h"
 
 #include "luagd_stack.h"

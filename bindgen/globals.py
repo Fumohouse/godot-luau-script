@@ -14,7 +14,7 @@ def generate_luau_globals(src_dir, api):
 #include <godot/gdnative_interface.h>
 #include <godot_cpp/godot.hpp>
 
-#include "luagd.h"
+#include "luagd_builtins.h"
 
 #include "luagd_stack.h"
 #include "luagd_bindings_stack.gen.h"

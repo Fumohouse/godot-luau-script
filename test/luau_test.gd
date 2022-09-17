@@ -198,6 +198,16 @@ func _test_classes():
 	# tostring freed
 	assert_eval_eq("return tostring(testNode)", str(test_node))
 
+	# permissions
+	assert_eval_eq("""\
+status, error = pcall(function()
+	OS.GetSingleton():GetName()
+end)
+
+assert(not status, "call did not fail")
+return error
+""", "exec:2: !!! THREAD PERMISSION VIOLATION: attempted to access OS.GetName. needed permissions: 2, got: 1 !!!")
+
 	set_top(0)
 
 

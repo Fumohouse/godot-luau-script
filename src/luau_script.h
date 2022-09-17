@@ -135,14 +135,15 @@ public:
     virtual bool _can_inherit_from_file() const;
     virtual int64_t _find_function(const String &class_name, const String &function_name) const;
     virtual String _make_function(const String &class_name, const String &function_name, const PackedStringArray &function_args) const;
-    virtual void _add_global_constant(const StringName &name, const Variant &value);
-    virtual void _add_named_global_constant(const StringName &name, const Variant &value);
-    virtual void _remove_named_global_constant(const StringName &name);
     virtual void _reload_all_scripts();
     virtual void _reload_tool_script(const Ref<Script> &script, bool soft_reload);
     virtual void _frame();
 
     // To implement later (or never)
+    virtual void _add_global_constant(const StringName &name, const Variant &value);
+    virtual void _add_named_global_constant(const StringName &name, const Variant &value);
+    virtual void _remove_named_global_constant(const StringName &name);
+
     virtual Ref<Script> _make_template(const String &_template, const String &class_name, const String &base_class_name) const;
     virtual Array _get_built_in_templates(const StringName &object) const;
     virtual bool _is_using_templates();
