@@ -4,11 +4,14 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/file.hpp>
+
+#include "luau.h"
 
 using namespace godot;
 
@@ -113,10 +116,21 @@ LuauLanguage::~LuauLanguage()
     singleton = nullptr;
 }
 
+void LuauLanguage::_init()
+{
+    luau = memnew(Luau);
+}
+
 void LuauLanguage::finalize()
 {
     if (finalized)
         return;
+
+    if (luau != nullptr)
+    {
+        memdelete(luau);
+        luau = nullptr;
+    }
 
     finalized = true;
 }
@@ -223,9 +237,31 @@ PackedStringArray LuauLanguage::_get_string_delimiters() const
     return delimiters;
 }
 
+bool LuauLanguage::_supports_builtin_mode() const
+{
+    // don't currently wish to deal with overhead (if any) of supporting this
+    // and honestly I don't care for builtin scripts anyway
+    return false;
+}
+
 Object *LuauLanguage::_create_script() const
 {
     return memnew(LuauScript);
+}
+
+// TODO: PtrToArg compile error.
+/*
+Error LuauLanguage::_execute_file(const String &p_path)
+{
+    // Unused by Godot; purpose unclear
+    return OK;
+}
+*/
+
+bool LuauLanguage::_has_named_classes() const
+{
+    // not true for any of Godot's built in languages. why
+    return false;
 }
 
 void LuauLanguage::_bind_methods()
@@ -305,7 +341,7 @@ int64_t ResourceFormatSaverLuauScript::_save(const Ref<Resource> &p_resource, co
     }
 
     // TODO: Godot's default language implementations have a check here. It isn't possible in extensions (yet).
-    //if (ScriptServer::is_reload_scripts_on_save_enabled())
+    // if (ScriptServer::is_reload_scripts_on_save_enabled())
     LuauLanguage::get_singleton()->_reload_tool_script(p_resource, false);
 
     return OK;

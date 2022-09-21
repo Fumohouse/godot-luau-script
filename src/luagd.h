@@ -13,6 +13,7 @@ struct GDThreadData
 };
 
 lua_State *luaGD_newstate(ThreadPermissions base_permissions);
+lua_State *luaGD_newthread(lua_State *L, ThreadPermissions permissions);
 void luaGD_close(lua_State *L);
 
 GDThreadData *luaGD_getthreaddata(lua_State *L);

@@ -125,7 +125,22 @@
             "problemMatcher": "$gcc"
         },
 
-        // run without debugger
+        // run configurations
+        {
+            "label": "run editor without debugger",
+            "type": "shell",
+            "command": "${userHome}/bin/godot4",
+            "linux": {
+                "args": [
+                    "-v",
+                    "-e"
+                ],
+                "options": {
+                    "cwd": "${workspaceRoot}/test"
+                }
+            },
+            "problemMatcher": "$gcc" // shut up about the problem matcher
+        },
         {
             "label": "run test without debugger",
             "type": "shell",

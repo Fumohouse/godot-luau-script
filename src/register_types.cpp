@@ -24,7 +24,7 @@ using namespace godot;
     - [~] LuauScriptInstance - script instance
     - [~] LuauLanguage - language definition, manages runtime
     - [x] ResourceFormatLoaderLuauScript, ResourceFormatSaverLuauScript - saving/loading
-    - [ ] Luau - runtime (manages actual states, etc.)
+    - [~] Luau - runtime (manages actual states, etc.)
 
     Requirements:
     - [x] Binding of built in Godot APIs to Luau
@@ -33,11 +33,11 @@ using namespace godot;
         - Interface between extensions with a singleton and named method calls
         - Create an interface source file/header which can be pulled into a GDExtension and used for convenience
     - [ ] Separated VMs
-        - [ ] VMs for loading script resources, running core scripts, running map scripts
+        - [x] VMs for loading script resources, running core scripts, running map scripts
         - [x] Thread data containing flag enum of permissions (OS, File, etc.) + inheritance
             - https://github.com/Roblox/luau/pull/167
         - [ ] Resource for setting core script permissions
-        - [ ] Bound API checks for permissions
+        - [x] Bound API checks for permissions
     - [ ] Creation of custom classes in Luau, extending native classes
     - [ ] Extending/referencing custom Luau classes
     - Godot feature support:
@@ -98,8 +98,7 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level)
     ClassDB::register_class<LuauLanguage>();
 
     script_language_luau = memnew(LuauLanguage);
-    // TODO: Not enough is done to allow this without crashes
-    // Engine::get_singleton()->register_script_language(script_language_luau);
+    Engine::get_singleton()->register_script_language(script_language_luau);
 
     resource_loader_luau.instantiate();
     ResourceLoader::get_singleton()->add_resource_format_loader(resource_loader_luau);

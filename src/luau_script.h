@@ -1,7 +1,6 @@
 #pragma once
 
 #include <godot/gdnative_interface.h>
-
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -95,12 +94,16 @@ public:
     */
 };
 
+class Luau;
+
 class LuauLanguage : public ScriptLanguageExtension
 {
     GDCLASS(LuauLanguage, ScriptLanguageExtension);
 
 private:
     static LuauLanguage *singleton;
+    Luau *luau;
+
     bool finalized = false;
 
     void finalize();
@@ -111,6 +114,7 @@ protected:
 public:
     static LuauLanguage *get_singleton() { return singleton; }
 
+    virtual void _init() override;
     virtual void _finish() override;
 
     /* LANGUAGE INFO */
@@ -126,11 +130,17 @@ public:
     virtual PackedStringArray _get_comment_delimiters() const override;
     virtual PackedStringArray _get_string_delimiters() const override;
 
+    virtual bool _supports_builtin_mode() const override;
+
     /* ... */
     virtual Object *_create_script() const override;
 
+    /* ???: pure virtual functions which have no clear purpose */
+    // TODO: PtrToArg compile error.
+    // virtual Error _execute_file(const String &p_path) override;
+    virtual bool _has_named_classes() const override;
+
     /*
-    virtual void _init();
     virtual Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const;
     virtual bool _can_inherit_from_file() const;
     virtual int64_t _find_function(const String &class_name, const String &function_name) const;
@@ -157,9 +167,6 @@ public:
 
     virtual void _thread_enter();
     virtual void _thread_exit();
-
-    virtual bool _supports_builtin_mode() const;
-    virtual bool _has_named_classes() const; // not true for any of Godot's built in languages. why
 
     virtual String _validate_path(const String &path) const; // used by C# only to prevent naming class to keyword. probably not super necessary
 
@@ -192,8 +199,6 @@ public:
     virtual Array _get_public_annotations() const;
 
     // Seemingly unused by Godot
-    virtual Error _execute_file(const String &path);
-
     virtual void *_alloc_instance_binding_data(Object *object);
     virtual void _free_instance_binding_data(void *data);
     virtual void _refcount_incremented_instance_binding(Object *object);

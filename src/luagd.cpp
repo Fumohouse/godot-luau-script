@@ -71,6 +71,16 @@ lua_State *luaGD_newstate(ThreadPermissions base_permissions)
     return L;
 }
 
+lua_State *luaGD_newthread(lua_State *L, ThreadPermissions permissions)
+{
+    lua_State *T = lua_newthread(L);
+
+    GDThreadData *udata = luaGD_getthreaddata(T);
+    udata->permissions = permissions;
+
+    return T;
+}
+
 void luaGD_close(lua_State *L)
 {
     L = lua_mainthread(L);
