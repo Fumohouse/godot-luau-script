@@ -5,6 +5,7 @@
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
@@ -134,6 +135,7 @@ public:
 
     /* ... */
     virtual Object *_create_script() const override;
+    virtual Ref<Script> _make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
 
     /* ???: pure virtual functions which have no clear purpose */
     // TODO: PtrToArg compile error.
@@ -154,7 +156,6 @@ public:
     virtual void _add_named_global_constant(const StringName &name, const Variant &value);
     virtual void _remove_named_global_constant(const StringName &name);
 
-    virtual Ref<Script> _make_template(const String &_template, const String &class_name, const String &base_class_name) const;
     virtual Array _get_built_in_templates(const StringName &object) const;
     virtual bool _is_using_templates();
 
@@ -211,6 +212,11 @@ public:
 
 class ResourceFormatLoaderLuauScript : public ResourceFormatLoader
 {
+    GDCLASS(ResourceFormatLoaderLuauScript, ResourceFormatLoader);
+
+protected:
+    static void _bind_methods() {}
+
 public:
     virtual PackedStringArray _get_recognized_extensions() const override;
     virtual bool _handles_type(const StringName &p_type) const override;
@@ -220,6 +226,11 @@ public:
 
 class ResourceFormatSaverLuauScript : public ResourceFormatSaver
 {
+    GDCLASS(ResourceFormatSaverLuauScript, ResourceFormatSaver);
+
+protected:
+    static void _bind_methods() {}
+
 public:
     virtual PackedStringArray _get_recognized_extensions(const Ref<Resource> &p_resource) const override;
     virtual bool _recognize(const Ref<Resource> &p_resource) const override;

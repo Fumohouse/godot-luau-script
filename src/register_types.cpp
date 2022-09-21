@@ -100,9 +100,11 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level)
     script_language_luau = memnew(LuauLanguage);
     Engine::get_singleton()->register_script_language(script_language_luau);
 
+    ClassDB::register_class<ResourceFormatLoaderLuauScript>();
     resource_loader_luau.instantiate();
     ResourceLoader::get_singleton()->add_resource_format_loader(resource_loader_luau);
 
+    ClassDB::register_class<ResourceFormatSaverLuauScript>();
     resource_saver_luau.instantiate();
     ResourceSaver::get_singleton()->add_resource_format_saver(resource_saver_luau);
 
@@ -120,8 +122,10 @@ void uninitialize_luau_script_module(ModuleInitializationLevel p_level)
 
     // TODO: unregister script language (not currently possible)
 
-    if (script_language_luau)
-        memdelete(script_language_luau); // will this break? maybe
+    // 21-09-2022: it does break. (segfault when ScriptServer cleans up)
+    // should be ok if/when script languages can be properly unregistered
+    // if (script_language_luau)
+        // memdelete(script_language_luau); // will this break? maybe
 
     ResourceLoader::get_singleton()->remove_resource_format_loader(resource_loader_luau);
     resource_loader_luau.unref();

@@ -158,7 +158,7 @@ String LuauLanguage::_get_extension() const
 PackedStringArray LuauLanguage::_get_recognized_extensions() const
 {
     PackedStringArray extensions;
-    extensions.push_back("luau");
+    extensions.push_back("lua");
 
     return extensions;
 }
@@ -249,6 +249,21 @@ Object *LuauLanguage::_create_script() const
     return memnew(LuauScript);
 }
 
+Ref<Script> LuauLanguage::_make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const
+{
+    Ref<LuauScript> script;
+    script.instantiate();
+
+    // TODO: this should not be necessary. it prevents a segfault when this ref is exchanged to Godot.
+    //       tracking https://github.com/godotengine/godot-cpp/issues/652
+    //       it will create a memory leak if/when it is time to remove this. lol.
+    script->reference();
+
+    // TODO: actual template stuff
+
+    return script;
+}
+
 // TODO: PtrToArg compile error.
 /*
 Error LuauLanguage::_execute_file(const String &p_path)
@@ -311,7 +326,8 @@ PackedStringArray ResourceFormatSaverLuauScript::_get_recognized_extensions(cons
 {
     PackedStringArray extensions;
 
-    if (Object::cast_to<LuauScript>(const_cast<Resource *>(p_resource.ptr())))
+    Ref<LuauScript> ref = p_resource;
+    if (ref.is_valid())
         extensions.push_back("lua");
 
     return extensions;
@@ -319,7 +335,8 @@ PackedStringArray ResourceFormatSaverLuauScript::_get_recognized_extensions(cons
 
 bool ResourceFormatSaverLuauScript::_recognize(const Ref<Resource> &p_resource) const
 {
-    return Object::cast_to<LuauScript>(const_cast<Resource *>(p_resource.ptr())) != nullptr;
+    Ref<LuauScript> ref = p_resource;
+    return ref.is_valid();
 }
 
 int64_t ResourceFormatSaverLuauScript::_save(const Ref<Resource> &p_resource, const String &p_path, int64_t p_flags)
