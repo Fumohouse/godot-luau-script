@@ -62,7 +62,7 @@ Dictionary LuauTest::_exec(String source)
             return output;
         }
 
-        String error = luaGD_get<String>(L, -1);
+        String error = LuaStackOp<String>::get(L, -1);
         lua_pop(L, 1);
 
         output["status"] = FAILED;
@@ -71,7 +71,7 @@ Dictionary LuauTest::_exec(String source)
     }
 
     output["status"] = FAILED;
-    output["error"] = luaGD_get<String>(L, -1);
+    output["error"] = LuaStackOp<String>::get(L, -1);
     lua_pop(L, 1);
 
     return output;

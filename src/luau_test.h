@@ -8,19 +8,20 @@
 #include <godot_cpp/classes/wrapped.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 
-#include "luagd.h"
+#include "luagd_stack.h"
+#include "luagd_bindings_stack.gen.h"
 
 using namespace godot;
 
-#define LUAU_TEST_STACK_OPS(type, name)   \
-    void _push_##name(type value)         \
-    {                                     \
-        luaGD_push<type>(L, value);       \
-    }                                     \
-                                          \
-    type _get_##name(int index)           \
-    {                                     \
-        return luaGD_get<type>(L, index); \
+#define LUAU_TEST_STACK_OPS(type, name)         \
+    void _push_##name(type value)               \
+    {                                           \
+        LuaStackOp<type>::push(L, value);       \
+    }                                           \
+                                                \
+    type _get_##name(int index)                 \
+    {                                           \
+        return LuaStackOp<type>::get(L, index); \
     }
 
 // A test node for working with the Luau VM directly,
