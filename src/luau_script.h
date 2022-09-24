@@ -49,6 +49,7 @@ public:
     virtual bool _is_valid() const;
     virtual bool _has_script_signal(const StringName &signal) const;
     virtual Array _get_script_signal_list() const;
+	virtual bool _has_property_default_value(const StringName &property) const;
     virtual Variant _get_property_default_value(const StringName &property) const;
     virtual void _update_exports();
     virtual Array _get_script_method_list() const;

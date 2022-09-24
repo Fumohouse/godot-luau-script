@@ -48,11 +48,15 @@ type GDClassDefinition = {
     -- Register a property (exported)
     RegisterProperty: (
         self: GDClassDefinition,
-        property: GDProperty
+        property: GDProperty,
+        getter: string,
+        setter: string,
+        default: any?
     ) -> ()
 
     -- TODO: Signals, RPCs
 }
 
 -- Creates a class definition
-declare function gdclass(className: string, extends: string): GDClassDefinition
+-- default extends: RefCounted
+declare function gdclass(className: string, extends: string?): GDClassDefinition

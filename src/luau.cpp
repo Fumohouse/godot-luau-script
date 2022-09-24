@@ -5,6 +5,7 @@
 
 #include "luagd.h"
 #include "luagd_permissions.h"
+#include "luau_lib.h"
 
 using namespace godot;
 
@@ -12,7 +13,11 @@ Luau *Luau::singleton = nullptr;
 
 void Luau::init_vm(VMType p_type)
 {
-    vms.insert(p_type, luaGD_newstate(PERMISSION_BASE));
+    lua_State *L = luaGD_newstate(PERMISSION_BASE);
+    luascript_openlibs(L);
+    luascript_openclasslib(L, false);
+
+    vms.insert(p_type, L);
 }
 
 Luau::Luau()

@@ -44,4 +44,13 @@ end, {
     returnVal = gdproperty({ type = 4 })
 })
 
+-- Property
+Character:RegisterProperty(
+    gdproperty({
+        name = "testProperty",
+        type = 3
+    }),
+    3.5
+)
+
 return Character
