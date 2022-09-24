@@ -67,20 +67,11 @@ using namespace godot;
 /*
     Design considerations
 
-    - For custom objects, any custom script instance data/methods are hidden behind get(), set(), call()
-        - We could (should?) cache userdata, per object, per VM
-        - Scripted objects will have 2 separate states - defined as a part of the underlying object and in Luau
-            - It is easiest (probably desirable) to store this state in C++ rather than in Lua
-                - Any tables would need to be converted to reference and stored that way
-                - However, the state itself would not need to be referenced in any way, which is pretty nice
-                - Also, we would not need to deal with somehow merging both a userdata and a table into "self"
-        - With this model, referencing a method even cross-VM should be non-problematic (hopefully)
-            since no cross-VM "marshalling"/somehow wrapping calls in get/set/call is needed
-            - The metatable would need to be copied though
-
-    - Custom classes:
-        - Definition table and metatable will be slightly different
-        - Create a class definition table that defines exports, properties, etc. as special userdata types
+    - Each ScriptInstance should have its own table stored in the registry
+        - Must take into consideration the VM on which the ScriptInstance was made
+        - External access to this is locked behind get(), set(), call()
+        - Registered exports will query some Variant-compatible property in this table
+        - The metatable assigned to the ScriptInstance Object should consider this table and the parent
 */
 
 LuauLanguage *script_language_luau = nullptr;
