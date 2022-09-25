@@ -53,10 +53,10 @@ def generate_stack_ops(src_dir, include_dir, api):
 
         if "has_destructor" in b_class and b_class["has_destructor"]:
             src.append(
-                f"LUA_UDATA_STACK_OP({class_name}, {metatable_name}, DTOR({class_name}));")
+                f"LUA_UDATA_STACK_OP({class_name}, \"{metatable_name}\", DTOR({class_name}));")
         else:
             src.append(
-                f"LUA_UDATA_STACK_OP({class_name}, {metatable_name}, NO_DTOR);")
+                f"LUA_UDATA_STACK_OP({class_name}, \"{metatable_name}\", NO_DTOR);")
 
         header.append(f"template class LuaStackOp<{class_name}>;")
 
@@ -68,7 +68,7 @@ def generate_stack_ops(src_dir, include_dir, api):
         class_name = g_class["name"]
         metatable_name = constants.class_metatable_prefix + class_name
 
-        src.append(f"LUA_OBJECT_STACK_OP({class_name}, {metatable_name});")
+        src.append(f"LUA_OBJECT_STACK_OP({class_name});")
         header.append(f"template class LuaStackOp<{class_name} *>;")
 
     src.append("")

@@ -50,6 +50,8 @@ Character:RegisterProperty(
         name = "testProperty",
         type = 3
     }),
+    "GetTestProperty",
+    "SetTestProperty",
     3.5
 )
 

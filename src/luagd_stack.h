@@ -56,9 +56,9 @@ template class LuaStackOp<Error>;
     {                                                                                       \
         type *udata = reinterpret_cast<type *>(lua_newuserdatadtor(L, sizeof(type), dtor)); \
                                                                                             \
-        luaL_getmetatable(L, #metatable_name);                                              \
+        luaL_getmetatable(L, metatable_name);                                               \
         if (lua_isnil(L, -1))                                                               \
-            luaL_error(L, "Metatable not found: " #metatable_name);                         \
+            luaL_error(L, "Metatable not found: " metatable_name);                          \
                                                                                             \
         lua_setmetatable(L, -2);                                                            \
                                                                                             \
@@ -79,9 +79,9 @@ template class LuaStackOp<Error>;
         if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))             \
             return false;                                                                   \
                                                                                             \
-        luaL_getmetatable(L, #metatable_name);                                              \
+        luaL_getmetatable(L, metatable_name);                                               \
         if (lua_isnil(L, -1))                                                               \
-            luaL_error(L, "Metatable not found: " #metatable_name);                         \
+            luaL_error(L, "Metatable not found: " metatable_name);                          \
                                                                                             \
         bool result = lua_equal(L, -1, -2);                                                 \
         lua_pop(L, 2);                                                                      \
@@ -111,7 +111,7 @@ template class LuaStackOp<Error>;
     template <>                                                                             \
     type *LuaStackOp<type>::check_ptr(lua_State *L, int index)                              \
     {                                                                                       \
-        return reinterpret_cast<type *>(luaL_checkudata(L, index, #metatable_name));        \
+        return reinterpret_cast<type *>(luaL_checkudata(L, index, metatable_name));         \
     }                                                                                       \
                                                                                             \
     template <>                                                                             \
@@ -129,7 +129,7 @@ template class LuaStackOp<Error>;
 
 /* OBJECTS */
 
-#define LUA_OBJECT_STACK_OP(type, metatable_name)                               \
+#define LUA_OBJECT_STACK_OP(type)                                               \
     template <>                                                                 \
     void LuaStackOp<type *>::push(lua_State *L, type *const &value)             \
     {                                                                           \

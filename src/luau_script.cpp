@@ -19,10 +19,6 @@ using namespace godot;
 // SCRIPT //
 ////////////
 
-void LuauScript::_bind_methods()
-{
-}
-
 bool LuauScript::_has_source_code() const
 {
     return !source.is_empty();
@@ -277,10 +273,6 @@ bool LuauLanguage::_has_named_classes() const
 {
     // not true for any of Godot's built in languages. why
     return false;
-}
-
-void LuauLanguage::_bind_methods()
-{
 }
 
 //////////////

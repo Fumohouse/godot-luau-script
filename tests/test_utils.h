@@ -29,18 +29,7 @@ struct ExecOutput
 
 ExecOutput luaGD_exec(lua_State *L, const char *src);
 
-#define ASSERT_EVAL_EQ(L, src, type, value)             \
-    {                                                   \
-        ExecOutput out = luaGD_exec(L, src);            \
-                                                        \
-        if (out.status != OK)                           \
-            FAIL(out.error.utf8().get_data());          \
-                                                        \
-        CHECK(LuaStackOp<type>::check(L, -1) == value); \
-        lua_pop(L, 1);                                  \
-    }
-
-#define ASSERT_EVAL_OK(L, src)                 \
+#define EVAL_THEN(L, src, expr)                \
     {                                          \
         int top = lua_gettop(L);               \
         ExecOutput out = luaGD_exec(L, src);   \
@@ -48,8 +37,17 @@ ExecOutput luaGD_exec(lua_State *L, const char *src);
         if (out.status != OK)                  \
             FAIL(out.error.utf8().get_data()); \
                                                \
+        expr;                                  \
+                                               \
         lua_settop(L, top);                    \
     }
+
+#define ASSERT_EVAL_EQ(L, src, type, value)             \
+    EVAL_THEN(L, src, {                                 \
+        CHECK(LuaStackOp<type>::check(L, -1) == value); \
+    });
+
+#define ASSERT_EVAL_OK(L, src) EVAL_THEN(L, src, {});
 
 #define ASSERT_EVAL_FAIL(L, src, err)        \
     {                                        \

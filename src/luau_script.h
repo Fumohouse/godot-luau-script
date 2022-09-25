@@ -23,7 +23,7 @@ private:
     String source;
 
 protected:
-    static void _bind_methods();
+    static void _bind_methods() {}
 
 public:
     virtual bool _has_source_code() const override;
@@ -49,7 +49,7 @@ public:
     virtual bool _is_valid() const;
     virtual bool _has_script_signal(const StringName &signal) const;
     virtual Array _get_script_signal_list() const;
-	virtual bool _has_property_default_value(const StringName &property) const;
+    virtual bool _has_property_default_value(const StringName &property) const;
     virtual Variant _get_property_default_value(const StringName &property) const;
     virtual void _update_exports();
     virtual Array _get_script_method_list() const;
@@ -111,7 +111,7 @@ private:
     void finalize();
 
 protected:
-    static void _bind_methods();
+    static void _bind_methods() {}
 
 public:
     static LuauLanguage *get_singleton() { return singleton; }

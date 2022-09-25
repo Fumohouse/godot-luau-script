@@ -29,14 +29,16 @@ Luau::Luau()
     init_vm(VM_CORE);
     init_vm(VM_USER);
 
-    singleton = this;
+    if (singleton == nullptr)
+        singleton = this;
 }
 
 Luau::~Luau()
 {
     UtilityFunctions::print_verbose("Luau runtime: uninitializing...");
 
-    singleton = nullptr;
+    if (singleton == this)
+        singleton = nullptr;
 
     for (const KeyValue<VMType, lua_State *> &kvp : vms)
         luaGD_close(kvp.value);

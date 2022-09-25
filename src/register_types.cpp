@@ -25,13 +25,6 @@ using namespace godot;
 /*
     Luau scripting design
 
-    Classes:
-    - [~] LuauScript - script resource
-    - [~] LuauScriptInstance - script instance
-    - [~] LuauLanguage - language definition, manages runtime
-    - [x] ResourceFormatLoaderLuauScript, ResourceFormatSaverLuauScript - saving/loading
-    - [~] Luau - runtime (manages actual states, etc.)
-
     Requirements:
     - [x] Binding of built in Godot APIs to Luau
     - [ ] Manual binding of GDExtension Object classes

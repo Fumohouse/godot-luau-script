@@ -89,11 +89,23 @@ static int luascript_gdclass_namecall(lua_State *L)
 {
     if (const char *name = lua_namecallatom(L, nullptr))
     {
-        if (strcmp(name, "Initialize") == 0 ||
-            strcmp(name, "Subscribe") == 0)
-            return 0; // no-op for class info
-
         GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
+
+        // no-op methods
+        if (strcmp(name, "Initialize") == 0)
+        {
+            luaL_checktype(L, 2, LUA_TFUNCTION);
+
+            return 0;
+        }
+
+        if (strcmp(name, "Subscribe") == 0)
+        {
+            luaL_checkinteger(L, 2);
+            luaL_checktype(L, 3, LUA_TFUNCTION);
+
+            return 0;
+        }
 
         // Defined methods
         if (strcmp(name, "Tool") == 0)
@@ -116,6 +128,8 @@ static int luascript_gdclass_namecall(lua_State *L)
             luaL_checktype(L, 4, LUA_TTABLE);
 
             Dictionary method;
+
+            method["name"] = method_name;
 
             if (luaGD_getfield(L, 4, "args"))
             {
@@ -188,6 +202,11 @@ static int luascript_gdclass_namecall(lua_State *L)
             if (lua_gettop(L) >= 5)
                 prop.default_value = LuaStackOp<Variant>::get(L, 5);
 
+            // ???
+            // yes. an implicit conversion from String to StringName exists.
+            // it doesn't work here. why? don't ask.
+            def->properties.insert(property->internal["name"].operator String().utf8().get_data(), prop);
+
             return 0;
         } // :RegisterProperty
 
@@ -201,11 +220,26 @@ static int luascript_gdclass_methods_namecall(lua_State *L)
 {
     if (const char *name = lua_namecallatom(L, nullptr))
     {
-        if (strcmp(name, "Tool") == 0 ||
-            strcmp(name, "RegisterProperty") == 0)
-            return 0; // no-op for method loading
-
         GDClassMethods *methods = LuaStackOp<GDClassMethods>::check_ptr(L, 1);
+
+        // no-op methods
+        if (strcmp(name, "Tool") == 0)
+        {
+            luaL_checkboolean(L, 2);
+
+            return 0;
+        }
+
+        if (strcmp(name, "RegisterProperty") == 0)
+        {
+            LuaStackOp<GDProperty>::check(L, 2);
+            luaL_checkstring(L, 3);
+            luaL_checkstring(L, 4);
+            if (lua_gettop(L) >= 5)
+                LuaStackOp<Variant>::get(L, 5);
+
+            return 0;
+        }
 
         // Defined methods
         if (strcmp(name, "Initialize") == 0)
