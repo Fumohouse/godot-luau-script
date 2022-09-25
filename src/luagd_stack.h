@@ -69,6 +69,7 @@ template class LuaStackOp<Error>;
     void LuaStackOp<type>::push(lua_State *L, const type &value)                            \
     {                                                                                       \
         type *udata = LuaStackOp<type>::alloc(L);                                           \
+        new (udata) type(); /* TODO: not necessary always */                                \
         *udata = value;                                                                     \
     }                                                                                       \
                                                                                             \

@@ -25,7 +25,7 @@ def gen_method_permission_check(class_name, method_name, class_permissions):
         if "methods" in permission_data:
             methods = permission_data["methods"]
             if method_name in methods:
-                permission = methods["method_name"]
+                permission = methods[method_name]
 
     if permission == "BASE":
         return ""
@@ -140,7 +140,7 @@ def generate_luau_classes(src_dir, include_dir, api):
 
     """
     Notes:
-    - Object gets INTERNAL permissions since Call, etc. can bypass these permission checks
+    - Object gets INTERNAL permissions by default since Call, etc. can bypass these permission checks
     - RefCounted, because they are often used for some "data only" objects, is BASE by default aside from singletons
     """
 
@@ -154,7 +154,14 @@ def generate_luau_classes(src_dir, include_dir, api):
         "Directory": { "default": "FILE" },
 
         "HTTPClient": { "default": "HTTP" },
-        "HTTPRequest": { "default": "HTTP" }
+        "HTTPRequest": { "default": "HTTP" },
+
+        "Object": {
+            "default": "INTERNAL",
+            "methods": {
+                "GetClass": "BASE"
+            }
+        }
     }
 
     child_defaults = {

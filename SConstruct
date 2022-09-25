@@ -10,11 +10,12 @@ env["ENV"]["TERM"] = os.environ["TERM"]  # clang colors
 
 # Using this option makes a warning. Too bad!
 opts = Variables([], ARGUMENTS)
+
 opts.Add(BoolVariable("generate_luau_bindings",
          "Force generation of Luau bindings.", False))
-
 opts.Add(BoolVariable("use_sccache",
          "Use sccache distributed compiling (must be on PATH).", False))
+opts.Add(BoolVariable("tests", "Build tests", False))
 
 opts.Update(env)
 
@@ -41,10 +42,20 @@ if env["use_sccache"]:
 if not env.get("is_msvc", False):
     env.Append(CXXFLAGS=["-fvisibility=hidden"])
 
-env.Append(BUILDERS={"GenerateLuauBindings": Builder(
+env_base = env.Clone()
+env_base["CPPDEFINES"] = [] # irrelevant to externs
+
+Export("env")
+Export("env_base")
+SConscript("extern/SCSub_Luau.py")
+
+env_main = env.Clone()
+
+# Luau bindgen
+env_main.Append(BUILDERS={"GenerateLuauBindings": Builder(
     action=scons_generate_bindings, emitter=scons_emit_files)})
 
-luau_bindings = env.GenerateLuauBindings(
+luau_bindings = env_main.GenerateLuauBindings(
     env.Dir("."),
     [
         os.path.join(
@@ -57,34 +68,36 @@ luau_bindings = env.GenerateLuauBindings(
 if env["generate_luau_bindings"]:
     AlwaysBuild(luau_bindings)
 
-luau_dir = "extern/luau/"
-luau_includes = [
-    "Common",
-    "Ast",
-    "Compiler",
-    "VM",
-]
-
-env.Append(CPPPATH=[
+env_main.Append(CPPPATH=[
     "src/",
     "gen/include/"
-] + [luau_dir + subdir + "/include/" for subdir in luau_includes])
+])
 
-sources = Glob("src/*.cpp")
-for subdir in luau_includes:
-    sources += Glob("{}{}/src/*.cpp".format(luau_dir, subdir))
+sources = Glob("src/*.cpp", exclude=["src/register_types.cpp"])
 
 sources.extend([f for f in luau_bindings if str(f).endswith(".cpp")])
 
+# Catch2
+if env["tests"]:
+    env_main.Append(CPPPATH=["extern/Catch2/extras/"])
+    sources.append(File("extern/Catch2/extras/catch_amalgamated.cpp"))
+
+    sources.append(env_main.SharedObject("src/register_types.cpp", CPPDEFINES=env["CPPDEFINES"] + ["TESTS_ENABLED"]))
+
+    sources += Glob("tests/*.cpp")
+    env_main.Append(CPPPATH=["tests/"])
+else:
+    sources.append(File("src/register_types.cpp"))
+
 if env["platform"] == "macos":
-    library = env.SharedLibrary(
+    library = env_main.SharedLibrary(
         "../../bin/luau-script/libluau-script.{}.{}.framework/libluau-script.{}.{}".format(
             env["platform"], env["target"], env["platform"], env["target"]
         ),
         source=sources,
     )
 else:
-    library = env.SharedLibrary(
+    library = env_main.SharedLibrary(
         "../../bin/luau-script/libluau-script.{}.{}.{}{}".format(
             env["platform"], env["target"], env["arch_suffix"], env["SHLIBSUFFIX"]
         ),

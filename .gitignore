@@ -1,2 +1,3 @@
 gen/
 __pycache__/
+*.a

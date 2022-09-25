@@ -17,6 +17,21 @@
             "problemMatcher": "$gcc"
         },
         {
+            "label": "build tests",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=debug",
+                    "tests=yes",
+                    "platform=linux",
+                    "use_llvm=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
             "label": "build debug with bindings",
             "type": "shell",
             "command": "scons",
@@ -136,7 +151,7 @@
                     "-e"
                 ],
                 "options": {
-                    "cwd": "${workspaceRoot}/test"
+                    "cwd": "${workspaceRoot}/test_project"
                 }
             },
             "problemMatcher": "$gcc" // shut up about the problem matcher
@@ -148,10 +163,12 @@
             "linux": {
                 "args": [
                     "-v",
-                    "main.tscn"
+                    "main.tscn",
+                    "--",
+                    "--success"
                 ],
                 "options": {
-                    "cwd": "${workspaceRoot}/test"
+                    "cwd": "${workspaceRoot}/test_project"
                 }
             },
             "problemMatcher": "$gcc" // shut up about the problem matcher

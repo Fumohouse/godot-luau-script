@@ -11,7 +11,7 @@
                 "-e"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/test"
+            "cwd": "${workspaceFolder}/test_project"
         },
         {
             "name": "linux scene debug",
@@ -23,7 +23,7 @@
                 "main.tscn"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/test"
+            "cwd": "${workspaceFolder}/test_project"
         }
     ]
 }
