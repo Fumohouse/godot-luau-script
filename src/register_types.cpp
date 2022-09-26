@@ -99,6 +99,9 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level)
     ResourceSaver::get_singleton()->add_resource_format_saver(resource_saver_luau);
 
 #ifdef TESTS_ENABLED
+    if (!OS::get_singleton()->get_cmdline_args().has("--luau-tests"))
+        return;
+
     UtilityFunctions::print("Catch2: Running tests...");
 
     Catch::Session session;

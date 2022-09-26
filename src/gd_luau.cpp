@@ -44,8 +44,8 @@ GDLuau::~GDLuau()
     if (singleton == this)
         singleton = nullptr;
 
-    for (const KeyValue<VMType, lua_State *> &kvp : vms)
-        luaGD_close(kvp.value);
+    for (const KeyValue<VMType, lua_State *> &pair : vms)
+        luaGD_close(pair.value);
 
     vms.clear();
 }

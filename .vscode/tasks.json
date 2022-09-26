@@ -164,6 +164,7 @@
                 "args": [
                     "-v",
                     "main.tscn",
+                    "--luau-tests",
                     "--",
                     "--success"
                 ],

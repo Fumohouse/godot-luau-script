@@ -20,7 +20,10 @@
             "program": "${userHome}/bin/godot4",
             "args": [
                 "-v",
-                "main.tscn"
+                "main.tscn",
+                "--luau-tests",
+                "--",
+                "--success"
             ],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/test_project"
