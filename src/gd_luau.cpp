@@ -1,4 +1,7 @@
-#include "luau.h"
+#include "gd_luau.h"
+
+#include <lua.h>
+#include <lualib.h>
 
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/templates/pair.hpp>
@@ -9,18 +12,19 @@
 
 using namespace godot;
 
-Luau *Luau::singleton = nullptr;
+GDLuau *GDLuau::singleton = nullptr;
 
-void Luau::init_vm(VMType p_type)
+void GDLuau::init_vm(VMType p_type)
 {
     lua_State *L = luaGD_newstate(PERMISSION_BASE);
     luascript_openlibs(L);
     luascript_openclasslib(L, false);
+    luaL_sandbox(L);
 
     vms.insert(p_type, L);
 }
 
-Luau::Luau()
+GDLuau::GDLuau()
 {
     UtilityFunctions::print_verbose("Luau runtime: initializing...");
 
@@ -33,7 +37,7 @@ Luau::Luau()
         singleton = this;
 }
 
-Luau::~Luau()
+GDLuau::~GDLuau()
 {
     UtilityFunctions::print_verbose("Luau runtime: uninitializing...");
 
@@ -46,7 +50,7 @@ Luau::~Luau()
     vms.clear();
 }
 
-lua_State *Luau::get_vm(VMType p_type)
+lua_State *GDLuau::get_vm(VMType p_type)
 {
     if (!vms.has(p_type))
         return nullptr;

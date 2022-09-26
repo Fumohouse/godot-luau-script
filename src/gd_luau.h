@@ -6,8 +6,9 @@ using namespace godot;
 
 struct lua_State;
 
-class Luau
+class GDLuau
 {
+public:
     enum VMType
     {
         // Runs code for getting basic information for LuauScript.
@@ -23,16 +24,16 @@ class Luau
     };
 
 private:
-    static Luau *singleton;
+    static GDLuau *singleton;
 
     HashMap<VMType, lua_State *> vms;
     void init_vm(VMType p_type);
 
 public:
-    static Luau *get_singleton() { return singleton; }
+    static GDLuau *get_singleton() { return singleton; }
 
     lua_State *get_vm(VMType p_type);
 
-    Luau();
-    ~Luau();
+    GDLuau();
+    ~GDLuau();
 };

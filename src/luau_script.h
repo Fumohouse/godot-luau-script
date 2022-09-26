@@ -3,9 +3,12 @@
 #include <godot/gdnative_interface.h>
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
@@ -13,7 +16,14 @@
 #include <godot_cpp/classes/resource_format_saver.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 
+#include "luau_lib.h"
+
 using namespace godot;
+
+// TODO: WTF?
+#include <godot_cpp/core/method_ptrcall.hpp>
+MAKE_PTRARG(Error);
+//
 
 class LuauScript : public ScriptExtension
 {
@@ -21,6 +31,10 @@ class LuauScript : public ScriptExtension
 
 private:
     String source;
+    HashSet<Object *> instances;
+
+    bool valid;
+    GDClassDefinition definition;
 
 protected:
     static void _bind_methods() {}
@@ -30,8 +44,25 @@ public:
     virtual String _get_source_code() const override;
     virtual void _set_source_code(const String &p_code) override;
     Error load_source_code(const String &p_path);
+    virtual Error _reload(bool p_keep_state) override;
 
     virtual ScriptLanguage *_get_language() const override;
+
+    virtual bool _instance_has(Object *p_object) const override;
+
+    virtual bool _is_valid() const override;
+
+    /* SCRIPT INFO */
+    virtual bool _is_tool() const override;
+
+    virtual Array _get_script_method_list() const override;
+    virtual bool _has_method(const StringName &p_method) const override;
+    virtual Dictionary _get_method_info(const StringName &p_method) const override;
+
+    virtual Array _get_script_property_list() const override;
+    virtual Array _get_members() const override;
+    virtual bool _has_property_default_value(const StringName &p_property) const override;
+    virtual Variant _get_property_default_value(const StringName &p_property) const override;
 
     /*
     virtual void _placeholder_erased(void *placeholder);
@@ -41,22 +72,11 @@ public:
     virtual StringName _get_instance_base_type() const;
     virtual void *_instance_create(Object *for_object) const;
     virtual void *_placeholder_instance_create(Object *for_object) const;
-    virtual bool _instance_has(Object *object) const;
-    virtual Error _reload(bool keep_state);
-    virtual bool _has_method(const StringName &method) const;
-    virtual Dictionary _get_method_info(const StringName &method) const;
-    virtual bool _is_tool() const;
-    virtual bool _is_valid() const;
     virtual bool _has_script_signal(const StringName &signal) const;
     virtual Array _get_script_signal_list() const;
-    virtual bool _has_property_default_value(const StringName &property) const;
-    virtual Variant _get_property_default_value(const StringName &property) const;
     virtual void _update_exports();
-    virtual Array _get_script_method_list() const;
-    virtual Array _get_script_property_list() const;
     virtual int64_t _get_member_line(const StringName &member) const;
     virtual Dictionary _get_constants() const;
-    virtual Array _get_members() const;
     virtual bool _is_placeholder_fallback_enabled() const;
     virtual Array _get_rpc_methods() const;
 
@@ -96,15 +116,20 @@ public:
     */
 };
 
-class Luau;
+class GDLuau;
 
 class LuauLanguage : public ScriptLanguageExtension
 {
     GDCLASS(LuauLanguage, ScriptLanguageExtension);
 
+    friend class LuauScript;
+
 private:
+    // TODO: idk why these are needed, but all the other implementations have them
+    Mutex lock;
+
     static LuauLanguage *singleton;
-    Luau *luau;
+    GDLuau *luau;
 
     bool finalized = false;
 
@@ -139,8 +164,7 @@ public:
     virtual Ref<Script> _make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
 
     /* ???: pure virtual functions which have no clear purpose */
-    // TODO: PtrToArg compile error.
-    // virtual Error _execute_file(const String &p_path) override;
+    virtual Error _execute_file(const String &p_path) override;
     virtual bool _has_named_classes() const override;
 
     /*

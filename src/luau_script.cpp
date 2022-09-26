@@ -1,17 +1,28 @@
 #include "luau_script.h"
 
+#include <lua.h>
+#include <Luau/Compiler.h>
+#include <string>
+
 #include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/file.hpp>
+#include <godot_cpp/templates/pair.hpp>
 
-#include "luau.h"
+#include "luagd.h"
+#include "luagd_stack.h"
+#include "gd_luau.h"
+#include "luau_lib.h"
 
 using namespace godot;
 
@@ -34,11 +45,6 @@ void LuauScript::_set_source_code(const String &p_code)
     source = p_code;
 }
 
-ScriptLanguage *LuauScript::_get_language() const
-{
-    return LuauLanguage::get_singleton();
-}
-
 Error LuauScript::load_source_code(const String &p_path)
 {
     Ref<File> file = memnew(File);
@@ -54,6 +60,136 @@ Error LuauScript::load_source_code(const String &p_path)
     set_source_code(src);
 
     return OK;
+}
+
+#define LUAU_LOAD_ERR(line, msg) _err_print_error("LuauScript::_reload", get_path().is_empty() ? "built-in" : get_path().utf8().get_data(), line, msg);
+
+Error LuauScript::_reload(bool p_keep_state)
+{
+    bool has_instances;
+
+    {
+        MutexLock lock(LuauLanguage::singleton->lock);
+        has_instances = instances.size();
+    }
+
+    ERR_FAIL_COND_V(!p_keep_state && has_instances, ERR_ALREADY_IN_USE);
+
+    valid = false;
+
+    // TODO: error line numbers?
+
+    lua_State *T = lua_newthread(GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD));
+
+    Luau::CompileOptions opts;
+    std::string bytecode = Luau::compile(source.utf8().get_data(), opts);
+
+    if (luau_load(T, "=load", bytecode.data(), bytecode.size(), 0) == 0)
+    {
+        int status = lua_resume(T, nullptr, 0);
+
+        if (status == LUA_YIELD)
+        {
+            LUAU_LOAD_ERR(1, "Luau Error: Script yielded when loading definition.");
+
+            return ERR_COMPILATION_FAILED;
+        }
+        else if (status != LUA_OK)
+        {
+            String err = LuaStackOp<String>::get(T, -1);
+            LUAU_LOAD_ERR(1, "Luau Error: " + err);
+
+            return ERR_COMPILATION_FAILED;
+        }
+
+        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, 1);
+        if (def == nullptr)
+        {
+            LUAU_LOAD_ERR(1, "Luau Error: Script did not return a class definition.");
+
+            return ERR_COMPILATION_FAILED;
+        }
+
+        definition = *def;
+        valid = true;
+        return OK;
+    }
+
+    String err = LuaStackOp<String>::get(T, -1);
+    LUAU_LOAD_ERR(1, "Luau Error: " + err);
+
+    return ERR_COMPILATION_FAILED;
+}
+
+ScriptLanguage *LuauScript::_get_language() const
+{
+    return LuauLanguage::get_singleton();
+}
+
+bool LuauScript::_instance_has(Object *p_object) const
+{
+    MutexLock lock(LuauLanguage::singleton->lock);
+    return instances.has(p_object);
+}
+
+bool LuauScript::_is_valid() const
+{
+    return valid;
+}
+
+bool LuauScript::_is_tool() const
+{
+    return definition.is_tool;
+}
+
+Array LuauScript::_get_script_method_list() const
+{
+    Array methods;
+
+    for (KeyValue<StringName, Dictionary> pair : definition.methods)
+        methods.push_back(pair.value);
+
+    return methods;
+}
+
+bool LuauScript::_has_method(const StringName &p_method) const
+{
+    return definition.methods.has(p_method);
+}
+
+Dictionary LuauScript::_get_method_info(const StringName &p_method) const
+{
+    return definition.methods.get(p_method);
+}
+
+Array LuauScript::_get_script_property_list() const
+{
+    Array properties;
+
+    for (KeyValue<StringName, GDClassProperty> pair : definition.properties)
+        properties.push_back(pair.value.property.internal);
+
+    return properties;
+}
+
+Array LuauScript::_get_members() const
+{
+    Array members;
+
+    for (KeyValue<StringName, GDClassProperty> pair : definition.properties)
+        members.push_back(pair.value.property.internal["name"]);
+
+    return members;
+}
+
+bool LuauScript::_has_property_default_value(const StringName &p_property) const
+{
+    return definition.properties.get(p_property).default_value != Variant();
+}
+
+Variant LuauScript::_get_property_default_value(const StringName &p_property) const
+{
+    return definition.properties.get(p_property).default_value;
 }
 
 /////////////////////
@@ -114,7 +250,7 @@ LuauLanguage::~LuauLanguage()
 
 void LuauLanguage::_init()
 {
-    luau = memnew(Luau);
+    luau = memnew(GDLuau);
 }
 
 void LuauLanguage::finalize()
@@ -260,14 +396,11 @@ Ref<Script> LuauLanguage::_make_template(const String &p_template, const String 
     return script;
 }
 
-// TODO: PtrToArg compile error.
-/*
 Error LuauLanguage::_execute_file(const String &p_path)
 {
     // Unused by Godot; purpose unclear
     return OK;
 }
-*/
 
 bool LuauLanguage::_has_named_classes() const
 {
