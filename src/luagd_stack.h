@@ -3,11 +3,12 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot/gdnative_interface.h>
+#include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/classes/object.hpp>
-#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string.hpp>
 
@@ -47,6 +48,20 @@ template class LuaStackOp<int64_t>;
 template class LuaStackOp<Object *>;
 
 template class LuaStackOp<Error>;
+
+/* TypedArray */
+
+// TODO: this whole implementation is not very good. rewrite properly?
+template <typename T>
+class LuaStackOp<TypedArray<T>>
+{
+public:
+    static void push(lua_State *L, const TypedArray<T> &value) { LuaStackOp<Array>::push(L, value); }
+
+    static TypedArray<T> get(lua_State *L, int index) { return LuaStackOp<Array>::get(L, index); }
+    static bool is(lua_State *L, int index) { LuaStackOp<Array>::is(L, index); }
+    static TypedArray<T> check(lua_State *L, int index) { return LuaStackOp<Array>::check(L, index); }
+};
 
 /* USERDATA */
 

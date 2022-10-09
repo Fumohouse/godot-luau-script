@@ -4,6 +4,7 @@
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/classes/mutex.hpp>
@@ -19,11 +20,6 @@
 #include "luau_lib.h"
 
 using namespace godot;
-
-// TODO: WTF?
-#include <godot_cpp/core/method_ptrcall.hpp>
-MAKE_PTRARG(Error);
-//
 
 class LuauScript : public ScriptExtension
 {
@@ -55,12 +51,12 @@ public:
     /* SCRIPT INFO */
     virtual bool _is_tool() const override;
 
-    virtual Array _get_script_method_list() const override;
+    virtual TypedArray<Dictionary> _get_script_method_list() const override;
     virtual bool _has_method(const StringName &p_method) const override;
     virtual Dictionary _get_method_info(const StringName &p_method) const override;
 
-    virtual Array _get_script_property_list() const override;
-    virtual Array _get_members() const override;
+    virtual TypedArray<Dictionary> _get_script_property_list() const override;
+    virtual TypedArray<StringName> _get_members() const override;
     virtual bool _has_property_default_value(const StringName &p_property) const override;
     virtual Variant _get_property_default_value(const StringName &p_property) const override;
 
@@ -73,15 +69,15 @@ public:
     virtual void *_instance_create(Object *for_object) const;
     virtual void *_placeholder_instance_create(Object *for_object) const;
     virtual bool _has_script_signal(const StringName &signal) const;
-    virtual Array _get_script_signal_list() const;
+    virtual TypedArray<Dictionary> _get_script_signal_list() const;
     virtual void _update_exports();
     virtual int64_t _get_member_line(const StringName &member) const;
     virtual Dictionary _get_constants() const;
     virtual bool _is_placeholder_fallback_enabled() const;
-    virtual Array _get_rpc_methods() const;
+    virtual Variant _get_rpc_config() const;
 
     // To implement later (or never)
-    virtual Array _get_documentation() const;
+    virtual TypedArray<Dictionary> _get_documentation() const;
     */
 };
 
@@ -181,7 +177,7 @@ public:
     virtual void _add_named_global_constant(const StringName &name, const Variant &value);
     virtual void _remove_named_global_constant(const StringName &name);
 
-    virtual Array _get_built_in_templates(const StringName &object) const;
+    virtual TypedArray<Dictionary> _get_built_in_templates(const StringName &object) const;
     virtual bool _is_using_templates();
 
     virtual Error _open_in_external_editor(const Ref<Script> &script, int64_t line, int64_t column);
@@ -210,7 +206,7 @@ public:
     virtual void *_debug_get_stack_level_instance(int64_t level);
     virtual Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth);
     virtual String _debug_parse_stack_level_expression(int64_t level, const String &expression, int64_t max_subitems, int64_t max_depth);
-    virtual Array _debug_get_current_stack_info();
+    virtual TypedArray<Dictionary> _debug_get_current_stack_info();
 
     // Profiler
     virtual void _profiling_start();
@@ -222,7 +218,7 @@ public:
     virtual bool _supports_documentation() const;
     virtual Array _get_public_functions() const;
     virtual Dictionary _get_public_constants() const;
-    virtual Array _get_public_annotations() const;
+    virtual TypedArray<Dictionary> _get_public_annotations() const;
 
     // Seemingly unused by Godot
     virtual void *_alloc_instance_binding_data(Object *object);

@@ -43,7 +43,7 @@ if not env.get("is_msvc", False):
     env.Append(CXXFLAGS=["-fvisibility=hidden"])
 
 env_base = env.Clone()
-env_base["CPPDEFINES"] = [] # irrelevant to externs
+env_base["CPPDEFINES"] = []  # irrelevant to externs
 
 Export("env")
 Export("env_base")
@@ -82,7 +82,8 @@ if env["tests"]:
     env_main.Append(CPPPATH=["extern/Catch2/extras/"])
     sources.append(File("extern/Catch2/extras/catch_amalgamated.cpp"))
 
-    sources.append(env_main.SharedObject("src/register_types.cpp", CPPDEFINES=env["CPPDEFINES"] + ["TESTS_ENABLED"]))
+    sources.append(env_main.SharedObject("src/register_types.cpp",
+                   CPPDEFINES=env["CPPDEFINES"] + ["TESTS_ENABLED"]))
 
     sources += Glob("tests/*.cpp")
     env_main.Append(CPPPATH=["tests/"])
@@ -98,9 +99,8 @@ if env["platform"] == "macos":
     )
 else:
     library = env_main.SharedLibrary(
-        "../../bin/luau-script/libluau-script.{}.{}.{}{}".format(
-            env["platform"], env["target"], env["arch_suffix"], env["SHLIBSUFFIX"]
-        ),
+        "../../bin/luau-script/libluau-script{}{}".format(
+            env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
     )
 

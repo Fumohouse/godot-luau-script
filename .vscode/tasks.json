@@ -9,7 +9,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=debug",
+                    "target=editor",
                     "platform=linux",
                     "use_llvm=yes"
                 ]
@@ -23,7 +23,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=debug",
+                    "target=editor",
                     "tests=yes",
                     "platform=linux",
                     "use_llvm=yes"
@@ -38,7 +38,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=debug",
+                    "target=editor",
                     "platform=linux",
                     "use_llvm=yes",
                     "generate_luau_bindings=yes"
@@ -53,7 +53,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=release",
+                    "target=template_release",
                     "platform=linux",
                     "use_llvm=yes"
                 ]
@@ -67,7 +67,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=release",
+                    "target=template_release",
                     "platform=linux",
                     "use_llvm=yes",
                     "generate_luau_bindings=yes"
@@ -84,7 +84,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=debug",
+                    "target=editor",
                     "platform=linux",
                     "use_llvm=yes",
                     "use_sccache=yes"
@@ -99,7 +99,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=debug",
+                    "target=editor",
                     "platform=linux",
                     "use_llvm=yes",
                     "generate_luau_bindings=yes",
@@ -115,7 +115,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=release",
+                    "target=template_release",
                     "platform=linux",
                     "use_llvm=yes",
                     "use_sccache=yes"
@@ -130,7 +130,7 @@
             "group": "build",
             "linux": {
                 "args": [
-                    "target=release",
+                    "target=template_release",
                     "platform=linux",
                     "use_llvm=yes",
                     "generate_luau_bindings=yes",

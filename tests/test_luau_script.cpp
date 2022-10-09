@@ -42,7 +42,8 @@ TEST_CASE("luau script: script load")
     SECTION("property methods")
     {
         REQUIRE(script->get_script_property_list().size() == 1);
-        REQUIRE(script->_get_members()[0] == "testProperty");
+        // test fails without cast. don't know why
+        REQUIRE(script->_get_members()[0] == StringName("testProperty"));
         REQUIRE(script->_has_property_default_value("testProperty"));
         REQUIRE(script->_get_property_default_value("testProperty") == Variant(5.5));
     }

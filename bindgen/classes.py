@@ -150,8 +150,8 @@ def generate_luau_classes(src_dir, include_dir, api):
         # Special permissions
         "OS": { "default": "OS" },
 
-        "File": { "default": "FILE" },
-        "Directory": { "default": "FILE" },
+        "FileAccess": { "default": "FILE" },
+        "DirAccess": { "default": "FILE" },
 
         "HTTPClient": { "default": "HTTP" },
         "HTTPRequest": { "default": "HTTP" },

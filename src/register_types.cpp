@@ -138,7 +138,7 @@ void uninitialize_luau_script_module(ModuleInitializationLevel p_level)
 
     // TODO: unregister script language (not currently possible)
 
-    // 21-09-2022: it does break. (segfault when ScriptServer cleans up)
+    // 2022-09-21: it does break. (segfault when ScriptServer cleans up)
     // should be ok if/when script languages can be properly unregistered
     // if (script_language_luau)
         // memdelete(script_language_luau); // will this break? maybe

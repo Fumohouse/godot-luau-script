@@ -8,6 +8,7 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
@@ -16,7 +17,7 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/file.hpp>
+#include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/templates/pair.hpp>
 
 #include "luagd.h"
@@ -47,10 +48,8 @@ void LuauScript::_set_source_code(const String &p_code)
 
 Error LuauScript::load_source_code(const String &p_path)
 {
-    Ref<File> file = memnew(File);
-    Error err = file->open(p_path, File::ModeFlags::READ);
-
-    ERR_FAIL_COND_V_MSG(err != OK, err, "Failed to read file: '" + p_path + "'.");
+    Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::READ);
+    ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), "Failed to read file: '" + p_path + "'.");
 
     PackedByteArray bytes = file->get_buffer(file->get_length());
 
@@ -142,9 +141,9 @@ bool LuauScript::_is_tool() const
     return definition.is_tool;
 }
 
-Array LuauScript::_get_script_method_list() const
+TypedArray<Dictionary> LuauScript::_get_script_method_list() const
 {
-    Array methods;
+    TypedArray<Dictionary> methods;
 
     for (const KeyValue<StringName, Dictionary> &pair : definition.methods)
         methods.push_back(pair.value);
@@ -162,9 +161,9 @@ Dictionary LuauScript::_get_method_info(const StringName &p_method) const
     return definition.methods.get(p_method);
 }
 
-Array LuauScript::_get_script_property_list() const
+TypedArray<Dictionary> LuauScript::_get_script_property_list() const
 {
-    Array properties;
+    TypedArray<Dictionary> properties;
 
     for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties)
         properties.push_back(pair.value.property.internal);
@@ -172,8 +171,11 @@ Array LuauScript::_get_script_property_list() const
     return properties;
 }
 
-Array LuauScript::_get_members() const
+TypedArray<StringName> LuauScript::_get_members() const
 {
+    // TODO: 2022-10-08: evil witchery garbage
+    // segfault occurs when initializing with TypedArray<StringName> and relying on copy.
+    // conversion works fine. for some reason.
     Array members;
 
     for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties)
@@ -472,9 +474,8 @@ int64_t ResourceFormatSaverLuauScript::_save(const Ref<Resource> &p_resource, co
     String source = script->get_source_code();
 
     {
-        Ref<File> file = memnew(File);
-        Error err = file->open(p_path, File::ModeFlags::WRITE);
-        ERR_FAIL_COND_V_MSG(err != OK, err, "Cannot save Luau script file '" + p_path + "'.");
+        Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::WRITE);
+        ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), "Cannot save Luau script file '" + p_path + "'.");
 
         file->store_string(source);
 
