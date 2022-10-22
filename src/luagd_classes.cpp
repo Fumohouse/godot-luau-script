@@ -8,7 +8,6 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 
 #include "luagd_stack.h"
-#include "luagd_bindings_stack.gen.h"
 
 using namespace godot;
 

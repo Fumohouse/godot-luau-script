@@ -15,15 +15,19 @@
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
-#include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/templates/pair.hpp>
 
-#include "luagd.h"
 #include "luagd_stack.h"
 #include "gd_luau.h"
 #include "luau_lib.h"
+
+namespace godot
+{
+    class Object;
+    class ScriptLanguage;
+}
 
 using namespace godot;
 

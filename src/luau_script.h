@@ -9,15 +9,19 @@
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
-#include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/classes/resource_format_loader.hpp>
 #include <godot_cpp/classes/resource_format_saver.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 
 #include "luau_lib.h"
+
+namespace godot
+{
+    class Object;
+    class ScriptLanguage;
+}
 
 using namespace godot;
 

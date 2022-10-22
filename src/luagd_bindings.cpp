@@ -3,10 +3,15 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/variant/variant.hpp>
-#include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 #include "luagd_stack.h"
 #include "luagd_bindings_stack.gen.h"
+
+namespace godot
+{
+    class Object;
+}
 
 static int luaGD_variant_tostring(lua_State *L)
 {

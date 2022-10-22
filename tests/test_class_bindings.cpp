@@ -6,7 +6,6 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
-#include <godot_cpp/variant/transform3d.hpp>
 
 #include "luagd.h"
 #include "luagd_permissions.h"

@@ -3,8 +3,6 @@
 #include <lua.h>
 #include <lualib.h>
 
-#include <godot_cpp/variant/utility_functions.hpp>
-
 #include "luagd_bindings.h"
 
 int luaGD_builtin_namecall(lua_State *L)

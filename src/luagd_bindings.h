@@ -1,8 +1,12 @@
 #pragma once
 
 #include <lua.h>
-#include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+
+namespace godot
+{
+    class StringName;
+}
 
 typedef godot::HashMap<godot::StringName, lua_CFunction> MethodMap;
 

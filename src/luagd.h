@@ -5,8 +5,8 @@
 #include <godot_cpp/core/type_info.hpp>
 
 #include "luagd_permissions.h"
-#include "luagd_stack.h"
-#include "luagd_bindings_stack.gen.h" // this is just a little bit janky
+
+using namespace godot;
 
 struct GDThreadData
 {

@@ -3,7 +3,6 @@
 #include <lua.h>
 #include <godot_cpp/variant/vector3.hpp>
 #include <godot_cpp/variant/vector2.hpp>
-#include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>

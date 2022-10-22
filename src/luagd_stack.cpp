@@ -1,10 +1,8 @@
 #include "luagd_stack.h"
 
-#include <string>
 #include <lua.h>
 #include <lualib.h>
 #include <godot/gdnative_interface.h>
-#include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
