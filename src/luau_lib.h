@@ -1,9 +1,12 @@
 #pragma once
 
+#include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
 
 #include "luagd_stack.h"
 
@@ -13,7 +16,17 @@ struct lua_State;
 
 struct GDProperty
 {
-    Dictionary internal;
+    uint32_t type = Variant::NIL;
+    uint32_t usage = PROPERTY_USAGE_DEFAULT;
+
+    String name;
+    StringName class_name;
+
+    uint32_t hint = PROPERTY_HINT_NONE;
+    String hint_string;
+
+    operator Dictionary() const;
+    operator Variant() const;
 };
 
 struct GDClassProperty
@@ -26,6 +39,18 @@ struct GDClassProperty
     Variant default_value;
 };
 
+struct GDMethod
+{
+    String name;
+    GDProperty return_val;
+    uint32_t flags = METHOD_FLAGS_DEFAULT;
+    List<GDProperty> arguments;
+    List<Variant> default_arguments;
+
+    operator Dictionary() const;
+    operator Variant() const;
+};
+
 struct GDClassDefinition
 {
     String name;
@@ -33,7 +58,7 @@ struct GDClassDefinition
 
     bool is_tool;
 
-    HashMap<StringName, Dictionary> methods;
+    HashMap<StringName, GDMethod> methods;
     HashMap<StringName, GDClassProperty> properties;
 };
 

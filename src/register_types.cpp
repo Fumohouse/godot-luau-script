@@ -3,6 +3,7 @@
 #include <godot/gdnative_interface.h>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/engine.hpp>

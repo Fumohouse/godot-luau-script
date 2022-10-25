@@ -149,7 +149,7 @@ TypedArray<Dictionary> LuauScript::_get_script_method_list() const
 {
     TypedArray<Dictionary> methods;
 
-    for (const KeyValue<StringName, Dictionary> &pair : definition.methods)
+    for (const KeyValue<StringName, GDMethod> &pair : definition.methods)
         methods.push_back(pair.value);
 
     return methods;
@@ -170,7 +170,7 @@ TypedArray<Dictionary> LuauScript::_get_script_property_list() const
     TypedArray<Dictionary> properties;
 
     for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties)
-        properties.push_back(pair.value.property.internal);
+        properties.push_back(pair.value.property.operator Dictionary());
 
     return properties;
 }
@@ -183,7 +183,7 @@ TypedArray<StringName> LuauScript::_get_members() const
     Array members;
 
     for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties)
-        members.push_back(pair.value.property.internal["name"]);
+        members.push_back(pair.value.property.name);
 
     return members;
 }

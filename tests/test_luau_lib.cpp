@@ -19,14 +19,14 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
 
     SECTION("all properties")
     {
-        Dictionary expected;
+        GDProperty expected;
 
-        expected["type"] = Variant::Type::OBJECT;
-        expected["name"] = "testProp";
-        expected["hint"] = PropertyHint::PROPERTY_HINT_ENUM;
-        expected["hint_string"] = "val1,val2,val3";
-        expected["usage"] = PropertyUsageFlags::PROPERTY_USAGE_NONE;
-        expected["class_name"] = "Node3D";
+        expected.type = Variant::Type::OBJECT;
+        expected.name = "testProp";
+        expected.hint = PropertyHint::PROPERTY_HINT_ENUM;
+        expected.hint_string = "val1,val2,val3";
+        expected.usage = PropertyUsageFlags::PROPERTY_USAGE_NONE;
+        expected.class_name = "Node3D";
 
         EVAL_THEN(L, R"ASDF(
             return gdproperty({
@@ -40,17 +40,17 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
         )ASDF",
                   {
                       GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                      REQUIRE(prop->internal == expected);
+                      REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
                   });
     }
 
     SECTION("some properties")
     {
-        Dictionary expected;
+        GDProperty expected;
 
-        expected["type"] = Variant::Type::OBJECT;
-        expected["name"] = "testProp";
-        expected["class_name"] = "Node2D";
+        expected.type = Variant::Type::OBJECT;
+        expected.name = "testProp";
+        expected.class_name = "Node2D";
 
         EVAL_THEN(L, R"ASDF(
             return gdproperty({
@@ -61,7 +61,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
         )ASDF",
                   {
                       GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                      REQUIRE(prop->internal == expected);
+                      REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
                   });
     }
 }
@@ -121,42 +121,36 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdclass")
 
             SECTION("working methods")
             {
-                Dictionary expected_method_info;
+                GDMethod expected_method;
 
                 {
-                    expected_method_info["name"] = "TestMethod";
+                    expected_method.name = "TestMethod";
 
-                    Dictionary expected_arg1;
-                    expected_arg1["name"] = "arg1";
-                    expected_arg1["type"] = Variant::Type::FLOAT;
+                    GDProperty expected_arg1;
+                    expected_arg1.name = "arg1";
+                    expected_arg1.type = Variant::Type::FLOAT;
 
-                    Dictionary expected_arg2;
-                    expected_arg2["name"] = "arg2";
-                    expected_arg2["type"] = Variant::Type::STRING;
+                    GDProperty expected_arg2;
+                    expected_arg2.name = "arg2";
+                    expected_arg2.type = Variant::Type::STRING;
 
-                    Array expected_args;
-                    expected_args.push_back(expected_arg1);
-                    expected_args.push_back(expected_arg2);
+                    expected_method.arguments.push_back(expected_arg1);
+                    expected_method.arguments.push_back(expected_arg2);
 
-                    expected_method_info["args"] = expected_args;
+                    expected_method.default_arguments.push_back(1);
+                    expected_method.default_arguments.push_back("godot");
 
-                    Array default_args;
-                    default_args.push_back(1);
-                    default_args.push_back("godot");
+                    GDProperty expected_ret;
+                    expected_ret.type = Variant::Type::STRING;
 
-                    expected_method_info["default_args"] = default_args;
+                    expected_method.return_val = expected_ret;
 
-                    Dictionary expected_ret;
-                    expected_ret["type"] = Variant::Type::STRING;
-
-                    expected_method_info["return"] = expected_ret;
-
-                    expected_method_info["flags"] = MethodFlags::METHOD_FLAG_NORMAL;
+                    expected_method.flags = MethodFlags::METHOD_FLAG_NORMAL;
                 }
 
-                Dictionary expected_property;
-                expected_property["name"] = "testProperty";
-                expected_property["type"] = Variant::Type::FLOAT;
+                GDProperty expected_property;
+                expected_property.name = "testProperty";
+                expected_property.type = Variant::Type::FLOAT;
 
                 EVAL_THEN(T, R"ASDF(
                     local TestClass = gdclass("TestClass")
@@ -199,7 +193,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdclass")
                               SECTION(":RegisterMethod")
                               {
                                   REQUIRE(def->methods.has("TestMethod"));
-                                  REQUIRE(def->methods.get("TestMethod") == expected_method_info);
+                                  REQUIRE(def->methods.get("TestMethod").operator Dictionary() == expected_method.operator Dictionary());
                               }
 
                               SECTION(":RegisterProperty")
@@ -207,7 +201,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdclass")
                                   REQUIRE(def->properties.has("testProperty"));
 
                                   GDClassProperty &prop = def->properties.get("testProperty");
-                                  REQUIRE(prop.property.internal == expected_property);
+                                  REQUIRE(prop.property.operator Dictionary() == expected_property.operator Dictionary());
                                   REQUIRE(prop.getter == StringName("GetTestProperty"));
                                   REQUIRE(prop.setter == StringName("SetTestProperty"));
                                   REQUIRE(prop.default_value == Variant(3.5));

@@ -5,6 +5,7 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/string_name.hpp>
 
 #include "luagd_utils.h"
 
@@ -21,6 +22,57 @@ LUA_UDATA_STACK_OP(GDProperty, PROPERTY_MT_NAME, DTOR(GDProperty))
 LUA_UDATA_STACK_OP(GDClassDefinition, CLASS_MT_NAME, DTOR(GDClassDefinition))
 LUA_UDATA_STACK_OP(GDClassMethods, METHODS_MT_NAME, DTOR(GDClassMethods))
 
+/* STRUCTS */
+
+GDProperty::operator Dictionary() const
+{
+    Dictionary dict;
+
+    dict["type"] = type;
+    dict["usage"] = usage;
+
+    dict["name"] = name;
+    dict["class_name"] = class_name;
+
+    dict["hint"] = hint;
+    dict["hint_string"] = hint_string;
+
+    return dict;
+}
+
+GDProperty::operator Variant() const
+{
+    return this->operator Dictionary();
+}
+
+GDMethod::operator Dictionary() const
+{
+    Dictionary dict;
+
+    dict["name"] = name;
+    dict["return"] = return_val;
+    dict["flags"] = flags;
+
+    Array args;
+    for (const GDProperty &arg : arguments)
+        args.push_back(arg);
+
+    dict["args"] = args;
+
+    Array default_args;
+    for (const Variant &default_arg : default_arguments)
+        default_args.push_back(default_arg);
+
+    dict["default_args"] = default_args;
+
+    return dict;
+}
+
+GDMethod::operator Variant() const
+{
+    return this->operator Dictionary();
+}
+
 /* PROPERTY */
 
 static int luascript_gdproperty(lua_State *L)
@@ -30,22 +82,22 @@ static int luascript_gdproperty(lua_State *L)
     GDProperty property;
 
     if (luaGD_getfield(L, 1, "type"))
-        property.internal["type"] = luaGD_checkkeytype<int>(L, -1, "type", LUA_TNUMBER);
+        property.type = luaGD_checkkeytype<uint32_t>(L, -1, "type", LUA_TNUMBER);
 
     if (luaGD_getfield(L, 1, "name"))
-        property.internal["name"] = luaGD_checkkeytype<String>(L, -1, "name", LUA_TSTRING);
+        property.name = luaGD_checkkeytype<String>(L, -1, "name", LUA_TSTRING);
 
     if (luaGD_getfield(L, 1, "hint"))
-        property.internal["hint"] = luaGD_checkkeytype<int>(L, -1, "hint", LUA_TNUMBER);
+        property.hint = luaGD_checkkeytype<uint32_t>(L, -1, "hint", LUA_TNUMBER);
 
     if (luaGD_getfield(L, 1, "hintString"))
-        property.internal["hint_string"] = luaGD_checkkeytype<String>(L, -1, "hintString", LUA_TSTRING);
+        property.hint_string = luaGD_checkkeytype<String>(L, -1, "hintString", LUA_TSTRING);
 
     if (luaGD_getfield(L, 1, "usage"))
-        property.internal["usage"] = luaGD_checkkeytype<int>(L, -1, "usage", LUA_TNUMBER);
+        property.usage = luaGD_checkkeytype<uint32_t>(L, -1, "usage", LUA_TNUMBER);
 
     if (luaGD_getfield(L, 1, "className"))
-        property.internal["class_name"] = luaGD_checkkeytype<String>(L, -1, "className", LUA_TSTRING);
+        property.class_name = luaGD_checkkeytype<String>(L, -1, "className", LUA_TSTRING);
 
     LuaStackOp<GDProperty>::push(L, property);
     return 1;
@@ -121,21 +173,19 @@ static int luascript_gdclass_namecall(lua_State *L)
 
             if (lua_gettop(L) < 4)
             {
-                def->methods.insert(method_name, Dictionary());
+                def->methods.insert(method_name, GDMethod());
                 return 0;
             }
 
             luaL_checktype(L, 4, LUA_TTABLE);
 
-            Dictionary method;
+            GDMethod method;
 
-            method["name"] = method_name;
+            method.name = method_name;
 
             if (luaGD_getfield(L, 4, "args"))
             {
                 luaL_checktype(L, -1, LUA_TTABLE);
-
-                Array args;
 
                 int args_len = lua_objlen(L, -1);
                 for (int i = 1; i <= args_len; i++)
@@ -143,12 +193,11 @@ static int luascript_gdclass_namecall(lua_State *L)
                     lua_rawgeti(L, -1, i);
 
                     GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                    args.push_back(prop->internal);
+                    method.arguments.push_back(*prop);
 
                     lua_pop(L, 1); // rawgeti
                 }
 
-                method["args"] = args;
                 lua_pop(L, 1); // args
             }
 
@@ -156,32 +205,29 @@ static int luascript_gdclass_namecall(lua_State *L)
             {
                 luaL_checktype(L, -1, LUA_TTABLE);
 
-                Array default_args;
-
                 int default_args_len = lua_objlen(L, -1);
                 for (int i = 1; i <= default_args_len; i++)
                 {
                     lua_rawgeti(L, -1, i);
 
-                    default_args.push_back(LuaStackOp<Variant>::get(L, -1));
+                    method.default_arguments.push_back(LuaStackOp<Variant>::get(L, -1));
 
                     lua_pop(L, 1); // rawgeti
                 }
 
-                method["default_args"] = default_args;
                 lua_pop(L, 1); // defaultArgs
             }
 
             if (luaGD_getfield(L, 4, "returnVal"))
             {
                 GDProperty *return_val = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                method["return"] = return_val->internal;
+                method.return_val = *return_val;
 
                 lua_pop(L, 1); // returnVal
             }
 
             if (luaGD_getfield(L, 4, "flags"))
-                method["flags"] = luaGD_checkkeytype<int>(L, -1, "flags", LUA_TNUMBER);
+                method.flags = luaGD_checkkeytype<uint32_t>(L, -1, "flags", LUA_TNUMBER);
 
             def->methods.insert(method_name, method);
 
@@ -202,10 +248,7 @@ static int luascript_gdclass_namecall(lua_State *L)
             if (lua_gettop(L) >= 5)
                 prop.default_value = LuaStackOp<Variant>::get(L, 5);
 
-            // ???
-            // yes. an implicit conversion from String to StringName exists.
-            // it doesn't work here. why? don't ask.
-            def->properties.insert(property->internal["name"].operator String().utf8().get_data(), prop);
+            def->properties.insert(property->name, prop);
 
             return 0;
         } // :RegisterProperty

@@ -6,6 +6,7 @@
 
 #include "luau_script.h"
 #include "gd_luau.h"
+#include "luau_lib.h"
 
 TEST_CASE("luau script: script load")
 {
@@ -36,7 +37,7 @@ TEST_CASE("luau script: script load")
         REQUIRE(script->is_tool());
         REQUIRE(script->get_script_method_list().size() == 1);
         REQUIRE(script->_has_method("TestMethod"));
-        REQUIRE(script->_get_method_info("TestMethod") == Dictionary());
+        REQUIRE(script->_get_method_info("TestMethod") == GDMethod().operator Dictionary());
     }
 
     SECTION("property methods")
