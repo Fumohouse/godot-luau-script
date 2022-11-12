@@ -3,7 +3,8 @@
 #include <godot/gdnative_interface.h>
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
-#include <godot_cpp/templates/hash_set.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
@@ -16,6 +17,12 @@
 #include <godot_cpp/classes/global_constants.hpp>
 
 #include "luau_lib.h"
+#include "gd_luau.h"
+
+// TODO: WTF part 2 (REMOVE AT BETA 4! godot-cpp#895)
+#include <godot_cpp/core/method_ptrcall.hpp>
+GDVIRTUAL_NATIVE_PTR(void);
+//
 
 namespace godot
 {
@@ -25,16 +32,23 @@ namespace godot
 
 using namespace godot;
 
+class LuauScriptInstance;
+
 class LuauScript : public ScriptExtension
 {
     GDCLASS(LuauScript, ScriptExtension);
 
+    friend class LuauScriptInstance;
+
 private:
     String source;
-    HashSet<Object *> instances;
+    HashMap<Object *, LuauScriptInstance *> instances;
 
     bool valid;
     GDClassDefinition definition;
+    HashMap<GDLuau::VMType, GDClassMethods> methods;
+
+    Error load_methods(GDLuau::VMType p_vm_type, bool force = false);
 
 protected:
     static void _bind_methods() {}
@@ -48,9 +62,8 @@ public:
 
     virtual ScriptLanguage *_get_language() const override;
 
-    virtual bool _instance_has(Object *p_object) const override;
-
     virtual bool _is_valid() const override;
+    virtual bool _can_instantiate() const override;
 
     /* SCRIPT INFO */
     virtual bool _is_tool() const override;
@@ -64,13 +77,16 @@ public:
     virtual bool _has_property_default_value(const StringName &p_property) const override;
     virtual Variant _get_property_default_value(const StringName &p_property) const override;
 
+    /* INSTANCE */
+    virtual void *_instance_create(Object *p_for_object) const override;
+    virtual bool _instance_has(Object *p_object) const override;
+    LuauScriptInstance *instance_get(Object *p_object) const;
+
     /*
     virtual void _placeholder_erased(void *placeholder);
-    virtual bool _can_instantiate() const;
     virtual Ref<Script> _get_base_script() const;
     virtual bool _inherits_script(const Ref<Script> &script) const;
     virtual StringName _get_instance_base_type() const;
-    virtual void *_instance_create(Object *for_object) const;
     virtual void *_placeholder_instance_create(Object *for_object) const;
     virtual bool _has_script_signal(const StringName &signal) const;
     virtual TypedArray<Dictionary> _get_script_signal_list() const;
@@ -87,42 +103,57 @@ public:
 
 class LuauScriptInstance
 {
+private:
+    Ref<LuauScript> script;
+    Object *owner;
+    GDLuau::VMType vm_type;
+
+    int table_ref;
+
 public:
     static const GDNativeExtensionScriptInstanceInfo INSTANCE_INFO;
 
     /*
     bool set(const StringName &p_name, const Variant &p_value);
     bool get(const StringName &p_name, Variant &r_ret) const;
+    */
 
-    void get_property_list(List<GDNativePropertyInfo> *p_list) const;
-    GDNativeVariantType get_property_type(const StringName &p_name, GDNativeBool *r_is_valid) const;
+    GDNativePropertyInfo *get_property_list(uint32_t *r_count) const;
+    void free_property_list(const GDNativePropertyInfo *p_list) const;
 
-    Object *get_owner();
+    Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const;
 
-    void get_property_state(List<Pair<StringName, Variant>> &p_state);
+    Object *get_owner() const;
 
-    void get_method_list(List<GDNativeMethodInfo> *p_list) const;
-    GDNativeBool has_method(const StringName &p_name) const;
+    /*
+    void get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata) const;
+    */
 
+    GDNativeMethodInfo *get_method_list(uint32_t *r_count) const;
+    void free_method_list(const GDNativeMethodInfo *p_list) const;
+
+    bool has_method(const StringName &p_name) const;
+
+    /*
     void call(const StringName &p_method, const Variant *p_args, const GDNativeInt p_argument_count, Variant *r_return, GDNativeCallError *r_error);
     void notification(int32_t p_what);
 
     const char *to_string(GDNativeBool *r_is_valid);
+    */
 
-    Script *get_script() const;
+    Ref<Script> get_script() const;
     ScriptLanguage *get_language() const;
 
-    void free();
-    */
+    LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
+    ~LuauScriptInstance();
 };
-
-class GDLuau;
 
 class LuauLanguage : public ScriptLanguageExtension
 {
     GDCLASS(LuauLanguage, ScriptLanguageExtension);
 
     friend class LuauScript;
+    friend class LuauScriptInstance;
 
 private:
     // TODO: idk why these are needed, but all the other implementations have them

@@ -3,7 +3,10 @@
 #include <lua.h>
 #include <Luau/Compiler.h>
 #include <string>
+#include <string.h>
 
+#include <godot/gdnative_interface.h>
+#include <godot_cpp/godot.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -17,6 +20,7 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/templates/pair.hpp>
 
 #include "luagd_stack.h"
@@ -26,7 +30,6 @@
 namespace godot
 {
     class Object;
-    class ScriptLanguage;
 }
 
 using namespace godot;
@@ -66,6 +69,32 @@ Error LuauScript::load_source_code(const String &p_path)
 }
 
 #define LUAU_LOAD_ERR(line, msg) _err_print_error("LuauScript::_reload", get_path().is_empty() ? "built-in" : get_path().utf8().get_data(), line, msg);
+#define LUAU_LOAD_YIELD_MSG "Luau Error: Script yielded when loading definition."
+#define LUAU_LOAD_NO_DEF_MSG "Luau Error: Script did not return a class definition."
+
+#define LUAU_LOAD_RESUME                             \
+    int status = lua_resume(T, nullptr, 0);          \
+                                                     \
+    if (status == LUA_YIELD)                         \
+    {                                                \
+        LUAU_LOAD_ERR(1, LUAU_LOAD_YIELD_MSG);       \
+        return ERR_COMPILATION_FAILED;               \
+    }                                                \
+    else if (status != LUA_OK)                       \
+    {                                                \
+        String err = LuaStackOp<String>::get(T, -1); \
+        LUAU_LOAD_ERR(1, "Luau Error: " + err);      \
+                                                     \
+        return ERR_COMPILATION_FAILED;               \
+    }
+
+static Error try_load(lua_State *L, const char *src)
+{
+    Luau::CompileOptions opts;
+    std::string bytecode = Luau::compile(src, opts);
+
+    return luau_load(L, "=load", bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
+}
 
 Error LuauScript::_reload(bool p_keep_state)
 {
@@ -83,38 +112,62 @@ Error LuauScript::_reload(bool p_keep_state)
     // TODO: error line numbers?
 
     lua_State *T = lua_newthread(GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD));
+    luaL_sandboxthread(T);
 
-    Luau::CompileOptions opts;
-    std::string bytecode = Luau::compile(source.utf8().get_data(), opts);
-
-    if (luau_load(T, "=load", bytecode.data(), bytecode.size(), 0) == 0)
+    if (try_load(T, source.utf8().get_data()) == OK)
     {
-        int status = lua_resume(T, nullptr, 0);
-
-        if (status == LUA_YIELD)
-        {
-            LUAU_LOAD_ERR(1, "Luau Error: Script yielded when loading definition.");
-
-            return ERR_COMPILATION_FAILED;
-        }
-        else if (status != LUA_OK)
-        {
-            String err = LuaStackOp<String>::get(T, -1);
-            LUAU_LOAD_ERR(1, "Luau Error: " + err);
-
-            return ERR_COMPILATION_FAILED;
-        }
+        LUAU_LOAD_RESUME
 
         GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, 1);
         if (def == nullptr)
         {
-            LUAU_LOAD_ERR(1, "Luau Error: Script did not return a class definition.");
-
+            LUAU_LOAD_ERR(1, LUAU_LOAD_NO_DEF_MSG);
             return ERR_COMPILATION_FAILED;
         }
 
         definition = *def;
         valid = true;
+
+        for (const KeyValue<GDLuau::VMType, GDClassMethods> &pair : methods)
+        {
+            if (load_methods(pair.key, true) == OK)
+                continue;
+
+            valid = false;
+            return ERR_COMPILATION_FAILED;
+        }
+
+        return OK;
+    }
+
+    String err = LuaStackOp<String>::get(T, -1);
+    LUAU_LOAD_ERR(1, "Luau Error: " + err);
+
+    return ERR_COMPILATION_FAILED;
+}
+
+Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool force)
+{
+    if (!force && methods.has(p_vm_type))
+        return ERR_SKIP;
+
+    lua_State *T = lua_newthread(GDLuau::get_singleton()->get_vm(p_vm_type));
+    luascript_openclasslib(T, true);
+    luaL_sandboxthread(T);
+
+    if (try_load(T, source.utf8().get_data()) == OK)
+    {
+        LUAU_LOAD_RESUME
+
+        GDClassMethods *method_def = LuaStackOp<GDClassMethods>::get_ptr(T, -1);
+        if (method_def == nullptr)
+        {
+            LUAU_LOAD_ERR(1, LUAU_LOAD_NO_DEF_MSG);
+            return ERR_COMPILATION_FAILED;
+        }
+
+        methods[p_vm_type] = *method_def;
+
         return OK;
     }
 
@@ -129,14 +182,14 @@ ScriptLanguage *LuauScript::_get_language() const
     return LuauLanguage::get_singleton();
 }
 
-bool LuauScript::_instance_has(Object *p_object) const
-{
-    MutexLock lock(LuauLanguage::singleton->lock);
-    return instances.has(p_object);
-}
-
 bool LuauScript::_is_valid() const
 {
+    return valid;
+}
+
+bool LuauScript::_can_instantiate() const
+{
+    // TODO: built-in scripting languages check if scripting is enabled OR if this is a tool script
     return valid;
 }
 
@@ -198,44 +251,322 @@ Variant LuauScript::_get_property_default_value(const StringName &p_property) co
     return definition.properties.get(p_property).default_value;
 }
 
+void *LuauScript::_instance_create(Object *p_for_object) const
+{
+    // TODO: decide which vm to use
+    LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, GDLuau::VMType::VM_CORE));
+
+    return internal::gdn_interface->script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
+}
+
+bool LuauScript::_instance_has(Object *p_object) const
+{
+    MutexLock lock(LuauLanguage::singleton->lock);
+    return instances.has(p_object);
+}
+
+LuauScriptInstance *LuauScript::instance_get(Object *p_object) const
+{
+    MutexLock lock(LuauLanguage::singleton->lock);
+    return instances.get(p_object);
+}
+
 /////////////////////
 // SCRIPT INSTANCE //
 /////////////////////
 
-const GDNativeExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = {
-    nullptr, // set
-    nullptr, // get
+static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
+{
+    GDNativeExtensionScriptInstanceInfo info;
 
-    nullptr, // get_property_list
-    nullptr, // free_property_list
-    nullptr, // get_property_type
+    // GDNativeExtensionScriptInstanceSet set_func;
+    // GDNativeExtensionScriptInstanceGet get_func;
 
-    nullptr, // get_owner
+    info.get_property_list_func = [](void *self, uint32_t *r_count) -> const GDNativePropertyInfo *
+    {
+        return ((LuauScriptInstance *)self)->get_property_list(r_count);
+    };
 
-    nullptr, // get_property_state
+    info.free_property_list_func = [](void *self, const GDNativePropertyInfo *p_list)
+    {
+        ((LuauScriptInstance *)self)->free_property_list(p_list);
+    };
 
-    nullptr, // get_method_list
-    nullptr, // free_method_list
-    nullptr, // has_method
+    info.get_property_type_func = [](void *self, const GDNativeStringNamePtr p_name, GDNativeBool *r_is_valid) -> GDNativeVariantType
+    {
+        return static_cast<GDNativeVariantType>(((LuauScriptInstance *)self)->get_property_type(*((const StringName *)p_name), (bool *)r_is_valid));
+    };
 
-    nullptr, // call
-    nullptr, // notification
+    // GDNativeExtensionScriptInstancePropertyCanRevert property_can_revert_func;
+    // GDNativeExtensionScriptInstancePropertyGetRevert property_get_revert_func;
 
-    nullptr, // to_string
+    info.get_owner_func = [](void *self)
+    {
+        return ((LuauScriptInstance *)self)->get_owner()->_owner;
+    };
 
-    nullptr, // refcount_incremented
-    nullptr, // refcount_decremented
+    // GDNativeExtensionScriptInstanceGetPropertyState get_property_state_func;
 
-    nullptr, // get_script
+    info.get_method_list_func = [](void *self, uint32_t *r_count) -> const GDNativeMethodInfo *
+    {
+        return ((LuauScriptInstance *)self)->get_method_list(r_count);
+    };
 
-    /* Overriden for PlaceHolderScriptInstance only */
-    nullptr, // is_placeholder
-    nullptr, // set_fallback
-    nullptr, // get_fallback
+    info.free_method_list_func = [](void *self, const GDNativeMethodInfo *p_list)
+    {
+        ((LuauScriptInstance *)self)->free_method_list(p_list);
+    };
 
-    nullptr, // get_language
-    nullptr  // free
-};
+    info.has_method_func = [](void *self, const GDNativeStringNamePtr p_name) -> GDNativeBool
+    {
+        return ((LuauScriptInstance *)self)->has_method(*((const StringName *)p_name));
+    };
+
+    // GDNativeExtensionScriptInstanceCall call_func;
+    // GDNativeExtensionScriptInstanceNotification notification_func;
+
+    // GDNativeExtensionScriptInstanceToString to_string_func;
+
+    // GDNativeExtensionScriptInstanceRefCountIncremented refcount_incremented_func;
+    // GDNativeExtensionScriptInstanceRefCountDecremented refcount_decremented_func;
+
+    info.get_script_func = [](void *self)
+    {
+        return ((LuauScriptInstance *)self)->get_script().ptr()->_owner;
+    };
+
+    /* Overriden for PlaceholderScriptInstance only */
+    // GDNativeExtensionScriptInstanceIsPlaceholder is_placeholder_func;
+    // GDNativeExtensionScriptInstanceSet set_fallback_func;
+    // GDNativeExtensionScriptInstanceGet get_fallback_func;
+
+    info.get_language_func = [](void *self)
+    {
+        return ((LuauScriptInstance *)self)->get_language()->_owner;
+    };
+
+    info.free_func = [](void *self)
+    {
+        memdelete((LuauScriptInstance *)self);
+    };
+
+    return info;
+}
+
+const GDNativeExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
+
+static const char *string_to_char_ptr(const String &p_str)
+{
+    int len = p_str.length();
+
+    char *ptr = memnew_arr(char, len + 1);
+    memcpy(ptr, p_str.utf8().get_data(), len);
+
+    return ptr;
+}
+
+static void copy_prop(const GDProperty &src, GDNativePropertyInfo &dst)
+{
+    dst.type = src.type;
+    dst.name = string_to_char_ptr(src.name);
+    dst.class_name = string_to_char_ptr(src.class_name);
+    dst.hint = src.hint;
+    dst.hint_string = string_to_char_ptr(src.hint_string);
+    dst.usage = src.usage;
+}
+
+static void free_prop(const GDNativePropertyInfo &prop)
+{
+    // smelly
+    memfree((void *)prop.name);
+    memfree((void *)prop.class_name);
+    memfree((void *)prop.hint_string);
+}
+
+GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const
+{
+    *r_count = script->definition.properties.size();
+    GDNativePropertyInfo *list = memnew_arr(GDNativePropertyInfo, *r_count);
+
+    int i = 0;
+
+    for (const KeyValue<StringName, GDClassProperty> &pair : script->definition.properties)
+    {
+        copy_prop(pair.value.property, list[i]);
+        i++;
+    }
+
+    return list;
+}
+
+void LuauScriptInstance::free_property_list(const GDNativePropertyInfo *p_list) const
+{
+    // smelly
+    int size = script->definition.properties.size();
+
+    for (int i = 0; i < size; i++)
+        free_prop(p_list[i]);
+
+    memfree((void *)p_list);
+}
+
+Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bool *r_is_valid) const
+{
+    if (script->definition.properties.has(p_name))
+    {
+        if (r_is_valid != nullptr)
+            *r_is_valid = true;
+
+        return static_cast<Variant::Type>(script->definition.properties[p_name].property.type);
+    }
+
+    if (r_is_valid != nullptr)
+        *r_is_valid = false;
+
+    return Variant::NIL;
+}
+
+Object *LuauScriptInstance::get_owner() const
+{
+    return owner;
+}
+
+GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
+{
+    *r_count = script->definition.methods.size();
+    GDNativeMethodInfo *list = memnew_arr(GDNativeMethodInfo, *r_count);
+
+    int i = 0;
+
+    for (const KeyValue<StringName, GDMethod> pair : script->definition.methods)
+    {
+        const GDMethod &src = pair.value;
+        GDNativeMethodInfo &dst = list[i];
+
+        dst.name = string_to_char_ptr(src.name);
+
+        dst.return_value = GDNativePropertyInfo();
+        copy_prop(src.return_val, dst.return_value);
+
+        dst.flags = src.flags;
+
+        dst.argument_count = src.arguments.size();
+
+        if (dst.argument_count > 0)
+        {
+            GDNativePropertyInfo *arg_list = memnew_arr(GDNativePropertyInfo, dst.argument_count);
+
+            for (int i = 0; i < dst.argument_count; i++)
+                copy_prop(src.arguments[i], arg_list[i]);
+        }
+
+        dst.default_argument_count = src.default_arguments.size();
+
+        if (dst.default_argument_count > 0)
+        {
+            Variant *defargs = memnew_arr(Variant, dst.default_argument_count);
+
+            for (int i = 0; i < dst.default_argument_count; i++)
+                defargs[i] = src.default_arguments[i];
+        }
+
+        i++;
+    }
+
+    return list;
+}
+
+void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) const
+{
+    // smelly
+    int size = script->definition.methods.size();
+
+    for (int i = 0; i < size; i++)
+    {
+        GDNativeMethodInfo method = p_list[i];
+
+        memfree((void *)method.name);
+
+        free_prop(method.return_value);
+
+        if (method.argument_count > 0)
+        {
+            for (int i = 0; i < method.argument_count; i++)
+                free_prop(method.arguments[i]);
+
+            memfree(method.arguments);
+        }
+
+        if (method.default_argument_count > 0)
+            memfree(method.default_arguments);
+    }
+
+    memfree((void *)p_list);
+}
+
+bool LuauScriptInstance::has_method(const StringName &p_name) const
+{
+    return script->has_method(p_name);
+}
+
+Ref<Script> LuauScriptInstance::get_script() const
+{
+    return script;
+}
+
+ScriptLanguage *LuauScriptInstance::get_language() const
+{
+    return LuauLanguage::get_singleton();
+}
+
+LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type)
+    : script(p_script), owner(p_owner), vm_type(p_vm_type)
+{
+    // this usually occurs in _instance_create, but that is marked const for ScriptExtension
+    {
+        MutexLock lock(LuauLanguage::singleton->lock);
+        p_script->instances.insert(p_owner, this);
+    }
+
+    lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
+
+    lua_newtable(L);
+
+    int init_ref = p_script->methods[p_vm_type].initialize;
+
+    if (init_ref != -1)
+    {
+        LuaStackOp<Object *>::push(L, p_owner);
+        lua_pushvalue(L, -2);
+        lua_getref(L, init_ref);
+
+        int status = lua_pcall(L, 2, 0, 0);
+
+        if (status != LUA_OK)
+        {
+            ERR_PRINT(p_script->definition.name + ":Initialize failed: " + LuaStackOp<String>::get(L, -1));
+            lua_pop(L, 1);
+        }
+    }
+
+    table_ref = lua_ref(L, -1);
+
+    Error method_err = p_script->load_methods(p_vm_type);
+    ERR_FAIL_COND_MSG(method_err != OK, "Couldn't load script methods for " + p_script->definition.name);
+}
+
+LuauScriptInstance::~LuauScriptInstance()
+{
+    if (script.is_valid() && owner != nullptr)
+    {
+        MutexLock lock(LuauLanguage::singleton->lock);
+        script->instances.erase(owner);
+    }
+
+    lua_State *L = GDLuau::get_singleton()->get_vm(vm_type);
+    lua_unref(L, table_ref);
+    table_ref = 0;
+}
 
 //////////////
 // LANGUAGE //

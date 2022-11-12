@@ -101,8 +101,7 @@
                     "-v",
                     "main.tscn",
                     "--luau-tests",
-                    "--",
-                    "--success"
+                    "--"
                 ],
                 "options": {
                     "cwd": "${workspaceRoot}/test_project"

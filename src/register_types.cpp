@@ -35,6 +35,7 @@ using namespace godot;
         - Create an interface source file/header which can be pulled into a GDExtension and used for convenience
     - [ ] Separated VMs
         - [x] VMs for loading script resources, running core scripts, running map scripts
+        - [ ] Ability to reset VMs (unloading scripts?)
         - [x] Thread data containing flag enum of permissions (OS, File, etc.) + inheritance
             - https://github.com/Roblox/luau/pull/167
         - [ ] Resource for setting core script permissions
