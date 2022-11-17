@@ -18,19 +18,20 @@
     lua_pushboolean(L, true);                \
     lua_setfield(L, LUA_REGISTRYINDEX, key);
 
-#define LUA_BUILTIN_CONST(variant_type, const_name, const_type)                                             \
-    {                                                                                                       \
-        static bool __did_init;                                                                             \
-        static Variant __const_value;                                                                       \
-                                                                                                            \
-        if (!__did_init)                                                                                    \
-        {                                                                                                   \
-            __did_init = true;                                                                              \
-            internal::gdn_interface->variant_get_constant_value(variant_type, #const_name, &__const_value); \
-        }                                                                                                   \
-                                                                                                            \
-        LuaStackOp<const_type>::push(L, __const_value);                                                     \
-        lua_setfield(L, -3, #const_name);                                                                   \
+#define LUA_BUILTIN_CONST(variant_type, const_name, const_type)                                         \
+    {                                                                                                   \
+        static bool __did_init;                                                                         \
+        static Variant __const_value;                                                                   \
+                                                                                                        \
+        if (!__did_init)                                                                                \
+        {                                                                                               \
+            __did_init = true;                                                                          \
+            StringName __name = #const_name;                                                            \
+            internal::gdn_interface->variant_get_constant_value(variant_type, &__name, &__const_value); \
+        }                                                                                               \
+                                                                                                        \
+        LuaStackOp<const_type>::push(L, __const_value);                                                 \
+        lua_setfield(L, -3, #const_name);                                                               \
     }
 
 int luaGD_builtin_namecall(lua_State *L);

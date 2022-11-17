@@ -13,9 +13,9 @@ using namespace godot;
 
 int luaGD_class_ctor(lua_State *L)
 {
-    const char *class_name = lua_tostring(L, lua_upvalueindex(1));
+    StringName class_name = lua_tostring(L, lua_upvalueindex(1));
 
-    GDNativeObjectPtr native_ptr = internal::gdn_interface->classdb_construct_object(class_name);
+    GDNativeObjectPtr native_ptr = internal::gdn_interface->classdb_construct_object(&class_name);
     GDObjectInstanceID id = internal::gdn_interface->object_get_instance_id(native_ptr);
 
     Object *obj = ObjectDB::get_instance(id);

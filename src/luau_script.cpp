@@ -355,12 +355,10 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
 
 const GDNativeExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
-static const char *string_to_char_ptr(const String &p_str)
+static StringName *stringname_alloc(const String &p_str)
 {
-    int len = p_str.length();
-
-    char *ptr = memnew_arr(char, len + 1);
-    memcpy(ptr, p_str.utf8().get_data(), len);
+    StringName *ptr = memnew(StringName);
+    *ptr = p_str;
 
     return ptr;
 }
@@ -368,19 +366,19 @@ static const char *string_to_char_ptr(const String &p_str)
 static void copy_prop(const GDProperty &src, GDNativePropertyInfo &dst)
 {
     dst.type = src.type;
-    dst.name = string_to_char_ptr(src.name);
-    dst.class_name = string_to_char_ptr(src.class_name);
+    dst.name = stringname_alloc(src.name);
+    dst.class_name = stringname_alloc(src.class_name);
     dst.hint = src.hint;
-    dst.hint_string = string_to_char_ptr(src.hint_string);
+    dst.hint_string = stringname_alloc(src.hint_string);
     dst.usage = src.usage;
 }
 
 static void free_prop(const GDNativePropertyInfo &prop)
 {
     // smelly
-    memfree((void *)prop.name);
-    memfree((void *)prop.class_name);
-    memfree((void *)prop.hint_string);
+    memdelete((StringName *)prop.name);
+    memdelete((StringName *)prop.class_name);
+    memdelete((StringName *)prop.hint_string);
 }
 
 GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const
@@ -407,7 +405,7 @@ void LuauScriptInstance::free_property_list(const GDNativePropertyInfo *p_list) 
     for (int i = 0; i < size; i++)
         free_prop(p_list[i]);
 
-    memfree((void *)p_list);
+    memdelete((GDNativePropertyInfo *)p_list);
 }
 
 Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bool *r_is_valid) const
@@ -443,9 +441,8 @@ GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
         const GDMethod &src = pair.value;
         GDNativeMethodInfo &dst = list[i];
 
-        dst.name = string_to_char_ptr(src.name);
+        dst.name = stringname_alloc(src.name);
 
-        dst.return_value = GDNativePropertyInfo();
         copy_prop(src.return_val, dst.return_value);
 
         dst.flags = src.flags;
@@ -485,7 +482,7 @@ void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) cons
     {
         GDNativeMethodInfo method = p_list[i];
 
-        memfree((void *)method.name);
+        memdelete((StringName *)method.name);
 
         free_prop(method.return_value);
 
@@ -494,14 +491,14 @@ void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) cons
             for (int i = 0; i < method.argument_count; i++)
                 free_prop(method.arguments[i]);
 
-            memfree(method.arguments);
+            memdelete(method.arguments);
         }
 
         if (method.default_argument_count > 0)
-            memfree(method.default_arguments);
+            memdelete((Variant *)method.default_arguments);
     }
 
-    memfree((void *)p_list);
+    memdelete((GDNativeMethodInfo *)p_list);
 }
 
 bool LuauScriptInstance::has_method(const StringName &p_name) const

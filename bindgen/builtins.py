@@ -139,8 +139,10 @@ def generate_method(class_name, variant_type, method, api):
 
     # Find method
     if not is_vararg:
-        append(src, indent_level,
-               f"static GDNativePtrBuiltInMethod __method = internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, \"{method_name}\", {method_hash});")
+        append(src, indent_level, f"""\
+StringName __name = "{method_name}";
+static GDNativePtrBuiltInMethod __method = internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, &__name, {method_hash});\
+""")
 
     # Pull arguments
     args_src, self_name = common.generate_method_args(class_name, method, api)
@@ -157,7 +159,6 @@ def generate_method(class_name, variant_type, method, api):
         if not is_vararg:
             append(src, indent_level, f"{return_type} ret;")
             ret_ptr_name = "&ret"
-
 
     if is_vararg:
         append(src, indent_level,
@@ -263,9 +264,10 @@ lua_pushcfunction(L, [](lua_State *L) -> int
 
             right_variant_type = "GDNATIVE_VARIANT_TYPE_NIL"
             if "right_type" in operator:
-                right_variant_type = "GDNATIVE_VARIANT_TYPE_" + \
-                    binding_generator.camel_to_snake(
-                        operator["right_type"]).upper()
+                right_type = operator["right_type"]
+                if right_type != "Variant":
+                    right_variant_type = "GDNATIVE_VARIANT_TYPE_" + \
+                        binding_generator.camel_to_snake(right_type).upper()
 
             append(src, indent_level, f"""\
 {{
@@ -470,7 +472,8 @@ if (key.get_type() == Variant::Type::STRING)
                     append(src, indent_level, f"""\
 if (key_str == "{member_key}")
 {{
-    static GDNativePtrGetter __getter = internal::gdn_interface->variant_get_ptr_getter({variant_type}, "{member_name}");
+    StringName __name = "{member_name}";
+    static GDNativePtrGetter __getter = internal::gdn_interface->variant_get_ptr_getter({variant_type}, &__name);
 
     {member_correct_type} ret;
     __getter({arg_name}, &ret);
@@ -534,7 +537,8 @@ lua_setfield(L, -4, "__newindex");
                 const_name = constant["name"]
                 const_type = binding_generator.correct_type(constant["type"])
 
-                append(src, indent_level, f"LUA_BUILTIN_CONST({variant_type}, {const_name}, {const_type})")
+                append(
+                    src, indent_level, f"LUA_BUILTIN_CONST({variant_type}, {const_name}, {const_type})")
 
             src.append("")
 

@@ -46,7 +46,9 @@ def generate_method(class_name, method, api, class_permissions):
     src.append(f"""\
 {map_name}["{method_name_pascal}"] = [](lua_State *L) -> int
 {{
-    static GDNativeMethodBindPtr __method_bind = internal::gdn_interface->classdb_get_method_bind("{class_name}", "{method_name}", {method_hash});
+    StringName __class_name = "{class_name}";
+    StringName __method_name = "{method_name}";
+    static GDNativeMethodBindPtr __method_bind = internal::gdn_interface->classdb_get_method_bind(&__class_name, &__method_name, {method_hash});
 """)
 
     indent_level = 1
@@ -236,6 +238,7 @@ void luaGD_openclasses(lua_State *L)
 #include <lua.h>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/string_name.hpp>
 
 #include "luagd_permissions.h"
 
@@ -409,7 +412,8 @@ lua_setfield(L, -2, "__index");
 // Singleton getter
 lua_pushcfunction(L, [](lua_State *L) -> int
 {{
-    static GDNativeObjectPtr singleton_obj = internal::gdn_interface->global_get_singleton("{singleton["name"]}");
+    StringName __name = "{singleton["name"]}";
+    static GDNativeObjectPtr singleton_obj = internal::gdn_interface->global_get_singleton(&__name);
     static GDObjectInstanceID singleton_id = internal::gdn_interface->object_get_instance_id(singleton_obj);
 
     if (lua_gettop(L) > 0)

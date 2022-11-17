@@ -19,11 +19,6 @@
 #include "luau_lib.h"
 #include "gd_luau.h"
 
-// TODO: WTF part 2 (REMOVE AT BETA 4! godot-cpp#895)
-#include <godot_cpp/core/method_ptrcall.hpp>
-GDVIRTUAL_NATIVE_PTR(void);
-//
-
 namespace godot
 {
     class Object;
@@ -138,7 +133,7 @@ public:
     void call(const StringName &p_method, const Variant *p_args, const GDNativeInt p_argument_count, Variant *r_return, GDNativeCallError *r_error);
     void notification(int32_t p_what);
 
-    const char *to_string(GDNativeBool *r_is_valid);
+    const char *to_string(GDNativeBool *r_is_valid, String *r_out);
     */
 
     Ref<Script> get_script() const;

@@ -13,6 +13,7 @@ def generate_luau_globals(src_dir, api):
 #include <lua.h>
 #include <godot/gdnative_interface.h>
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/variant/string_name.hpp>
 
 #include "luagd_builtins.h"
 
@@ -72,7 +73,8 @@ void luaGD_openglobals(lua_State *L)
 {{ // {func_name}
     lua_pushcfunction(L, [](lua_State *L) -> int
     {{
-        static GDNativePtrUtilityFunction __func = internal::gdn_interface->variant_get_ptr_utility_function("{func_name}", {func_hash});
+        StringName __name = "{func_name}";
+        static GDNativePtrUtilityFunction __func = internal::gdn_interface->variant_get_ptr_utility_function(&__name, {func_hash});
 """)
 
         indent_level += 2
