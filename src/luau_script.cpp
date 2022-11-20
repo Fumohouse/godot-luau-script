@@ -152,8 +152,8 @@ Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool force)
         return ERR_SKIP;
 
     lua_State *T = lua_newthread(GDLuau::get_singleton()->get_vm(p_vm_type));
-    luascript_openclasslib(T, true);
     luaL_sandboxthread(T);
+    luascript_openclasslib(T, true);
 
     if (try_load(T, source.utf8().get_data()) == OK)
     {
@@ -355,6 +355,14 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
 
 const GDNativeExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
+static String *string_alloc(const String &p_str)
+{
+    String *ptr = memnew(String);
+    *ptr = p_str;
+
+    return ptr;
+}
+
 static StringName *stringname_alloc(const String &p_str)
 {
     StringName *ptr = memnew(StringName);
@@ -369,7 +377,7 @@ static void copy_prop(const GDProperty &src, GDNativePropertyInfo &dst)
     dst.name = stringname_alloc(src.name);
     dst.class_name = stringname_alloc(src.class_name);
     dst.hint = src.hint;
-    dst.hint_string = stringname_alloc(src.hint_string);
+    dst.hint_string = string_alloc(src.hint_string);
     dst.usage = src.usage;
 }
 
@@ -378,7 +386,7 @@ static void free_prop(const GDNativePropertyInfo &prop)
     // smelly
     memdelete((StringName *)prop.name);
     memdelete((StringName *)prop.class_name);
-    memdelete((StringName *)prop.hint_string);
+    memdelete((String *)prop.hint_string);
 }
 
 GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const
@@ -415,7 +423,7 @@ Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bo
         if (r_is_valid != nullptr)
             *r_is_valid = true;
 
-        return static_cast<Variant::Type>(script->definition.properties[p_name].property.type);
+        return (Variant::Type)script->definition.properties[p_name].property.type;
     }
 
     if (r_is_valid != nullptr)
@@ -453,8 +461,10 @@ GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
         {
             GDNativePropertyInfo *arg_list = memnew_arr(GDNativePropertyInfo, dst.argument_count);
 
-            for (int i = 0; i < dst.argument_count; i++)
-                copy_prop(src.arguments[i], arg_list[i]);
+            for (int j = 0; j < dst.argument_count; j++)
+                copy_prop(src.arguments[j], arg_list[j]);
+
+            dst.arguments = arg_list;
         }
 
         dst.default_argument_count = src.default_arguments.size();
@@ -463,8 +473,10 @@ GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
         {
             Variant *defargs = memnew_arr(Variant, dst.default_argument_count);
 
-            for (int i = 0; i < dst.default_argument_count; i++)
-                defargs[i] = src.default_arguments[i];
+            for (int j = 0; j < dst.default_argument_count; j++)
+                defargs[j] = src.default_arguments[j];
+
+            dst.default_arguments = (GDNativeVariantPtr *)defargs;
         }
 
         i++;
@@ -480,7 +492,7 @@ void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) cons
 
     for (int i = 0; i < size; i++)
     {
-        GDNativeMethodInfo method = p_list[i];
+        const GDNativeMethodInfo &method = p_list[i];
 
         memdelete((StringName *)method.name);
 
@@ -503,7 +515,7 @@ void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) cons
 
 bool LuauScriptInstance::has_method(const StringName &p_name) const
 {
-    return script->has_method(p_name);
+    return script->_has_method(p_name);
 }
 
 Ref<Script> LuauScriptInstance::get_script() const
@@ -528,6 +540,11 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
 
     lua_newtable(L);
+    lua_pushvalue(L, -1);
+    table_ref = lua_ref(L, -1);
+
+    Error method_err = p_script->load_methods(p_vm_type);
+    ERR_FAIL_COND_MSG(method_err != OK && method_err != ERR_SKIP, "Couldn't load script methods for " + p_script->definition.name);
 
     int init_ref = p_script->methods[p_vm_type].initialize;
 
@@ -545,11 +562,6 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
             lua_pop(L, 1);
         }
     }
-
-    table_ref = lua_ref(L, -1);
-
-    Error method_err = p_script->load_methods(p_vm_type);
-    ERR_FAIL_COND_MSG(method_err != OK, "Couldn't load script methods for " + p_script->definition.name);
 }
 
 LuauScriptInstance::~LuauScriptInstance()

@@ -28,8 +28,6 @@ end)
 Character:RegisterMethod("TestMethod", function(self: any, arg1: number, arg2: string): string
     return "hi!"
 end, {
-    -- ? this is essentially purely diagnostic information.
-    -- it is not used anywhere (yet) (in-engine or in Luau script).
     args = {
         gdproperty({
             name = "arg1",

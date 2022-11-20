@@ -202,6 +202,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdclass")
                                   REQUIRE(def->properties.has("testProperty"));
 
                                   GDClassProperty &prop = def->properties.get("testProperty");
+                                  REQUIRE(prop.property.type == GDNATIVE_VARIANT_TYPE_FLOAT);
                                   REQUIRE(prop.property.operator Dictionary() == expected_property.operator Dictionary());
                                   REQUIRE(prop.getter == StringName("GetTestProperty"));
                                   REQUIRE(prop.setter == StringName("SetTestProperty"));
