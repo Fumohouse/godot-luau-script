@@ -211,6 +211,8 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdclass")
                           });
             }
         }
+
+        lua_pop(L, 1);
     }
 
     SECTION("(2) function load")
@@ -280,5 +282,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdclass")
                           });
             }
         }
+
+        lua_pop(L, 1);
     }
 }

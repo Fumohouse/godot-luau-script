@@ -63,8 +63,8 @@ TEST_CASE("luau script: instance")
     script->set_source_code(R"ASDF(
         local TestClass = gdclass("TestClass")
 
-        TestClass:RegisterMethod("TestMethod", function(arg1, arg2)
-            return "hi!"
+        TestClass:RegisterMethod("TestMethod", function(self, arg1, arg2)
+            return string.format("%.1f, %s", arg1, arg2)
         end, {
             args = {
                 gdproperty({
@@ -76,11 +76,11 @@ TEST_CASE("luau script: instance")
                     type = Enum.VariantType.TYPE_STRING
                 })
             },
-            defaultArgs = { 1, "godot" },
+            defaultArgs = { "hi" },
             returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
         })
 
-        TestClass:RegisterMethod("TestMethod2", function(arg1, arg2)
+        TestClass:RegisterMethod("TestMethod2", function(self, arg1, arg2)
             return 3.14
         end, {
             args = {
@@ -148,5 +148,72 @@ TEST_CASE("luau script: instance")
         REQUIRE(properties[1].type == GDNATIVE_VARIANT_TYPE_STRING);
 
         inst.free_property_list(properties);
+    }
+
+    SECTION("call")
+    {
+        SECTION("normal operation")
+        {
+            Variant args[] = {2.5f, "Hello world"};
+            Variant ret;
+            GDNativeCallError err;
+
+            inst.call("TestMethod", args, 2, &ret, &err);
+
+            REQUIRE(err.error == GDNATIVE_CALL_OK);
+            REQUIRE(ret == "2.5, Hello world");
+        }
+
+        SECTION("default argument")
+        {
+            Variant args[] = {5.3f};
+            Variant ret;
+            GDNativeCallError err;
+
+            inst.call("TestMethod", args, 1, &ret, &err);
+
+            REQUIRE(err.error == GDNATIVE_CALL_OK);
+            REQUIRE(ret == "5.3, hi");
+        }
+
+        SECTION("invalid arguments")
+        {
+            SECTION("too few")
+            {
+                Variant args[] = {};
+                Variant ret;
+                GDNativeCallError err;
+
+                inst.call("TestMethod", args, 0, &ret, &err);
+
+                REQUIRE(err.error == GDNATIVE_CALL_ERROR_TOO_FEW_ARGUMENTS);
+                REQUIRE(err.argument == 1);
+            }
+
+            SECTION("too many")
+            {
+                Variant args[] = {1, 1, 1, 1, 1};
+                Variant ret;
+                GDNativeCallError err;
+
+                inst.call("TestMethod", args, 5, &ret, &err);
+
+                REQUIRE(err.error == GDNATIVE_CALL_ERROR_TOO_MANY_ARGUMENTS);
+                REQUIRE(err.argument == 2);
+            }
+
+            SECTION("invalid")
+            {
+                Variant args[] = {false};
+                Variant ret;
+                GDNativeCallError err;
+
+                inst.call("TestMethod", args, 1, &ret, &err);
+
+                REQUIRE(err.error == GDNATIVE_CALL_ERROR_INVALID_ARGUMENT);
+                REQUIRE(err.argument == 0);
+                REQUIRE(err.expected == GDNATIVE_VARIANT_TYPE_FLOAT);
+            }
+        }
     }
 }

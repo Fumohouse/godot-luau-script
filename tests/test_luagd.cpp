@@ -24,6 +24,8 @@ TEST_CASE("vm: permissions")
         REQUIRE(thread_udata != nullptr);
         REQUIRE(thread_udata != udata);
         REQUIRE(thread_udata->permissions == PERMISSION_INTERNAL);
+
+        lua_pop(L, 1);
     }
 
     SECTION("thread permission initialization")
@@ -34,6 +36,8 @@ TEST_CASE("vm: permissions")
         REQUIRE(thread_udata != nullptr);
         REQUIRE(thread_udata != udata);
         REQUIRE(thread_udata->permissions == PERMISSION_FILE);
+
+        lua_pop(L, 1);
     }
 
     luaGD_close(L);

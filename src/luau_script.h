@@ -104,6 +104,8 @@ private:
     GDLuau::VMType vm_type;
 
     int table_ref;
+    int thread_ref;
+    lua_State *T;
 
 public:
     static const GDNativeExtensionScriptInstanceInfo INSTANCE_INFO;
@@ -129,8 +131,9 @@ public:
 
     bool has_method(const StringName &p_name) const;
 
-    /*
     void call(const StringName &p_method, const Variant *p_args, const GDNativeInt p_argument_count, Variant *r_return, GDNativeCallError *r_error);
+
+    /*
     void notification(int32_t p_what);
 
     const char *to_string(GDNativeBool *r_is_valid, String *r_out);
