@@ -49,8 +49,8 @@ type GDClassDefinition = {
     RegisterProperty: (
         self: GDClassDefinition,
         property: GDProperty,
-        getter: string,
-        setter: string,
+        getter: string?,
+        setter: string?,
         default: any?
     ) -> ()
 

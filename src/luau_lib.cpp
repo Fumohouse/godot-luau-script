@@ -238,13 +238,11 @@ static int luascript_gdclass_namecall(lua_State *L)
         if (strcmp(name, "RegisterProperty") == 0)
         {
             GDProperty *property = LuaStackOp<GDProperty>::check_ptr(L, 2);
-            const char *getter = luaL_checkstring(L, 3);
-            const char *setter = luaL_checkstring(L, 4);
 
             GDClassProperty prop;
             prop.property = *property;
-            prop.getter = getter;
-            prop.setter = setter;
+            prop.getter = luaL_optstring(L, 3, "");
+            prop.setter = luaL_optstring(L, 4, "");
 
             if (lua_gettop(L) >= 5)
                 prop.default_value = LuaStackOp<Variant>::get(L, 5);
@@ -277,8 +275,8 @@ static int luascript_gdclass_methods_namecall(lua_State *L)
         if (strcmp(name, "RegisterProperty") == 0)
         {
             LuaStackOp<GDProperty>::check(L, 2);
-            luaL_checkstring(L, 3);
-            luaL_checkstring(L, 4);
+            luaL_optstring(L, 3, "");
+            luaL_optstring(L, 4, "");
             if (lua_gettop(L) >= 5)
                 LuaStackOp<Variant>::get(L, 5);
 

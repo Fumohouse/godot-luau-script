@@ -311,8 +311,15 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
         return static_cast<GDNativeVariantType>(INSTANCE_SELF->get_property_type(*((const StringName *)p_name), (bool *)r_is_valid));
     };
 
-    // GDNativeExtensionScriptInstancePropertyCanRevert property_can_revert_func;
-    // GDNativeExtensionScriptInstancePropertyGetRevert property_get_revert_func;
+    info.property_can_revert_func = [](void *self, const GDNativeStringNamePtr p_name) -> GDNativeBool
+    {
+        return INSTANCE_SELF->property_can_revert(*((StringName *)p_name));
+    };
+
+    info.property_get_revert_func = [](void *self, const GDNativeStringNamePtr p_name, GDNativeVariantPtr r_ret) -> GDNativeBool
+    {
+        return INSTANCE_SELF->property_get_revert(*((StringName *)p_name), (Variant *)r_ret);
+    };
 
     info.get_owner_func = [](void *self)
     {
@@ -448,6 +455,18 @@ Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bo
         *r_is_valid = false;
 
     return Variant::NIL;
+}
+
+// TODO: these two methods are for custom properties via virtual _property_can_revert, _property_get_revert, _get, _set
+// functionality for _get and _set should be part of ScriptInstance::get/set
+bool LuauScriptInstance::property_can_revert(const StringName &p_name) const
+{
+    return false;
+}
+
+bool LuauScriptInstance::property_get_revert(const StringName &p_name, Variant *r_ret) const
+{
+    return false;
 }
 
 Object *LuauScriptInstance::get_owner() const

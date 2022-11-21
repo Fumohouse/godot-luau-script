@@ -120,6 +120,9 @@ public:
 
     Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const;
 
+    bool property_can_revert(const StringName &p_name) const;
+    bool property_get_revert(const StringName &p_name, Variant *r_ret) const;
+
     Object *get_owner() const;
 
     /*
