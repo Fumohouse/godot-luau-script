@@ -16,12 +16,8 @@
 using namespace godot;
 
 #define PROPERTY_MT_NAME "Luau.GDProperty"
-#define CLASS_MT_NAME "Luau.GDClassDefinition"
-#define METHODS_MT_NAME "Luau.GDClassDefinition.Methods"
 
 LUA_UDATA_STACK_OP(GDProperty, PROPERTY_MT_NAME, DTOR(GDProperty))
-LUA_UDATA_STACK_OP(GDClassDefinition, CLASS_MT_NAME, DTOR(GDClassDefinition))
-LUA_UDATA_STACK_OP(GDClassMethods, METHODS_MT_NAME, DTOR(GDClassMethods))
 
 /* STRUCTS */
 
@@ -104,220 +100,83 @@ static int luascript_gdproperty(lua_State *L)
     return 1;
 }
 
-/* CLASS
-    There are two cases in which we would want information on a class:
-    1. On initial LuauScript resource load, when only VM-agnostic info is loaded (i.e. not functions)
-    2. When the resource has already loaded, and we need to store all the functions that may need to be called, on a per-VM basis
-
-    Hence the two definitions of everything.
- */
-
-static int luascript_gdclass(lua_State *L)
+static GDMethod luascript_read_method(lua_State *L, int idx)
 {
-    GDClassDefinition def;
+    GDMethod method;
 
-    def.name = luaL_checkstring(L, 1);
+    if (luaGD_getfield(L, idx, "args"))
+    {
+        luaL_checktype(L, -1, LUA_TTABLE);
 
-    if (lua_gettop(L) >= 2)
-        def.extends = luaL_checkstring(L, 2);
+        int args_len = lua_objlen(L, -1);
+        for (int i = 1; i <= args_len; i++)
+        {
+            lua_rawgeti(L, -1, i);
+
+            method.arguments.push_back(LuaStackOp<GDProperty>::check(L, -1));
+
+            lua_pop(L, 1); // rawgeti
+        }
+
+        lua_pop(L, 1); // args
+    }
+
+    if (luaGD_getfield(L, idx, "defaultArgs"))
+    {
+        luaL_checktype(L, -1, LUA_TTABLE);
+
+        int default_args_len = lua_objlen(L, -1);
+        for (int i = 1; i <= default_args_len; i++)
+        {
+            lua_rawgeti(L, -1, i);
+
+            method.default_arguments.push_back(LuaStackOp<Variant>::get(L, -1));
+
+            lua_pop(L, 1); // rawgeti
+        }
+
+        lua_pop(L, 1); // defaultArgs
+    }
+
+    if (luaGD_getfield(L, idx, "returnVal"))
+    {
+        method.return_val = LuaStackOp<GDProperty>::check(L, -1);
+        lua_pop(L, 1);
+    }
+
+    if (luaGD_getfield(L, idx, "flags"))
+        method.flags = luaGD_checkkeytype<uint32_t>(L, -1, "flags", LUA_TNUMBER);
+
+    return method;
+}
+
+static GDClassProperty luascript_read_class_property(lua_State *L, int idx)
+{
+    GDClassProperty property;
+
+    if (luaGD_getfield(L, idx, "property"))
+    {
+        property.property = LuaStackOp<GDProperty>::check(L, -1);
+        lua_pop(L, 1);
+    }
     else
-        def.extends = "RefCounted";
-
-    LuaStackOp<GDClassDefinition>::push(L, def);
-    return 1;
-}
-
-static int luascript_gdclass_methods(lua_State *L)
-{
-    // ensure correct invocation
-    luaL_checkstring(L, 1);
-    if (lua_gettop(L) >= 2)
-        luaL_checkstring(L, 2);
-
-    LuaStackOp<GDClassMethods>::push(L, GDClassMethods());
-    return 1;
-}
-
-static int luascript_gdclass_namecall(lua_State *L)
-{
-    if (const char *name = lua_namecallatom(L, nullptr))
     {
-        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
-
-        // no-op methods
-        if (strcmp(name, "Initialize") == 0)
-        {
-            luaL_checktype(L, 2, LUA_TFUNCTION);
-
-            return 0;
-        }
-
-        if (strcmp(name, "Subscribe") == 0)
-        {
-            luaL_checkinteger(L, 2);
-            luaL_checktype(L, 3, LUA_TFUNCTION);
-
-            return 0;
-        }
-
-        // Defined methods
-        if (strcmp(name, "Tool") == 0)
-        {
-            def->is_tool = luaL_checkboolean(L, 2);
-            return 0;
-        } // :Tool
-
-        if (strcmp(name, "RegisterMethod") == 0)
-        {
-            const char *method_name = luaL_checkstring(L, 2);
-            luaL_checktype(L, 3, LUA_TFUNCTION); // ensure correct invocation
-
-            if (lua_gettop(L) < 4)
-            {
-                def->methods.insert(method_name, GDMethod());
-                return 0;
-            }
-
-            luaL_checktype(L, 4, LUA_TTABLE);
-
-            GDMethod method;
-
-            method.name = method_name;
-
-            if (luaGD_getfield(L, 4, "args"))
-            {
-                luaL_checktype(L, -1, LUA_TTABLE);
-
-                int args_len = lua_objlen(L, -1);
-                for (int i = 1; i <= args_len; i++)
-                {
-                    lua_rawgeti(L, -1, i);
-
-                    GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                    method.arguments.push_back(*prop);
-
-                    lua_pop(L, 1); // rawgeti
-                }
-
-                lua_pop(L, 1); // args
-            }
-
-            if (luaGD_getfield(L, 4, "defaultArgs"))
-            {
-                luaL_checktype(L, -1, LUA_TTABLE);
-
-                int default_args_len = lua_objlen(L, -1);
-                for (int i = 1; i <= default_args_len; i++)
-                {
-                    lua_rawgeti(L, -1, i);
-
-                    method.default_arguments.push_back(LuaStackOp<Variant>::get(L, -1));
-
-                    lua_pop(L, 1); // rawgeti
-                }
-
-                lua_pop(L, 1); // defaultArgs
-            }
-
-            if (luaGD_getfield(L, 4, "returnVal"))
-            {
-                GDProperty *return_val = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                method.return_val = *return_val;
-
-                lua_pop(L, 1); // returnVal
-            }
-
-            if (luaGD_getfield(L, 4, "flags"))
-                method.flags = luaGD_checkkeytype<uint32_t>(L, -1, "flags", LUA_TNUMBER);
-
-            def->methods.insert(method_name, method);
-
-            return 0;
-        } // :RegisterMethod
-
-        if (strcmp(name, "RegisterProperty") == 0)
-        {
-            GDProperty *property = LuaStackOp<GDProperty>::check_ptr(L, 2);
-
-            GDClassProperty prop;
-            prop.property = *property;
-            prop.getter = luaL_optstring(L, 3, "");
-            prop.setter = luaL_optstring(L, 4, "");
-
-            if (lua_gettop(L) >= 5)
-                prop.default_value = LuaStackOp<Variant>::get(L, 5);
-
-            def->properties.insert(property->name, prop);
-
-            return 0;
-        } // :RegisterProperty
-
-        luaL_error(L, "%s is not a valid member of " CLASS_MT_NAME, name);
+        luaL_error(L, "missing 'property' in class property definition");
     }
 
-    luaL_error(L, "no namecallatom");
-}
+    if (luaGD_getfield(L, idx, "getter"))
+        property.getter = luaGD_checkkeytype<String>(L, -1, "getter", LUA_TSTRING);
 
-static int luascript_gdclass_methods_namecall(lua_State *L)
-{
-    if (const char *name = lua_namecallatom(L, nullptr))
+    if (luaGD_getfield(L, idx, "setter"))
+        property.setter = luaGD_checkkeytype<String>(L, -1, "setter", LUA_TSTRING);
+
+    if (luaGD_getfield(L, idx, "default"))
     {
-        GDClassMethods *methods = LuaStackOp<GDClassMethods>::check_ptr(L, 1);
-
-        // no-op methods
-        if (strcmp(name, "Tool") == 0)
-        {
-            luaL_checkboolean(L, 2);
-
-            return 0;
-        }
-
-        if (strcmp(name, "RegisterProperty") == 0)
-        {
-            LuaStackOp<GDProperty>::check(L, 2);
-            luaL_optstring(L, 3, "");
-            luaL_optstring(L, 4, "");
-            if (lua_gettop(L) >= 5)
-                LuaStackOp<Variant>::get(L, 5);
-
-            return 0;
-        }
-
-        // Defined methods
-        if (strcmp(name, "Initialize") == 0)
-        {
-            luaL_checktype(L, 2, LUA_TFUNCTION);
-            methods->initialize = lua_ref(L, 2);
-
-            return 0;
-        } // :Initialize
-
-        if (strcmp(name, "Subscribe") == 0)
-        {
-            int what = luaL_checkinteger(L, 2);
-            luaL_checktype(L, 3, LUA_TFUNCTION);
-
-            methods->notifications.insert(what, lua_ref(L, 3));
-
-            return 0;
-        } // :Subscribe
-
-        if (strcmp(name, "RegisterMethod") == 0)
-        {
-            const char *name = luaL_checkstring(L, 2);
-            luaL_checktype(L, 3, LUA_TFUNCTION);
-            if (lua_gettop(L) >= 4)
-                luaL_checktype(L, 4, LUA_TTABLE); // ensure correct invocation
-
-            methods->methods.insert(name, lua_ref(L, 3));
-
-            return 0;
-        } // :RegisterMethod
-
-        luaL_error(L, "%s is not a valid member of " METHODS_MT_NAME, name);
+        property.default_value = LuaStackOp<Variant>::get(L, -1);
+        lua_pop(L, 1);
     }
 
-    luaL_error(L, "no namecallatom");
+    return property;
 }
 
 /* EXPOSED FUNCTIONS */
@@ -332,36 +191,61 @@ void luascript_openlibs(lua_State *L)
     lua_setglobal(L, "gdproperty");
 }
 
-void luascript_openclasslib(lua_State *L, bool load_methods)
+GDClassDefinition luascript_read_class(lua_State *L, int idx)
 {
-    if (load_methods)
-    {
-        lua_pushcfunction(L, luascript_gdclass_methods, "_G.gdclass[methods]");
-        lua_setglobal(L, "gdclass");
+    GDClassDefinition def;
 
-        if (luaL_newmetatable(L, METHODS_MT_NAME))
-        {
-            lua_pushcfunction(L, luascript_gdclass_methods_namecall, METHODS_MT_NAME ".__namecall");
-            lua_setfield(L, -2, "__namecall");
+    if (luaGD_getfield(L, idx, "name"))
+        def.name = luaGD_checkkeytype<String>(L, -1, "name", LUA_TSTRING);
 
-            lua_setreadonly(L, -1, true);
-        }
-
-        lua_pop(L, 1);
-    }
+    if (luaGD_getfield(L, idx, "extends"))
+        def.extends = luaGD_checkkeytype<String>(L, -1, "extends", LUA_TSTRING);
     else
+        def.extends = "RefCounted";
+
+    if (luaGD_getfield(L, idx, "tool"))
+        def.is_tool = luaGD_checkkeytype<bool>(L, -1, "tool", LUA_TBOOLEAN);
+
+    if (luaGD_getfield(L, idx, "methods"))
     {
-        lua_pushcfunction(L, luascript_gdclass, "_G.gdclass[nomethods]");
-        lua_setglobal(L, "gdclass");
+        luaL_checktype(L, -1, LUA_TTABLE);
 
-        if (luaL_newmetatable(L, CLASS_MT_NAME))
+        lua_pushnil(L);
+
+        while (lua_next(L, -2) != 0)
         {
-            lua_pushcfunction(L, luascript_gdclass_namecall, CLASS_MT_NAME ".__namecall");
-            lua_setfield(L, -2, "__namecall");
+            String method_name = LuaStackOp<String>::check(L, -2);
+            luaL_checktype(L, -1, LUA_TTABLE);
 
-            lua_setreadonly(L, -1, true);
+            GDMethod method = luascript_read_method(L, -1);
+            method.name = method_name;
+
+            def.methods[method_name] = method;
+
+            lua_pop(L, 1); // value in this iteration
         }
 
-        lua_pop(L, 1);
+        lua_pop(L, 1); // methods
     }
+
+    if (luaGD_getfield(L, idx, "properties"))
+    {
+        luaL_checktype(L, -1, LUA_TTABLE);
+
+        lua_pushnil(L);
+
+        while (lua_next(L, -2) != 0)
+        {
+            String property_name = LuaStackOp<String>::check(L, -2);
+            luaL_checktype(L, -1, LUA_TTABLE);
+
+            def.properties[property_name] = luascript_read_class_property(L, -1);
+
+            lua_pop(L, 1); // value in this iteration
+        }
+
+        lua_pop(L, 1); // properties
+    }
+
+    return def;
 }

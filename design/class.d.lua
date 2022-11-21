@@ -16,6 +16,13 @@ type GDProperty = {}
 -- Creates a property/argument/etc.
 declare function gdproperty(params: GDPropertyParameters): GDProperty
 
+type GDClassProperty = {
+    property: GDProperty,
+    getter: string?,
+    setter: string?,
+    default: any?
+}
+
 type GDMethodMetadata = {
     args: {GDProperty}?,
     defaultArgs: {any}?,
@@ -24,39 +31,10 @@ type GDMethodMetadata = {
 }
 
 type GDClassDefinition = {
-    -- Tool? (default: false)
-    Tool: (self: GDClassDefinition, isTool: boolean) -> (),
-
-    -- Initialization: takes the Object and internal table
-    Initialize: (self: GDClassDefinition, func: (any, any) -> ()) -> (),
-
-    -- Subscribe to a notification
-    Subscribe: (
-        self: GDClassDefinition,
-        notification: number,
-        handler: (...any) -> ()
-    ) -> (),
-
-    -- Register a method
-    RegisterMethod: (
-        self: GDClassDefinition,
-        name: string,
-        method: (self: any, ...any) -> any,
-        metadata: GDMethodMetadata?
-    ) -> (),
-
-    -- Register a property (exported)
-    RegisterProperty: (
-        self: GDClassDefinition,
-        property: GDProperty,
-        getter: string?,
-        setter: string?,
-        default: any?
-    ) -> ()
-
-    -- TODO: Signals, RPCs
+    name: string?,
+    extends: string?,
+    tool: boolean?,
+    methods: {[string]: GDMethodMetadata}?,
+    properties: {[string]: GDClassProperty}?,
+    [string]: any
 }
-
--- Creates a class definition
--- default extends: RefCounted
-declare function gdclass(className: string, extends: string?): GDClassDefinition

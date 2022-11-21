@@ -2,32 +2,37 @@
 -- example class
 --
 
-local Character = gdclass("Character", "RigidBody3D")
-
--- Tool
-Character:Tool(false)
+local Character = {
+    name = "Character",
+    extends = "RigidBody3D",
+    tool = false,
+    methods = {},
+    properties = {}
+}
 
 -- Initialization
-local exampleIndex = {}
-
-function exampleIndex:PrivateMethod()
-    print("hi")
+function Character._Init(obj, tbl)
+    obj.key = "value"
+    -- you can do anything here, like initialize values or set a metatable for `tbl`
 end
 
-Character:Initialize(function(obj, tbl)
-    obj.key = "value"
-    setmetatable(tbl, { __index = exampleIndex })
-end)
-
 -- Notification
-Character:Subscribe(13, function() -- 13 is READY. please use globals instead (numbers are used for typechecking).
-    print("ready!")
-end)
+function Character._Notification(self, what)
+    if what == 13 then
+        print("ready!")
+    end
+end
+
+function Character._Ready(self)
+    print("ready (easier)!")
+end
 
 -- Method
-Character:RegisterMethod("TestMethod", function(self: any, arg1: number, arg2: string): string
+function Character.TestMethod(self: any, arg1: number, arg2: string): string
     return "hi!"
-end, {
+end
+
+Character.methods["TestMethod"] = {
     args = {
         gdproperty({
             name = "arg1",
@@ -40,17 +45,17 @@ end, {
     },
     defaultArgs = { 1, "godot" },
     returnVal = gdproperty({ type = 4 })
-})
+}
 
 -- Property
-Character:RegisterProperty(
-    gdproperty({
+Character.properties["testProperty"] = {
+    property = gdproperty({
         name = "testProperty",
         type = 3
     }),
-    "GetTestProperty",
-    "SetTestProperty",
-    3.5
-)
+    getter = "GetTestProperty",
+    setter = "SetTestProperty",
+    default = 3.5
+}
 
 return Character

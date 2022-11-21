@@ -64,6 +64,7 @@ using namespace godot;
     - [ ] Callable support for function objects (needs CallableCustom support in GDExtension)
     - [ ] Documentation support
     - [ ] Autocomplete within the editor
+    - [ ] AST-based method registration
 */
 
 /*

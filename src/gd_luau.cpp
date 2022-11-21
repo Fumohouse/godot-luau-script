@@ -18,7 +18,6 @@ void GDLuau::init_vm(VMType p_type)
 {
     lua_State *L = luaGD_newstate(PERMISSION_BASE);
     luascript_openlibs(L);
-    luascript_openclasslib(L, false);
     luaL_sandbox(L);
 
     vms.insert(p_type, L);

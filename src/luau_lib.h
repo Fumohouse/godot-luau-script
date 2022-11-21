@@ -63,17 +63,7 @@ struct GDClassDefinition
     HashMap<StringName, GDClassProperty> properties;
 };
 
-struct GDClassMethods
-{
-    int initialize = -1;
-
-    HashMap<int, int> notifications;
-    HashMap<StringName, int> methods;
-};
-
 template class LuaStackOp<GDProperty>;
-template class LuaStackOp<GDClassDefinition>;
-template class LuaStackOp<GDClassMethods>;
 
 void luascript_openlibs(lua_State *L);
-void luascript_openclasslib(lua_State *L, bool load_methods);
+GDClassDefinition luascript_read_class(lua_State *L, int idx);

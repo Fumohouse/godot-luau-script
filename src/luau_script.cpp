@@ -119,8 +119,7 @@ Error LuauScript::_reload(bool p_keep_state)
     {
         LUAU_LOAD_RESUME
 
-        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, 1);
-        if (def == nullptr)
+        if (lua_isnil(T, 1))
         {
             lua_pop(L, 1); // thread
             LUAU_LOAD_ERR(1, LUAU_LOAD_NO_DEF_MSG);
@@ -128,12 +127,14 @@ Error LuauScript::_reload(bool p_keep_state)
             return ERR_COMPILATION_FAILED;
         }
 
-        definition = *def;
+        luaL_checktype(T, 1, LUA_TTABLE);
+
+        definition = luascript_read_class(T, 1);
         valid = true;
 
         lua_pop(L, 1); // thread
 
-        for (const KeyValue<GDLuau::VMType, GDClassMethods> &pair : methods)
+        for (const KeyValue<GDLuau::VMType, int> &pair : def_table_refs)
         {
             if (load_methods(pair.key, true) == OK)
                 continue;
@@ -155,27 +156,27 @@ Error LuauScript::_reload(bool p_keep_state)
 
 Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool force)
 {
-    if (!force && methods.has(p_vm_type))
+    if (!force && def_table_refs.has(p_vm_type))
         return ERR_SKIP;
 
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
     lua_State *T = lua_newthread(L);
     luaL_sandboxthread(T);
-    luascript_openclasslib(T, true);
 
     if (try_load(T, source.utf8().get_data()) == OK)
     {
         LUAU_LOAD_RESUME
 
-        GDClassMethods *method_def = LuaStackOp<GDClassMethods>::get_ptr(T, -1);
-        if (method_def == nullptr)
+        if (lua_gettop(T) < 1)
         {
             LUAU_LOAD_ERR(1, LUAU_LOAD_NO_DEF_MSG);
             return ERR_COMPILATION_FAILED;
         }
 
-        methods[p_vm_type] = *method_def;
+        if (def_table_refs.has(p_vm_type))
+            lua_unref(L, def_table_refs[p_vm_type]);
 
+        def_table_refs[p_vm_type] = lua_ref(T, -1);
         lua_pop(L, 1); // thread
 
         return OK;
@@ -281,6 +282,17 @@ LuauScriptInstance *LuauScript::instance_get(Object *p_object) const
 {
     MutexLock lock(LuauLanguage::singleton->lock);
     return instances.get(p_object);
+}
+
+void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const
+{
+    lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
+    ERR_FAIL_COND_MSG(lua_mainthread(L) != lua_mainthread(T), "cannot push definition table to a thread from a different VM than the one being queried");
+
+    lua_getref(T, def_table_refs[p_vm_type]);
+    lua_insert(T, -2);
+    lua_gettable(T, -2);
+    lua_remove(T, -2);
 }
 
 /////////////////////
@@ -593,8 +605,10 @@ void LuauScriptInstance::call(
     }
 
     // Push method
-    int ref = script->methods.get(vm_type).methods[p_method];
-    lua_getref(ET, ref);
+    LuaStackOp<String>::push(ET, p_method);
+    script->def_table_get(vm_type, ET);
+
+    luaL_checktype(ET, -1, LUA_TFUNCTION);
 
     // Push arguments
     LuaStackOp<Object *>::push(ET, owner); // self
@@ -688,11 +702,13 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     Error method_err = p_script->load_methods(p_vm_type);
     ERR_FAIL_COND_MSG(method_err != OK && method_err != ERR_SKIP, "Couldn't load script methods for " + p_script->definition.name);
 
-    int init_ref = p_script->methods[p_vm_type].initialize;
+    LuaStackOp<String>::push(T, "_Init");
+    script->def_table_get(vm_type, T);
 
-    if (init_ref != -1)
+    if (!lua_isnil(T, -1))
     {
-        lua_getref(T, init_ref);
+        luaL_checktype(T, -1, LUA_TFUNCTION);
+
         LuaStackOp<Object *>::push(T, p_owner);
         lua_pushvalue(T, -3);
 
@@ -700,9 +716,13 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
         if (status != LUA_OK)
         {
-            ERR_PRINT(p_script->definition.name + ":Initialize failed: " + LuaStackOp<String>::get(T, -1));
+            ERR_PRINT(p_script->definition.name + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
             lua_pop(T, 1);
         }
+    }
+    else
+    {
+        lua_pop(T, 1);
     }
 }
 

@@ -41,7 +41,7 @@ private:
 
     bool valid;
     GDClassDefinition definition;
-    HashMap<GDLuau::VMType, GDClassMethods> methods;
+    HashMap<GDLuau::VMType, int> def_table_refs;
 
     Error load_methods(GDLuau::VMType p_vm_type, bool force = false);
 
@@ -94,6 +94,8 @@ public:
     // To implement later (or never)
     virtual TypedArray<Dictionary> _get_documentation() const;
     */
+
+    void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
 };
 
 class LuauScriptInstance

@@ -21,12 +21,22 @@ TEST_CASE("luau script: script load")
     script.instantiate();
 
     script->set_source_code(R"ASDF(
-        local TestClass = gdclass("TestClass")
+        local TestClass = {
+            name = "TestClass",
+            tool = true,
+            methods = {},
+            properties = {}
+        }
 
-        TestClass:Tool(true)
+        function TestClass:TestMethod()
+        end
 
-        TestClass:RegisterMethod("TestMethod", function() end)
-        TestClass:RegisterProperty(gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }), "GetTestProperty", "SetTestProperty", 5.5)
+        TestClass.methods["TestMethod"] = {}
+
+        TestClass.properties["testProperty"] = {
+            property = gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }),
+            default = 5.5
+        }
 
         return TestClass
     )ASDF");
@@ -40,7 +50,7 @@ TEST_CASE("luau script: script load")
         REQUIRE(script->is_tool());
         REQUIRE(script->get_script_method_list().size() == 1);
         REQUIRE(script->_has_method("TestMethod"));
-        REQUIRE(script->_get_method_info("TestMethod") == GDMethod().operator Dictionary());
+        REQUIRE(script->_get_method_info("TestMethod") == GDMethod({ "TestMethod" }).operator Dictionary());
     }
 
     SECTION("property methods")
@@ -61,7 +71,11 @@ TEST_CASE("luau script: instance")
     script.instantiate();
 
     script->set_source_code(R"ASDF(
-        local TestClass = gdclass("TestClass")
+        local TestClass = {
+            name = "TestClass",
+            methods = {},
+            properties = {}
+        }
 
         local testClassIndex = {}
 
@@ -69,15 +83,17 @@ TEST_CASE("luau script: instance")
             return "hi"
         end
 
-        TestClass:Initialize(function(obj, tbl)
+        function TestClass._Init(obj, tbl)
             setmetatable(tbl, { __index = testClassIndex })
 
             tbl.testField = 1
-        end)
+        end
 
-        TestClass:RegisterMethod("TestMethod", function(self, arg1, arg2)
+        function TestClass:TestMethod(arg1, arg2)
             return string.format("%.1f, %s", arg1, arg2)
-        end, {
+        end
+
+        TestClass.methods["TestMethod"] = {
             args = {
                 gdproperty({
                     name = "arg1",
@@ -90,11 +106,13 @@ TEST_CASE("luau script: instance")
             },
             defaultArgs = { "hi" },
             returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
-        })
+        }
 
-        TestClass:RegisterMethod("TestMethod2", function(self, arg1, arg2)
+        function TestClass:TestMethod2(arg1, arg2)
             return 3.14
-        end, {
+        end
+
+        TestClass.methods["TestMethod2"] = {
             args = {
                 gdproperty({
                     name = "arg1",
@@ -107,10 +125,21 @@ TEST_CASE("luau script: instance")
             },
             defaultArgs = { "godot", 1 },
             returnVal = gdproperty({ type = Enum.VariantType.TYPE_FLOAT })
-        })
+        }
 
-        TestClass:RegisterProperty(gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }), "GetTestProperty", "SetTestProperty", 5.5)
-        TestClass:RegisterProperty(gdproperty({ name = "testProperty2", type = Enum.VariantType.TYPE_STRING }), "GetTestProperty2", "SetTestProperty2", "hey")
+        TestClass.properties["testProperty"] = {
+            property = gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }),
+            getter = "GetTestProperty",
+            setter = "SetTestProperty",
+            default = 5.5
+        }
+
+        TestClass.properties["testProperty2"] = {
+            property = gdproperty({ name = "testProperty2", type = Enum.VariantType.TYPE_STRING }),
+            getter = "GetTestProperty2",
+            setter = "SetTestProperty2",
+            default = "hey"
+        }
 
         return TestClass
     )ASDF");
@@ -133,11 +162,12 @@ TEST_CASE("luau script: instance")
         uint32_t count;
         GDNativeMethodInfo *methods = inst.get_method_list(&count);
 
+        // TODO: this is quite bad. order is not guaranteed when iterating in Luau, so these indices are magic based on what the VM did.
         REQUIRE(count == 2);
-        REQUIRE(*((StringName *)methods[0].name) == StringName("TestMethod"));
-        REQUIRE(methods[1].return_value.type == GDNATIVE_VARIANT_TYPE_FLOAT);
-        REQUIRE(methods[1].argument_count == 2);
-        REQUIRE(*((StringName *)methods[1].arguments[1].name) == StringName("arg2"));
+        REQUIRE(methods[0].return_value.type == GDNATIVE_VARIANT_TYPE_FLOAT);
+        REQUIRE(methods[0].argument_count == 2);
+        REQUIRE(*((StringName *)methods[0].arguments[1].name) == StringName("arg2"));
+        REQUIRE(*((StringName *)methods[1].name) == StringName("TestMethod"));
 
         inst.free_method_list(methods);
     }
