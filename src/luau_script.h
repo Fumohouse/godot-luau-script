@@ -145,6 +145,9 @@ public:
     Ref<Script> get_script() const;
     ScriptLanguage *get_language() const;
 
+    bool table_set(lua_State *L) const;
+    bool table_get(lua_State *L) const;
+
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();
 };

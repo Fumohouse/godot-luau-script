@@ -641,6 +641,32 @@ ScriptLanguage *LuauScriptInstance::get_language() const
     return LuauLanguage::get_singleton();
 }
 
+bool LuauScriptInstance::table_set(lua_State *L) const
+{
+    if (lua_mainthread(L) != lua_mainthread(T))
+        return false;
+
+    lua_getref(L, table_ref);
+    lua_insert(L, -3);
+    lua_settable(L, -3);
+    lua_remove(L, -1);
+
+    return true;
+}
+
+bool LuauScriptInstance::table_get(lua_State *L) const
+{
+    if (lua_mainthread(L) != lua_mainthread(T))
+        return false;
+
+    lua_getref(L, table_ref);
+    lua_insert(L, -2);
+    lua_gettable(L, -2);
+    lua_remove(L, -2);
+
+    return true;
+}
+
 LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type)
     : script(p_script), owner(p_owner), vm_type(p_vm_type)
 {
@@ -666,9 +692,9 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
     if (init_ref != -1)
     {
-        LuaStackOp<Object *>::push(T, p_owner);
-        lua_pushvalue(T, -2);
         lua_getref(T, init_ref);
+        LuaStackOp<Object *>::push(T, p_owner);
+        lua_pushvalue(T, -3);
 
         int status = lua_pcall(T, 2, 0, 0);
 

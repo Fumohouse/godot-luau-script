@@ -63,6 +63,18 @@ TEST_CASE("luau script: instance")
     script->set_source_code(R"ASDF(
         local TestClass = gdclass("TestClass")
 
+        local testClassIndex = {}
+
+        function testClassIndex:PrivateMethod()
+            return "hi"
+        end
+
+        TestClass:Initialize(function(obj, tbl)
+            setmetatable(tbl, { __index = testClassIndex })
+
+            tbl.testField = 1
+        end)
+
         TestClass:RegisterMethod("TestMethod", function(self, arg1, arg2)
             return string.format("%.1f, %s", arg1, arg2)
         end, {
@@ -213,6 +225,63 @@ TEST_CASE("luau script: instance")
                 REQUIRE(err.error == GDNATIVE_CALL_ERROR_INVALID_ARGUMENT);
                 REQUIRE(err.argument == 0);
                 REQUIRE(err.expected == GDNATIVE_VARIANT_TYPE_FLOAT);
+            }
+        }
+    }
+
+    SECTION("table setget")
+    {
+        SECTION("normal")
+        {
+            lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
+            int top = lua_gettop(L);
+
+            SECTION("set")
+            {
+                lua_pushstring(L, "testField");
+                lua_pushinteger(L, 2);
+
+                bool set_is_valid = inst.table_set(L);
+                REQUIRE(set_is_valid);
+                REQUIRE(lua_gettop(L) == top);
+
+                lua_pushstring(L, "testField");
+
+                bool get_is_valid = inst.table_get(L);
+                REQUIRE(get_is_valid);
+                REQUIRE(lua_tointeger(L, -1) == 2);
+            }
+
+            SECTION("get")
+            {
+                lua_pushstring(L, "PrivateMethod");
+                bool is_valid = inst.table_get(L);
+
+                REQUIRE(is_valid);
+                REQUIRE(lua_isLfunction(L, -1));
+                REQUIRE(lua_gettop(L) == top + 1);
+            }
+        }
+
+        SECTION("wrong thread")
+        {
+            lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
+
+            SECTION("set")
+            {
+                lua_pushstring(L, "testField");
+                lua_pushstring(L, "asdf");
+
+                bool is_valid = inst.table_set(L);
+                REQUIRE(!is_valid);
+            }
+
+            SECTION("get")
+            {
+                lua_pushstring(L, "PrivateMethod");
+
+                bool is_valid = inst.table_get(L);
+                REQUIRE(!is_valid);
             }
         }
     }
