@@ -65,6 +65,7 @@ public:
 
     virtual TypedArray<Dictionary> _get_script_method_list() const override;
     virtual bool _has_method(const StringName &p_method) const override;
+    bool has_method(const StringName &p_method, StringName *r_actual_name = nullptr) const;
     virtual Dictionary _get_method_info(const StringName &p_method) const override;
 
     virtual TypedArray<Dictionary> _get_script_property_list() const override;
@@ -134,7 +135,7 @@ public:
     GDNativeMethodInfo *get_method_list(uint32_t *r_count) const;
     void free_method_list(const GDNativeMethodInfo *p_list) const;
 
-    bool has_method(const StringName &p_name) const;
+    bool has_method(const StringName &p_name, StringName *r_actual_name = nullptr) const;
 
     void call(const StringName &p_method, const Variant *p_args, const GDNativeInt p_argument_count, Variant *r_return, GDNativeCallError *r_error);
 

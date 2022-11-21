@@ -223,7 +223,36 @@ TypedArray<Dictionary> LuauScript::_get_script_method_list() const
 
 bool LuauScript::_has_method(const StringName &p_method) const
 {
-    return definition.methods.has(p_method);
+    return has_method(p_method);
+}
+
+static String to_pascal_case(const String &input)
+{
+    String out = input.to_pascal_case();
+
+    // to_pascal_case strips leading/trailing underscores. leading is most common and this handles that
+    for (int i = 0; i < input.length() && input[i] == '_'; i++)
+        out = "_" + out;
+
+    return out;
+}
+
+bool LuauScript::has_method(const StringName &p_method, StringName *r_actual_name) const
+{
+    if (definition.methods.has(p_method))
+        return true;
+
+    StringName pascal_name = to_pascal_case(p_method);
+
+    if (definition.methods.has(pascal_name))
+    {
+        if (r_actual_name != nullptr)
+            *r_actual_name = pascal_name;
+
+        return true;
+    }
+
+    return false;
 }
 
 Dictionary LuauScript::_get_method_info(const StringName &p_method) const
@@ -562,9 +591,9 @@ void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) cons
     memdelete((GDNativeMethodInfo *)p_list);
 }
 
-bool LuauScriptInstance::has_method(const StringName &p_name) const
+bool LuauScriptInstance::has_method(const StringName &p_name, StringName *r_actual_name) const
 {
-    return script->_has_method(p_name);
+    return script->has_method(p_name, r_actual_name);
 }
 
 void LuauScriptInstance::call(
@@ -572,7 +601,11 @@ void LuauScriptInstance::call(
     const Variant *p_args, const GDNativeInt p_argument_count,
     Variant *r_return, GDNativeCallError *r_error)
 {
-    if (!has_method(p_method))
+    StringName actual_name = p_method;
+
+    // check name given and name converted to pascal
+    // (e.g. if Node::_ready is called -> _Ready)
+    if (!has_method(p_method, &actual_name))
     {
         r_error->error = GDNATIVE_CALL_ERROR_INVALID_METHOD;
         return;
@@ -605,7 +638,7 @@ void LuauScriptInstance::call(
     }
 
     // Push method
-    LuaStackOp<String>::push(ET, p_method);
+    LuaStackOp<String>::push(ET, actual_name);
     script->def_table_get(vm_type, ET);
 
     luaL_checktype(ET, -1, LUA_TFUNCTION);

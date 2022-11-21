@@ -33,6 +33,11 @@ TEST_CASE("luau script: script load")
 
         TestClass.methods["TestMethod"] = {}
 
+        function TestClass:__WeirdMethodName()
+        end
+
+        TestClass.methods["__WeirdMethodName"] = {}
+
         TestClass.properties["testProperty"] = {
             property = gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }),
             default = 5.5
@@ -48,9 +53,30 @@ TEST_CASE("luau script: script load")
     SECTION("method methods")
     {
         REQUIRE(script->is_tool());
-        REQUIRE(script->get_script_method_list().size() == 1);
+        REQUIRE(script->get_script_method_list().size() == 2);
         REQUIRE(script->_has_method("TestMethod"));
-        REQUIRE(script->_get_method_info("TestMethod") == GDMethod({ "TestMethod" }).operator Dictionary());
+        REQUIRE(script->_get_method_info("TestMethod") == GDMethod({"TestMethod"}).operator Dictionary());
+
+        SECTION("method name conversion")
+        {
+            SECTION("normal")
+            {
+                StringName actual_name;
+                bool has_method = script->has_method("test_method", &actual_name);
+
+                REQUIRE(has_method);
+                REQUIRE(actual_name == StringName("TestMethod"));
+            }
+
+            SECTION("leading underscores")
+            {
+                StringName actual_name;
+                bool has_method = script->has_method("__weird_method_name", &actual_name);
+
+                REQUIRE(has_method);
+                REQUIRE(actual_name == StringName("__WeirdMethodName"));
+            }
+        }
     }
 
     SECTION("property methods")
@@ -88,6 +114,11 @@ TEST_CASE("luau script: instance")
 
             tbl.testField = 1
         end
+
+        function TestClass:_Ready()
+        end
+
+        TestClass.methods["_Ready"] = {}
 
         function TestClass:TestMethod(arg1, arg2)
             return string.format("%.1f, %s", arg1, arg2)
@@ -163,11 +194,11 @@ TEST_CASE("luau script: instance")
         GDNativeMethodInfo *methods = inst.get_method_list(&count);
 
         // TODO: this is quite bad. order is not guaranteed when iterating in Luau, so these indices are magic based on what the VM did.
-        REQUIRE(count == 2);
+        REQUIRE(count == 3);
         REQUIRE(methods[0].return_value.type == GDNATIVE_VARIANT_TYPE_FLOAT);
         REQUIRE(methods[0].argument_count == 2);
         REQUIRE(*((StringName *)methods[0].arguments[1].name) == StringName("arg2"));
-        REQUIRE(*((StringName *)methods[1].name) == StringName("TestMethod"));
+        REQUIRE(*((StringName *)methods[2].name) == StringName("TestMethod"));
 
         inst.free_method_list(methods);
     }
@@ -204,6 +235,17 @@ TEST_CASE("luau script: instance")
 
             REQUIRE(err.error == GDNATIVE_CALL_OK);
             REQUIRE(ret == "2.5, Hello world");
+        }
+
+        SECTION("virtual method name conversion")
+        {
+            Variant args[] = {};
+            Variant ret;
+            GDNativeCallError err;
+
+            inst.call("_ready", args, 0, &ret, &err);
+
+            REQUIRE(err.error == GDNATIVE_CALL_OK);
         }
 
         SECTION("default argument")
