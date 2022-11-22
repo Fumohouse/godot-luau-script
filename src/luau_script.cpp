@@ -306,13 +306,13 @@ void *LuauScript::_instance_create(Object *p_for_object) const
 bool LuauScript::_instance_has(Object *p_object) const
 {
     MutexLock lock(LuauLanguage::singleton->lock);
-    return instances.has(p_object);
+    return instances.has(p_object->get_instance_id());
 }
 
 LuauScriptInstance *LuauScript::instance_get(Object *p_object) const
 {
     MutexLock lock(LuauLanguage::singleton->lock);
-    return instances.get(p_object);
+    return instances.get(p_object->get_instance_id());
 }
 
 void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const
@@ -946,7 +946,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     // this usually occurs in _instance_create, but that is marked const for ScriptExtension
     {
         MutexLock lock(LuauLanguage::singleton->lock);
-        p_script->instances.insert(p_owner, this);
+        p_script->instances.insert(p_owner->get_instance_id(), this);
     }
 
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
@@ -991,7 +991,7 @@ LuauScriptInstance::~LuauScriptInstance()
     if (script.is_valid() && owner != nullptr)
     {
         MutexLock lock(LuauLanguage::singleton->lock);
-        script->instances.erase(owner);
+        script->instances.erase(owner->get_instance_id());
     }
 
     lua_State *L = GDLuau::get_singleton()->get_vm(vm_type);

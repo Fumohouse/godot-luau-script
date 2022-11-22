@@ -37,7 +37,7 @@ class LuauScript : public ScriptExtension
 
 private:
     String source;
-    HashMap<Object *, LuauScriptInstance *> instances;
+    HashMap<int64_t, LuauScriptInstance *> instances;
 
     bool valid;
     GDClassDefinition definition;

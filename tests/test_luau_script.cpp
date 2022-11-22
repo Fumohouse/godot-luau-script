@@ -110,7 +110,7 @@ TEST_CASE("luau script: instance")
         local testClassIndex = {}
 
         function testClassIndex:PrivateMethod()
-            return "hi"
+            return "hi there"
         end
 
         function TestClass._Init(obj, tbl)
@@ -174,6 +174,14 @@ TEST_CASE("luau script: instance")
             returnVal = gdproperty({ type = Enum.VariantType.TYPE_FLOAT })
         }
 
+        function TestClass:TestMethod3()
+            return self:TestMethod(self:TestMethod2("", 2), self:PrivateMethod())
+        end
+
+        TestClass.methods["TestMethod3"] = {
+            returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
+        }
+
         function TestClass:GetTestProperty()
             return 6.5
         end
@@ -220,20 +228,22 @@ TEST_CASE("luau script: instance")
     REQUIRE(script->_is_valid());
 
     Object obj;
-    LuauScriptInstance inst(script, &obj, GDLuau::VM_CORE);
+    obj.set_script(script);
 
-    REQUIRE(inst.get_owner() == &obj);
-    REQUIRE(inst.get_script() == script);
+    LuauScriptInstance *inst = script->instance_get(&obj);
+
+    REQUIRE(inst->get_owner()->get_instance_id() == obj.get_instance_id());
+    REQUIRE(inst->get_script() == script);
 
     SECTION("method methods")
     {
-        REQUIRE(inst.has_method("TestMethod"));
-        REQUIRE(inst.has_method("TestMethod2"));
+        REQUIRE(inst->has_method("TestMethod"));
+        REQUIRE(inst->has_method("TestMethod2"));
 
         uint32_t count;
-        GDNativeMethodInfo *methods = inst.get_method_list(&count);
+        GDNativeMethodInfo *methods = inst->get_method_list(&count);
 
-        REQUIRE(count == 5);
+        REQUIRE(count == 6);
 
         bool m1_found = false;
         bool m2_found = false;
@@ -257,19 +267,19 @@ TEST_CASE("luau script: instance")
         REQUIRE(m1_found);
         REQUIRE(m2_found);
 
-        inst.free_method_list(methods);
+        inst->free_method_list(methods);
     }
 
     SECTION("property methods")
     {
         bool is_valid;
-        Variant::Type type = inst.get_property_type("testProperty", &is_valid);
+        Variant::Type type = inst->get_property_type("testProperty", &is_valid);
 
         REQUIRE(is_valid);
         REQUIRE(type == Variant::Type::FLOAT);
 
         uint32_t count;
-        GDNativePropertyInfo *properties = inst.get_property_list(&count);
+        GDNativePropertyInfo *properties = inst->get_property_list(&count);
 
         REQUIRE(count == 4);
 
@@ -295,7 +305,7 @@ TEST_CASE("luau script: instance")
         REQUIRE(p1_found);
         REQUIRE(p2_found);
 
-        inst.free_property_list(properties);
+        inst->free_property_list(properties);
     }
 
     SECTION("call")
@@ -306,7 +316,7 @@ TEST_CASE("luau script: instance")
             Variant ret;
             GDNativeCallError err;
 
-            inst.call("TestMethod", args, 2, &ret, &err);
+            inst->call("TestMethod", args, 2, &ret, &err);
 
             REQUIRE(err.error == GDNATIVE_CALL_OK);
             REQUIRE(ret == "2.5, Hello world");
@@ -318,7 +328,7 @@ TEST_CASE("luau script: instance")
             Variant ret;
             GDNativeCallError err;
 
-            inst.call("_ready", args, 0, &ret, &err);
+            inst->call("_ready", args, 0, &ret, &err);
 
             REQUIRE(err.error == GDNATIVE_CALL_OK);
         }
@@ -329,7 +339,7 @@ TEST_CASE("luau script: instance")
             Variant ret;
             GDNativeCallError err;
 
-            inst.call("TestMethod", args, 1, &ret, &err);
+            inst->call("TestMethod", args, 1, &ret, &err);
 
             REQUIRE(err.error == GDNATIVE_CALL_OK);
             REQUIRE(ret == "5.3, hi");
@@ -343,7 +353,7 @@ TEST_CASE("luau script: instance")
                 Variant ret;
                 GDNativeCallError err;
 
-                inst.call("TestMethod", args, 0, &ret, &err);
+                inst->call("TestMethod", args, 0, &ret, &err);
 
                 REQUIRE(err.error == GDNATIVE_CALL_ERROR_TOO_FEW_ARGUMENTS);
                 REQUIRE(err.argument == 1);
@@ -355,7 +365,7 @@ TEST_CASE("luau script: instance")
                 Variant ret;
                 GDNativeCallError err;
 
-                inst.call("TestMethod", args, 5, &ret, &err);
+                inst->call("TestMethod", args, 5, &ret, &err);
 
                 REQUIRE(err.error == GDNATIVE_CALL_ERROR_TOO_MANY_ARGUMENTS);
                 REQUIRE(err.argument == 2);
@@ -367,7 +377,7 @@ TEST_CASE("luau script: instance")
                 Variant ret;
                 GDNativeCallError err;
 
-                inst.call("TestMethod", args, 1, &ret, &err);
+                inst->call("TestMethod", args, 1, &ret, &err);
 
                 REQUIRE(err.error == GDNATIVE_CALL_ERROR_INVALID_ARGUMENT);
                 REQUIRE(err.argument == 0);
@@ -388,13 +398,13 @@ TEST_CASE("luau script: instance")
                 lua_pushstring(L, "testField");
                 lua_pushinteger(L, 2);
 
-                bool set_is_valid = inst.table_set(L);
+                bool set_is_valid = inst->table_set(L);
                 REQUIRE(set_is_valid);
                 REQUIRE(lua_gettop(L) == top);
 
                 lua_pushstring(L, "testField");
 
-                bool get_is_valid = inst.table_get(L);
+                bool get_is_valid = inst->table_get(L);
                 REQUIRE(get_is_valid);
                 REQUIRE(lua_tointeger(L, -1) == 2);
             }
@@ -402,7 +412,7 @@ TEST_CASE("luau script: instance")
             SECTION("get")
             {
                 lua_pushstring(L, "PrivateMethod");
-                bool is_valid = inst.table_get(L);
+                bool is_valid = inst->table_get(L);
 
                 REQUIRE(is_valid);
                 REQUIRE(lua_isLfunction(L, -1));
@@ -419,7 +429,7 @@ TEST_CASE("luau script: instance")
                 lua_pushstring(L, "testField");
                 lua_pushstring(L, "asdf");
 
-                bool is_valid = inst.table_set(L);
+                bool is_valid = inst->table_set(L);
                 REQUIRE(!is_valid);
             }
 
@@ -427,7 +437,7 @@ TEST_CASE("luau script: instance")
             {
                 lua_pushstring(L, "PrivateMethod");
 
-                bool is_valid = inst.table_get(L);
+                bool is_valid = inst->table_get(L);
                 REQUIRE(!is_valid);
             }
         }
@@ -436,7 +446,7 @@ TEST_CASE("luau script: instance")
     SECTION("notification")
     {
         int status;
-        inst.notification(42, &status);
+        inst->notification(42, &status);
 
         REQUIRE(status == LUA_OK);
     }
@@ -445,7 +455,7 @@ TEST_CASE("luau script: instance")
     {
         bool is_valid;
         String out;
-        inst.to_string((GDNativeBool *)&is_valid, &out);
+        inst->to_string((GDNativeBool *)&is_valid, &out);
 
         REQUIRE(is_valid);
         REQUIRE(out == "my awesome class");
@@ -457,19 +467,19 @@ TEST_CASE("luau script: instance")
         {
             SECTION("with getter and setter")
             {
-                bool is_valid = inst.set("testProperty", 3.5);
+                bool is_valid = inst->set("testProperty", 3.5);
                 REQUIRE(is_valid);
             }
 
             SECTION("with wrong type")
             {
-                bool is_valid = inst.set("testProperty", "asdf");
+                bool is_valid = inst->set("testProperty", "asdf");
                 REQUIRE(!is_valid);
             }
 
             SECTION("read only")
             {
-                bool is_valid = inst.set("testProperty2", "hey there");
+                bool is_valid = inst->set("testProperty2", "hey there");
                 REQUIRE(!is_valid);
             }
         }
@@ -479,7 +489,7 @@ TEST_CASE("luau script: instance")
             SECTION("with getter and setter")
             {
                 Variant val;
-                bool is_valid = inst.get("testProperty", val);
+                bool is_valid = inst->get("testProperty", val);
 
                 REQUIRE(is_valid);
                 REQUIRE(val == Variant(6.5));
@@ -488,7 +498,7 @@ TEST_CASE("luau script: instance")
             SECTION("write only")
             {
                 Variant val;
-                bool is_valid = inst.get("testProperty3", val);
+                bool is_valid = inst->get("testProperty3", val);
 
                 REQUIRE(!is_valid);
             }
@@ -496,11 +506,11 @@ TEST_CASE("luau script: instance")
 
         SECTION("with no getter or setter")
         {
-            bool set_is_valid = inst.set("testProperty4", "asdf");
+            bool set_is_valid = inst->set("testProperty4", "asdf");
             REQUIRE(set_is_valid);
 
             Variant new_val;
-            bool get_is_valid = inst.get("testProperty4", new_val);
+            bool get_is_valid = inst->get("testProperty4", new_val);
 
             REQUIRE(get_is_valid);
             REQUIRE(new_val == "asdf");
@@ -515,12 +525,26 @@ TEST_CASE("luau script: instance")
 
             HashMap<StringName, Variant> state;
 
-            inst.get_property_state(add, &state);
+            inst->get_property_state(add, &state);
 
             REQUIRE(state.size() == 3);
             REQUIRE(state["testProperty"] == Variant(6.5));
             REQUIRE(state["testProperty2"] == "hello");
             REQUIRE(state["testProperty4"] == Variant());
+        }
+    }
+
+    SECTION("metatable")
+    {
+        SECTION("namecall")
+        {
+            Variant args[] = {};
+            Variant ret;
+            GDNativeCallError err;
+            inst->call("TestMethod3", args, 0, &ret, &err);
+
+            REQUIRE(err.error == GDNATIVE_CALL_OK);
+            REQUIRE(ret == "3.1, hi there");
         }
     }
 }
