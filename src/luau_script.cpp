@@ -389,9 +389,15 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
         return INSTANCE_SELF->call(*((StringName *)p_method), (const Variant *)p_args, p_argument_count, (Variant *)r_return, r_error);
     };
 
-    // GDNativeExtensionScriptInstanceNotification notification_func;
+    info.notification_func = [](void *self, int32_t p_what)
+    {
+        INSTANCE_SELF->notification(p_what);
+    };
 
-    // GDNativeExtensionScriptInstanceToString to_string_func;
+    info.to_string_func = [](void *self, GDNativeBool *r_is_valid, GDNativeStringPtr r_out)
+    {
+        INSTANCE_SELF->to_string(r_is_valid, (String *)r_out);
+    };
 
     // GDNativeExtensionScriptInstanceRefCountIncremented refcount_incremented_func;
     // GDNativeExtensionScriptInstanceRefCountDecremented refcount_decremented_func;
@@ -669,11 +675,87 @@ void LuauScriptInstance::call(
     // Call
     r_error->error = GDNATIVE_CALL_OK;
 
-    int err = lua_pcall(ET, args_allowed + 1, 1, 0); // args: self + passed + default
+    int status = lua_pcall(ET, args_allowed + 1, 1, 0); // args: self + passed + default
 
-    ERR_FAIL_COND_MSG(err != LUA_OK, "Lua Error: " + LuaStackOp<String>::get(ET, -1));
+    if (status == LUA_OK)
+        *r_return = LuaStackOp<Variant>::get(ET, -1);
+    else
+        ERR_FAIL_MSG("Lua Error: " + LuaStackOp<String>::get(ET, -1));
 
-    *r_return = LuaStackOp<Variant>::get(ET, -1);
+    lua_pop(T, 1); // thread
+}
+
+void LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret, int *r_status)
+{
+    if (r_status != nullptr)
+        *r_status = -1;
+
+    LuaStackOp<String>::push(ET, p_method);
+    script->def_table_get(vm_type, ET);
+
+    if (!lua_isnil(ET, -1))
+    {
+        luaL_checktype(ET, -1, LUA_TFUNCTION);
+        lua_insert(ET, -nargs - 1);
+
+        LuaStackOp<Object *>::push(ET, owner);
+        lua_insert(ET, -nargs - 1);
+
+        int status = lua_pcall(ET, nargs + 1, nret, 0); // +1 for self
+
+        if (r_status != nullptr)
+            *r_status = status;
+
+        if (status != LUA_OK)
+        {
+            ERR_FAIL_MSG("Lua Error: " + LuaStackOp<String>::get(ET, -1));
+            lua_pop(ET, 1);
+        }
+    }
+    else
+    {
+        lua_pop(ET, 1);
+    }
+}
+
+void LuauScriptInstance::notification(int32_t p_what, int *r_status)
+{
+    if (!has_method("_Notification"))
+    {
+        if (r_status != nullptr)
+            *r_status = -1;
+
+        return;
+    }
+
+    lua_State *ET = lua_newthread(T);
+
+    LuaStackOp<int32_t>::push(ET, p_what);
+    call_internal("_Notification", ET, 1, 0, r_status);
+
+    lua_pop(T, 1); // thread
+}
+
+void LuauScriptInstance::to_string(GDNativeBool *r_is_valid, String *r_out)
+{
+    if (!has_method("_ToString"))
+    {
+        if (r_is_valid != nullptr)
+            *r_is_valid = false;
+
+        return;
+    }
+
+    lua_State *ET = lua_newthread(T);
+
+    int status;
+    call_internal("_ToString", ET, 0, 1, &status);
+
+    if (status == LUA_OK)
+        *r_out = LuaStackOp<String>::get(ET, -1);
+
+    if (r_is_valid != nullptr)
+        *r_is_valid = status == LUA_OK;
 
     lua_pop(T, 1); // thread
 }

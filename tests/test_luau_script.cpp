@@ -7,6 +7,8 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/core/memory.hpp>
 
+#include <lua.h>
+
 #include "luau_script.h"
 #include "gd_luau.h"
 #include "luau_lib.h"
@@ -120,6 +122,18 @@ TEST_CASE("luau script: instance")
 
         TestClass.methods["_Ready"] = {}
 
+        function TestClass:_Notification(what)
+            assert(what == 42)
+        end
+
+        TestClass.methods["_Notification"] = {}
+
+        function TestClass:_ToString()
+            return "my awesome class"
+        end
+
+        TestClass.methods["_ToString"] = {}
+
         function TestClass:TestMethod(arg1, arg2)
             return string.format("%.1f, %s", arg1, arg2)
         end
@@ -193,12 +207,29 @@ TEST_CASE("luau script: instance")
         uint32_t count;
         GDNativeMethodInfo *methods = inst.get_method_list(&count);
 
-        // TODO: this is quite bad. order is not guaranteed when iterating in Luau, so these indices are magic based on what the VM did.
-        REQUIRE(count == 3);
-        REQUIRE(methods[0].return_value.type == GDNATIVE_VARIANT_TYPE_FLOAT);
-        REQUIRE(methods[0].argument_count == 2);
-        REQUIRE(*((StringName *)methods[0].arguments[1].name) == StringName("arg2"));
-        REQUIRE(*((StringName *)methods[2].name) == StringName("TestMethod"));
+        REQUIRE(count == 5);
+
+        bool m1_found = false;
+        bool m2_found = false;
+
+        for (int i = 0; i < count; i++)
+        {
+            StringName *name = (StringName *)methods[i].name;
+
+            if (*name == StringName("TestMethod"))
+                m1_found = true;
+            else if (*name == StringName("TestMethod2"))
+            {
+                m2_found = true;
+
+                REQUIRE(methods[i].return_value.type == GDNATIVE_VARIANT_TYPE_FLOAT);
+                REQUIRE(methods[i].argument_count == 2);
+                REQUIRE(*((StringName *)methods[i].arguments[1].name) == StringName("arg2"));
+            }
+        }
+
+        REQUIRE(m1_found);
+        REQUIRE(m2_found);
 
         inst.free_method_list(methods);
     }
@@ -356,5 +387,23 @@ TEST_CASE("luau script: instance")
                 REQUIRE(!is_valid);
             }
         }
+    }
+
+    SECTION("notification")
+    {
+        int status;
+        inst.notification(42, &status);
+
+        REQUIRE(status == LUA_OK);
+    }
+
+    SECTION("to string")
+    {
+        bool is_valid;
+        String out;
+        inst.to_string((GDNativeBool *)&is_valid, &out);
+
+        REQUIRE(is_valid);
+        REQUIRE(out == "my awesome class");
     }
 }

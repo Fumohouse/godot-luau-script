@@ -110,6 +110,8 @@ private:
     int thread_ref;
     lua_State *T;
 
+    void call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret, int *r_status = nullptr);
+
 public:
     static const GDNativeExtensionScriptInstanceInfo INSTANCE_INFO;
 
@@ -138,12 +140,8 @@ public:
     bool has_method(const StringName &p_name, StringName *r_actual_name = nullptr) const;
 
     void call(const StringName &p_method, const Variant *p_args, const GDNativeInt p_argument_count, Variant *r_return, GDNativeCallError *r_error);
-
-    /*
-    void notification(int32_t p_what);
-
-    const char *to_string(GDNativeBool *r_is_valid, String *r_out);
-    */
+    void notification(int32_t p_what, int *r_status = nullptr);
+    void to_string(GDNativeBool *r_is_valid, String *r_out);
 
     Ref<Script> get_script() const;
     ScriptLanguage *get_language() const;
