@@ -376,7 +376,6 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
         return INSTANCE_SELF->get_owner()->_owner;
     };
 
-    // GDNativeExtensionScriptInstanceGetPropertyState get_property_state_func;
     info.get_property_state_func = [](void *self, GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
     {
         INSTANCE_SELF->get_property_state(p_add_func, p_userdata);
@@ -412,18 +411,10 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
         INSTANCE_SELF->to_string(r_is_valid, (String *)r_out);
     };
 
-    // GDNativeExtensionScriptInstanceRefCountIncremented refcount_incremented_func;
-    // GDNativeExtensionScriptInstanceRefCountDecremented refcount_decremented_func;
-
     info.get_script_func = [](void *self)
     {
         return INSTANCE_SELF->get_script().ptr()->_owner;
     };
-
-    /* Overriden for PlaceholderScriptInstance only */
-    // GDNativeExtensionScriptInstanceIsPlaceholder is_placeholder_func;
-    // GDNativeExtensionScriptInstanceSet set_fallback_func;
-    // GDNativeExtensionScriptInstanceGet get_fallback_func;
 
     info.get_language_func = [](void *self)
     {
