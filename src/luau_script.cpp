@@ -336,8 +336,15 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
 {
     GDNativeExtensionScriptInstanceInfo info;
 
-    // GDNativeExtensionScriptInstanceSet set_func;
-    // GDNativeExtensionScriptInstanceGet get_func;
+    info.set_func = [](void *self, const GDNativeStringNamePtr p_name, const GDNativeVariantPtr p_value) -> GDNativeBool
+    {
+        return INSTANCE_SELF->set(*((const StringName *)p_name), *((const Variant *)p_value));
+    };
+
+    info.get_func = [](void *self, const GDNativeStringNamePtr p_name, GDNativeVariantPtr r_ret) -> GDNativeBool
+    {
+        return INSTANCE_SELF->get(*((const StringName *)p_name), *((Variant *)r_ret));
+    };
 
     info.get_property_list_func = [](void *self, uint32_t *r_count) -> const GDNativePropertyInfo *
     {
@@ -370,6 +377,10 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
     };
 
     // GDNativeExtensionScriptInstanceGetPropertyState get_property_state_func;
+    info.get_property_state_func = [](void *self, GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
+    {
+        INSTANCE_SELF->get_property_state(p_add_func, p_userdata);
+    };
 
     info.get_method_list_func = [](void *self, uint32_t *r_count) -> const GDNativeMethodInfo *
     {
@@ -461,6 +472,169 @@ static void free_prop(const GDNativePropertyInfo &prop)
     memdelete((StringName *)prop.name);
     memdelete((StringName *)prop.class_name);
     memdelete((String *)prop.hint_string);
+}
+
+void LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret, int *r_status)
+{
+    if (r_status != nullptr)
+        *r_status = -1;
+
+    LuaStackOp<String>::push(ET, p_method);
+    script->def_table_get(vm_type, ET);
+
+    if (!lua_isnil(ET, -1))
+    {
+        if (lua_type(ET, -1) != LUA_TFUNCTION)
+            luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaGD_typename(ET, -1), "function");
+
+        lua_insert(ET, -nargs - 1);
+
+        LuaStackOp<Object *>::push(ET, owner);
+        lua_insert(ET, -nargs - 1);
+
+        int status = lua_pcall(ET, nargs + 1, nret, 0); // +1 for self
+
+        if (r_status != nullptr)
+            *r_status = status;
+
+        if (status != LUA_OK)
+        {
+            ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
+            lua_pop(ET, 1);
+        }
+    }
+    else
+    {
+        lua_pop(ET, 1);
+    }
+}
+
+static int instance_table_set(lua_State *L)
+{
+    lua_settable(L, 1);
+    return 0;
+}
+
+static int instance_table_get(lua_State *L)
+{
+    lua_gettable(L, 1);
+    return 1;
+}
+
+bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value)
+{
+    if (!script->definition.properties.has(p_name))
+        return false;
+
+    const GDClassProperty &prop = script->definition.properties[p_name];
+
+    if (prop.property.type != GDNATIVE_VARIANT_TYPE_NIL && (GDNativeVariantType)p_value.get_type() != prop.property.type)
+        return false;
+
+    if (prop.setter != StringName())
+    {
+        lua_State *ET = lua_newthread(T);
+
+        LuaStackOp<Variant>::push(ET, p_value);
+
+        int status;
+        call_internal(prop.setter, ET, 1, 0, &status);
+
+        lua_pop(T, 1); // thread
+
+        return status == LUA_OK;
+    }
+    else if (prop.getter == StringName())
+    {
+        lua_State *ET = lua_newthread(T);
+
+        lua_pushcfunction(ET, instance_table_set, "instance_table_set");
+
+        lua_getref(ET, table_ref);
+        LuaStackOp<String>::push(ET, String(p_name));
+        LuaStackOp<Variant>::push(ET, p_value);
+
+        int status = lua_pcall(ET, 3, 0, 0);
+
+        lua_pop(T, 1); // thread
+
+        return status == LUA_OK;
+    }
+
+    // getter, no setter -> read only
+    return false;
+}
+
+bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret)
+{
+    if (!script->definition.properties.has(p_name))
+        return false;
+
+    const GDClassProperty &prop = script->definition.properties[p_name];
+
+    int status;
+    lua_State *ET;
+
+    if (prop.getter != StringName())
+    {
+        ET = lua_newthread(T);
+        call_internal(prop.getter, ET, 0, 1, &status);
+    }
+    else if (prop.setter == StringName())
+    {
+        ET = lua_newthread(T);
+        lua_pushcfunction(ET, instance_table_get, "instance_table_get");
+
+        lua_getref(ET, table_ref);
+        LuaStackOp<String>::push(ET, String(p_name));
+
+        status = lua_pcall(ET, 2, 1, 0);
+    }
+    else
+    {
+        // setter, no getter -> write only
+        return false;
+    }
+
+    if (status != LUA_OK)
+    {
+        if (status == -1)
+            ERR_PRINT("getter for " + p_name + " not found");
+        else
+            ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
+
+        lua_pop(T, 1); // thread
+
+        return false;
+    }
+
+    r_ret = LuaStackOp<Variant>::get(ET, -1);
+
+    lua_pop(T, 1); // thread
+
+    return true;
+}
+
+void LuauScriptInstance::get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
+{
+    // ! refer to script_language.cpp get_property_state
+    // the default implementation is not carried over to GDExtension
+
+    uint32_t count;
+    GDNativePropertyInfo *props = get_property_list(&count);
+
+    for (int i = 0; i < count; i++)
+    {
+        StringName *name = (StringName *)props[i].name;
+
+        Variant value;
+        bool is_valid = get(*name, value);
+
+        if (is_valid)
+            p_add_func(name, &value, p_userdata);
+    }
+
+    free_property_list(props);
 }
 
 GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const
@@ -683,44 +857,9 @@ void LuauScriptInstance::call(
     if (status == LUA_OK)
         *r_return = LuaStackOp<Variant>::get(ET, -1);
     else
-        ERR_FAIL_MSG("Lua Error: " + LuaStackOp<String>::get(ET, -1));
+        ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
 
     lua_pop(T, 1); // thread
-}
-
-void LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret, int *r_status)
-{
-    if (r_status != nullptr)
-        *r_status = -1;
-
-    LuaStackOp<String>::push(ET, p_method);
-    script->def_table_get(vm_type, ET);
-
-    if (!lua_isnil(ET, -1))
-    {
-        if (lua_type(ET, -1) != LUA_TFUNCTION)
-            luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaGD_typename(ET, -1), "function");
-
-        lua_insert(ET, -nargs - 1);
-
-        LuaStackOp<Object *>::push(ET, owner);
-        lua_insert(ET, -nargs - 1);
-
-        int status = lua_pcall(ET, nargs + 1, nret, 0); // +1 for self
-
-        if (r_status != nullptr)
-            *r_status = status;
-
-        if (status != LUA_OK)
-        {
-            ERR_FAIL_MSG("Lua Error: " + LuaStackOp<String>::get(ET, -1));
-            lua_pop(ET, 1);
-        }
-    }
-    else
-    {
-        lua_pop(ET, 1);
-    }
 }
 
 void LuauScriptInstance::notification(int32_t p_what, int *r_status)

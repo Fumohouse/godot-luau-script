@@ -115,10 +115,10 @@ private:
 public:
     static const GDNativeExtensionScriptInstanceInfo INSTANCE_INFO;
 
-    /*
     bool set(const StringName &p_name, const Variant &p_value);
-    bool get(const StringName &p_name, Variant &r_ret) const;
-    */
+    bool get(const StringName &p_name, Variant &r_ret);
+
+    void get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
 
     GDNativePropertyInfo *get_property_list(uint32_t *r_count) const;
     void free_property_list(const GDNativePropertyInfo *p_list) const;
@@ -129,10 +129,6 @@ public:
     bool property_get_revert(const StringName &p_name, Variant *r_ret) const;
 
     Object *get_owner() const;
-
-    /*
-    void get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata) const;
-    */
 
     GDNativeMethodInfo *get_method_list(uint32_t *r_count) const;
     void free_method_list(const GDNativeMethodInfo *p_list) const;

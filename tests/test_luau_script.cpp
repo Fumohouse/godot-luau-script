@@ -3,7 +3,9 @@
 #include <godot/gdnative_interface.h>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/core/memory.hpp>
 
@@ -172,6 +174,13 @@ TEST_CASE("luau script: instance")
             returnVal = gdproperty({ type = Enum.VariantType.TYPE_FLOAT })
         }
 
+        function TestClass:GetTestProperty()
+            return 6.5
+        end
+
+        function TestClass:SetTestProperty(val)
+        end
+
         TestClass.properties["testProperty"] = {
             property = gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }),
             getter = "GetTestProperty",
@@ -179,10 +188,27 @@ TEST_CASE("luau script: instance")
             default = 5.5
         }
 
+        function TestClass:GetTestProperty2()
+            return "hello"
+        end
+
         TestClass.properties["testProperty2"] = {
             property = gdproperty({ name = "testProperty2", type = Enum.VariantType.TYPE_STRING }),
             getter = "GetTestProperty2",
-            setter = "SetTestProperty2",
+            default = "hey"
+        }
+
+        function TestClass:SetTestProperty3(val)
+        end
+
+        TestClass.properties["testProperty3"] = {
+            property = gdproperty({ name = "testProperty3", type = Enum.VariantType.TYPE_STRING }),
+            setter = "SetTestProperty3",
+            default = "hey"
+        }
+
+        TestClass.properties["testProperty4"] = {
+            property = gdproperty({ name = "testProperty4", type = Enum.VariantType.TYPE_STRING }),
             default = "hey"
         }
 
@@ -245,11 +271,29 @@ TEST_CASE("luau script: instance")
         uint32_t count;
         GDNativePropertyInfo *properties = inst.get_property_list(&count);
 
-        REQUIRE(count == 2);
-        REQUIRE(*((StringName *)properties[0].name) == StringName("testProperty"));
-        REQUIRE(properties[0].type == GDNATIVE_VARIANT_TYPE_FLOAT);
-        REQUIRE(*((StringName *)properties[1].name) == StringName("testProperty2"));
-        REQUIRE(properties[1].type == GDNATIVE_VARIANT_TYPE_STRING);
+        REQUIRE(count == 4);
+
+        bool p1_found = false;
+        bool p2_found = false;
+
+        for (int i = 0; i < count; i++)
+        {
+            StringName *name = (StringName *)properties[i].name;
+
+            if (*name == StringName("testProperty"))
+            {
+                p1_found = true;
+                REQUIRE(properties[i].type == GDNATIVE_VARIANT_TYPE_FLOAT);
+            }
+            else if (*name == StringName("testProperty2"))
+            {
+                p2_found = true;
+                REQUIRE(properties[i].type == GDNATIVE_VARIANT_TYPE_STRING);
+            }
+        }
+
+        REQUIRE(p1_found);
+        REQUIRE(p2_found);
 
         inst.free_property_list(properties);
     }
@@ -405,5 +449,78 @@ TEST_CASE("luau script: instance")
 
         REQUIRE(is_valid);
         REQUIRE(out == "my awesome class");
+    }
+
+    SECTION("setget")
+    {
+        SECTION("set")
+        {
+            SECTION("with getter and setter")
+            {
+                bool is_valid = inst.set("testProperty", 3.5);
+                REQUIRE(is_valid);
+            }
+
+            SECTION("with wrong type")
+            {
+                bool is_valid = inst.set("testProperty", "asdf");
+                REQUIRE(!is_valid);
+            }
+
+            SECTION("read only")
+            {
+                bool is_valid = inst.set("testProperty2", "hey there");
+                REQUIRE(!is_valid);
+            }
+        }
+
+        SECTION("get")
+        {
+            SECTION("with getter and setter")
+            {
+                Variant val;
+                bool is_valid = inst.get("testProperty", val);
+
+                REQUIRE(is_valid);
+                REQUIRE(val == Variant(6.5));
+            }
+
+            SECTION("write only")
+            {
+                Variant val;
+                bool is_valid = inst.get("testProperty3", val);
+
+                REQUIRE(!is_valid);
+            }
+        }
+
+        SECTION("with no getter or setter")
+        {
+            bool set_is_valid = inst.set("testProperty4", "asdf");
+            REQUIRE(set_is_valid);
+
+            Variant new_val;
+            bool get_is_valid = inst.get("testProperty4", new_val);
+
+            REQUIRE(get_is_valid);
+            REQUIRE(new_val == "asdf");
+        }
+
+        SECTION("property state")
+        {
+            GDNativeExtensionScriptInstancePropertyStateAdd add = [](const GDNativeStringNamePtr p_name, const GDNativeVariantPtr p_value, void *p_userdata)
+            {
+                ((HashMap<StringName, Variant> *)p_userdata)->insert(*((const StringName *)p_name), *((const Variant *)p_value));
+            };
+
+            HashMap<StringName, Variant> state;
+
+            inst.get_property_state(add, &state);
+
+            REQUIRE(state.size() == 3);
+            REQUIRE(state["testProperty"] == Variant(6.5));
+            REQUIRE(state["testProperty2"] == "hello");
+            REQUIRE(state["testProperty4"] == Variant());
+        }
     }
 }

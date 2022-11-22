@@ -40,14 +40,13 @@ using namespace godot;
             - https://github.com/Roblox/luau/pull/167
         - [ ] Resource for setting core script permissions
         - [x] Bound API checks for permissions
-    - [ ] Creation of custom classes in Luau, extending native classes
     - [ ] Extending/referencing custom Luau classes
     - Godot feature support:
         - [ ] Signals
         - [ ] RPCs
         - [ ] Tool scripts
-        - [ ] Exports
-        - [ ] Properties (get/set)
+        - [?] Exports
+        - [x] Properties (get/set)
         - [ ] Global classes
         - [ ] AutoLoad
         - [ ] Expose methods to other Godot APIs
