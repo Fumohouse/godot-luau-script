@@ -24,6 +24,7 @@
 #include <godot_cpp/templates/pair.hpp>
 
 #include "luagd_stack.h"
+#include "luagd_utils.h"
 #include "gd_luau.h"
 #include "luau_lib.h"
 
@@ -127,7 +128,8 @@ Error LuauScript::_reload(bool p_keep_state)
             return ERR_COMPILATION_FAILED;
         }
 
-        luaL_checktype(T, 1, LUA_TTABLE);
+        if (lua_type(T, 1) != LUA_TTABLE)
+            luaGD_returnerror(T, "class file", luaGD_typename(T, 1), "table");
 
         definition = luascript_read_class(T, 1);
         valid = true;
@@ -647,7 +649,8 @@ void LuauScriptInstance::call(
     LuaStackOp<String>::push(ET, actual_name);
     script->def_table_get(vm_type, ET);
 
-    luaL_checktype(ET, -1, LUA_TFUNCTION);
+    if (lua_type(ET, -1) != LUA_TFUNCTION)
+        luaGD_valueerror(ET, String(actual_name).utf8().get_data(), luaGD_typename(ET, -1), "function");
 
     // Push arguments
     LuaStackOp<Object *>::push(ET, owner); // self
@@ -695,7 +698,9 @@ void LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET
 
     if (!lua_isnil(ET, -1))
     {
-        luaL_checktype(ET, -1, LUA_TFUNCTION);
+        if (lua_type(ET, -1) != LUA_TFUNCTION)
+            luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaGD_typename(ET, -1), "function");
+
         lua_insert(ET, -nargs - 1);
 
         LuaStackOp<Object *>::push(ET, owner);
@@ -822,7 +827,8 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
     if (!lua_isnil(T, -1))
     {
-        luaL_checktype(T, -1, LUA_TFUNCTION);
+        if (lua_type(T, -1) != LUA_TFUNCTION)
+            luaGD_valueerror(T, "_Init", luaGD_typename(T, -1), "function");
 
         LuaStackOp<Object *>::push(T, p_owner);
         lua_pushvalue(T, -3);
