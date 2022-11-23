@@ -25,7 +25,7 @@ int luaGD_builtin_namecall(lua_State *L)
 int luaGD_builtin_newindex(lua_State *L)
 {
     const char *class_name = lua_tostring(L, lua_upvalueindex(1));
-    luaL_error(L, "%s is readonly", class_name);
+    luaL_error(L, "%s is read-only", class_name);
 }
 
 int luaGD_builtin_global_index(lua_State *L)

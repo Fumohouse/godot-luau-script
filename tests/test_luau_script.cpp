@@ -12,8 +12,11 @@
 #include <lua.h>
 
 #include "luau_script.h"
+#include "luagd_stack.h"
 #include "gd_luau.h"
 #include "luau_lib.h"
+
+#include "test_utils.h"
 
 TEST_CASE("luau script: script load")
 {
@@ -116,6 +119,7 @@ TEST_CASE("luau script: instance")
             setmetatable(tbl, { __index = testClassIndex })
 
             tbl.testField = 1
+            tbl._testProperty = 3.25
         end
 
         function TestClass:_Ready()
@@ -173,19 +177,12 @@ TEST_CASE("luau script: instance")
             returnVal = gdproperty({ type = Enum.VariantType.TYPE_FLOAT })
         }
 
-        function TestClass:TestMethod3()
-            return self:TestMethod(self:TestMethod2("", 2), self:PrivateMethod())
-        end
-
-        TestClass.methods["TestMethod3"] = {
-            returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
-        }
-
         function TestClass:GetTestProperty()
-            return 6.5
+            return 2 * self._testProperty
         end
 
         function TestClass:SetTestProperty(val)
+            self._testProperty = val
         end
 
         TestClass.properties["testProperty"] = {
@@ -242,7 +239,7 @@ TEST_CASE("luau script: instance")
         uint32_t count;
         GDNativeMethodInfo *methods = inst->get_method_list(&count);
 
-        REQUIRE(count == 6);
+        REQUIRE(count == 5);
 
         bool m1_found = false;
         bool m2_found = false;
@@ -464,43 +461,48 @@ TEST_CASE("luau script: instance")
     {
         SECTION("set")
         {
-            SECTION("with getter and setter")
-            {
-                bool is_valid = inst->set("testProperty", 3.5);
-                REQUIRE(is_valid);
-            }
-
             SECTION("with wrong type")
             {
-                bool is_valid = inst->set("testProperty", "asdf");
+                LuauScriptInstance::PropertySetGetError err;
+                bool is_valid = inst->set("testProperty", "asdf", &err);
+
                 REQUIRE(!is_valid);
+                REQUIRE(err == LuauScriptInstance::PROP_WRONG_TYPE);
             }
 
-            SECTION("read only")
+            SECTION("read-only")
             {
-                bool is_valid = inst->set("testProperty2", "hey there");
+                LuauScriptInstance::PropertySetGetError err;
+                bool is_valid = inst->set("testProperty2", "hey there", &err);
+
                 REQUIRE(!is_valid);
+                REQUIRE(err == LuauScriptInstance::PROP_READ_ONLY);
             }
         }
 
         SECTION("get")
         {
-            SECTION("with getter and setter")
+            SECTION("write-only")
             {
+                LuauScriptInstance::PropertySetGetError err;
                 Variant val;
-                bool is_valid = inst->get("testProperty", val);
-
-                REQUIRE(is_valid);
-                REQUIRE(val == Variant(6.5));
-            }
-
-            SECTION("write only")
-            {
-                Variant val;
-                bool is_valid = inst->get("testProperty3", val);
+                bool is_valid = inst->get("testProperty3", val, &err);
 
                 REQUIRE(!is_valid);
+                REQUIRE(err == LuauScriptInstance::PROP_WRITE_ONLY);
             }
+        }
+
+        SECTION("with getter and setter")
+        {
+            bool set_is_valid = inst->set("testProperty", 3.5);
+            REQUIRE(set_is_valid);
+
+            Variant val;
+            bool get_is_valid = inst->get("testProperty", val);
+
+            REQUIRE(get_is_valid);
+            REQUIRE(val == Variant(7));
         }
 
         SECTION("with no getter or setter")
@@ -535,15 +537,74 @@ TEST_CASE("luau script: instance")
 
     SECTION("metatable")
     {
+        lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
+        lua_State *T = lua_newthread(L);
+        luaL_sandboxthread(T);
+
+        LuaStackOp<Object *>::push(T, &obj);
+        lua_setglobal(T, "obj");
+
         SECTION("namecall")
         {
-            Variant args[] = {};
-            Variant ret;
-            GDNativeCallError err;
-            inst->call("TestMethod3", args, 0, &ret, &err);
+            SECTION("from table index")
+            {
+                ASSERT_EVAL_EQ(T, "return obj:PrivateMethod()", String, "hi there");
+            }
 
-            REQUIRE(err.error == GDNATIVE_CALL_OK);
-            REQUIRE(ret == "3.1, hi there");
+            SECTION("registered method")
+            {
+                ASSERT_EVAL_EQ(T, "return obj:TestMethod(2.5, 'asdf')", String, "2.5, asdf");
+            }
         }
+
+        SECTION("newindex")
+        {
+            SECTION("registered")
+            {
+                EVAL_THEN(T, "obj.testProperty = 2.5", {
+                    Variant ret;
+                    bool is_valid = inst->get("testProperty", ret);
+
+                    REQUIRE(is_valid);
+                    REQUIRE(ret == Variant(5));
+                });
+            }
+
+            SECTION("non registered")
+            {
+                EVAL_THEN(T, "obj.testField = 2", {
+                    LuaStackOp<String>::push(T, "testField");
+                    bool is_valid = inst->table_get(T);
+
+                    REQUIRE(is_valid);
+                    REQUIRE(LuaStackOp<int>::get(T, -1) == 2);
+                });
+            }
+
+            SECTION("read-only")
+            {
+                ASSERT_EVAL_FAIL(T, "obj.testProperty2 = 'asdf'", "exec:1: property 'testProperty2' is read-only");
+            }
+        }
+
+        SECTION("index")
+        {
+            SECTION("registered")
+            {
+                ASSERT_EVAL_EQ(T, "return obj.testProperty", float, 6.5f);
+            }
+
+            SECTION("non registered")
+            {
+                ASSERT_EVAL_EQ(T, "return obj.testField", int, 1);
+            }
+
+            SECTION("write-only")
+            {
+                ASSERT_EVAL_FAIL(T, "return obj.testProperty3", "exec:1: property 'testProperty3' is write-only")
+            }
+        }
+
+        lua_pop(L, 1); // thread
     }
 }

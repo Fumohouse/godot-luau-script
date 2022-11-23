@@ -54,5 +54,6 @@ ExecOutput luaGD_exec(lua_State *L, const char *src);
         ExecOutput out = luaGD_exec(L, src); \
                                              \
         REQUIRE(out.status != OK);           \
+        INFO(out.error.utf8().get_data());   \
         REQUIRE(out.error == err);           \
     }

@@ -49,7 +49,7 @@ using namespace godot;
         - [x] Properties (get/set)
         - [ ] Global classes
         - [ ] AutoLoad
-        - [ ] Expose methods to other Godot APIs
+        - [x] Expose methods to other Godot APIs
         - [ ] Templates
     - [ ] is keyword alternative - using is_class_ptr and get_class_ptr_static or metatables (or both idk)
 
@@ -64,16 +64,6 @@ using namespace godot;
     - [ ] Documentation support
     - [ ] Autocomplete within the editor
     - [ ] AST-based method registration
-*/
-
-/*
-    Design considerations
-
-    - Each ScriptInstance should have its own table stored in the registry
-        - Must take into consideration the VM on which the ScriptInstance was made
-        - External access to this is locked behind get(), set(), call()
-        - Registered exports will query some Variant-compatible property in this table
-        - The metatable assigned to the ScriptInstance Object should consider this table and the parent
 */
 
 LuauLanguage *script_language_luau = nullptr;

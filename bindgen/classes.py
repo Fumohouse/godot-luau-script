@@ -338,8 +338,7 @@ if (first_init)
         append(class_src, c_indent, "}\n")
 
         # __namecall
-        if "methods" in g_class:
-            append(class_src, c_indent, f"""\
+        append(class_src, c_indent, f"""\
 // __namecall
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
@@ -347,9 +346,8 @@ lua_pushcclosure(L, luaGD_class_namecall, "{metatable_name}.__namecall", 2);
 lua_setfield(L, -4, "__namecall");
 """)
 
-        if "properties" in g_class:
-            # __index
-            append(class_src, c_indent, f"""\
+        # __index
+        append(class_src, c_indent, f"""\
 // __index
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);
@@ -357,8 +355,8 @@ lua_pushcclosure(L, luaGD_class_index, "{metatable_name}.__index", 2);
 lua_setfield(L, -4, "__index");
 """)
 
-            # __newindex
-            append(class_src, c_indent, f"""\
+        # __newindex
+        append(class_src, c_indent, f"""\
 // __newindex
 lua_pushinteger(L, {class_idx});
 lua_pushlightuserdata(L, classes);

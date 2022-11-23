@@ -64,7 +64,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget")
 
     SECTION("member set fails")
     {
-        ASSERT_EVAL_FAIL(L, "Vector2(123, 456).y = 0", "exec:1: Vector2 is readonly");
+        ASSERT_EVAL_FAIL(L, "Vector2(123, 456).y = 0", "exec:1: Vector2 is read-only");
     }
 }
 

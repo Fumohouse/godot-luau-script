@@ -73,6 +73,9 @@ public:
     virtual bool _has_property_default_value(const StringName &p_property) const override;
     virtual Variant _get_property_default_value(const StringName &p_property) const override;
 
+    bool has_property(const StringName &p_name) const;
+    const GDClassProperty &get_property(const StringName &p_name) const;
+
     /* INSTANCE */
     virtual void *_instance_create(Object *p_for_object) const override;
     virtual bool _instance_has(Object *p_object) const override;
@@ -113,10 +116,21 @@ private:
     void call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret, int *r_status = nullptr);
 
 public:
+    enum PropertySetGetError
+    {
+        PROP_OK,
+        PROP_NOT_FOUND,
+        PROP_WRONG_TYPE,
+        PROP_READ_ONLY,
+        PROP_WRITE_ONLY,
+        PROP_GET_FAILED,
+        PROP_SET_FAILED
+    };
+
     static const GDNativeExtensionScriptInstanceInfo INSTANCE_INFO;
 
-    bool set(const StringName &p_name, const Variant &p_value);
-    bool get(const StringName &p_name, Variant &r_ret);
+    bool set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err = nullptr);
+    bool get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err = nullptr);
 
     void get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
 

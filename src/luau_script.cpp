@@ -295,6 +295,16 @@ Variant LuauScript::_get_property_default_value(const StringName &p_property) co
     return definition.properties.get(p_property).default_value;
 }
 
+bool LuauScript::has_property(const StringName &p_name) const
+{
+    return definition.properties.has(p_name);
+}
+
+const GDClassProperty &LuauScript::get_property(const StringName &p_name) const
+{
+    return definition.properties.get(p_name);
+}
+
 void *LuauScript::_instance_create(Object *p_for_object) const
 {
     // TODO: decide which vm to use
@@ -512,32 +522,43 @@ static int instance_table_get(lua_State *L)
     return 1;
 }
 
-bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value)
+bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err)
 {
+    if (r_err != nullptr)
+        *r_err = PROP_OK;
+
     if (!script->definition.properties.has(p_name))
+    {
+        if (r_err != nullptr)
+            *r_err = PROP_NOT_FOUND;
+
         return false;
+    }
 
     const GDClassProperty &prop = script->definition.properties[p_name];
 
     if (prop.property.type != GDNATIVE_VARIANT_TYPE_NIL && (GDNativeVariantType)p_value.get_type() != prop.property.type)
+    {
+        if (r_err != nullptr)
+            *r_err = PROP_WRONG_TYPE;
+
         return false;
+    }
+
+    lua_State *ET;
+    int status;
 
     if (prop.setter != StringName())
     {
-        lua_State *ET = lua_newthread(T);
+        ET = lua_newthread(T);
 
         LuaStackOp<Variant>::push(ET, p_value);
 
-        int status;
         call_internal(prop.setter, ET, 1, 0, &status);
-
-        lua_pop(T, 1); // thread
-
-        return status == LUA_OK;
     }
     else if (prop.getter == StringName())
     {
-        lua_State *ET = lua_newthread(T);
+        ET = lua_newthread(T);
 
         lua_pushcfunction(ET, instance_table_set, "instance_table_set");
 
@@ -545,21 +566,42 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value)
         LuaStackOp<String>::push(ET, String(p_name));
         LuaStackOp<Variant>::push(ET, p_value);
 
-        int status = lua_pcall(ET, 3, 0, 0);
+        status = lua_pcall(ET, 3, 0, 0);
+    }
+    else
+    {
+        // getter, no setter -> read only
+        if (r_err != nullptr)
+            *r_err = PROP_READ_ONLY;
 
-        lua_pop(T, 1); // thread
-
-        return status == LUA_OK;
+        return false;
     }
 
-    // getter, no setter -> read only
-    return false;
+    lua_pop(T, 1); // thread
+
+    if (status == LUA_OK)
+        return true;
+    else
+    {
+        if (r_err != nullptr)
+            *r_err = PROP_SET_FAILED;
+
+        return false;
+    }
 }
 
-bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret)
+bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err)
 {
+    if (r_err != nullptr)
+        *r_err = PROP_OK;
+
     if (!script->definition.properties.has(p_name))
+    {
+        if (r_err != nullptr)
+            *r_err = PROP_NOT_FOUND;
+
         return false;
+    }
 
     const GDClassProperty &prop = script->definition.properties[p_name];
 
@@ -584,6 +626,9 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret)
     else
     {
         // setter, no getter -> write only
+        if (r_err != nullptr)
+            *r_err = PROP_WRITE_ONLY;
+
         return false;
     }
 
@@ -591,10 +636,11 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret)
     {
         if (status == -1)
             ERR_PRINT("getter for " + p_name + " not found");
-        else
-            ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
 
         lua_pop(T, 1); // thread
+
+        if (r_err != nullptr)
+            *r_err = PROP_GET_FAILED;
 
         return false;
     }

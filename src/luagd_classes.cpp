@@ -12,6 +12,8 @@
 
 #include "luagd_stack.h"
 #include "luau_script.h"
+#include "luau_lib.h"
+#include "luagd_utils.h"
 
 using namespace godot;
 
@@ -181,6 +183,41 @@ int luaGD_class_index(lua_State *L)
 
     const char *key = luaL_checkstring(L, 2);
 
+    bool attempt_table_get = false;
+    LuauScriptInstance *inst = get_script_instance(L);
+
+    if (inst != nullptr)
+    {
+        Ref<LuauScript> script = inst->get_script();
+
+        if (script->has_property(key))
+        {
+            const GDClassProperty &prop = script->get_property(key);
+
+            if (prop.setter != StringName() && prop.getter == StringName())
+                luaL_error(L, "property '%s' is write-only", key);
+
+            Variant ret;
+            LuauScriptInstance::PropertySetGetError err;
+            bool is_valid = inst->get(key, ret, &err);
+
+            if (is_valid)
+            {
+                LuaStackOp<Variant>::push(L, ret);
+                return 1;
+            }
+            else if (err == LuauScriptInstance::PROP_GET_FAILED)
+                luaL_error(L, "failed to get property '%s'; see previous errors for more information", key);
+            else
+                luaL_error(L, "failed to get property '%s': unknown error", key); // due to the checks above, this should hopefully never happen
+        }
+        else
+        {
+            // object properties should take precedence over arbitrary values
+            attempt_table_get = true;
+        }
+    }
+
     while (true)
     {
         if (current_class->properties.has(key))
@@ -193,6 +230,15 @@ int luaGD_class_index(lua_State *L)
         INHERIT_OR_BREAK
     }
 
+    if (attempt_table_get)
+    {
+        // the key is already on the top of the stack
+        bool is_valid = inst->table_get(L);
+
+        if (is_valid)
+            return 1;
+    }
+
     luaL_error(L, "%s is not a valid member of %s", key, current_class->class_name);
 }
 
@@ -201,6 +247,42 @@ int luaGD_class_newindex(lua_State *L)
     LUAGD_CLASS_METAMETHOD
 
     const char *key = luaL_checkstring(L, 2);
+
+    bool attempt_table_set = false;
+    LuauScriptInstance *inst = get_script_instance(L);
+
+    if (inst != nullptr)
+    {
+        Ref<LuauScript> script = inst->get_script();
+
+        if (script->has_property(key))
+        {
+            const GDClassProperty &prop = script->get_property(key);
+
+            if (prop.getter != StringName() && prop.setter == StringName())
+                luaL_error(L, "property '%s' is read-only", key);
+
+            LuauScriptInstance::PropertySetGetError err;
+            Variant val = LuaStackOp<Variant>::get(L, 3);
+            bool is_valid = inst->set(key, val, &err);
+
+            if (is_valid)
+                return 0;
+            else if (err == LuauScriptInstance::PROP_WRONG_TYPE)
+                luaGD_valueerror(L, key,
+                                 Variant::get_type_name(val.get_type()).utf8().get_data(),
+                                 Variant::get_type_name((Variant::Type)prop.property.type).utf8().get_data());
+            else if (err == LuauScriptInstance::PROP_SET_FAILED)
+                luaL_error(L, "failed to set property '%s'; see previous errors for more information", key);
+            else
+                luaL_error(L, "failed to set property '%s': unknown error", key); // should never happen
+        }
+        else
+        {
+            // object properties should take precedence over arbitrary values
+            attempt_table_set = true;
+        }
+    }
 
     while (true)
     {
@@ -212,6 +294,14 @@ int luaGD_class_newindex(lua_State *L)
         }
 
         INHERIT_OR_BREAK
+    }
+
+    if (attempt_table_set)
+    {
+        // key and value are already on the top of the stack
+        bool is_valid = inst->table_set(L);
+        if (is_valid)
+            return 0;
     }
 
     luaL_error(L, "%s is not a valid member of %s", key, current_class->class_name);
