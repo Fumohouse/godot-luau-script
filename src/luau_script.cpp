@@ -664,11 +664,14 @@ void LuauScriptInstance::get_property_state(GDNativeExtensionScriptInstancePrope
     {
         StringName *name = (StringName *)props[i].name;
 
-        Variant value;
-        bool is_valid = get(*name, value);
+        if (props[i].usage & PROPERTY_USAGE_STORAGE)
+        {
+            Variant value;
+            bool is_valid = get(*name, value);
 
-        if (is_valid)
-            p_add_func(name, &value, p_userdata);
+            if (is_valid)
+                p_add_func(name, &value, p_userdata);
+        }
     }
 
     free_property_list(props);
