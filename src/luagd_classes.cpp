@@ -54,7 +54,7 @@ int luaGD_class_no_ctor(lua_State *L)
     else                                                          \
         break;
 
-LuauScriptInstance *get_script_instance(lua_State *L)
+static LuauScriptInstance *get_script_instance(lua_State *L)
 {
     Object *self = LuaStackOp<Object *>::get(L, 1);
     Ref<LuauScript> script = self->get_script();
@@ -188,13 +188,9 @@ int luaGD_class_index(lua_State *L)
 
     if (inst != nullptr)
     {
-        Ref<LuauScript> script = inst->get_script();
-
-        if (script->has_property(key))
+        if (const GDClassProperty *prop = inst->get_property(key))
         {
-            const GDClassProperty &prop = script->get_property(key);
-
-            if (prop.setter != StringName() && prop.getter == StringName())
+            if (prop->setter != StringName() && prop->getter == StringName())
                 luaL_error(L, "property '%s' is write-only", key);
 
             Variant ret;
@@ -253,13 +249,9 @@ int luaGD_class_newindex(lua_State *L)
 
     if (inst != nullptr)
     {
-        Ref<LuauScript> script = inst->get_script();
-
-        if (script->has_property(key))
+        if (const GDClassProperty *prop = inst->get_property(key))
         {
-            const GDClassProperty &prop = script->get_property(key);
-
-            if (prop.getter != StringName() && prop.setter == StringName())
+            if (prop->getter != StringName() && prop->setter == StringName())
                 luaL_error(L, "property '%s' is read-only", key);
 
             LuauScriptInstance::PropertySetGetError err;
@@ -271,7 +263,7 @@ int luaGD_class_newindex(lua_State *L)
             else if (err == LuauScriptInstance::PROP_WRONG_TYPE)
                 luaGD_valueerror(L, key,
                                  Variant::get_type_name(val.get_type()).utf8().get_data(),
-                                 Variant::get_type_name((Variant::Type)prop.property.type).utf8().get_data());
+                                 Variant::get_type_name((Variant::Type)prop->property.type).utf8().get_data());
             else if (err == LuauScriptInstance::PROP_SET_FAILED)
                 luaL_error(L, "failed to set property '%s'; see previous errors for more information", key);
             else

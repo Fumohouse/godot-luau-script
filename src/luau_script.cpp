@@ -4,6 +4,7 @@
 #include <Luau/Compiler.h>
 #include <string>
 #include <string.h>
+#include <memory.h>
 
 #include <godot/gdnative_interface.h>
 #include <godot_cpp/godot.hpp>
@@ -21,7 +22,10 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/script_language.hpp>
+#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/templates/pair.hpp>
+#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
 
 #include "luagd_stack.h"
 #include "luagd_utils.h"
@@ -211,6 +215,49 @@ bool LuauScript::_can_instantiate() const
 bool LuauScript::_is_tool() const
 {
     return definition.is_tool;
+}
+
+StringName LuauScript::_get_instance_base_type() const
+{
+    StringName extends = StringName(definition.extends);
+
+    if (extends != StringName())
+    {
+        // TODO: the real ClassDB is not available in godot-cpp yet. this is what we get.
+        Object *class_db = Engine::get_singleton()->get_singleton("ClassDB");
+
+        if (class_db->call("class_exists", extends).operator bool())
+            return extends;
+    }
+
+    if (base.is_valid() && base->_is_valid())
+        return base->_get_instance_base_type();
+
+    return StringName();
+}
+
+Ref<Script> LuauScript::_get_base_script() const
+{
+    return base;
+};
+
+bool LuauScript::_inherits_script(const Ref<Script> &p_script) const
+{
+    Ref<LuauScript> script = p_script;
+    if (script.is_null())
+        return false;
+
+    const LuauScript *s = this;
+
+    while (s != nullptr)
+    {
+        if (s == script.ptr())
+            return true;
+
+        s = s->base.ptr();
+    }
+
+    return false;
 }
 
 TypedArray<Dictionary> LuauScript::_get_script_method_list() const
@@ -475,39 +522,44 @@ static void free_prop(const GDNativePropertyInfo &prop)
     memdelete((String *)prop.hint_string);
 }
 
-void LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret, int *r_status)
+int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret)
 {
-    if (r_status != nullptr)
-        *r_status = -1;
+    LuauScript *s = script.ptr();
 
-    LuaStackOp<String>::push(ET, p_method);
-    script->def_table_get(vm_type, ET);
-
-    if (!lua_isnil(ET, -1))
+    while (s != nullptr)
     {
-        if (lua_type(ET, -1) != LUA_TFUNCTION)
-            luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaGD_typename(ET, -1), "function");
+        LuaStackOp<String>::push(ET, p_method);
+        s->def_table_get(vm_type, ET);
 
-        lua_insert(ET, -nargs - 1);
-
-        LuaStackOp<Object *>::push(ET, owner);
-        lua_insert(ET, -nargs - 1);
-
-        int status = lua_pcall(ET, nargs + 1, nret, 0); // +1 for self
-
-        if (r_status != nullptr)
-            *r_status = status;
-
-        if (status != LUA_OK)
+        if (!lua_isnil(ET, -1))
         {
-            ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
+            if (lua_type(ET, -1) != LUA_TFUNCTION)
+                luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaGD_typename(ET, -1), "function");
+
+            lua_insert(ET, -nargs - 1);
+
+            LuaStackOp<Object *>::push(ET, owner);
+            lua_insert(ET, -nargs - 1);
+
+            int status = lua_pcall(ET, nargs + 1, nret, 0); // +1 for self
+
+            if (status != LUA_OK)
+            {
+                ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
+                lua_pop(ET, 1);
+            }
+
+            return status;
+        }
+        else
+        {
             lua_pop(ET, 1);
         }
+
+        s = s->base.ptr();
     }
-    else
-    {
-        lua_pop(ET, 1);
-    }
+
+    return -1;
 }
 
 static int instance_table_set(lua_State *L)
@@ -524,132 +576,177 @@ static int instance_table_get(lua_State *L)
 
 bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err)
 {
+    LuauScript *s = script.ptr();
+
+    while (s != nullptr)
+    {
+        if (s->definition.properties.has(p_name))
+        {
+            const GDClassProperty &prop = s->definition.properties[p_name];
+
+            // Check type
+            if (prop.property.type != GDNATIVE_VARIANT_TYPE_NIL && (GDNativeVariantType)p_value.get_type() != prop.property.type)
+            {
+                if (r_err != nullptr)
+                    *r_err = PROP_WRONG_TYPE;
+
+                return false;
+            }
+
+            // Check read-only (getter, no setter)
+            if (prop.setter == StringName() && prop.getter != StringName())
+            {
+                if (r_err != nullptr)
+                    *r_err = PROP_READ_ONLY;
+
+                return false;
+            }
+
+            // Prepare for set
+            lua_State *ET = lua_newthread(T);
+            int status;
+
+            // Set
+            if (prop.setter != StringName())
+            {
+                LuaStackOp<Variant>::push(ET, p_value);
+                status = call_internal(prop.setter, ET, 1, 0);
+            }
+            else
+            {
+                lua_pushcfunction(ET, instance_table_set, "instance_table_set");
+
+                lua_getref(ET, table_ref);
+                LuaStackOp<String>::push(ET, p_name);
+                LuaStackOp<Variant>::push(ET, p_value);
+
+                status = lua_pcall(ET, 3, 0, 0);
+            }
+
+            lua_pop(T, 1); // thread
+
+            if (status == LUA_OK)
+            {
+                if (r_err != nullptr)
+                    *r_err = PROP_OK;
+
+                return true;
+            }
+            else if (status == -1)
+            {
+                ERR_PRINT("setter for " + p_name + " not found");
+
+                if (r_err != nullptr)
+                    *r_err = PROP_NOT_FOUND;
+
+                return false;
+            }
+            else
+            {
+                if (r_err != nullptr)
+                    *r_err = PROP_SET_FAILED;
+
+                return false;
+            }
+        }
+
+        s = s->base.ptr();
+    }
+
     if (r_err != nullptr)
-        *r_err = PROP_OK;
+        *r_err = PROP_NOT_FOUND;
 
-    if (!script->definition.properties.has(p_name))
-    {
-        if (r_err != nullptr)
-            *r_err = PROP_NOT_FOUND;
-
-        return false;
-    }
-
-    const GDClassProperty &prop = script->definition.properties[p_name];
-
-    if (prop.property.type != GDNATIVE_VARIANT_TYPE_NIL && (GDNativeVariantType)p_value.get_type() != prop.property.type)
-    {
-        if (r_err != nullptr)
-            *r_err = PROP_WRONG_TYPE;
-
-        return false;
-    }
-
-    lua_State *ET;
-    int status;
-
-    if (prop.setter != StringName())
-    {
-        ET = lua_newthread(T);
-
-        LuaStackOp<Variant>::push(ET, p_value);
-
-        call_internal(prop.setter, ET, 1, 0, &status);
-    }
-    else if (prop.getter == StringName())
-    {
-        ET = lua_newthread(T);
-
-        lua_pushcfunction(ET, instance_table_set, "instance_table_set");
-
-        lua_getref(ET, table_ref);
-        LuaStackOp<String>::push(ET, String(p_name));
-        LuaStackOp<Variant>::push(ET, p_value);
-
-        status = lua_pcall(ET, 3, 0, 0);
-    }
-    else
-    {
-        // getter, no setter -> read only
-        if (r_err != nullptr)
-            *r_err = PROP_READ_ONLY;
-
-        return false;
-    }
-
-    lua_pop(T, 1); // thread
-
-    if (status == LUA_OK)
-        return true;
-    else
-    {
-        if (r_err != nullptr)
-            *r_err = PROP_SET_FAILED;
-
-        return false;
-    }
+    return false;
 }
 
 bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err)
 {
+    LuauScript *s = script.ptr();
+
+    while (s != nullptr)
+    {
+        if (s->definition.properties.has(p_name))
+        {
+            const GDClassProperty &prop = s->definition.properties[p_name];
+
+            // Check write-only (setter, no getter)
+            if (prop.setter != StringName() && prop.getter == StringName())
+            {
+                if (r_err != nullptr)
+                    *r_err = PROP_WRITE_ONLY;
+
+                return false;
+            }
+
+            // Prepare for get
+            lua_State *ET = lua_newthread(T);
+            int status;
+
+            // Get
+            if (prop.getter != StringName())
+            {
+                status = call_internal(prop.getter, ET, 0, 1);
+            }
+            else
+            {
+                lua_pushcfunction(ET, instance_table_get, "instance_table_get");
+
+                lua_getref(ET, table_ref);
+                LuaStackOp<String>::push(ET, String(p_name));
+
+                status = lua_pcall(ET, 2, 1, 0);
+            }
+
+            if (status == LUA_OK)
+            {
+                r_ret = LuaStackOp<Variant>::get(ET, -1);
+                lua_pop(T, 1); // thread
+
+                if (r_err != nullptr)
+                    *r_err = PROP_OK;
+
+                return true;
+            }
+            else if (status == -1)
+            {
+                ERR_PRINT("getter for " + p_name + " not found");
+
+                if (r_err != nullptr)
+                    *r_err = PROP_NOT_FOUND;
+            }
+            else
+            {
+                if (r_err != nullptr)
+                    *r_err = PROP_GET_FAILED;
+            }
+
+            lua_pop(T, 1); // thread
+
+            return false;
+        }
+
+        s = s->base.ptr();
+    }
+
     if (r_err != nullptr)
-        *r_err = PROP_OK;
+        *r_err = PROP_NOT_FOUND;
 
-    if (!script->definition.properties.has(p_name))
+    return false;
+}
+
+const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name) const
+{
+    const LuauScript *s = script.ptr();
+
+    while (s != nullptr)
     {
-        if (r_err != nullptr)
-            *r_err = PROP_NOT_FOUND;
+        if (s->has_property(p_name))
+            return &s->get_property(p_name);
 
-        return false;
+        s = s->base.ptr();
     }
 
-    const GDClassProperty &prop = script->definition.properties[p_name];
-
-    int status;
-    lua_State *ET;
-
-    if (prop.getter != StringName())
-    {
-        ET = lua_newthread(T);
-        call_internal(prop.getter, ET, 0, 1, &status);
-    }
-    else if (prop.setter == StringName())
-    {
-        ET = lua_newthread(T);
-        lua_pushcfunction(ET, instance_table_get, "instance_table_get");
-
-        lua_getref(ET, table_ref);
-        LuaStackOp<String>::push(ET, String(p_name));
-
-        status = lua_pcall(ET, 2, 1, 0);
-    }
-    else
-    {
-        // setter, no getter -> write only
-        if (r_err != nullptr)
-            *r_err = PROP_WRITE_ONLY;
-
-        return false;
-    }
-
-    if (status != LUA_OK)
-    {
-        if (status == -1)
-            ERR_PRINT("getter for " + p_name + " not found");
-
-        lua_pop(T, 1); // thread
-
-        if (r_err != nullptr)
-            *r_err = PROP_GET_FAILED;
-
-        return false;
-    }
-
-    r_ret = LuaStackOp<Variant>::get(ET, -1);
-
-    lua_pop(T, 1); // thread
-
-    return true;
+    return nullptr;
 }
 
 void LuauScriptInstance::get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
@@ -677,41 +774,90 @@ void LuauScriptInstance::get_property_state(GDNativeExtensionScriptInstancePrope
     free_property_list(props);
 }
 
+// allocates list with an int at the front saying how long it is
+// it's a miracle, really, that this doesn't segfault.
+// reminder: arithmetic on a pointer increments by the size of the type and not bytes
+template <typename T>
+static T *alloc_with_len(int size)
+{
+    uint64_t list_size = sizeof(T) * size;
+    void *ptr = memalloc(list_size + sizeof(int));
+
+    *((int *)ptr) = size;
+
+    return (T *)((int *)ptr + 1);
+}
+
+static void free_with_len(void *ptr)
+{
+    memfree((int *)ptr - 1);
+}
+
+static int get_len_from_ptr(const void *ptr)
+{
+    return *((int *)ptr - 1);
+}
+
 GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const
 {
-    *r_count = script->definition.properties.size();
-    GDNativePropertyInfo *list = memnew_arr(GDNativePropertyInfo, *r_count);
+    Vector<GDNativePropertyInfo> properties;
+    HashSet<StringName> defined;
 
-    int i = 0;
+    const LuauScript *s = script.ptr();
 
-    for (const KeyValue<StringName, GDClassProperty> &pair : script->definition.properties)
+    while (s != nullptr)
     {
-        copy_prop(pair.value.property, list[i]);
-        i++;
+        for (const KeyValue<StringName, GDClassProperty> &pair : s->definition.properties)
+        {
+            if (defined.has(pair.key))
+                continue;
+
+            defined.insert(pair.key);
+
+            GDNativePropertyInfo dst;
+            copy_prop(pair.value.property, dst);
+
+            properties.push_back(dst);
+        }
+
+        s = s->base.ptr();
     }
+
+    int size = properties.size();
+    *r_count = size;
+
+    GDNativePropertyInfo *list = alloc_with_len<GDNativePropertyInfo>(size);
+    memcpy(list, properties.ptr(), sizeof(GDNativePropertyInfo) * size);
 
     return list;
 }
 
 void LuauScriptInstance::free_property_list(const GDNativePropertyInfo *p_list) const
 {
-    // smelly
-    int size = script->definition.properties.size();
+    // don't ask.
+    int size = get_len_from_ptr(p_list);
 
     for (int i = 0; i < size; i++)
         free_prop(p_list[i]);
 
-    memdelete((GDNativePropertyInfo *)p_list);
+    free_with_len((GDNativePropertyInfo *)p_list);
 }
 
 Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bool *r_is_valid) const
 {
-    if (script->definition.properties.has(p_name))
-    {
-        if (r_is_valid != nullptr)
-            *r_is_valid = true;
+    const LuauScript *s = script.ptr();
 
-        return (Variant::Type)script->definition.properties[p_name].property.type;
+    while (s != nullptr)
+    {
+        if (s->definition.properties.has(p_name))
+        {
+            if (r_is_valid != nullptr)
+                *r_is_valid = true;
+
+            return (Variant::Type)s->definition.properties[p_name].property.type;
+        }
+
+        s = s->base.ptr();
     }
 
     if (r_is_valid != nullptr)
@@ -739,56 +885,70 @@ Object *LuauScriptInstance::get_owner() const
 
 GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
 {
-    *r_count = script->definition.methods.size();
-    GDNativeMethodInfo *list = memnew_arr(GDNativeMethodInfo, *r_count);
+    Vector<GDNativeMethodInfo> methods;
+    HashSet<StringName> defined;
 
-    int i = 0;
+    const LuauScript *s = script.ptr();
 
-    for (const KeyValue<StringName, GDMethod> pair : script->definition.methods)
+    while (s != nullptr)
     {
-        const GDMethod &src = pair.value;
-        GDNativeMethodInfo &dst = list[i];
-
-        dst.name = stringname_alloc(src.name);
-
-        copy_prop(src.return_val, dst.return_value);
-
-        dst.flags = src.flags;
-
-        dst.argument_count = src.arguments.size();
-
-        if (dst.argument_count > 0)
+        for (const KeyValue<StringName, GDMethod> pair : s->definition.methods)
         {
-            GDNativePropertyInfo *arg_list = memnew_arr(GDNativePropertyInfo, dst.argument_count);
+            if (defined.has(pair.key))
+                continue;
 
-            for (int j = 0; j < dst.argument_count; j++)
-                copy_prop(src.arguments[j], arg_list[j]);
+            defined.insert(pair.key);
 
-            dst.arguments = arg_list;
+            const GDMethod &src = pair.value;
+
+            GDNativeMethodInfo dst;
+
+            dst.name = stringname_alloc(src.name);
+            copy_prop(src.return_val, dst.return_value);
+            dst.flags = src.flags;
+            dst.argument_count = src.arguments.size();
+
+            if (dst.argument_count > 0)
+            {
+                GDNativePropertyInfo *arg_list = memnew_arr(GDNativePropertyInfo, dst.argument_count);
+
+                for (int j = 0; j < dst.argument_count; j++)
+                    copy_prop(src.arguments[j], arg_list[j]);
+
+                dst.arguments = arg_list;
+            }
+
+            dst.default_argument_count = src.default_arguments.size();
+
+            if (dst.default_argument_count > 0)
+            {
+                Variant *defargs = memnew_arr(Variant, dst.default_argument_count);
+
+                for (int j = 0; j < dst.default_argument_count; j++)
+                    defargs[j] = src.default_arguments[j];
+
+                dst.default_arguments = (GDNativeVariantPtr *)defargs;
+            }
+
+            methods.push_back(dst);
         }
 
-        dst.default_argument_count = src.default_arguments.size();
-
-        if (dst.default_argument_count > 0)
-        {
-            Variant *defargs = memnew_arr(Variant, dst.default_argument_count);
-
-            for (int j = 0; j < dst.default_argument_count; j++)
-                defargs[j] = src.default_arguments[j];
-
-            dst.default_arguments = (GDNativeVariantPtr *)defargs;
-        }
-
-        i++;
+        s = s->base.ptr();
     }
+
+    int size = methods.size();
+    *r_count = size;
+
+    GDNativeMethodInfo *list = alloc_with_len<GDNativeMethodInfo>(size);
+    memcpy(list, methods.ptr(), sizeof(GDNativeMethodInfo) * size);
 
     return list;
 }
 
 void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) const
 {
-    // smelly
-    int size = script->definition.methods.size();
+    // don't ask.
+    int size = get_len_from_ptr(p_list);
 
     for (int i = 0; i < size; i++)
     {
@@ -810,12 +970,22 @@ void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) cons
             memdelete((Variant *)method.default_arguments);
     }
 
-    memdelete((GDNativeMethodInfo *)p_list);
+    free_with_len((GDNativeMethodInfo *)p_list);
 }
 
-bool LuauScriptInstance::has_method(const StringName &p_name, StringName *r_actual_name) const
+bool LuauScriptInstance::has_method(const StringName &p_name) const
 {
-    return script->has_method(p_name, r_actual_name);
+    const LuauScript *s = script.ptr();
+
+    while (s != nullptr)
+    {
+        if (s->has_method(p_name))
+            return true;
+
+        s = s->base.ptr();
+    }
+
+    return false;
 }
 
 void LuauScriptInstance::call(
@@ -823,125 +993,129 @@ void LuauScriptInstance::call(
     const Variant *p_args, const GDNativeInt p_argument_count,
     Variant *r_return, GDNativeCallError *r_error)
 {
-    StringName actual_name = p_method;
+    LuauScript *s = script.ptr();
 
-    // check name given and name converted to pascal
-    // (e.g. if Node::_ready is called -> _Ready)
-    if (!has_method(p_method, &actual_name))
+    while (s != nullptr)
     {
-        r_error->error = GDNATIVE_CALL_ERROR_INVALID_METHOD;
-        return;
-    }
+        StringName actual_name = p_method;
 
-    const GDMethod &method = script->definition.methods[p_method];
-    lua_State *ET = lua_newthread(T); // execution thread
-
-    // Check argument count
-    int args_allowed = method.arguments.size();
-    int args_default = method.default_arguments.size();
-    int args_required = args_allowed - args_default;
-
-    if (p_argument_count < args_required)
-    {
-        r_error->error = GDNATIVE_CALL_ERROR_TOO_FEW_ARGUMENTS;
-        r_error->argument = args_required;
-
-        lua_pop(T, 1); // thread
-        return;
-    }
-
-    if (p_argument_count > args_allowed)
-    {
-        r_error->error = GDNATIVE_CALL_ERROR_TOO_MANY_ARGUMENTS;
-        r_error->argument = args_allowed;
-
-        lua_pop(T, 1); // thread
-        return;
-    }
-
-    // Push method
-    LuaStackOp<String>::push(ET, actual_name);
-    script->def_table_get(vm_type, ET);
-
-    if (lua_type(ET, -1) != LUA_TFUNCTION)
-        luaGD_valueerror(ET, String(actual_name).utf8().get_data(), luaGD_typename(ET, -1), "function");
-
-    // Push arguments
-    LuaStackOp<Object *>::push(ET, owner); // self
-
-    for (int i = 0; i < p_argument_count; i++)
-    {
-        const Variant &arg = p_args[i];
-
-        if ((GDNativeVariantType)arg.get_type() != method.arguments[i].type)
+        // check name given and name converted to pascal
+        // (e.g. if Node::_ready is called -> _Ready)
+        if (s->has_method(p_method, &actual_name))
         {
-            r_error->error = GDNATIVE_CALL_ERROR_INVALID_ARGUMENT;
-            r_error->argument = i;
-            r_error->expected = method.arguments[i].type;
+            const GDMethod &method = s->definition.methods[p_method];
+
+            // Check argument count
+            int args_allowed = method.arguments.size();
+            int args_default = method.default_arguments.size();
+            int args_required = args_allowed - args_default;
+
+            if (p_argument_count < args_required)
+            {
+                r_error->error = GDNATIVE_CALL_ERROR_TOO_FEW_ARGUMENTS;
+                r_error->argument = args_required;
+
+                return;
+            }
+
+            if (p_argument_count > args_allowed)
+            {
+                r_error->error = GDNATIVE_CALL_ERROR_TOO_MANY_ARGUMENTS;
+                r_error->argument = args_allowed;
+
+                return;
+            }
+
+            // Prepare for call
+            lua_State *ET = lua_newthread(T); // execution thread
+
+            for (int i = 0; i < p_argument_count; i++)
+            {
+                const Variant &arg = p_args[i];
+
+                if ((GDNativeVariantType)arg.get_type() != method.arguments[i].type)
+                {
+                    r_error->error = GDNATIVE_CALL_ERROR_INVALID_ARGUMENT;
+                    r_error->argument = i;
+                    r_error->expected = method.arguments[i].type;
+
+                    lua_pop(T, 1); // thread
+                    return;
+                }
+
+                LuaStackOp<Variant>::push(ET, arg);
+            }
+
+            for (int i = p_argument_count - args_required; i < args_default; i++)
+                LuaStackOp<Variant>::push(ET, method.default_arguments[i]);
+
+            // Call
+            r_error->error = GDNATIVE_CALL_OK;
+
+            int status = call_internal(actual_name, ET, args_allowed, 1);
+
+            if (status == LUA_OK)
+                *r_return = LuaStackOp<Variant>::get(ET, -1);
+            else
+                ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
 
             lua_pop(T, 1); // thread
+
             return;
         }
 
-        LuaStackOp<Variant>::push(ET, arg);
+        s = s->base.ptr();
     }
 
-    for (int i = p_argument_count - args_required; i < args_default; i++)
-        LuaStackOp<Variant>::push(ET, method.default_arguments[i]);
-
-    // Call
-    r_error->error = GDNATIVE_CALL_OK;
-
-    int status = lua_pcall(ET, args_allowed + 1, 1, 0); // args: self + passed + default
-
-    if (status == LUA_OK)
-        *r_return = LuaStackOp<Variant>::get(ET, -1);
-    else
-        ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
-
-    lua_pop(T, 1); // thread
+    r_error->error = GDNATIVE_CALL_ERROR_INVALID_METHOD;
 }
 
-void LuauScriptInstance::notification(int32_t p_what, int *r_status)
+void LuauScriptInstance::notification(int32_t p_what)
 {
-    if (!has_method("_Notification"))
+    LuauScript *s = script.ptr();
+
+    while (s != nullptr)
     {
-        if (r_status != nullptr)
-            *r_status = -1;
+        // TODO: cache whether user created _Notification in class definition to avoid having to make a thread, etc. to check
 
-        return;
+        lua_State *ET = lua_newthread(T);
+
+        LuaStackOp<int32_t>::push(ET, p_what);
+        call_internal("_Notification", ET, 1, 0);
+
+        lua_pop(T, 1); // thread
+
+        s = s->base.ptr();
     }
-
-    lua_State *ET = lua_newthread(T);
-
-    LuaStackOp<int32_t>::push(ET, p_what);
-    call_internal("_Notification", ET, 1, 0, r_status);
-
-    lua_pop(T, 1); // thread
 }
 
 void LuauScriptInstance::to_string(GDNativeBool *r_is_valid, String *r_out)
 {
-    if (!has_method("_ToString"))
+    LuauScript *s = script.ptr();
+
+    while (s != nullptr)
     {
-        if (r_is_valid != nullptr)
-            *r_is_valid = false;
+        // TODO: cache whether user created _ToString in class definition to avoid having to make a thread, etc. to check
 
-        return;
+        lua_State *ET = lua_newthread(T);
+
+        int status = call_internal("_ToString", ET, 0, 1);
+
+        if (status != -1)
+        {
+            if (status == LUA_OK)
+                *r_out = LuaStackOp<String>::get(ET, -1);
+
+            if (r_is_valid != nullptr)
+                *r_is_valid = status == LUA_OK;
+
+            return;
+        }
+
+        lua_pop(T, 1); // thread
+
+        s = s->base.ptr();
     }
-
-    lua_State *ET = lua_newthread(T);
-
-    int status;
-    call_internal("_ToString", ET, 0, 1, &status);
-
-    if (status == LUA_OK)
-        *r_out = LuaStackOp<String>::get(ET, -1);
-
-    if (r_is_valid != nullptr)
-        *r_is_valid = status == LUA_OK;
-
-    lua_pop(T, 1); // thread
 }
 
 Ref<Script> LuauScriptInstance::get_script() const
@@ -954,28 +1128,28 @@ ScriptLanguage *LuauScriptInstance::get_language() const
     return LuauLanguage::get_singleton();
 }
 
-bool LuauScriptInstance::table_set(lua_State *L) const
+bool LuauScriptInstance::table_set(lua_State *T) const
 {
-    if (lua_mainthread(L) != lua_mainthread(T))
+    if (lua_mainthread(T) != lua_mainthread(L))
         return false;
 
-    lua_getref(L, table_ref);
-    lua_insert(L, -3);
-    lua_settable(L, -3);
-    lua_remove(L, -1);
+    lua_getref(T, table_ref);
+    lua_insert(T, -3);
+    lua_settable(T, -3);
+    lua_remove(T, -1);
 
     return true;
 }
 
-bool LuauScriptInstance::table_get(lua_State *L) const
+bool LuauScriptInstance::table_get(lua_State *T) const
 {
-    if (lua_mainthread(L) != lua_mainthread(T))
+    if (lua_mainthread(T) != lua_mainthread(L))
         return false;
 
-    lua_getref(L, table_ref);
-    lua_insert(L, -2);
-    lua_gettable(L, -2);
-    lua_remove(L, -2);
+    lua_getref(T, table_ref);
+    lua_insert(T, -2);
+    lua_gettable(T, -2);
+    lua_remove(T, -2);
 
     return true;
 }
@@ -989,40 +1163,57 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         p_script->instances.insert(p_owner->get_instance_id(), this);
     }
 
-    lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
+    L = GDLuau::get_singleton()->get_vm(p_vm_type);
     T = lua_newthread(L);
     luaL_sandboxthread(T);
     thread_ref = lua_ref(L, -1);
 
     lua_newtable(T);
-    lua_pushvalue(T, -1);
     table_ref = lua_ref(T, -1);
 
-    Error method_err = p_script->load_methods(p_vm_type);
-    ERR_FAIL_COND_MSG(method_err != OK && method_err != ERR_SKIP, "Couldn't load script methods for " + p_script->definition.name);
+    LuauScript *s = p_script.ptr();
 
-    LuaStackOp<String>::push(T, "_Init");
-    script->def_table_get(vm_type, T);
-
-    if (!lua_isnil(T, -1))
+    while (s != nullptr)
     {
-        if (lua_type(T, -1) != LUA_TFUNCTION)
-            luaGD_valueerror(T, "_Init", luaGD_typename(T, -1), "function");
+        // Run _Init for each script
+        Error method_err = s->load_methods(p_vm_type);
 
-        LuaStackOp<Object *>::push(T, p_owner);
-        lua_pushvalue(T, -3);
-
-        int status = lua_pcall(T, 2, 0, 0);
-
-        if (status != LUA_OK)
+        if (method_err == OK || method_err == ERR_SKIP)
         {
-            ERR_PRINT(p_script->definition.name + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
-            lua_pop(T, 1);
+            LuaStackOp<String>::push(T, "_Init");
+            s->def_table_get(vm_type, T);
+
+            if (!lua_isnil(T, -1))
+            {
+                if (lua_type(T, -1) != LUA_TFUNCTION)
+                    luaGD_valueerror(T, "_Init", luaGD_typename(T, -1), "function");
+
+                LuaStackOp<Object *>::push(T, p_owner);
+                lua_getref(T, table_ref);
+
+                int status = lua_pcall(T, 2, 0, 0);
+
+                if (status == LUA_YIELD)
+                {
+                    ERR_PRINT(p_script->definition.name + ":_Init yielded unexpectedly");
+                }
+                else if (status != LUA_OK)
+                {
+                    ERR_PRINT(p_script->definition.name + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
+                    lua_pop(T, 1);
+                }
+            }
+            else
+            {
+                lua_pop(T, 1);
+            }
         }
-    }
-    else
-    {
-        lua_pop(T, 1);
+        else
+        {
+            ERR_PRINT("Couldn't load script methods for " + p_script->definition.name);
+        }
+
+        s = s->base.ptr();
     }
 }
 
@@ -1033,8 +1224,6 @@ LuauScriptInstance::~LuauScriptInstance()
         MutexLock lock(LuauLanguage::singleton->lock);
         script->instances.erase(owner->get_instance_id());
     }
-
-    lua_State *L = GDLuau::get_singleton()->get_vm(vm_type);
 
     lua_unref(L, table_ref);
     table_ref = 0;

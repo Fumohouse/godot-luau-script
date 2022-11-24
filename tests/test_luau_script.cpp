@@ -10,6 +10,7 @@
 #include <godot_cpp/core/memory.hpp>
 
 #include <lua.h>
+#include <lualib.h>
 
 #include "luau_script.h"
 #include "luagd_stack.h"
@@ -93,6 +94,11 @@ TEST_CASE("luau script: script load")
         REQUIRE(script->_has_property_default_value("testProperty"));
         REQUIRE(script->_get_property_default_value("testProperty") == Variant(5.5));
     }
+
+    SECTION("misc")
+    {
+        REQUIRE(script->get_instance_base_type() == StringName("RefCounted"));
+    }
 }
 
 TEST_CASE("luau script: instance")
@@ -118,6 +124,7 @@ TEST_CASE("luau script: instance")
         function TestClass._Init(obj, tbl)
             setmetatable(tbl, { __index = testClassIndex })
 
+            tbl._notifHits = 0
             tbl.testField = 1
             tbl._testProperty = 3.25
         end
@@ -128,7 +135,9 @@ TEST_CASE("luau script: instance")
         TestClass.methods["_Ready"] = {}
 
         function TestClass:_Notification(what)
-            assert(what == 42)
+            if what == 42 then
+                self._notifHits += 1
+            end
         end
 
         TestClass.methods["_Notification"] = {}
@@ -220,7 +229,6 @@ TEST_CASE("luau script: instance")
     )ASDF");
 
     script->reload();
-
     REQUIRE(script->_is_valid());
 
     Object obj;
@@ -441,10 +449,14 @@ TEST_CASE("luau script: instance")
 
     SECTION("notification")
     {
-        int status;
-        inst->notification(42, &status);
+        lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
 
-        REQUIRE(status == LUA_OK);
+        inst->notification(42);
+
+        LuaStackOp<String>::push(L, "_notifHits");
+        inst->table_get(L);
+
+        REQUIRE(LuaStackOp<int>::check(L, -1) == 1);
     }
 
     SECTION("to string")
@@ -607,4 +619,132 @@ TEST_CASE("luau script: instance")
 
         lua_pop(L, 1); // thread
     }
+}
+
+TEST_CASE("luau script: inheritance")
+{
+    GDLuau gd_luau;
+
+    // 1
+    Ref<LuauScript> script1;
+    script1.instantiate();
+
+    script1->set_source_code(R"ASDF(
+        local Script1 = {
+            name = "Script1",
+            extends = "Object",
+            methods = {},
+            properties = {}
+        }
+
+        function Script1._Init(obj, tbl)
+            tbl.property1 = "hey"
+            tbl.property2 = "hi"
+        end
+
+        Script1.properties["property1"] = {
+            property = gdproperty({ name = "property1", type = Enum.VariantType.TYPE_STRING }),
+            default = "hey"
+        }
+
+        Script1.properties["property2"] = {
+            property = gdproperty({ name = "property2", type = Enum.VariantType.TYPE_STRING }),
+            default = "hi"
+        }
+
+        function Script1:Method1()
+            return "there"
+        end
+
+        Script1.methods["Method1"] = {
+            returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
+        }
+
+        function Script1:Method2()
+            return "world"
+        end
+
+        Script1.methods["Method2"] = {
+            returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
+        }
+
+        return Script1
+    )ASDF");
+
+    script1->reload();
+    REQUIRE(script1->_is_valid());
+
+    // 2
+    Ref<LuauScript> script2;
+    script2.instantiate();
+    script2->base = script1;
+
+    script2->set_source_code(R"ASDF(
+        local Script2 = {
+            name = "Script2",
+            extends = "Script1",
+            methods = {},
+            properties = {}
+        }
+
+        function Script2:GetProperty2()
+            return "hihi"
+        end
+
+        Script2.properties["property2"] = {
+            property = gdproperty({ name = "property2", type = Enum.VariantType.TYPE_STRING }),
+            getter = "GetProperty2",
+            default = "hi"
+        }
+
+        function Script2:Method2()
+            return "guy"
+        end
+
+        return Script2
+    )ASDF");
+
+    script2->reload();
+    REQUIRE(script2->_is_valid());
+
+    // Instance
+    Object obj;
+    obj.set_script(script2);
+
+    LuauScriptInstance *inst = script2->instance_get(&obj);
+
+    lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
+    lua_State *T = lua_newthread(L);
+    luaL_sandboxthread(T);
+
+    LuaStackOp<Object *>::push(T, &obj);
+    lua_setglobal(T, "obj");
+
+    SECTION("methods")
+    {
+        SECTION("inherited")
+        {
+            ASSERT_EVAL_EQ(T, "return obj.property1", String, "hey");
+        }
+
+        SECTION("overriden")
+        {
+            ASSERT_EVAL_EQ(T, "return obj.property2", String, "hihi");
+        }
+    }
+
+    SECTION("properties")
+    {
+        SECTION("inherited")
+        {
+            ASSERT_EVAL_EQ(T, "return obj:Method1()", String, "there");
+        }
+
+        SECTION("overridden")
+        {
+            ASSERT_EVAL_EQ(T, "return obj:Method2()", String, "guy");
+        }
+    }
+
+    lua_pop(L, 1); // thread
 }

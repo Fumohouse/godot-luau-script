@@ -49,6 +49,8 @@ protected:
     static void _bind_methods() {}
 
 public:
+    Ref<LuauScript> base; // !! public for tests only !!
+
     virtual bool _has_source_code() const override;
     virtual String _get_source_code() const override;
     virtual void _set_source_code(const String &p_code) override;
@@ -62,6 +64,9 @@ public:
 
     /* SCRIPT INFO */
     virtual bool _is_tool() const override;
+    virtual StringName _get_instance_base_type() const override;
+    virtual Ref<Script> _get_base_script() const override;
+    virtual bool _inherits_script(const Ref<Script> &p_script) const override;
 
     virtual TypedArray<Dictionary> _get_script_method_list() const override;
     virtual bool _has_method(const StringName &p_method) const override;
@@ -83,9 +88,6 @@ public:
 
     /*
     virtual void _placeholder_erased(void *placeholder);
-    virtual Ref<Script> _get_base_script() const;
-    virtual bool _inherits_script(const Ref<Script> &script) const;
-    virtual StringName _get_instance_base_type() const;
     virtual void *_placeholder_instance_create(Object *for_object) const;
     virtual bool _has_script_signal(const StringName &signal) const;
     virtual TypedArray<Dictionary> _get_script_signal_list() const;
@@ -105,6 +107,8 @@ public:
 class LuauScriptInstance
 {
 private:
+    lua_State *L;
+
     Ref<LuauScript> script;
     Object *owner;
     GDLuau::VMType vm_type;
@@ -113,7 +117,7 @@ private:
     int thread_ref;
     lua_State *T;
 
-    void call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret, int *r_status = nullptr);
+    int call_internal(const StringName &p_method, lua_State *T, int nargs, int nret);
 
 public:
     enum PropertySetGetError
@@ -134,6 +138,8 @@ public:
 
     void get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
 
+    const GDClassProperty *get_property(const StringName &p_name) const;
+
     GDNativePropertyInfo *get_property_list(uint32_t *r_count) const;
     void free_property_list(const GDNativePropertyInfo *p_list) const;
 
@@ -147,17 +153,17 @@ public:
     GDNativeMethodInfo *get_method_list(uint32_t *r_count) const;
     void free_method_list(const GDNativeMethodInfo *p_list) const;
 
-    bool has_method(const StringName &p_name, StringName *r_actual_name = nullptr) const;
+    bool has_method(const StringName &p_name) const;
 
     void call(const StringName &p_method, const Variant *p_args, const GDNativeInt p_argument_count, Variant *r_return, GDNativeCallError *r_error);
-    void notification(int32_t p_what, int *r_status = nullptr);
+    void notification(int32_t p_what);
     void to_string(GDNativeBool *r_is_valid, String *r_out);
 
     Ref<Script> get_script() const;
     ScriptLanguage *get_language() const;
 
-    bool table_set(lua_State *L) const;
-    bool table_get(lua_State *L) const;
+    bool table_set(lua_State *T) const;
+    bool table_get(lua_State *T) const;
 
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();
