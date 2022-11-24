@@ -1,0 +1,5 @@
+*
+!.gitignore
+
+!*.framework/
+!*.framework/Info.plist

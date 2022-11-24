@@ -1,3 +1,6 @@
 gen/
 __pycache__/
 *.a
+*.o
+*.os
+.sconsign.dblite

@@ -1,0 +1,11 @@
+[submodule "extern/luau"]
+	path = extern/luau
+	url = https://github.com/Roblox/luau
+	ignore = untracked
+[submodule "extern/Catch2"]
+	path = extern/Catch2
+	url = https://github.com/catchorg/Catch2
+	ignore = untracked
+[submodule "extern/godot-cpp"]
+	path = extern/godot-cpp
+	url = https://github.com/godotengine/godot-cpp

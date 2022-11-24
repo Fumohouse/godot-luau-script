@@ -2,7 +2,7 @@
 
 import os
 
-env = SConscript("../godot-cpp/SConstruct")
+env = SConscript("extern/godot-cpp/SConstruct")
 env["ENV"]["TERM"] = os.environ["TERM"]  # clang colors
 
 # Using this option makes a warning. Too bad!
@@ -53,14 +53,14 @@ else:
 
 if env["platform"] == "macos":
     library = env_main.SharedLibrary(
-        "../../bin/luau-script/libluau-script.{}.{}.framework/libluau-script.{}.{}".format(
+        "bin/luau-script/libluau-script.{}.{}.framework/libluau-script.{}.{}".format(
             env["platform"], env["target"], env["platform"], env["target"]
         ),
         source=sources,
     )
 else:
     library = env_main.SharedLibrary(
-        "../../bin/luau-script/libluau-script{}{}".format(
+        "bin/luau-script/libluau-script{}{}".format(
             env["suffix"], env["SHLIBSUFFIX"]),
         source=sources,
     )

@@ -28,7 +28,7 @@ def load_cpp_binding_generator():
     # lol
 
     godot_cpp_path = Path(__file__).parent / \
-        "../../godot-cpp/binding_generator.py"
+        "../extern/godot-cpp/binding_generator.py"
 
     loader = importlib.machinery.SourceFileLoader("binding_generator",
                                                   str(godot_cpp_path))

@@ -7,9 +7,9 @@
             "extern/luau/Ast/include/",
             "extern/luau/Common/include/",
             "extern/luau/VM/include/",
-            "../godot-cpp/include/",
-            "../godot-cpp/godot-headers/",
-            "../godot-cpp/gen/include/",
+            "extern/godot-cpp/include/",
+            "extern/godot-cpp/godot-headers/",
+            "extern/godot-cpp/gen/include/",
             "extern/Catch2/extras/"
         ],
         "defaultDefines": [
