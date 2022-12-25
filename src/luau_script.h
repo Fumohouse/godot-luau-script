@@ -1,8 +1,6 @@
 #pragma once
 
 #include <gdextension_interface.h>
-#include <godot_cpp/templates/list.hpp>
-#include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
@@ -266,7 +264,6 @@ public:
     TypedArray<Dictionary> _get_built_in_templates(const StringName &object) const;
     bool _is_using_templates();
 
-
     Dictionary _complete_code(const String &code, const String &path, Object *owner) const;
     Dictionary _lookup_code(const String &code, const String &symbol, const String &path, Object *owner) const;
     String _auto_indent_code(const String &code, int64_t from_line, int64_t to_line) const;
@@ -276,8 +273,6 @@ public:
     // Non-essential. For class icons?
     bool _handles_global_class_type(const String &type) const;
     Dictionary _get_global_class_name(const String &path) const;
-
-    // Debugger
 
     // Profiler
     void _profiling_start();

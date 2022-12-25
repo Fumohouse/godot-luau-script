@@ -4,11 +4,12 @@
 #include <Luau/Compiler.h>
 #include <string>
 #include <string.h>
-#include <memory.h>
 
 #include <gdextension_interface.h>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/array.hpp>
@@ -16,8 +17,6 @@
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
-#include <godot_cpp/core/error_macros.hpp>
-#include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/file_access.hpp>

@@ -7,7 +7,6 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
-#include <godot_cpp/core/memory.hpp>
 
 #include <lua.h>
 #include <lualib.h>

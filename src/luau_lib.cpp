@@ -1,8 +1,8 @@
 #include "luau_lib.h"
 
 #include <lualib.h>
-#include <cstring>
 #include <gdextension_interface.h>
+#include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
