@@ -24,48 +24,6 @@
 
 using namespace godot;
 
-/*
-    Luau scripting design
-
-    Requirements:
-    - [x] Binding of built in Godot APIs to Luau
-    - [ ] Manual binding of GDExtension Object classes
-        - Push extension initialization earlier (SERVERS)
-        - Interface between extensions with a singleton and named method calls
-        - Create an interface source file/header which can be pulled into a GDExtension and used for convenience
-    - [ ] Separated VMs
-        - [x] VMs for loading script resources, running core scripts, running map scripts
-        - [ ] Ability to reset VMs (unloading scripts?)
-        - [x] Thread data containing flag enum of permissions (OS, File, etc.) + inheritance
-            - https://github.com/Roblox/luau/pull/167
-        - [ ] Resource for setting core script permissions
-        - [x] Bound API checks for permissions
-    - [ ] Extending/referencing custom Luau classes
-    - Godot feature support:
-        - [ ] Signals
-        - [ ] RPCs
-        - [ ] Tool scripts
-        - [?] Exports
-        - [x] Properties (get/set)
-        - [ ] Global classes
-        - [ ] AutoLoad
-        - [x] Expose methods to other Godot APIs
-        - [ ] Templates
-    - [ ] is keyword alternative - using is_class_ptr and get_class_ptr_static or metatables (or both idk)
-
-    Necessary but not now:
-    - [ ] Debugger
-    - [ ] Profiler
-    - [ ] Typechecking & analysis
-        - Reference https://github.com/Roblox/luau/pull/578
-
-    Nice-to-have:
-    - [ ] Callable support for function objects (needs CallableCustom support in GDExtension)
-    - [ ] Documentation support
-    - [ ] Autocomplete within the editor
-    - [ ] AST-based method registration
-*/
-
 LuauLanguage *script_language_luau = nullptr;
 Ref<ResourceFormatLoaderLuauScript> resource_loader_luau;
 Ref<ResourceFormatSaverLuauScript> resource_saver_luau;
