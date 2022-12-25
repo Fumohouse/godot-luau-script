@@ -27,7 +27,7 @@
         {                                                                                               \
             __did_init = true;                                                                          \
             StringName __name = #const_name;                                                            \
-            internal::gdn_interface->variant_get_constant_value(variant_type, &__name, &__const_value); \
+            internal::gde_interface->variant_get_constant_value(variant_type, &__name, &__const_value); \
         }                                                                                               \
                                                                                                         \
         LuaStackOp<const_type>::push(L, __const_value);                                                 \

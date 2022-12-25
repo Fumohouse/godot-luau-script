@@ -1,6 +1,6 @@
 #include <catch_amalgamated.hpp>
 
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -245,7 +245,7 @@ TEST_CASE("luau script: instance")
         REQUIRE(inst->has_method("TestMethod2"));
 
         uint32_t count;
-        GDNativeMethodInfo *methods = inst->get_method_list(&count);
+        GDExtensionMethodInfo *methods = inst->get_method_list(&count);
 
         REQUIRE(count == 5);
 
@@ -262,7 +262,7 @@ TEST_CASE("luau script: instance")
             {
                 m2_found = true;
 
-                REQUIRE(methods[i].return_value.type == GDNATIVE_VARIANT_TYPE_FLOAT);
+                REQUIRE(methods[i].return_value.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
                 REQUIRE(methods[i].argument_count == 2);
                 REQUIRE(*((StringName *)methods[i].arguments[1].name) == StringName("arg2"));
             }
@@ -283,7 +283,7 @@ TEST_CASE("luau script: instance")
         REQUIRE(type == Variant::Type::FLOAT);
 
         uint32_t count;
-        GDNativePropertyInfo *properties = inst->get_property_list(&count);
+        GDExtensionPropertyInfo *properties = inst->get_property_list(&count);
 
         REQUIRE(count == 4);
 
@@ -297,12 +297,12 @@ TEST_CASE("luau script: instance")
             if (*name == StringName("testProperty"))
             {
                 p1_found = true;
-                REQUIRE(properties[i].type == GDNATIVE_VARIANT_TYPE_FLOAT);
+                REQUIRE(properties[i].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
             }
             else if (*name == StringName("testProperty2"))
             {
                 p2_found = true;
-                REQUIRE(properties[i].type == GDNATIVE_VARIANT_TYPE_STRING);
+                REQUIRE(properties[i].type == GDEXTENSION_VARIANT_TYPE_STRING);
             }
         }
 
@@ -318,11 +318,11 @@ TEST_CASE("luau script: instance")
         {
             Variant args[] = {2.5f, "Hello world"};
             Variant ret;
-            GDNativeCallError err;
+            GDExtensionCallError err;
 
             inst->call("TestMethod", args, 2, &ret, &err);
 
-            REQUIRE(err.error == GDNATIVE_CALL_OK);
+            REQUIRE(err.error == GDEXTENSION_CALL_OK);
             REQUIRE(ret == "2.5, Hello world");
         }
 
@@ -330,22 +330,22 @@ TEST_CASE("luau script: instance")
         {
             Variant args[] = {};
             Variant ret;
-            GDNativeCallError err;
+            GDExtensionCallError err;
 
             inst->call("_ready", args, 0, &ret, &err);
 
-            REQUIRE(err.error == GDNATIVE_CALL_OK);
+            REQUIRE(err.error == GDEXTENSION_CALL_OK);
         }
 
         SECTION("default argument")
         {
             Variant args[] = {5.3f};
             Variant ret;
-            GDNativeCallError err;
+            GDExtensionCallError err;
 
             inst->call("TestMethod", args, 1, &ret, &err);
 
-            REQUIRE(err.error == GDNATIVE_CALL_OK);
+            REQUIRE(err.error == GDEXTENSION_CALL_OK);
             REQUIRE(ret == "5.3, hi");
         }
 
@@ -355,11 +355,11 @@ TEST_CASE("luau script: instance")
             {
                 Variant args[] = {};
                 Variant ret;
-                GDNativeCallError err;
+                GDExtensionCallError err;
 
                 inst->call("TestMethod", args, 0, &ret, &err);
 
-                REQUIRE(err.error == GDNATIVE_CALL_ERROR_TOO_FEW_ARGUMENTS);
+                REQUIRE(err.error == GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS);
                 REQUIRE(err.argument == 1);
             }
 
@@ -367,11 +367,11 @@ TEST_CASE("luau script: instance")
             {
                 Variant args[] = {1, 1, 1, 1, 1};
                 Variant ret;
-                GDNativeCallError err;
+                GDExtensionCallError err;
 
                 inst->call("TestMethod", args, 5, &ret, &err);
 
-                REQUIRE(err.error == GDNATIVE_CALL_ERROR_TOO_MANY_ARGUMENTS);
+                REQUIRE(err.error == GDEXTENSION_CALL_ERROR_TOO_MANY_ARGUMENTS);
                 REQUIRE(err.argument == 2);
             }
 
@@ -379,13 +379,13 @@ TEST_CASE("luau script: instance")
             {
                 Variant args[] = {false};
                 Variant ret;
-                GDNativeCallError err;
+                GDExtensionCallError err;
 
                 inst->call("TestMethod", args, 1, &ret, &err);
 
-                REQUIRE(err.error == GDNATIVE_CALL_ERROR_INVALID_ARGUMENT);
+                REQUIRE(err.error == GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT);
                 REQUIRE(err.argument == 0);
-                REQUIRE(err.expected == GDNATIVE_VARIANT_TYPE_FLOAT);
+                REQUIRE(err.expected == GDEXTENSION_VARIANT_TYPE_FLOAT);
             }
         }
     }
@@ -463,7 +463,7 @@ TEST_CASE("luau script: instance")
     {
         bool is_valid;
         String out;
-        inst->to_string((GDNativeBool *)&is_valid, &out);
+        inst->to_string((GDExtensionBool *)&is_valid, &out);
 
         REQUIRE(is_valid);
         REQUIRE(out == "my awesome class");
@@ -531,7 +531,7 @@ TEST_CASE("luau script: instance")
 
         SECTION("property state")
         {
-            GDNativeExtensionScriptInstancePropertyStateAdd add = [](const GDNativeStringNamePtr p_name, const GDNativeVariantPtr p_value, void *p_userdata)
+            GDExtensionScriptInstancePropertyStateAdd add = [](GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value, void *p_userdata)
             {
                 ((HashMap<StringName, Variant> *)p_userdata)->insert(*((const StringName *)p_name), *((const Variant *)p_value));
             };

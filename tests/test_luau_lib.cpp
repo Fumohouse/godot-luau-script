@@ -1,7 +1,7 @@
 #include <catch_amalgamated.hpp>
 
 #include <lua.h>
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/array.hpp>
@@ -22,7 +22,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
     {
         GDProperty expected;
 
-        expected.type = GDNATIVE_VARIANT_TYPE_OBJECT;
+        expected.type = GDEXTENSION_VARIANT_TYPE_OBJECT;
         expected.name = "testProp";
         expected.hint = PropertyHint::PROPERTY_HINT_ENUM;
         expected.hint_string = "val1,val2,val3";
@@ -49,7 +49,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
     {
         GDProperty expected;
 
-        expected.type = GDNATIVE_VARIANT_TYPE_OBJECT;
+        expected.type = GDEXTENSION_VARIANT_TYPE_OBJECT;
         expected.name = "testProp";
         expected.class_name = "Node2D";
 
@@ -100,11 +100,11 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
 
             GDProperty expected_arg1;
             expected_arg1.name = "arg1";
-            expected_arg1.type = GDNATIVE_VARIANT_TYPE_FLOAT;
+            expected_arg1.type = GDEXTENSION_VARIANT_TYPE_FLOAT;
 
             GDProperty expected_arg2;
             expected_arg2.name = "arg2";
-            expected_arg2.type = GDNATIVE_VARIANT_TYPE_STRING;
+            expected_arg2.type = GDEXTENSION_VARIANT_TYPE_STRING;
 
             expected_method.arguments.push_back(expected_arg1);
             expected_method.arguments.push_back(expected_arg2);
@@ -113,7 +113,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
             expected_method.default_arguments.push_back("godot");
 
             GDProperty expected_ret;
-            expected_ret.type = GDNATIVE_VARIANT_TYPE_STRING;
+            expected_ret.type = GDEXTENSION_VARIANT_TYPE_STRING;
 
             expected_method.return_val = expected_ret;
 
@@ -122,7 +122,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
 
         GDProperty expected_property;
         expected_property.name = "testProperty";
-        expected_property.type = GDNATIVE_VARIANT_TYPE_FLOAT;
+        expected_property.type = GDEXTENSION_VARIANT_TYPE_FLOAT;
 
         EVAL_THEN(T, R"ASDF(
             return {
@@ -170,7 +170,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
                           REQUIRE(def.properties.has("testProperty"));
 
                           GDClassProperty &prop = def.properties.get("testProperty");
-                          REQUIRE(prop.property.type == GDNATIVE_VARIANT_TYPE_FLOAT);
+                          REQUIRE(prop.property.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
                           REQUIRE(prop.property.operator Dictionary() == expected_property.operator Dictionary());
                           REQUIRE(prop.getter == StringName("GetTestProperty"));
                           REQUIRE(prop.setter == StringName("SetTestProperty"));

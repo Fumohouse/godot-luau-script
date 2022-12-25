@@ -2,7 +2,7 @@
 
 #include <lua.h>
 #include <lualib.h>
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>

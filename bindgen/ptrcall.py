@@ -42,7 +42,7 @@ def generate_arg(arg_name, arg_type, index, api):
 
         return decl, call, arg_name
     else:
-        enc_type = binding_generator.get_gdnative_type(correct_type)
+        enc_type = binding_generator.get_gdextension_type(correct_type)
 
         decl = f"{enc_type} {arg_name};"
         call = f"LuaPtrcallArg<{correct_type}>::get(L, {index}, &{arg_name})"
@@ -68,7 +68,7 @@ def generate_arg_required(arg_name, arg_type, index, api):
 
         return decl, arg_name, varcall
     else:
-        enc_type = binding_generator.get_gdnative_type(correct_type)
+        enc_type = binding_generator.get_gdextension_type(correct_type)
 
         decl = f"{enc_type} {arg_name} = {call};"
         name = f"&{arg_name}"
@@ -106,7 +106,7 @@ def generate_ptrcall(src_dir, include_dir):
 
     # Types which require PtrToArg conversion
     for c_type in conv_types:
-        enc_type = binding_generator.get_gdnative_type(c_type)
+        enc_type = binding_generator.get_gdextension_type(c_type)
 
         src.append(f"""\
 bool LuaPtrcallArg<{c_type}>::get(lua_State *L, int index, {enc_type} *ptr)

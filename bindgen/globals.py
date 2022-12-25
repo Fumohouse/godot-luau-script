@@ -11,7 +11,7 @@ def generate_luau_globals(src_dir, api):
 #include "luagd_bindings.h"
 
 #include <lua.h>
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
@@ -74,7 +74,7 @@ void luaGD_openglobals(lua_State *L)
     lua_pushcfunction(L, [](lua_State *L) -> int
     {{
         StringName __name = "{func_name}";
-        static GDNativePtrUtilityFunction __func = internal::gdn_interface->variant_get_ptr_utility_function(&__name, {func_hash});
+        static GDExtensionPtrUtilityFunction __func = internal::gde_interface->variant_get_ptr_utility_function(&__name, {func_hash});
 """)
 
         indent_level += 2
@@ -90,7 +90,7 @@ void luaGD_openglobals(lua_State *L)
                 util_func["return_type"], api)
 
             append(src, indent_level, f"""\
-{binding_generator.get_gdnative_type(correct_return)} ret;
+{binding_generator.get_gdextension_type(correct_return)} ret;
 __func(&ret, args.ptr(), args.size());
 
 LuaStackOp<{correct_return}>::push(L, ret);

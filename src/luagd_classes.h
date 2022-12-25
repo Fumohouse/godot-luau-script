@@ -32,15 +32,15 @@ typedef Vector<ClassInfo> ClassRegistry;
 
 // ! engine_ptrcall.hpp
 template <class O, class... Args>
-O *_call_native_mb_ret_obj_arr(const GDNativeMethodBindPtr mb, void *instance, const GDNativeTypePtr *args)
+O *_call_native_mb_ret_obj_arr(const GDExtensionMethodBindPtr mb, void *instance, const GDExtensionTypePtr *args)
 {
     GodotObject *ret = nullptr;
-    internal::gdn_interface->object_method_bind_ptrcall(mb, instance, args, &ret);
+    internal::gde_interface->object_method_bind_ptrcall(mb, instance, args, &ret);
 
     if (ret == nullptr)
         return nullptr;
 
-    return reinterpret_cast<O *>(internal::gdn_interface->object_get_instance_binding(ret, internal::token, &O::___binding_callbacks));
+    return reinterpret_cast<O *>(internal::gde_interface->object_get_instance_binding(ret, internal::token, &O::___binding_callbacks));
 }
 
 int luaGD_class_ctor(lua_State *L);

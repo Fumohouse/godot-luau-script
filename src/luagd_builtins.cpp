@@ -16,7 +16,7 @@ int luaGD_builtin_namecall(lua_State *L)
         if (methods->has(name))
             return (methods->get(name))(L);
 
-        luaL_error(L, "%s is not a valid method of %s", name, class_name);
+        luaL_error(L, "'%s' is not a valid method of '%s'", name, class_name);
     }
 
     luaL_error(L, "no namecallatom");
@@ -25,7 +25,7 @@ int luaGD_builtin_namecall(lua_State *L)
 int luaGD_builtin_newindex(lua_State *L)
 {
     const char *class_name = lua_tostring(L, lua_upvalueindex(1));
-    luaL_error(L, "%s is read-only", class_name);
+    luaL_error(L, "type '%s' is read-only", class_name);
 }
 
 int luaGD_builtin_global_index(lua_State *L)

@@ -2,13 +2,14 @@
 
 #include <lua.h>
 #include <lualib.h>
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/string_name.hpp>
 
 #include "luagd_stack.h"
 #include "luau_script.h"
@@ -21,8 +22,8 @@ int luaGD_class_ctor(lua_State *L)
 {
     StringName class_name = lua_tostring(L, lua_upvalueindex(1));
 
-    GDNativeObjectPtr native_ptr = internal::gdn_interface->classdb_construct_object(&class_name);
-    GDObjectInstanceID id = internal::gdn_interface->object_get_instance_id(native_ptr);
+    GDExtensionObjectPtr native_ptr = internal::gde_interface->classdb_construct_object(&class_name);
+    GDObjectInstanceID id = internal::gde_interface->object_get_instance_id(native_ptr);
 
     Object *obj = ObjectDB::get_instance(id);
     LuaStackOp<Object *>::push(L, obj);
@@ -82,29 +83,29 @@ int luaGD_class_namecall(lua_State *L)
                     args.set(i - 2, LuaStackOp<Variant>::get(L, i));
 
                 Variant ret;
-                GDNativeCallError err;
+                GDExtensionCallError err;
                 inst->call(name, args.ptr(), args.size(), &ret, &err);
 
                 switch (err.error)
                 {
-                case GDNATIVE_CALL_OK:
+                case GDEXTENSION_CALL_OK:
                     LuaStackOp<Variant>::push(L, ret);
                     return 1;
 
-                case GDNATIVE_CALL_ERROR_INVALID_ARGUMENT:
+                case GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT:
                     luaL_error(L, "invalid argument #%d to '%s' (%s expected, got %s)",
                                err.argument + 1,
                                name,
                                Variant::get_type_name((Variant::Type)err.expected).utf8().get_data(),
                                Variant::get_type_name(args[err.argument].get_type()).utf8().get_data());
 
-                case GDNATIVE_CALL_ERROR_TOO_FEW_ARGUMENTS:
+                case GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS:
                     luaL_error(L, "missing argument #%d to '%s' (expected at least %d)",
                                args.size() + 2,
                                name,
                                err.argument);
 
-                case GDNATIVE_CALL_ERROR_TOO_MANY_ARGUMENTS:
+                case GDEXTENSION_CALL_ERROR_TOO_MANY_ARGUMENTS:
                     luaL_error(L, "too many arguments to '%s' (expected at most %d)",
                                name,
                                err.argument);
@@ -282,7 +283,12 @@ int luaGD_class_newindex(lua_State *L)
         {
             lua_remove(L, 2);
 
-            return current_class->methods[current_class->properties[key].setter_name](L);
+            const StringName &setter_name = current_class->properties[key].setter_name;
+
+            if (setter_name == StringName())
+                luaL_error(L, "property '%s' is read-only", key);
+
+            return current_class->methods[setter_name](L);
         }
 
         INHERIT_OR_BREAK

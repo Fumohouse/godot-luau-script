@@ -1,6 +1,6 @@
 #pragma once
 
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -131,17 +131,17 @@ public:
         PROP_SET_FAILED
     };
 
-    static const GDNativeExtensionScriptInstanceInfo INSTANCE_INFO;
+    static const GDExtensionScriptInstanceInfo INSTANCE_INFO;
 
     bool set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err = nullptr);
     bool get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err = nullptr);
 
-    void get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
+    void get_property_state(GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
 
     const GDClassProperty *get_property(const StringName &p_name) const;
 
-    GDNativePropertyInfo *get_property_list(uint32_t *r_count) const;
-    void free_property_list(const GDNativePropertyInfo *p_list) const;
+    GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) const;
+    void free_property_list(const GDExtensionPropertyInfo *p_list) const;
 
     Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const;
 
@@ -150,14 +150,14 @@ public:
 
     Object *get_owner() const;
 
-    GDNativeMethodInfo *get_method_list(uint32_t *r_count) const;
-    void free_method_list(const GDNativeMethodInfo *p_list) const;
+    GDExtensionMethodInfo *get_method_list(uint32_t *r_count) const;
+    void free_method_list(const GDExtensionMethodInfo *p_list) const;
 
     bool has_method(const StringName &p_name) const;
 
-    void call(const StringName &p_method, const Variant *p_args, const GDNativeInt p_argument_count, Variant *r_return, GDNativeCallError *r_error);
+    void call(const StringName &p_method, const Variant *p_args, const GDExtensionInt p_argument_count, Variant *r_return, GDExtensionCallError *r_error);
     void notification(int32_t p_what);
-    void to_string(GDNativeBool *r_is_valid, String *r_out);
+    void to_string(GDExtensionBool *r_is_valid, String *r_out);
 
     Ref<Script> get_script() const;
     ScriptLanguage *get_language() const;

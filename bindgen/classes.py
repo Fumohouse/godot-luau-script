@@ -48,7 +48,7 @@ def generate_method(class_name, method, api, class_permissions):
 {{
     StringName __class_name = "{class_name}";
     StringName __method_name = "{method_name}";
-    static GDNativeMethodBindPtr __method_bind = internal::gdn_interface->classdb_get_method_bind(&__class_name, &__method_name, {method_hash});
+    static GDExtensionMethodBindPtr __method_bind = internal::gde_interface->classdb_get_method_bind(&__class_name, &__method_name, {method_hash});
 """)
 
     indent_level = 1
@@ -67,8 +67,8 @@ def generate_method(class_name, method, api, class_permissions):
     if method["is_vararg"]:
         append(src, indent_level, f"""\
 Variant ret;
-GDNativeCallError error;
-internal::gdn_interface->object_method_bind_call(__method_bind, {self_name}, args.ptr(), args.size(), &ret, &error);
+GDExtensionCallError error;
+internal::gde_interface->object_method_bind_call(__method_bind, {self_name}, args.ptr(), args.size(), &ret, &error);
 """)
 
         if "return_value" in method:
@@ -89,19 +89,19 @@ return 1;\
 """)
         else:
             correct_ret_type = common.get_luau_type(return_type, api)
-            gdn_ret_type = binding_generator.get_gdnative_type(
+            gde_ret_type = binding_generator.get_gdextension_type(
                 correct_ret_type)
 
             append(src, indent_level, f"""\
-{gdn_ret_type} ret;
-internal::gdn_interface->object_method_bind_ptrcall(__method_bind, {self_name}, args.ptr(), &ret);
+{gde_ret_type} ret;
+internal::gde_interface->object_method_bind_ptrcall(__method_bind, {self_name}, args.ptr(), &ret);
 LuaStackOp<{correct_ret_type}>::push(L, ret);
 
 return 1;\
 """)
     else:
         append(src, indent_level, f"""\
-internal::gdn_interface->object_method_bind_ptrcall(__method_bind, {self_name}, args.ptr(), nullptr);
+internal::gde_interface->object_method_bind_ptrcall(__method_bind, {self_name}, args.ptr(), nullptr);
 return 0;\
 """)
 
@@ -319,7 +319,7 @@ if (first_init)
             for prop in properties:
                 prop_name = utils.snake_to_camel(prop["name"])
                 getter_name = utils.snake_to_pascal(prop["getter"])
-                setter_name = utils.snake_to_pascal(prop["setter"])
+                setter_name = utils.snake_to_pascal(prop["setter"]) if "setter" in prop else ""
 
                 append(class_src, c_indent, f"""\
 {{
@@ -411,8 +411,8 @@ lua_setfield(L, -2, "__index");
 lua_pushcfunction(L, [](lua_State *L) -> int
 {{
     StringName __name = "{singleton["name"]}";
-    static GDNativeObjectPtr singleton_obj = internal::gdn_interface->global_get_singleton(&__name);
-    static GDObjectInstanceID singleton_id = internal::gdn_interface->object_get_instance_id(singleton_obj);
+    static GDExtensionObjectPtr singleton_obj = internal::gde_interface->global_get_singleton(&__name);
+    static GDObjectInstanceID singleton_id = internal::gde_interface->object_get_instance_id(singleton_obj);
 
     if (lua_gettop(L) > 0)
         luaL_error(L, "singleton getter takes no arguments");

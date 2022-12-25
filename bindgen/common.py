@@ -85,7 +85,7 @@ if ({self_name} == nullptr)
     src.append(f"""\
 int argc = lua_gettop(L);
 
-Vector<GDNativeTypePtr> args;
+Vector<GDExtensionTypePtr> args;
 args.resize(argc - {arg_start_index - 1});
 """)
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/templates/list.hpp>
@@ -17,7 +17,7 @@ struct lua_State;
 
 struct GDProperty
 {
-    GDNativeVariantType type = GDNATIVE_VARIANT_TYPE_NIL;
+    GDExtensionVariantType type = GDEXTENSION_VARIANT_TYPE_NIL;
     uint32_t usage = PROPERTY_USAGE_DEFAULT;
 
     String name;

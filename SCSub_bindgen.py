@@ -14,9 +14,9 @@ luau_bindings = env_gen.GenerateLuauBindings(
     Dir("."),
     [
         os.path.join(
-            os.getcwd(), "extern/godot-cpp/godot-headers/extension_api.json"),
+            os.getcwd(), "extern/godot-cpp/gdextension/extension_api.json"),
         os.path.join(
-            os.getcwd(), "extern/godot-cpp/godot-headers/godot/gdnative_interface.h")
+            os.getcwd(), "extern/godot-cpp/gdextension/gdextension_interface.h")
     ]
 )
 

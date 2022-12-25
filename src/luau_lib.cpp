@@ -2,7 +2,7 @@
 
 #include <lualib.h>
 #include <cstring>
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -79,7 +79,7 @@ static int luascript_gdproperty(lua_State *L)
     GDProperty property;
 
     if (luaGD_getfield(L, 1, "type"))
-        property.type = static_cast<GDNativeVariantType>(luaGD_checkvaluetype<uint32_t>(L, -1, "type", LUA_TNUMBER));
+        property.type = static_cast<GDExtensionVariantType>(luaGD_checkvaluetype<uint32_t>(L, -1, "type", LUA_TNUMBER));
 
     if (luaGD_getfield(L, 1, "name"))
         property.name = luaGD_checkvaluetype<String>(L, -1, "name", LUA_TSTRING);

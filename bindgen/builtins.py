@@ -59,8 +59,8 @@ def generate_builtin_constructor(class_name, variant_type, constructors, api):
 
         # Get constructor info
         append(ctor, indent_level,
-               "static GDNativePtrConstructor __constructor = " +
-               f"internal::gdn_interface->variant_get_ptr_constructor({variant_type}, {index});\n")
+               "static GDExtensionPtrConstructor __constructor = " +
+               f"internal::gde_interface->variant_get_ptr_constructor({variant_type}, {index});\n")
 
         # Check arg count
         append(ctor, indent_level, f"""\
@@ -141,7 +141,7 @@ def generate_method(class_name, variant_type, method, api):
     if not is_vararg:
         append(src, indent_level, f"""\
 StringName __name = "{method_name}";
-static GDNativePtrBuiltInMethod __method = internal::gdn_interface->variant_get_ptr_builtin_method({variant_type}, &__name, {method_hash});\
+static GDExtensionPtrBuiltInMethod __method = internal::gde_interface->variant_get_ptr_builtin_method({variant_type}, &__name, {method_hash});\
 """)
 
     # Pull arguments
@@ -170,11 +170,11 @@ Variant ret;\
 
         if is_static:
             append(src, indent_level,
-                   f"internal::gdn_interface->variant_call_static({variant_type}, &__method_name, args.ptr(), args.size(), {ret_ptr_name}, nullptr);")
+                   f"internal::gde_interface->variant_call_static({variant_type}, &__method_name, args.ptr(), args.size(), {ret_ptr_name}, nullptr);")
         else:
             append(src, indent_level, f"""\
 Variant v_self = *{self_name};
-internal::gdn_interface->variant_call(&v_self, &__method_name, args.ptr(), args.size(), &ret, nullptr);\
+internal::gde_interface->variant_call(&v_self, &__method_name, args.ptr(), args.size(), &ret, nullptr);\
 """)
     else:
         append(src, indent_level,
@@ -236,7 +236,7 @@ def generate_op(class_name, metatable_name, variant_type, operators, api):
         if not (True in [op["name"] == gd_op for op in operators]):
             continue
 
-        variant_op_name = "GDNATIVE_VARIANT_OP_" + \
+        variant_op_name = "GDEXTENSION_VARIANT_OP_" + \
             binding_generator.get_operator_id_name(gd_op).upper()
 
         append(src, indent_level, f"""\
@@ -262,16 +262,16 @@ lua_pushcfunction(L, [](lua_State *L) -> int
                 label_format.format(class_name, mt_key,
                                     op_overload_index + 1) + ";"
 
-            right_variant_type = "GDNATIVE_VARIANT_TYPE_NIL"
+            right_variant_type = "GDEXTENSION_VARIANT_TYPE_NIL"
             if "right_type" in operator:
                 right_type = operator["right_type"]
                 if right_type != "Variant":
-                    right_variant_type = "GDNATIVE_VARIANT_TYPE_" + \
+                    right_variant_type = "GDEXTENSION_VARIANT_TYPE_" + \
                         binding_generator.camel_to_snake(right_type).upper()
 
             append(src, indent_level, f"""\
 {{
-    static GDNativePtrOperatorEvaluator __op = internal::gdn_interface->variant_get_ptr_operator_evaluator({variant_op_name}, {variant_type}, {right_variant_type});
+    static GDExtensionPtrOperatorEvaluator __op = internal::gde_interface->variant_get_ptr_operator_evaluator({variant_op_name}, {variant_type}, {right_variant_type});
 """)
             indent_level += 1
 
@@ -292,9 +292,9 @@ if (!{right_call})
 """)
 
             ret_type = binding_generator.correct_type(operator["return_type"])
-            ret_type_gdn = binding_generator.get_gdnative_type(ret_type)
+            ret_type_gde = binding_generator.get_gdextension_type(ret_type)
             append(src, indent_level, f"""\
-LuaStackOp<{ret_type}>::push(L, internal::_call_builtin_operator_ptr<{ret_type_gdn}>(__op, {left_name}, {right_ptr_name}));
+LuaStackOp<{ret_type}>::push(L, internal::_call_builtin_operator_ptr<{ret_type_gde}>(__op, {left_name}, {right_ptr_name}));
 return 1;\
 """)
 
@@ -357,7 +357,7 @@ def generate_luau_builtins(src_dir, api):
 
 #include <lua.h>
 #include <lualib.h>
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
@@ -378,7 +378,7 @@ void luaGD_openbuiltins(lua_State *L)
         if utils.should_skip_class(class_name):
             continue
 
-        variant_type = "GDNATIVE_VARIANT_TYPE_" + \
+        variant_type = "GDEXTENSION_VARIANT_TYPE_" + \
             binding_generator.camel_to_snake(class_name).upper()
 
         metatable_name = constants.builtin_metatable_prefix + class_name
@@ -473,7 +473,7 @@ if (key.get_type() == Variant::Type::STRING)
 if (key_str == "{member_key}")
 {{
     StringName __name = "{member_name}";
-    static GDNativePtrGetter __getter = internal::gdn_interface->variant_get_ptr_getter({variant_type}, &__name);
+    static GDExtensionPtrGetter __getter = internal::gde_interface->variant_get_ptr_getter({variant_type}, &__name);
 
     {member_correct_type} ret;
     __getter({arg_name}, &ret);
@@ -497,7 +497,7 @@ if (key_str == "{member_key}")
                 append(src, indent_level, f"""
 if (key.get_type() == Variant::Type::INT)
 {{
-    static GDNativePtrIndexedGetter __getter = internal::gdn_interface->variant_get_ptr_indexed_getter({variant_type});
+    static GDExtensionPtrIndexedGetter __getter = internal::gde_interface->variant_get_ptr_indexed_getter({variant_type});
 
     {indexer_type} ret;
     __getter({arg_name}, key.operator int64_t() - 1, &ret);

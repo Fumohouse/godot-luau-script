@@ -6,7 +6,7 @@
 #include <string.h>
 #include <memory.h>
 
-#include <godot/gdnative_interface.h>
+#include <gdextension_interface.h>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -357,7 +357,7 @@ void *LuauScript::_instance_create(Object *p_for_object) const
     // TODO: decide which vm to use
     LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, GDLuau::VMType::VM_CORE));
 
-    return internal::gdn_interface->script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
+    return internal::gde_interface->script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
 }
 
 bool LuauScript::_instance_has(Object *p_object) const
@@ -389,41 +389,41 @@ void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const
 
 #define INSTANCE_SELF ((LuauScriptInstance *)self)
 
-static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
+static GDExtensionScriptInstanceInfo init_script_instance_info()
 {
-    GDNativeExtensionScriptInstanceInfo info;
+    GDExtensionScriptInstanceInfo info;
 
-    info.set_func = [](void *self, const GDNativeStringNamePtr p_name, const GDNativeVariantPtr p_value) -> GDNativeBool
+    info.set_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) -> GDExtensionBool
     {
         return INSTANCE_SELF->set(*((const StringName *)p_name), *((const Variant *)p_value));
     };
 
-    info.get_func = [](void *self, const GDNativeStringNamePtr p_name, GDNativeVariantPtr r_ret) -> GDNativeBool
+    info.get_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool
     {
         return INSTANCE_SELF->get(*((const StringName *)p_name), *((Variant *)r_ret));
     };
 
-    info.get_property_list_func = [](void *self, uint32_t *r_count) -> const GDNativePropertyInfo *
+    info.get_property_list_func = [](void *self, uint32_t *r_count) -> const GDExtensionPropertyInfo *
     {
         return INSTANCE_SELF->get_property_list(r_count);
     };
 
-    info.free_property_list_func = [](void *self, const GDNativePropertyInfo *p_list)
+    info.free_property_list_func = [](void *self, const GDExtensionPropertyInfo *p_list)
     {
         INSTANCE_SELF->free_property_list(p_list);
     };
 
-    info.get_property_type_func = [](void *self, const GDNativeStringNamePtr p_name, GDNativeBool *r_is_valid) -> GDNativeVariantType
+    info.get_property_type_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionBool *r_is_valid) -> GDExtensionVariantType
     {
-        return static_cast<GDNativeVariantType>(INSTANCE_SELF->get_property_type(*((const StringName *)p_name), (bool *)r_is_valid));
+        return static_cast<GDExtensionVariantType>(INSTANCE_SELF->get_property_type(*((const StringName *)p_name), (bool *)r_is_valid));
     };
 
-    info.property_can_revert_func = [](void *self, const GDNativeStringNamePtr p_name) -> GDNativeBool
+    info.property_can_revert_func = [](void *self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool
     {
         return INSTANCE_SELF->property_can_revert(*((StringName *)p_name));
     };
 
-    info.property_get_revert_func = [](void *self, const GDNativeStringNamePtr p_name, GDNativeVariantPtr r_ret) -> GDNativeBool
+    info.property_get_revert_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool
     {
         return INSTANCE_SELF->property_get_revert(*((StringName *)p_name), (Variant *)r_ret);
     };
@@ -433,27 +433,27 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
         return INSTANCE_SELF->get_owner()->_owner;
     };
 
-    info.get_property_state_func = [](void *self, GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
+    info.get_property_state_func = [](void *self, GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
     {
         INSTANCE_SELF->get_property_state(p_add_func, p_userdata);
     };
 
-    info.get_method_list_func = [](void *self, uint32_t *r_count) -> const GDNativeMethodInfo *
+    info.get_method_list_func = [](void *self, uint32_t *r_count) -> const GDExtensionMethodInfo *
     {
         return INSTANCE_SELF->get_method_list(r_count);
     };
 
-    info.free_method_list_func = [](void *self, const GDNativeMethodInfo *p_list)
+    info.free_method_list_func = [](void *self, const GDExtensionMethodInfo *p_list)
     {
         INSTANCE_SELF->free_method_list(p_list);
     };
 
-    info.has_method_func = [](void *self, const GDNativeStringNamePtr p_name) -> GDNativeBool
+    info.has_method_func = [](void *self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool
     {
         return INSTANCE_SELF->has_method(*((const StringName *)p_name));
     };
 
-    info.call_func = [](void *self, const GDNativeStringNamePtr p_method, const GDNativeVariantPtr *p_args, const GDNativeInt p_argument_count, GDNativeVariantPtr r_return, GDNativeCallError *r_error)
+    info.call_func = [](void *self, GDExtensionConstStringNamePtr p_method, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argument_count, GDExtensionVariantPtr r_return, GDExtensionCallError *r_error)
     {
         return INSTANCE_SELF->call(*((StringName *)p_method), (const Variant *)p_args, p_argument_count, (Variant *)r_return, r_error);
     };
@@ -463,7 +463,7 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
         INSTANCE_SELF->notification(p_what);
     };
 
-    info.to_string_func = [](void *self, GDNativeBool *r_is_valid, GDNativeStringPtr r_out)
+    info.to_string_func = [](void *self, GDExtensionBool *r_is_valid, GDExtensionStringPtr r_out)
     {
         INSTANCE_SELF->to_string(r_is_valid, (String *)r_out);
     };
@@ -486,7 +486,7 @@ static GDNativeExtensionScriptInstanceInfo init_script_instance_info()
     return info;
 }
 
-const GDNativeExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
+const GDExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
 static String *string_alloc(const String &p_str)
 {
@@ -504,7 +504,7 @@ static StringName *stringname_alloc(const String &p_str)
     return ptr;
 }
 
-static void copy_prop(const GDProperty &src, GDNativePropertyInfo &dst)
+static void copy_prop(const GDProperty &src, GDExtensionPropertyInfo &dst)
 {
     dst.type = src.type;
     dst.name = stringname_alloc(src.name);
@@ -514,7 +514,7 @@ static void copy_prop(const GDProperty &src, GDNativePropertyInfo &dst)
     dst.usage = src.usage;
 }
 
-static void free_prop(const GDNativePropertyInfo &prop)
+static void free_prop(const GDExtensionPropertyInfo &prop)
 {
     // smelly
     memdelete((StringName *)prop.name);
@@ -585,7 +585,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             const GDClassProperty &prop = s->definition.properties[p_name];
 
             // Check type
-            if (prop.property.type != GDNATIVE_VARIANT_TYPE_NIL && (GDNativeVariantType)p_value.get_type() != prop.property.type)
+            if (prop.property.type != GDEXTENSION_VARIANT_TYPE_NIL && (GDExtensionVariantType)p_value.get_type() != prop.property.type)
             {
                 if (r_err != nullptr)
                     *r_err = PROP_WRONG_TYPE;
@@ -749,13 +749,13 @@ const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name
     return nullptr;
 }
 
-void LuauScriptInstance::get_property_state(GDNativeExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
+void LuauScriptInstance::get_property_state(GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata)
 {
     // ! refer to script_language.cpp get_property_state
     // the default implementation is not carried over to GDExtension
 
     uint32_t count;
-    GDNativePropertyInfo *props = get_property_list(&count);
+    GDExtensionPropertyInfo *props = get_property_list(&count);
 
     for (int i = 0; i < count; i++)
     {
@@ -798,9 +798,9 @@ static int get_len_from_ptr(const void *ptr)
     return *((int *)ptr - 1);
 }
 
-GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const
+GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const
 {
-    Vector<GDNativePropertyInfo> properties;
+    Vector<GDExtensionPropertyInfo> properties;
     HashSet<StringName> defined;
 
     const LuauScript *s = script.ptr();
@@ -814,7 +814,7 @@ GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) c
 
             defined.insert(pair.key);
 
-            GDNativePropertyInfo dst;
+            GDExtensionPropertyInfo dst;
             copy_prop(pair.value.property, dst);
 
             properties.push_back(dst);
@@ -826,13 +826,13 @@ GDNativePropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) c
     int size = properties.size();
     *r_count = size;
 
-    GDNativePropertyInfo *list = alloc_with_len<GDNativePropertyInfo>(size);
-    memcpy(list, properties.ptr(), sizeof(GDNativePropertyInfo) * size);
+    GDExtensionPropertyInfo *list = alloc_with_len<GDExtensionPropertyInfo>(size);
+    memcpy(list, properties.ptr(), sizeof(GDExtensionPropertyInfo) * size);
 
     return list;
 }
 
-void LuauScriptInstance::free_property_list(const GDNativePropertyInfo *p_list) const
+void LuauScriptInstance::free_property_list(const GDExtensionPropertyInfo *p_list) const
 {
     // don't ask.
     int size = get_len_from_ptr(p_list);
@@ -840,7 +840,7 @@ void LuauScriptInstance::free_property_list(const GDNativePropertyInfo *p_list) 
     for (int i = 0; i < size; i++)
         free_prop(p_list[i]);
 
-    free_with_len((GDNativePropertyInfo *)p_list);
+    free_with_len((GDExtensionPropertyInfo *)p_list);
 }
 
 Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bool *r_is_valid) const
@@ -883,9 +883,9 @@ Object *LuauScriptInstance::get_owner() const
     return owner;
 }
 
-GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
+GDExtensionMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
 {
-    Vector<GDNativeMethodInfo> methods;
+    Vector<GDExtensionMethodInfo> methods;
     HashSet<StringName> defined;
 
     const LuauScript *s = script.ptr();
@@ -901,7 +901,7 @@ GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
 
             const GDMethod &src = pair.value;
 
-            GDNativeMethodInfo dst;
+            GDExtensionMethodInfo dst;
 
             dst.name = stringname_alloc(src.name);
             copy_prop(src.return_val, dst.return_value);
@@ -910,7 +910,7 @@ GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
 
             if (dst.argument_count > 0)
             {
-                GDNativePropertyInfo *arg_list = memnew_arr(GDNativePropertyInfo, dst.argument_count);
+                GDExtensionPropertyInfo *arg_list = memnew_arr(GDExtensionPropertyInfo, dst.argument_count);
 
                 for (int j = 0; j < dst.argument_count; j++)
                     copy_prop(src.arguments[j], arg_list[j]);
@@ -927,7 +927,7 @@ GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
                 for (int j = 0; j < dst.default_argument_count; j++)
                     defargs[j] = src.default_arguments[j];
 
-                dst.default_arguments = (GDNativeVariantPtr *)defargs;
+                dst.default_arguments = (GDExtensionVariantPtr *)defargs;
             }
 
             methods.push_back(dst);
@@ -939,20 +939,20 @@ GDNativeMethodInfo *LuauScriptInstance::get_method_list(uint32_t *r_count) const
     int size = methods.size();
     *r_count = size;
 
-    GDNativeMethodInfo *list = alloc_with_len<GDNativeMethodInfo>(size);
-    memcpy(list, methods.ptr(), sizeof(GDNativeMethodInfo) * size);
+    GDExtensionMethodInfo *list = alloc_with_len<GDExtensionMethodInfo>(size);
+    memcpy(list, methods.ptr(), sizeof(GDExtensionMethodInfo) * size);
 
     return list;
 }
 
-void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) const
+void LuauScriptInstance::free_method_list(const GDExtensionMethodInfo *p_list) const
 {
     // don't ask.
     int size = get_len_from_ptr(p_list);
 
     for (int i = 0; i < size; i++)
     {
-        const GDNativeMethodInfo &method = p_list[i];
+        const GDExtensionMethodInfo &method = p_list[i];
 
         memdelete((StringName *)method.name);
 
@@ -970,7 +970,7 @@ void LuauScriptInstance::free_method_list(const GDNativeMethodInfo *p_list) cons
             memdelete((Variant *)method.default_arguments);
     }
 
-    free_with_len((GDNativeMethodInfo *)p_list);
+    free_with_len((GDExtensionMethodInfo *)p_list);
 }
 
 bool LuauScriptInstance::has_method(const StringName &p_name) const
@@ -990,8 +990,8 @@ bool LuauScriptInstance::has_method(const StringName &p_name) const
 
 void LuauScriptInstance::call(
     const StringName &p_method,
-    const Variant *p_args, const GDNativeInt p_argument_count,
-    Variant *r_return, GDNativeCallError *r_error)
+    const Variant *p_args, const GDExtensionInt p_argument_count,
+    Variant *r_return, GDExtensionCallError *r_error)
 {
     LuauScript *s = script.ptr();
 
@@ -1012,7 +1012,7 @@ void LuauScriptInstance::call(
 
             if (p_argument_count < args_required)
             {
-                r_error->error = GDNATIVE_CALL_ERROR_TOO_FEW_ARGUMENTS;
+                r_error->error = GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS;
                 r_error->argument = args_required;
 
                 return;
@@ -1020,7 +1020,7 @@ void LuauScriptInstance::call(
 
             if (p_argument_count > args_allowed)
             {
-                r_error->error = GDNATIVE_CALL_ERROR_TOO_MANY_ARGUMENTS;
+                r_error->error = GDEXTENSION_CALL_ERROR_TOO_MANY_ARGUMENTS;
                 r_error->argument = args_allowed;
 
                 return;
@@ -1033,9 +1033,9 @@ void LuauScriptInstance::call(
             {
                 const Variant &arg = p_args[i];
 
-                if ((GDNativeVariantType)arg.get_type() != method.arguments[i].type)
+                if ((GDExtensionVariantType)arg.get_type() != method.arguments[i].type)
                 {
-                    r_error->error = GDNATIVE_CALL_ERROR_INVALID_ARGUMENT;
+                    r_error->error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
                     r_error->argument = i;
                     r_error->expected = method.arguments[i].type;
 
@@ -1050,7 +1050,7 @@ void LuauScriptInstance::call(
                 LuaStackOp<Variant>::push(ET, method.default_arguments[i]);
 
             // Call
-            r_error->error = GDNATIVE_CALL_OK;
+            r_error->error = GDEXTENSION_CALL_OK;
 
             int status = call_internal(actual_name, ET, args_allowed, 1);
 
@@ -1067,7 +1067,7 @@ void LuauScriptInstance::call(
         s = s->base.ptr();
     }
 
-    r_error->error = GDNATIVE_CALL_ERROR_INVALID_METHOD;
+    r_error->error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
 }
 
 void LuauScriptInstance::notification(int32_t p_what)
@@ -1089,7 +1089,7 @@ void LuauScriptInstance::notification(int32_t p_what)
     }
 }
 
-void LuauScriptInstance::to_string(GDNativeBool *r_is_valid, String *r_out)
+void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out)
 {
     LuauScript *s = script.ptr();
 
@@ -1386,11 +1386,6 @@ Ref<Script> LuauLanguage::_make_template(const String &p_template, const String 
 {
     Ref<LuauScript> script;
     script.instantiate();
-
-    // TODO: this should not be necessary. it prevents a segfault when this ref is exchanged to Godot.
-    //       tracking https://github.com/godotengine/godot-cpp/issues/652
-    //       it will create a memory leak if/when it is time to remove this. lol.
-    script->reference();
 
     // TODO: actual template stuff
 
