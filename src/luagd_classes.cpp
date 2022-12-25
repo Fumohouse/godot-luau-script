@@ -76,15 +76,23 @@ int luaGD_class_namecall(lua_State *L)
         {
             if (inst->has_method(name))
             {
+                int arg_count = lua_gettop(L) - 1;
+
                 Vector<Variant> args;
-                args.resize(lua_gettop(L) - 1);
+                args.resize(arg_count);
+
+                Vector<const Variant *> pargs;
+                pargs.resize(arg_count);
 
                 for (int i = 2; i <= lua_gettop(L); i++)
+                {
                     args.set(i - 2, LuaStackOp<Variant>::get(L, i));
+                    pargs.set(i - 2, &args[i - 2]);
+                }
 
                 Variant ret;
                 GDExtensionCallError err;
-                inst->call(name, args.ptr(), args.size(), &ret, &err);
+                inst->call(name, pargs.ptr(), args.size(), &ret, &err);
 
                 switch (err.error)
                 {

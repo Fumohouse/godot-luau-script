@@ -8,6 +8,7 @@
 #include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
@@ -155,7 +156,7 @@ public:
 
     bool has_method(const StringName &p_name) const;
 
-    void call(const StringName &p_method, const Variant *p_args, const GDExtensionInt p_argument_count, Variant *r_return, GDExtensionCallError *r_error);
+    void call(const StringName &p_method, const Variant *const *p_args, const GDExtensionInt p_argument_count, Variant *r_return, GDExtensionCallError *r_error);
     void notification(int32_t p_what);
     void to_string(GDExtensionBool *r_is_valid, String *r_out);
 
@@ -219,14 +220,43 @@ public:
     Error _execute_file(const String &p_path) override;
     bool _has_named_classes() const override;
 
+    /* UNNEEDED */
+    void _thread_enter() override {}
+    void _thread_exit() override {}
+
+    bool _overrides_external_editor() override { return false; }
+    // Error _open_in_external_editor(const Ref<Script> &script, int64_t line, int64_t column);
+
+    /* TO IMPLEMENT */
+    void _frame() override {}
+
+    Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const override
+    {
+        Dictionary output;
+
+        output["valid"] = true;
+
+        return output;
+    }
+
+    // Debugger
+    // String _debug_get_error() const;
+    // int64_t _debug_get_stack_level_count() const;
+    // int64_t _debug_get_stack_level_line(int64_t level) const;
+    // String _debug_get_stack_level_function(int64_t level) const;
+    // Dictionary _debug_get_stack_level_locals(int64_t level, int64_t max_subitems, int64_t max_depth);
+    // Dictionary _debug_get_stack_level_members(int64_t level, int64_t max_subitems, int64_t max_depth);
+    // void *_debug_get_stack_level_instance(int64_t level);
+    // Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth);
+    // String _debug_parse_stack_level_expression(int64_t level, const String &expression, int64_t max_subitems, int64_t max_depth);
+    TypedArray<Dictionary> _debug_get_current_stack_info() override { return TypedArray<Dictionary>(); }
+
     /*
-    Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const;
     bool _can_inherit_from_file() const;
     int64_t _find_function(const String &class_name, const String &function_name) const;
     String _make_function(const String &class_name, const String &function_name, const PackedStringArray &function_args) const;
     void _reload_all_scripts();
     void _reload_tool_script(const Ref<Script> &script, bool soft_reload);
-    void _frame();
 
     // To implement later (or never)
     void _add_global_constant(const StringName &name, const Variant &value);
@@ -236,15 +266,10 @@ public:
     TypedArray<Dictionary> _get_built_in_templates(const StringName &object) const;
     bool _is_using_templates();
 
-    Error _open_in_external_editor(const Ref<Script> &script, int64_t line, int64_t column);
-    bool _overrides_external_editor();
 
     Dictionary _complete_code(const String &code, const String &path, Object *owner) const;
     Dictionary _lookup_code(const String &code, const String &symbol, const String &path, Object *owner) const;
     String _auto_indent_code(const String &code, int64_t from_line, int64_t to_line) const;
-
-    void _thread_enter();
-    void _thread_exit();
 
     String _validate_path(const String &path) const; // used by C# only to prevent naming class to keyword. probably not super necessary
 
@@ -253,16 +278,6 @@ public:
     Dictionary _get_global_class_name(const String &path) const;
 
     // Debugger
-    String _debug_get_error() const;
-    int64_t _debug_get_stack_level_count() const;
-    int64_t _debug_get_stack_level_line(int64_t level) const;
-    String _debug_get_stack_level_function(int64_t level) const;
-    Dictionary _debug_get_stack_level_locals(int64_t level, int64_t max_subitems, int64_t max_depth);
-    Dictionary _debug_get_stack_level_members(int64_t level, int64_t max_subitems, int64_t max_depth);
-    void *_debug_get_stack_level_instance(int64_t level);
-    Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth);
-    String _debug_parse_stack_level_expression(int64_t level, const String &expression, int64_t max_subitems, int64_t max_depth);
-    TypedArray<Dictionary> _debug_get_current_stack_info();
 
     // Profiler
     void _profiling_start();

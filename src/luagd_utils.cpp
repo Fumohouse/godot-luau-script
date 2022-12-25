@@ -10,11 +10,6 @@ void luaGD_valueerror(lua_State *L, const char *key, const char *got, const char
     luaL_error(L, "invalid type for value of key %s: got %s, expected %s", key, got, expected);
 }
 
-void luaGD_returnerror(lua_State *L, const char *of, const char *got, const char *expected)
-{
-    luaL_error(L, "invalid type for return value of %s: got %s, expected %s", of, got, expected);
-}
-
 void luaGD_arrayerror(lua_State *L, const char *of, const char *got, const char *expected)
 {
     luaL_error(L, "invalid type for %s array: got %s, expected %s", of, got, expected);

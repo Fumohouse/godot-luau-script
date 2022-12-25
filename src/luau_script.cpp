@@ -75,7 +75,7 @@ Error LuauScript::load_source_code(const String &p_path)
 
 #define LUAU_LOAD_ERR(line, msg) _err_print_error("LuauScript::_reload", get_path().is_empty() ? "built-in" : get_path().utf8().get_data(), line, msg);
 #define LUAU_LOAD_YIELD_MSG "Luau Error: Script yielded when loading definition."
-#define LUAU_LOAD_NO_DEF_MSG "Luau Error: Script did not return a class definition."
+#define LUAU_LOAD_NO_DEF_MSG "Luau Error: Script did not return a valid class definition."
 
 #define LUAU_LOAD_RESUME                             \
     int status = lua_resume(T, nullptr, 0);          \
@@ -124,16 +124,13 @@ Error LuauScript::_reload(bool p_keep_state)
     {
         LUAU_LOAD_RESUME
 
-        if (lua_isnil(T, 1))
+        if (lua_isnil(T, 1) || lua_type(T, 1) != LUA_TTABLE)
         {
             lua_pop(L, 1); // thread
             LUAU_LOAD_ERR(1, LUAU_LOAD_NO_DEF_MSG);
 
             return ERR_COMPILATION_FAILED;
         }
-
-        if (lua_type(T, 1) != LUA_TTABLE)
-            luaGD_returnerror(T, "class file", luaGD_typename(T, 1), "table");
 
         definition = luascript_read_class(T, 1);
         valid = true;
@@ -334,11 +331,17 @@ TypedArray<StringName> LuauScript::_get_members() const
 
 bool LuauScript::_has_property_default_value(const StringName &p_property) const
 {
-    return definition.properties.get(p_property).default_value != Variant();
+    HashMap<StringName, GDClassProperty>::ConstIterator E = definition.properties.find(p_property);
+
+    if (E)
+        return E->value.default_value != Variant();
+
+    return false;
 }
 
 Variant LuauScript::_get_property_default_value(const StringName &p_property) const
 {
+    // safe as _has_property_default_value is always checked before this
     return definition.properties.get(p_property).default_value;
 }
 
@@ -455,7 +458,7 @@ static GDExtensionScriptInstanceInfo init_script_instance_info()
 
     info.call_func = [](void *self, GDExtensionConstStringNamePtr p_method, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argument_count, GDExtensionVariantPtr r_return, GDExtensionCallError *r_error)
     {
-        return INSTANCE_SELF->call(*((StringName *)p_method), (const Variant *)p_args, p_argument_count, (Variant *)r_return, r_error);
+        return INSTANCE_SELF->call(*((StringName *)p_method), (const Variant **)p_args, p_argument_count, (Variant *)r_return, r_error);
     };
 
     info.notification_func = [](void *self, int32_t p_what)
@@ -990,7 +993,7 @@ bool LuauScriptInstance::has_method(const StringName &p_name) const
 
 void LuauScriptInstance::call(
     const StringName &p_method,
-    const Variant *p_args, const GDExtensionInt p_argument_count,
+    const Variant *const *p_args, const GDExtensionInt p_argument_count,
     Variant *r_return, GDExtensionCallError *r_error)
 {
     LuauScript *s = script.ptr();
@@ -1003,7 +1006,7 @@ void LuauScriptInstance::call(
         // (e.g. if Node::_ready is called -> _Ready)
         if (s->has_method(p_method, &actual_name))
         {
-            const GDMethod &method = s->definition.methods[p_method];
+            const GDMethod &method = s->definition.methods[actual_name];
 
             // Check argument count
             int args_allowed = method.arguments.size();
@@ -1031,7 +1034,7 @@ void LuauScriptInstance::call(
 
             for (int i = 0; i < p_argument_count; i++)
             {
-                const Variant &arg = p_args[i];
+                const Variant &arg = *p_args[i];
 
                 if ((GDExtensionVariantType)arg.get_type() != method.arguments[i].type)
                 {

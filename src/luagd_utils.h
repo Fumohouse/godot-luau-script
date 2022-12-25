@@ -9,7 +9,6 @@
 
 void luaGD_keyerror(lua_State *L, const char *of, const char *got, const char *expected);
 void luaGD_valueerror(lua_State *L, const char *key, const char *got, const char *expected);
-void luaGD_returnerror(lua_State *L, const char *of, const char *got, const char *expected);
 void luaGD_arrayerror(lua_State *L, const char *of, const char *got, const char *expected);
 
 bool luaGD_getfield(lua_State *L, int index, const char *key);
