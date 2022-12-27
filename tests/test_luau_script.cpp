@@ -46,7 +46,7 @@ TEST_CASE("luau script: script load")
         TestClass.methods["__WeirdMethodName"] = {}
 
         TestClass.properties["testProperty"] = {
-            property = gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }),
+            property = gdproperty({ name = "testProperty", type = Enum.VariantType.FLOAT }),
             default = 5.5
         }
 
@@ -155,15 +155,15 @@ TEST_CASE("luau script: instance")
             args = {
                 gdproperty({
                     name = "arg1",
-                    type = Enum.VariantType.TYPE_FLOAT
+                    type = Enum.VariantType.FLOAT
                 }),
                 gdproperty({
                     name = "arg2",
-                    type = Enum.VariantType.TYPE_STRING
+                    type = Enum.VariantType.STRING
                 })
             },
             defaultArgs = { "hi" },
-            returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
+            returnVal = gdproperty({ type = Enum.VariantType.STRING })
         }
 
         function TestClass:TestMethod2(arg1, arg2)
@@ -174,15 +174,15 @@ TEST_CASE("luau script: instance")
             args = {
                 gdproperty({
                     name = "arg1",
-                    type = Enum.VariantType.TYPE_STRING
+                    type = Enum.VariantType.STRING
                 }),
                 gdproperty({
                     name = "arg2",
-                    type = Enum.VariantType.TYPE_INT
+                    type = Enum.VariantType.INT
                 })
             },
             defaultArgs = { "godot", 1 },
-            returnVal = gdproperty({ type = Enum.VariantType.TYPE_FLOAT })
+            returnVal = gdproperty({ type = Enum.VariantType.FLOAT })
         }
 
         function TestClass:GetTestProperty()
@@ -194,7 +194,7 @@ TEST_CASE("luau script: instance")
         end
 
         TestClass.properties["testProperty"] = {
-            property = gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }),
+            property = gdproperty({ name = "testProperty", type = Enum.VariantType.FLOAT }),
             getter = "GetTestProperty",
             setter = "SetTestProperty",
             default = 5.5
@@ -205,7 +205,7 @@ TEST_CASE("luau script: instance")
         end
 
         TestClass.properties["testProperty2"] = {
-            property = gdproperty({ name = "testProperty2", type = Enum.VariantType.TYPE_STRING }),
+            property = gdproperty({ name = "testProperty2", type = Enum.VariantType.STRING }),
             getter = "GetTestProperty2",
             default = "hey"
         }
@@ -214,13 +214,13 @@ TEST_CASE("luau script: instance")
         end
 
         TestClass.properties["testProperty3"] = {
-            property = gdproperty({ name = "testProperty3", type = Enum.VariantType.TYPE_STRING }),
+            property = gdproperty({ name = "testProperty3", type = Enum.VariantType.STRING }),
             setter = "SetTestProperty3",
             default = "hey"
         }
 
         TestClass.properties["testProperty4"] = {
-            property = gdproperty({ name = "testProperty4", type = Enum.VariantType.TYPE_STRING }),
+            property = gdproperty({ name = "testProperty4", type = Enum.VariantType.STRING }),
             default = "hey"
         }
 
@@ -279,7 +279,7 @@ TEST_CASE("luau script: instance")
         Variant::Type type = inst->get_property_type("testProperty", &is_valid);
 
         REQUIRE(is_valid);
-        REQUIRE(type == Variant::Type::FLOAT);
+        REQUIRE(type == Variant::FLOAT);
 
         uint32_t count;
         GDExtensionPropertyInfo *properties = inst->get_property_list(&count);
@@ -649,12 +649,12 @@ TEST_CASE("luau script: inheritance")
         end
 
         Script1.properties["property1"] = {
-            property = gdproperty({ name = "property1", type = Enum.VariantType.TYPE_STRING }),
+            property = gdproperty({ name = "property1", type = Enum.VariantType.STRING }),
             default = "hey"
         }
 
         Script1.properties["property2"] = {
-            property = gdproperty({ name = "property2", type = Enum.VariantType.TYPE_STRING }),
+            property = gdproperty({ name = "property2", type = Enum.VariantType.STRING }),
             default = "hi"
         }
 
@@ -663,7 +663,7 @@ TEST_CASE("luau script: inheritance")
         end
 
         Script1.methods["Method1"] = {
-            returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
+            returnVal = gdproperty({ type = Enum.VariantType.STRING })
         }
 
         function Script1:Method2()
@@ -671,7 +671,7 @@ TEST_CASE("luau script: inheritance")
         end
 
         Script1.methods["Method2"] = {
-            returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING })
+            returnVal = gdproperty({ type = Enum.VariantType.STRING })
         }
 
         return Script1
@@ -698,7 +698,7 @@ TEST_CASE("luau script: inheritance")
         end
 
         Script2.properties["property2"] = {
-            property = gdproperty({ name = "property2", type = Enum.VariantType.TYPE_STRING }),
+            property = gdproperty({ name = "property2", type = Enum.VariantType.STRING }),
             getter = "GetProperty2",
             default = "hi"
         }

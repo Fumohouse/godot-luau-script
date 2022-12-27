@@ -30,11 +30,11 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
 
         EVAL_THEN(L, R"ASDF(
             return gdproperty({
-                type = Enum.VariantType.TYPE_OBJECT,
+                type = Enum.VariantType.OBJECT,
                 name = "testProp",
                 hint = Enum.PropertyHint.ENUM,
                 hintString = "val1,val2,val3",
-                usage = Enum.PropertyUsageFlags.PROPERTY_USAGE_NONE,
+                usage = Enum.PropertyUsageFlags.NONE,
                 className = "Node3D"
             })
         )ASDF",
@@ -54,7 +54,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
 
         EVAL_THEN(L, R"ASDF(
             return gdproperty({
-                type = Enum.VariantType.TYPE_OBJECT,
+                type = Enum.VariantType.OBJECT,
                 name = "testProp",
                 className = "Node2D"
             })
@@ -133,21 +133,21 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
                         args = {
                             gdproperty({
                                 name = "arg1",
-                                type = Enum.VariantType.TYPE_FLOAT
+                                type = Enum.VariantType.FLOAT
                             }),
                             gdproperty({
                                 name = "arg2",
-                                type = Enum.VariantType.TYPE_STRING
+                                type = Enum.VariantType.STRING
                             })
                         },
                         defaultArgs = { 1, "godot" },
-                        returnVal = gdproperty({ type = Enum.VariantType.TYPE_STRING }),
-                        flags = Enum.MethodFlags.METHOD_FLAG_NORMAL
+                        returnVal = gdproperty({ type = Enum.VariantType.STRING }),
+                        flags = Enum.MethodFlags.NORMAL
                     }
                 },
                 properties = {
                     testProperty = {
-                        property = gdproperty({ name = "testProperty", type = Enum.VariantType.TYPE_FLOAT }),
+                        property = gdproperty({ name = "testProperty", type = Enum.VariantType.FLOAT }),
                         getter = "GetTestProperty",
                         setter = "SetTestProperty",
                         default = 3.5

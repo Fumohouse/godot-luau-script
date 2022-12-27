@@ -4,6 +4,7 @@
 
 enum ThreadPermissions
 {
+    PERMISSION_INHERIT = -1,
     PERMISSION_BASE = 0,
     // Default permission level. Restricted to core.
     PERMISSION_INTERNAL = 1 << 0,

@@ -457,7 +457,7 @@ lua_pushcfunction(L, [](lua_State *L) -> int
                 members = b_class["members"]
 
                 append(src, indent_level, """
-if (key.get_type() == Variant::Type::STRING)
+if (key.get_type() == Variant::STRING)
 {
     String key_str = key;
 """)
@@ -495,7 +495,7 @@ if (key_str == "{member_key}")
                     b_class["indexing_return_type"])
 
                 append(src, indent_level, f"""
-if (key.get_type() == Variant::Type::INT)
+if (key.get_type() == Variant::INT)
 {{
     static GDExtensionPtrIndexedGetter __getter = internal::gde_interface->variant_get_ptr_indexed_getter({variant_type});
 

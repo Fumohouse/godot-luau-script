@@ -88,27 +88,27 @@ void LuaStackOp<Variant>::push(lua_State *L, const Variant &value)
 {
     switch (value.get_type())
     {
-        case Variant::Type::NIL:
+        case Variant::NIL:
             lua_pushnil(L);
             return;
 
-        case Variant::Type::BOOL:
+        case Variant::BOOL:
             lua_pushboolean(L, value.operator bool());
             return;
 
-        case Variant::Type::INT:
+        case Variant::INT:
             lua_pushinteger(L, value.operator int());
             return;
 
-        case Variant::Type::FLOAT:
+        case Variant::FLOAT:
             lua_pushnumber(L, value.operator float());
             return;
 
-        case Variant::Type::STRING:
+        case Variant::STRING:
             LuaStackOp<String>::push(L, value.operator String());
             return;
 
-        case Variant::Type::OBJECT:
+        case Variant::OBJECT:
             LuaStackOp<Object *>::push(L, value.operator Object *());
             return;
 """)
@@ -126,7 +126,7 @@ void LuaStackOp<Variant>::push(lua_State *L, const Variant &value)
             operator_name = "godot::" + class_name
 
         append(src, indent_level, f"""\
-case Variant::Type::{class_snake}:
+case Variant::{class_snake}:
     LuaStackOp<{class_name}>::push(L, value.operator {operator_name}());
     return;\
 """)

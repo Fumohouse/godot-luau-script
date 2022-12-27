@@ -4,7 +4,7 @@
 
 TEST_CASE_METHOD(LuauFixture, "globals: enums")
 {
-	ASSERT_EVAL_EQ(L, "return Enum.VariantOperator.OP_BIT_NEGATE", int, 19)
+	ASSERT_EVAL_EQ(L, "return Enum.VariantOperator.BIT_NEGATE", int, 19)
 }
 
 TEST_CASE_METHOD(LuauFixture, "globals: utility functions")

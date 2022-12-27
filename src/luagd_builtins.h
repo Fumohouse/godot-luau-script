@@ -7,17 +7,6 @@
 #include "luagd_stack.h"
 #include "luagd_bindings_stack.gen.h"
 
-#define LUAGD_LOAD_GUARD(L, key)             \
-    lua_getfield(L, LUA_REGISTRYINDEX, key); \
-                                             \
-    if (!lua_isnil(L, -1))                   \
-        return;                              \
-                                             \
-    lua_pop(L, 1);                           \
-                                             \
-    lua_pushboolean(L, true);                \
-    lua_setfield(L, LUA_REGISTRYINDEX, key);
-
 #define LUA_BUILTIN_CONST(variant_type, const_name, const_type)                                         \
     {                                                                                                   \
         static bool __did_init;                                                                         \

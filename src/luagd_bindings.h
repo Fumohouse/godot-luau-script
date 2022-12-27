@@ -3,6 +3,17 @@
 #include <lua.h>
 #include <godot_cpp/templates/hash_map.hpp>
 
+#define LUAGD_LOAD_GUARD(L, key)             \
+    lua_getfield(L, LUA_REGISTRYINDEX, key); \
+                                             \
+    if (!lua_isnil(L, -1))                   \
+        return;                              \
+                                             \
+    lua_pop(L, 1);                           \
+                                             \
+    lua_pushboolean(L, true);                \
+    lua_setfield(L, LUA_REGISTRYINDEX, key);
+
 namespace godot
 {
     class StringName;
@@ -17,7 +28,7 @@ T *luaGD_lightudataup(lua_State *L, int index)
         lua_tolightuserdata(L, lua_upvalueindex(index)));
 }
 
-// The corresponding source files for these methods are generated.
+// The implementations for these methods are generated.
 void luaGD_openbuiltins(lua_State *L);
 void luaGD_openclasses(lua_State *L);
 void luaGD_openglobals(lua_State *L);

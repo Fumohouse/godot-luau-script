@@ -3,21 +3,6 @@
     "tasks": [
         // basic build tasks
         {
-            "label": "build debug",
-            "type": "shell",
-            "command": "scons",
-            "group": "build",
-            "linux": {
-                "args": [
-                    "target=editor",
-                    "platform=linux",
-                    "use_llvm=yes",
-                    "debug_symbols=yes"
-                ]
-            },
-            "problemMatcher": "$gcc"
-        },
-        {
             "label": "build tests",
             "type": "shell",
             "command": "scons",
@@ -26,6 +11,38 @@
                 "args": [
                     "target=editor",
                     "tests=yes",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "debug_symbols=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build tests with bindings",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=editor",
+                    "tests=yes",
+                    "platform=linux",
+                    "use_llvm=yes",
+                    "generate_luau_bindings=yes",
+                    "debug_symbols=yes"
+                ]
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "build debug",
+            "type": "shell",
+            "command": "scons",
+            "group": "build",
+            "linux": {
+                "args": [
+                    "target=editor",
                     "platform=linux",
                     "use_llvm=yes",
                     "debug_symbols=yes"

@@ -18,7 +18,7 @@ TestClass.methods["_Process"] = {
 	args = {
 		gdproperty({
 			name = "delta",
-			type = Enum.VariantType.TYPE_FLOAT
+			type = Enum.VariantType.FLOAT
 		})
 	}
 }
