@@ -5,7 +5,6 @@ import json
 from pathlib import Path
 
 from bindgen.stack_ops import generate_stack_ops
-from bindgen.builtins import generate_luau_builtins
 from bindgen.classes import generate_luau_classes, get_luau_class_sources
 from bindgen.ptrcall import generate_ptrcall
 from bindgen.extension_api import generate_extension_api
@@ -27,9 +26,6 @@ def scons_emit_files(target, source, env):
     src_dir = Path(output_dir) / "gen" / "src"
 
     files = [
-        # Builtins
-        env.File("gen/src/luagd_builtins.gen.cpp"),
-
         # Classes
         env.File("gen/include/luagd_classes.gen.h"),
         env.File("gen/src/luagd_classes.gen.cpp"),
@@ -66,7 +62,6 @@ def scons_generate_bindings(target, source, env):
     generate_stack_ops(src_dir, include_dir, api)
     generate_ptrcall(src_dir, include_dir)
 
-    generate_luau_builtins(src_dir, api)
     generate_luau_classes(src_dir, include_dir, api)
 
     generate_extension_api(src_dir, api)

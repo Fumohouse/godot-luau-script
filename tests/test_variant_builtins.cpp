@@ -1,9 +1,7 @@
 #include <catch_amalgamated.hpp>
 
 #include <lua.h>
-#include <godot_cpp/variant/vector3.hpp>
-#include <godot_cpp/variant/vector2.hpp>
-#include <godot_cpp/variant/callable.hpp>
+#include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 
@@ -48,6 +46,38 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions")
         lua_pushnil(L);
         lua_setglobal(L, "testCallable");
     }
+
+    SECTION("default arguments")
+    {
+        SECTION("non-vararg")
+        {
+            // alpha: default 1.0
+            ASSERT_EVAL_EQ(L, "return Color.FromHsv(0.5, 0.5, 0.5)", Color, Color::from_hsv(0.5, 0.5, 0.5, 1.0));
+        }
+
+        // no method exists with vararg and default args
+    }
+
+    SECTION("non-const")
+    {
+        SECTION("non-vararg")
+        {
+            PackedStringArray expected;
+            expected.push_back("hello");
+            expected.push_back("hi");
+
+            ASSERT_EVAL_EQ(L, R"ASDF(
+                local array = PackedStringArray()
+                array:PushBack("hello")
+                array:PushBack("hi")
+
+                return array
+            )ASDF",
+                           PackedStringArray, expected);
+        }
+
+        // all vararg methods are const
+    }
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: setget")
@@ -65,6 +95,49 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget")
     SECTION("member set fails")
     {
         ASSERT_EVAL_FAIL(L, "Vector2(123, 456).y = 0", "exec:1: type 'Vector2' is read-only");
+    }
+
+    SECTION("array index set")
+    {
+        PackedStringArray expected;
+        expected.push_back("hello");
+
+        ASSERT_EVAL_EQ(L, R"ASDF(
+            local array = PackedStringArray()
+            array:PushBack("hi there")
+            array[1] = "hello"
+
+            return array
+        )ASDF",
+                       PackedStringArray, expected);
+    }
+
+    SECTION("keyed access")
+    {
+        Dictionary input;
+        input[Vector2(1, 2)] = "hi!";
+
+        LuaStackOp<Dictionary>::push(L, input);
+        lua_setglobal(L, "testDict");
+
+        ASSERT_EVAL_EQ(L, "return testDict[Vector2(1, 2)]", String, "hi!");
+
+        lua_pushnil(L);
+        lua_setglobal(L, "testDict");
+    }
+
+    SECTION("keyed set")
+    {
+        Dictionary expected;
+        expected["one"] = 12.5;
+
+        ASSERT_EVAL_EQ(L, R"ASDF(
+            local dictionary = Dictionary()
+            dictionary["one"] = 12.5
+
+            return dictionary
+        )ASDF",
+                       Dictionary, expected);
     }
 }
 
@@ -101,7 +174,8 @@ TEST_CASE_METHOD(LuauFixture, "builtins: operators")
             arr:PushBack("e")
 
             return #arr
-        )ASDF", int, 5);
+        )ASDF",
+                       int, 5);
     }
 }
 

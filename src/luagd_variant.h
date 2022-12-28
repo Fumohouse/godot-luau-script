@@ -30,30 +30,49 @@ struct lua_State;
                                                                                                    \
     _FORCE_INLINE_ type *get_##method_name()                                                       \
     {                                                                                              \
+        if (from_luau)                                                                             \
+            return reinterpret_cast<type *>(_data._ptr);                                           \
+                                                                                                   \
         return reinterpret_cast<type *>(_data._data);                                              \
     }                                                                                              \
                                                                                                    \
     _FORCE_INLINE_ const type *get_##method_name() const                                           \
     {                                                                                              \
+        if (from_luau)                                                                             \
+            return reinterpret_cast<type *>(_data._ptr);                                           \
+                                                                                                   \
         return reinterpret_cast<const type *>(_data._data);                                        \
     }
 
 #define PTR_GETTER(type, method_name, ptr_name)          \
     _FORCE_INLINE_ type *get_##method_name()             \
     {                                                    \
+        if (from_luau)                                   \
+            return reinterpret_cast<type *>(_data._ptr); \
+                                                         \
         return _data.ptr_name;                           \
     }                                                    \
                                                          \
     _FORCE_INLINE_ const type *get_##method_name() const \
     {                                                    \
+        if (from_luau)                                   \
+            return reinterpret_cast<type *>(_data._ptr); \
+                                                         \
         return _data.ptr_name;                           \
     }
 
 class LuauVariant // jank
 {
+private:
+    void clear();
+
 public:
-    // ! type and union are public for reducing jank. don't touch them.
-    GDExtensionVariantType type;
+    // ! type, for_luau, and union are public for reducing jank. don't touch them.
+    int32_t type;
+
+    // forces the value to refer to a Luau userdata pointer
+    // limits lifetime based on Luau GC (this type should be temporary anyway)
+    bool from_luau;
 
     // size is 16 bytes. anything under can be added easily, otherwise use ptr
     union U
@@ -71,11 +90,15 @@ public:
         uint8_t _data[DATA_SIZE];
 
         // PTR
+        Variant *_variant; // variant ception
         Transform2D *_transform2d;
         Transform3D *_transform3d;
         Projection *_projection;
         AABB *_aabb;
         Basis *_basis;
+
+        // Luau
+        void *_ptr;
     } _data alignas(8);
 
     /* OPAQUE POINTER */
@@ -121,6 +144,8 @@ public:
     DATA_GETTER(PackedVector3Array, vector3_array)
     DATA_GETTER(PackedColorArray, color_array)
 
+    PTR_GETTER(Variant, variant, _variant);
+
     void *get_opaque_pointer();
     const void *get_opaque_pointer() const;
 
@@ -129,7 +154,12 @@ public:
     void lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, String class_name = "");
     void lua_push(lua_State *L);
 
+    /* Assignment */
+    void assign_variant(const Variant &val);
+
     /* Constructor */
-    _FORCE_INLINE_ LuauVariant() : type(GDEXTENSION_VARIANT_TYPE_NIL) {}
+    _FORCE_INLINE_ LuauVariant() : type(-1), from_luau(false) {}
+    LuauVariant(const LuauVariant &from);
+    LuauVariant &operator=(const LuauVariant &from);
     ~LuauVariant();
 };

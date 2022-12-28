@@ -196,7 +196,7 @@ def generate_luau_classes(src_dir, include_dir, api):
 
 #include <lua.h>
 
-#include "luagd_builtins.h"
+#include "luagd_bindings.h"
 
 #include "luagd_classes.h"
 #include "luagd_classes.gen.h"

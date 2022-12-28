@@ -3,12 +3,14 @@
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp> // TODO: 4.0-beta10: pair.hpp does not include, causes errors.
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_permissions.h"
+#include "luagd_variant.h"
 
 using namespace godot;
 
@@ -23,7 +25,7 @@ struct ApiArgument
     String name;
     GDExtensionVariantType type;
     bool has_default_value;
-    Variant default_value;
+    LuauVariant default_value;
 };
 
 struct ApiArgumentNoDefault
@@ -67,7 +69,6 @@ struct ApiUtilityFunction
 
 struct ApiVariantOperator
 {
-    GDExtensionVariantOperator op;
     GDExtensionVariantType right_type;
     GDExtensionVariantType return_type;
 
@@ -79,7 +80,8 @@ struct ApiVariantMember
     String name;
     GDExtensionVariantType type;
 
-    GDExtensionPtrSetter setter;
+    // builtin type members are read-only in luau
+    // GDExtensionPtrSetter setter;
     GDExtensionPtrGetter getter;
 };
 
@@ -89,43 +91,61 @@ struct ApiVariantConstant
     Variant value;
 };
 
-struct ApiVariantMethod
-{
-    String name;
-    const char *debug_name;
-
-    bool is_vararg;
-    bool is_static;
-
-    GDExtensionPtrBuiltInMethod func;
-    GDExtensionVariantType return_type;
-    Vector<ApiArgument> arguments;
-};
-
 struct ApiVariantConstructor
 {
     GDExtensionPtrConstructor func;
     Vector<ApiArgumentNoDefault> arguments;
 };
 
+struct ApiVariantMethod
+{
+    String name;
+    StringName gd_name;
+    const char *debug_name;
+
+    bool is_vararg;
+    bool is_static;
+    bool is_const;
+
+    GDExtensionPtrBuiltInMethod func;
+    int32_t return_type; // GDExtensionVariantType or -1 if none
+    Vector<ApiArgument> arguments;
+};
+
 struct ApiBuiltinClass
 {
     String name;
+    const char *metatable_name;
 
-    bool is_keyed;
-    String indexing_return_type;
+    GDExtensionVariantType type;
 
-    GDExtensionPtrKeyedSetter keyed_setter;
-    GDExtensionPtrKeyedGetter keyed_getter;
-    GDExtensionPtrIndexedSetter indexed_setter;
-    GDExtensionPtrIndexedGetter indexed_getter;
+    GDExtensionPtrKeyedSetter keyed_setter = nullptr;
+    GDExtensionPtrKeyedGetter keyed_getter = nullptr;
+    GDExtensionPtrKeyedChecker keyed_checker = nullptr; // `has` which returns a uint32_t for some reason
+
+    GDExtensionVariantType indexing_return_type;
+    GDExtensionPtrIndexedSetter indexed_setter = nullptr;
+    GDExtensionPtrIndexedGetter indexed_getter = nullptr;
+
+    Vector<ApiEnum> enums;
+    Vector<ApiVariantConstant> constants;
 
     Vector<ApiVariantConstructor> constructors;
-    Vector<ApiVariantConstant> constants;
-    Vector<ApiEnum> enums;
-    Vector<ApiVariantMember> members;
-    Vector<ApiVariantMethod> methods;
-    Vector<ApiVariantOperator> operators;
+    const char *constructor_debug_name;
+    const char *constructor_error_string;
+
+    HashMap<String, ApiVariantMember> members;
+    const char *newindex_debug_name;
+    const char *index_debug_name;
+
+    HashMap<String, ApiVariantMethod> methods;
+    const char *namecall_debug_name;
+
+    Vector<ApiVariantMethod> static_methods;
+    const char *global_index_debug_name;
+
+    HashMap<GDExtensionVariantOperator, Vector<ApiVariantOperator>> operators;
+    HashMap<GDExtensionVariantOperator, const char *> operator_debug_names;
 };
 
 /////////////
@@ -146,7 +166,7 @@ struct ApiClassArgument
     ApiClassType type;
 
     bool has_default_value;
-    Variant default_value;
+    LuauVariant default_value;
 };
 
 struct ApiClassMethod
@@ -189,16 +209,19 @@ struct ApiClassProperty
 struct ApiClass
 {
     String name;
+    const char *metatable_name;
+
     ThreadPermissions default_permissions = PERMISSION_INTERNAL;
 
     bool is_instantiable;
     int32_t parent_idx = -1;
 
-    Vector<ApiConstant> constants;
     Vector<ApiEnum> enums;
-    Vector<ApiClassMethod> methods;
-    Vector<ApiClassSignal> signals;
-    Vector<ApiClassProperty> properties;
+    Vector<ApiConstant> constants;
+    HashMap<String, ApiClassMethod> methods;
+    Vector<ApiClassMethod> static_methods;
+    HashMap<String, ApiClassSignal> signals;
+    HashMap<String, ApiClassProperty> properties;
 
     Object *singleton;
 };
