@@ -127,10 +127,7 @@ static void get_arguments(lua_State *L,
 
         for (int i = 0; i < nargs; i++)
         {
-            LuauVariant arg;
-            get_argument(L, i + 1 + arg_offset, method.arguments[i], arg);
-
-            args.set(i, arg);
+            get_argument(L, i + 1 + arg_offset, method.arguments[i], args.ptrw()[i]);
             pargs.set(i, args[i].get_opaque_pointer());
         }
     }

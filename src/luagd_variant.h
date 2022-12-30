@@ -64,16 +64,14 @@ struct lua_State;
 class LuauVariant // jank
 {
 private:
-    void clear();
-
-public:
-    // ! type, for_luau, and union are public for reducing jank. don't touch them.
     int32_t type;
 
     // forces the value to refer to a Luau userdata pointer
     // limits lifetime based on Luau GC (this type should be temporary anyway)
     bool from_luau;
 
+public:
+    // ! union is public for reducing jank. don't touch it.
     // size is 16 bytes. anything under can be added easily, otherwise use ptr
     union U
     {
@@ -101,8 +99,7 @@ public:
         void *_ptr;
     } _data alignas(8);
 
-    /* OPAQUE POINTER */
-
+    /* Opaque pointer */
     SIMPLE_GETTER(bool, bool, _bool)
     SIMPLE_GETTER(int64_t, int, _int)
     SIMPLE_GETTER(double, float, _float)
@@ -149,6 +146,10 @@ public:
     void *get_opaque_pointer();
     const void *get_opaque_pointer() const;
 
+    /* Member getter */
+    _FORCE_INLINE_ int32_t get_type() const { return type; }
+    _FORCE_INLINE_ bool is_from_luau() const { return from_luau; }
+
     /* Initialization */
     void initialize(GDExtensionVariantType init_type);
     void lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, String type_name = "");
@@ -162,4 +163,8 @@ public:
     LuauVariant(const LuauVariant &from);
     LuauVariant &operator=(const LuauVariant &from);
     ~LuauVariant();
+
+private:
+    void clear();
+    static void copy_variant(LuauVariant &to, const LuauVariant &from);
 };

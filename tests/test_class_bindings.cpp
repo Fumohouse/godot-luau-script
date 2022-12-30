@@ -93,8 +93,10 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions")
             return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6))
         )ASDF",
                   {
-                      PhysicsRayQueryParameters3D *params = LuaStackOp<PhysicsRayQueryParameters3D *>::check(L, -1);
+                      Ref<PhysicsRayQueryParameters3D> params = LuaStackOp<PhysicsRayQueryParameters3D *>::check(L, -1);
 
+                      REQUIRE(params->get_from() == Vector3(1, 2, 3));
+                      REQUIRE(params->get_to() == Vector3(4, 5, 6));
                       REQUIRE(params->get_collision_mask() == 4294967295);
                       REQUIRE(params->get_exclude().size() == 0);
                   });
