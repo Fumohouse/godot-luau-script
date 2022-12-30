@@ -1,7 +1,6 @@
 #pragma once
 
 #include <lua.h>
-#include <godot_cpp/templates/hash_map.hpp>
 
 #define LUAGD_LOAD_GUARD(L, key)             \
     lua_getfield(L, LUA_REGISTRYINDEX, key); \
@@ -13,13 +12,6 @@
                                              \
     lua_pushboolean(L, true);                \
     lua_setfield(L, LUA_REGISTRYINDEX, key);
-
-namespace godot
-{
-    class StringName;
-}
-
-typedef godot::HashMap<godot::StringName, lua_CFunction> MethodMap;
 
 template <typename T>
 T *luaGD_lightudataup(lua_State *L, int index)

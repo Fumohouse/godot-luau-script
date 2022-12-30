@@ -1,9 +1,5 @@
 #pragma once
 
-#include <godot_cpp/templates/hash_map.hpp>
-
-using namespace godot;
-
 struct lua_State;
 
 class GDLuau
@@ -15,18 +11,18 @@ public:
         VM_SCRIPT_LOAD = 0,
 
         // Runs the core game code.
-        VM_CORE = 1,
+        VM_CORE,
 
         // Runs any potentially unsafe user code.
-        VM_USER = 2,
+        VM_USER,
 
-        VM_MAX = 3
+        VM_MAX
     };
 
 private:
     static GDLuau *singleton;
 
-    HashMap<VMType, lua_State *> vms;
+    lua_State *vms[VM_MAX];
     void init_vm(VMType p_type);
 
 public:

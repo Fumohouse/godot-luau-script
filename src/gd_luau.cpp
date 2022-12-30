@@ -4,7 +4,6 @@
 #include <lualib.h>
 
 #include <godot_cpp/variant/utility_functions.hpp>
-#include <godot_cpp/templates/pair.hpp>
 
 #include "luagd.h"
 #include "luagd_permissions.h"
@@ -20,14 +19,13 @@ void GDLuau::init_vm(VMType p_type)
     luascript_openlibs(L);
     luaL_sandbox(L);
 
-    vms.insert(p_type, L);
+    vms[p_type] = L;
 }
 
 GDLuau::GDLuau()
 {
     UtilityFunctions::print_verbose("Luau runtime: initializing...");
 
-    vms.reserve(VM_MAX);
     init_vm(VM_SCRIPT_LOAD);
     init_vm(VM_CORE);
     init_vm(VM_USER);
@@ -43,16 +41,14 @@ GDLuau::~GDLuau()
     if (singleton == this)
         singleton = nullptr;
 
-    for (const KeyValue<VMType, lua_State *> &pair : vms)
-        luaGD_close(pair.value);
-
-    vms.clear();
+    for (lua_State *&L : vms)
+    {
+        luaGD_close(L);
+        L = nullptr;
+    }
 }
 
 lua_State *GDLuau::get_vm(VMType p_type)
 {
-    if (!vms.has(p_type))
-        return nullptr;
-
-    return vms.get(p_type);
+    return vms[p_type];
 }

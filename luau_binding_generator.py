@@ -18,11 +18,6 @@ def open_api(filepath):
 
 
 def scons_emit_files(target, source, env):
-    output_dir = target[0].abspath
-    api = open_api(str(source[0]))
-
-    src_dir = Path(output_dir) / "gen" / "src"
-
     files = [
         # Stack
         env.File("gen/include/luagd_bindings_stack.gen.h"),
@@ -50,7 +45,6 @@ def scons_generate_bindings(target, source, env):
 
     # Codegen
     generate_stack_ops(src_dir, include_dir, api)
-
     generate_api_bin(src_dir, api)
 
     return None
