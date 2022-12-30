@@ -14,51 +14,45 @@ struct lua_State;
 
 #define DATA_SIZE sizeof(real_t) * 4
 
-#define SIMPLE_GETTER(type, method_name, union_name)     \
-    _FORCE_INLINE_ type *get_##method_name()             \
-    {                                                    \
-        return &_data.union_name;                        \
-    }                                                    \
-                                                         \
-    _FORCE_INLINE_ const type *get_##method_name() const \
-    {                                                    \
-        return &_data.union_name;                        \
+#define SIMPLE_GETTER(type, method_name, union_name)       \
+    _FORCE_INLINE_ type *get_##method_name() {             \
+        return &_data.union_name;                          \
+    }                                                      \
+                                                           \
+    _FORCE_INLINE_ const type *get_##method_name() const { \
+        return &_data.union_name;                          \
     }
 
 #define DATA_GETTER(type, method_name)                                                             \
     static_assert(sizeof(type) <= DATA_SIZE, "this type should not use the Variant _data buffer"); \
                                                                                                    \
-    _FORCE_INLINE_ type *get_##method_name()                                                       \
-    {                                                                                              \
+    _FORCE_INLINE_ type *get_##method_name() {                                                     \
         if (from_luau)                                                                             \
             return reinterpret_cast<type *>(_data._ptr);                                           \
                                                                                                    \
         return reinterpret_cast<type *>(_data._data);                                              \
     }                                                                                              \
                                                                                                    \
-    _FORCE_INLINE_ const type *get_##method_name() const                                           \
-    {                                                                                              \
+    _FORCE_INLINE_ const type *get_##method_name() const {                                         \
         if (from_luau)                                                                             \
             return reinterpret_cast<type *>(_data._ptr);                                           \
                                                                                                    \
         return reinterpret_cast<const type *>(_data._data);                                        \
     }
 
-#define PTR_GETTER(type, method_name, ptr_name)          \
-    _FORCE_INLINE_ type *get_##method_name()             \
-    {                                                    \
-        if (from_luau)                                   \
-            return reinterpret_cast<type *>(_data._ptr); \
-                                                         \
-        return _data.ptr_name;                           \
-    }                                                    \
-                                                         \
-    _FORCE_INLINE_ const type *get_##method_name() const \
-    {                                                    \
-        if (from_luau)                                   \
-            return reinterpret_cast<type *>(_data._ptr); \
-                                                         \
-        return _data.ptr_name;                           \
+#define PTR_GETTER(type, method_name, ptr_name)            \
+    _FORCE_INLINE_ type *get_##method_name() {             \
+        if (from_luau)                                     \
+            return reinterpret_cast<type *>(_data._ptr);   \
+                                                           \
+        return _data.ptr_name;                             \
+    }                                                      \
+                                                           \
+    _FORCE_INLINE_ const type *get_##method_name() const { \
+        if (from_luau)                                     \
+            return reinterpret_cast<type *>(_data._ptr);   \
+                                                           \
+        return _data.ptr_name;                             \
     }
 
 class LuauVariant // jank
@@ -73,9 +67,9 @@ private:
 public:
     // ! union is public for reducing jank. don't touch it.
     // size is 16 bytes. anything under can be added easily, otherwise use ptr
-    union U
-    {
-        constexpr U() : _bool(false) {} // https://stackoverflow.com/a/70428826
+    union U {
+        constexpr U() :
+                _bool(false) {} // https://stackoverflow.com/a/70428826
         ~U() noexcept {}
 
         // SIMPLE
@@ -159,7 +153,8 @@ public:
     void assign_variant(const Variant &val);
 
     /* Constructor */
-    _FORCE_INLINE_ LuauVariant() : type(-1), from_luau(false) {}
+    _FORCE_INLINE_ LuauVariant() :
+            type(-1), from_luau(false) {}
     LuauVariant(const LuauVariant &from);
     LuauVariant &operator=(const LuauVariant &from);
     ~LuauVariant();

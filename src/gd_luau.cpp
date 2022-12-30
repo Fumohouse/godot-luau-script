@@ -2,7 +2,6 @@
 
 #include <lua.h>
 #include <lualib.h>
-
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "luagd.h"
@@ -13,8 +12,7 @@ using namespace godot;
 
 GDLuau *GDLuau::singleton = nullptr;
 
-void GDLuau::init_vm(VMType p_type)
-{
+void GDLuau::init_vm(VMType p_type) {
     lua_State *L = luaGD_newstate(PERMISSION_BASE);
     luascript_openlibs(L);
     luaL_sandbox(L);
@@ -22,8 +20,7 @@ void GDLuau::init_vm(VMType p_type)
     vms[p_type] = L;
 }
 
-GDLuau::GDLuau()
-{
+GDLuau::GDLuau() {
     UtilityFunctions::print_verbose("Luau runtime: initializing...");
 
     init_vm(VM_SCRIPT_LOAD);
@@ -34,21 +31,18 @@ GDLuau::GDLuau()
         singleton = this;
 }
 
-GDLuau::~GDLuau()
-{
+GDLuau::~GDLuau() {
     UtilityFunctions::print_verbose("Luau runtime: uninitializing...");
 
     if (singleton == this)
         singleton = nullptr;
 
-    for (lua_State *&L : vms)
-    {
+    for (lua_State *&L : vms) {
         luaGD_close(L);
         L = nullptr;
     }
 }
 
-lua_State *GDLuau::get_vm(VMType p_type)
-{
+lua_State *GDLuau::get_vm(VMType p_type) {
     return vms[p_type];
 }

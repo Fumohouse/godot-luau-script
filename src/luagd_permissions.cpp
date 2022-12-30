@@ -5,16 +5,13 @@
 
 #include "luagd.h"
 
-void luaGD_checkpermissions(lua_State *L, const char *name, ThreadPermissions permissions)
-{
+void luaGD_checkpermissions(lua_State *L, const char *name, ThreadPermissions permissions) {
     GDThreadData *udata = luaGD_getthreaddata(L);
 
-    if ((udata->permissions & permissions) != permissions)
-    {
+    if ((udata->permissions & permissions) != permissions) {
         luaL_error(
-            L,
-            "!!! THREAD PERMISSION VIOLATION: attempted to access %s. needed permissions: %d, got: %li !!!",
-            name, permissions, udata->permissions.operator int64_t()
-        );
+                L,
+                "!!! THREAD PERMISSION VIOLATION: attempted to access %s. needed permissions: %d, got: %li !!!",
+                name, permissions, udata->permissions.operator int64_t());
     }
 }

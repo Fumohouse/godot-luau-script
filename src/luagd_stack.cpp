@@ -1,12 +1,12 @@
 #include "luagd_stack.h"
 
+#include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
-#include <gdextension_interface.h>
-#include <godot_cpp/classes/object.hpp>
-#include <godot_cpp/core/object.hpp>
-#include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/object.hpp>
 
 using namespace godot;
 
@@ -47,42 +47,36 @@ LUA_BASIC_STACK_OP(Error, integer, number);
 /* STRING */
 
 template <>
-void LuaStackOp<String>::push(lua_State *L, const String &value)
-{
+void LuaStackOp<String>::push(lua_State *L, const String &value) {
     lua_pushstring(L, value.utf8().get_data());
 }
 
 template <>
-String LuaStackOp<String>::get(lua_State *L, int index)
-{
+String LuaStackOp<String>::get(lua_State *L, int index) {
     return String::utf8(lua_tostring(L, index));
 }
 
 template <>
-bool LuaStackOp<String>::is(lua_State *L, int index)
-{
+bool LuaStackOp<String>::is(lua_State *L, int index) {
     return lua_isstring(L, index);
 }
 
 template <>
-String LuaStackOp<String>::check(lua_State *L, int index)
-{
+String LuaStackOp<String>::check(lua_State *L, int index) {
     return String::utf8(luaL_checkstring(L, index));
 }
 
 /* OBJECTS */
 
-static void luaGD_object_init(Object *ptr)
-{
+static void luaGD_object_init(Object *ptr) {
     RefCounted *rc = Object::cast_to<RefCounted>(ptr);
     if (rc != nullptr)
         rc->init_ref();
 }
 
-static void luaGD_object_dtor(void *ptr)
-{
+static void luaGD_object_dtor(void *ptr) {
     Object *instance = ObjectDB::get_instance(
-        *reinterpret_cast<GDObjectInstanceID *>(ptr));
+            *reinterpret_cast<GDObjectInstanceID *>(ptr));
 
     RefCounted *rc = Object::cast_to<RefCounted>(instance);
     if (rc != nullptr)
@@ -90,10 +84,9 @@ static void luaGD_object_dtor(void *ptr)
 }
 
 template <>
-void LuaStackOp<Object *>::push(lua_State *L, Object *const &value)
-{
+void LuaStackOp<Object *>::push(lua_State *L, Object *const &value) {
     GDObjectInstanceID *udata =
-        reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
+            reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
 
     luaGD_object_init(value);
 
@@ -110,14 +103,12 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *const &value)
 }
 
 template <>
-bool LuaStackOp<Object *>::is(lua_State *L, int index)
-{
+bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
         return false;
 
     lua_getfield(L, -1, "__isgdobj");
-    if (!lua_isboolean(L, -1))
-    {
+    if (!lua_isboolean(L, -1)) {
         lua_pop(L, 2);
         return false;
     }
@@ -129,8 +120,7 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index)
 }
 
 template <>
-Object *LuaStackOp<Object *>::get(lua_State *L, int index)
-{
+Object *LuaStackOp<Object *>::get(lua_State *L, int index) {
     if (!LuaStackOp<Object *>::is(L, index))
         return nullptr;
 
@@ -141,8 +131,7 @@ Object *LuaStackOp<Object *>::get(lua_State *L, int index)
 }
 
 template <>
-Object *LuaStackOp<Object *>::check(lua_State *L, int index)
-{
+Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
     if (!LuaStackOp<Object *>::is(L, index))
         luaL_typeerrorL(L, index, "Object");
 

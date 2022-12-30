@@ -1,8 +1,8 @@
 #include <catch_amalgamated.hpp>
 
 #include <gdextension_interface.h>
-#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string_name.hpp>
@@ -11,15 +11,14 @@
 #include <lua.h>
 #include <lualib.h>
 
-#include "luau_script.h"
-#include "luagd_stack.h"
 #include "gd_luau.h"
+#include "luagd_stack.h"
 #include "luau_lib.h"
+#include "luau_script.h"
 
 #include "test_utils.h"
 
-TEST_CASE("luau script: script load")
-{
+TEST_CASE("luau script: script load") {
     // singleton is not available during test runs.
     // this will construct the singleton then destroy it at the end of the scope.
     GDLuau gd_luau;
@@ -57,17 +56,14 @@ TEST_CASE("luau script: script load")
 
     REQUIRE(script->_is_valid());
 
-    SECTION("method methods")
-    {
+    SECTION("method methods") {
         REQUIRE(script->is_tool());
         REQUIRE(script->get_script_method_list().size() == 2);
         REQUIRE(script->_has_method("TestMethod"));
-        REQUIRE(script->_get_method_info("TestMethod") == GDMethod({"TestMethod"}).operator Dictionary());
+        REQUIRE(script->_get_method_info("TestMethod") == GDMethod({ "TestMethod" }).operator Dictionary());
 
-        SECTION("method name conversion")
-        {
-            SECTION("normal")
-            {
+        SECTION("method name conversion") {
+            SECTION("normal") {
                 StringName actual_name;
                 bool has_method = script->has_method("test_method", &actual_name);
 
@@ -75,8 +71,7 @@ TEST_CASE("luau script: script load")
                 REQUIRE(actual_name == StringName("TestMethod"));
             }
 
-            SECTION("leading underscores")
-            {
+            SECTION("leading underscores") {
                 StringName actual_name;
                 bool has_method = script->has_method("__weird_method_name", &actual_name);
 
@@ -86,22 +81,19 @@ TEST_CASE("luau script: script load")
         }
     }
 
-    SECTION("property methods")
-    {
+    SECTION("property methods") {
         REQUIRE(script->get_script_property_list().size() == 1);
         REQUIRE(script->_get_members()[0] == StringName("testProperty"));
         REQUIRE(script->_has_property_default_value("testProperty"));
         REQUIRE(script->_get_property_default_value("testProperty") == Variant(5.5));
     }
 
-    SECTION("misc")
-    {
+    SECTION("misc") {
         REQUIRE(script->get_instance_base_type() == StringName("RefCounted"));
     }
 }
 
-TEST_CASE("luau script: instance")
-{
+TEST_CASE("luau script: instance") {
     GDLuau gd_luau;
 
     Ref<LuauScript> script;
@@ -238,8 +230,7 @@ TEST_CASE("luau script: instance")
     REQUIRE(inst->get_owner()->get_instance_id() == obj.get_instance_id());
     REQUIRE(inst->get_script() == script);
 
-    SECTION("method methods")
-    {
+    SECTION("method methods") {
         REQUIRE(inst->has_method("TestMethod"));
         REQUIRE(inst->has_method("TestMethod2"));
 
@@ -251,14 +242,12 @@ TEST_CASE("luau script: instance")
         bool m1_found = false;
         bool m2_found = false;
 
-        for (int i = 0; i < count; i++)
-        {
+        for (int i = 0; i < count; i++) {
             StringName *name = (StringName *)methods[i].name;
 
             if (*name == StringName("TestMethod"))
                 m1_found = true;
-            else if (*name == StringName("TestMethod2"))
-            {
+            else if (*name == StringName("TestMethod2")) {
                 m2_found = true;
 
                 REQUIRE(methods[i].return_value.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
@@ -273,8 +262,7 @@ TEST_CASE("luau script: instance")
         inst->free_method_list(methods);
     }
 
-    SECTION("property methods")
-    {
+    SECTION("property methods") {
         bool is_valid;
         Variant::Type type = inst->get_property_type("testProperty", &is_valid);
 
@@ -289,17 +277,13 @@ TEST_CASE("luau script: instance")
         bool p1_found = false;
         bool p2_found = false;
 
-        for (int i = 0; i < count; i++)
-        {
+        for (int i = 0; i < count; i++) {
             StringName *name = (StringName *)properties[i].name;
 
-            if (*name == StringName("testProperty"))
-            {
+            if (*name == StringName("testProperty")) {
                 p1_found = true;
                 REQUIRE(properties[i].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
-            }
-            else if (*name == StringName("testProperty2"))
-            {
+            } else if (*name == StringName("testProperty2")) {
                 p2_found = true;
                 REQUIRE(properties[i].type == GDEXTENSION_VARIANT_TYPE_STRING);
             }
@@ -311,12 +295,10 @@ TEST_CASE("luau script: instance")
         inst->free_property_list(properties);
     }
 
-    SECTION("call")
-    {
-        SECTION("normal operation")
-        {
-            const Variant args[] = {2.5f, "Hello world"};
-            const Variant *pargs[] = {&args[0], &args[1]};
+    SECTION("call") {
+        SECTION("normal operation") {
+            const Variant args[] = { 2.5f, "Hello world" };
+            const Variant *pargs[] = { &args[0], &args[1] };
 
             Variant ret;
             GDExtensionCallError err;
@@ -327,8 +309,7 @@ TEST_CASE("luau script: instance")
             REQUIRE(ret == "2.5, Hello world");
         }
 
-        SECTION("virtual method name conversion")
-        {
+        SECTION("virtual method name conversion") {
             const Variant *pargs[] = {};
             Variant ret;
             GDExtensionCallError err;
@@ -338,10 +319,9 @@ TEST_CASE("luau script: instance")
             REQUIRE(err.error == GDEXTENSION_CALL_OK);
         }
 
-        SECTION("default argument")
-        {
-            const Variant args[] = {5.3f};
-            const Variant *pargs[] = {&args[0]};
+        SECTION("default argument") {
+            const Variant args[] = { 5.3f };
+            const Variant *pargs[] = { &args[0] };
 
             Variant ret;
             GDExtensionCallError err;
@@ -352,10 +332,8 @@ TEST_CASE("luau script: instance")
             REQUIRE(ret == "5.3, hi");
         }
 
-        SECTION("invalid arguments")
-        {
-            SECTION("too few")
-            {
+        SECTION("invalid arguments") {
+            SECTION("too few") {
                 const Variant *pargs[] = {};
                 Variant ret;
                 GDExtensionCallError err;
@@ -366,10 +344,9 @@ TEST_CASE("luau script: instance")
                 REQUIRE(err.argument == 1);
             }
 
-            SECTION("too many")
-            {
+            SECTION("too many") {
                 const Variant one = 1;
-                const Variant *pargs[] = {&one, &one, &one, &one, &one};
+                const Variant *pargs[] = { &one, &one, &one, &one, &one };
                 Variant ret;
                 GDExtensionCallError err;
 
@@ -379,10 +356,9 @@ TEST_CASE("luau script: instance")
                 REQUIRE(err.argument == 2);
             }
 
-            SECTION("invalid")
-            {
-                const Variant args[] = {false};
-                const Variant *pargs[] = {&args[0]};
+            SECTION("invalid") {
+                const Variant args[] = { false };
+                const Variant *pargs[] = { &args[0] };
 
                 Variant ret;
                 GDExtensionCallError err;
@@ -396,15 +372,12 @@ TEST_CASE("luau script: instance")
         }
     }
 
-    SECTION("table setget")
-    {
-        SECTION("normal")
-        {
+    SECTION("table setget") {
+        SECTION("normal") {
             lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
             int top = lua_gettop(L);
 
-            SECTION("set")
-            {
+            SECTION("set") {
                 lua_pushstring(L, "testField");
                 lua_pushinteger(L, 2);
 
@@ -419,8 +392,7 @@ TEST_CASE("luau script: instance")
                 REQUIRE(lua_tointeger(L, -1) == 2);
             }
 
-            SECTION("get")
-            {
+            SECTION("get") {
                 lua_pushstring(L, "PrivateMethod");
                 bool is_valid = inst->table_get(L);
 
@@ -430,12 +402,10 @@ TEST_CASE("luau script: instance")
             }
         }
 
-        SECTION("wrong thread")
-        {
+        SECTION("wrong thread") {
             lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
 
-            SECTION("set")
-            {
+            SECTION("set") {
                 lua_pushstring(L, "testField");
                 lua_pushstring(L, "asdf");
 
@@ -443,8 +413,7 @@ TEST_CASE("luau script: instance")
                 REQUIRE(!is_valid);
             }
 
-            SECTION("get")
-            {
+            SECTION("get") {
                 lua_pushstring(L, "PrivateMethod");
 
                 bool is_valid = inst->table_get(L);
@@ -453,8 +422,7 @@ TEST_CASE("luau script: instance")
         }
     }
 
-    SECTION("notification")
-    {
+    SECTION("notification") {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
 
         inst->notification(42);
@@ -465,8 +433,7 @@ TEST_CASE("luau script: instance")
         REQUIRE(LuaStackOp<int>::check(L, -1) == 1);
     }
 
-    SECTION("to string")
-    {
+    SECTION("to string") {
         bool is_valid;
         String out;
         inst->to_string((GDExtensionBool *)&is_valid, &out);
@@ -475,12 +442,9 @@ TEST_CASE("luau script: instance")
         REQUIRE(out == "my awesome class");
     }
 
-    SECTION("setget")
-    {
-        SECTION("set")
-        {
-            SECTION("with wrong type")
-            {
+    SECTION("setget") {
+        SECTION("set") {
+            SECTION("with wrong type") {
                 LuauScriptInstance::PropertySetGetError err;
                 bool is_valid = inst->set("testProperty", "asdf", &err);
 
@@ -488,8 +452,7 @@ TEST_CASE("luau script: instance")
                 REQUIRE(err == LuauScriptInstance::PROP_WRONG_TYPE);
             }
 
-            SECTION("read-only")
-            {
+            SECTION("read-only") {
                 LuauScriptInstance::PropertySetGetError err;
                 bool is_valid = inst->set("testProperty2", "hey there", &err);
 
@@ -498,10 +461,8 @@ TEST_CASE("luau script: instance")
             }
         }
 
-        SECTION("get")
-        {
-            SECTION("write-only")
-            {
+        SECTION("get") {
+            SECTION("write-only") {
                 LuauScriptInstance::PropertySetGetError err;
                 Variant val;
                 bool is_valid = inst->get("testProperty3", val, &err);
@@ -511,8 +472,7 @@ TEST_CASE("luau script: instance")
             }
         }
 
-        SECTION("with getter and setter")
-        {
+        SECTION("with getter and setter") {
             bool set_is_valid = inst->set("testProperty", 3.5);
             REQUIRE(set_is_valid);
 
@@ -523,8 +483,7 @@ TEST_CASE("luau script: instance")
             REQUIRE(val == Variant(7));
         }
 
-        SECTION("with no getter or setter")
-        {
+        SECTION("with no getter or setter") {
             bool set_is_valid = inst->set("testProperty4", "asdf");
             REQUIRE(set_is_valid);
 
@@ -535,10 +494,8 @@ TEST_CASE("luau script: instance")
             REQUIRE(new_val == "asdf");
         }
 
-        SECTION("property state")
-        {
-            GDExtensionScriptInstancePropertyStateAdd add = [](GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value, void *p_userdata)
-            {
+        SECTION("property state") {
+            GDExtensionScriptInstancePropertyStateAdd add = [](GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value, void *p_userdata) {
                 ((HashMap<StringName, Variant> *)p_userdata)->insert(*((const StringName *)p_name), *((const Variant *)p_value));
             };
 
@@ -553,8 +510,7 @@ TEST_CASE("luau script: instance")
         }
     }
 
-    SECTION("metatable")
-    {
+    SECTION("metatable") {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
         lua_State *T = lua_newthread(L);
         luaL_sandboxthread(T);
@@ -562,23 +518,18 @@ TEST_CASE("luau script: instance")
         LuaStackOp<Object *>::push(T, &obj);
         lua_setglobal(T, "obj");
 
-        SECTION("namecall")
-        {
-            SECTION("from table index")
-            {
+        SECTION("namecall") {
+            SECTION("from table index") {
                 ASSERT_EVAL_EQ(T, "return obj:PrivateMethod()", String, "hi there");
             }
 
-            SECTION("registered method")
-            {
+            SECTION("registered method") {
                 ASSERT_EVAL_EQ(T, "return obj:TestMethod(2.5, 'asdf')", String, "2.5, asdf");
             }
         }
 
-        SECTION("newindex")
-        {
-            SECTION("registered")
-            {
+        SECTION("newindex") {
+            SECTION("registered") {
                 EVAL_THEN(T, "obj.testProperty = 2.5", {
                     Variant ret;
                     bool is_valid = inst->get("testProperty", ret);
@@ -588,8 +539,7 @@ TEST_CASE("luau script: instance")
                 });
             }
 
-            SECTION("non registered")
-            {
+            SECTION("non registered") {
                 EVAL_THEN(T, "obj.testField = 2", {
                     LuaStackOp<String>::push(T, "testField");
                     bool is_valid = inst->table_get(T);
@@ -599,26 +549,21 @@ TEST_CASE("luau script: instance")
                 });
             }
 
-            SECTION("read-only")
-            {
+            SECTION("read-only") {
                 ASSERT_EVAL_FAIL(T, "obj.testProperty2 = 'asdf'", "exec:1: property 'testProperty2' is read-only");
             }
         }
 
-        SECTION("index")
-        {
-            SECTION("registered")
-            {
+        SECTION("index") {
+            SECTION("registered") {
                 ASSERT_EVAL_EQ(T, "return obj.testProperty", float, 6.5f);
             }
 
-            SECTION("non registered")
-            {
+            SECTION("non registered") {
                 ASSERT_EVAL_EQ(T, "return obj.testField", int, 1);
             }
 
-            SECTION("write-only")
-            {
+            SECTION("write-only") {
                 ASSERT_EVAL_FAIL(T, "return obj.testProperty3", "exec:1: property 'testProperty3' is write-only")
             }
         }
@@ -627,8 +572,7 @@ TEST_CASE("luau script: instance")
     }
 }
 
-TEST_CASE("luau script: inheritance")
-{
+TEST_CASE("luau script: inheritance") {
     GDLuau gd_luau;
 
     // 1
@@ -726,28 +670,22 @@ TEST_CASE("luau script: inheritance")
     LuaStackOp<Object *>::push(T, &obj);
     lua_setglobal(T, "obj");
 
-    SECTION("methods")
-    {
-        SECTION("inherited")
-        {
+    SECTION("methods") {
+        SECTION("inherited") {
             ASSERT_EVAL_EQ(T, "return obj.property1", String, "hey");
         }
 
-        SECTION("overriden")
-        {
+        SECTION("overriden") {
             ASSERT_EVAL_EQ(T, "return obj.property2", String, "hihi");
         }
     }
 
-    SECTION("properties")
-    {
-        SECTION("inherited")
-        {
+    SECTION("properties") {
+        SECTION("inherited") {
             ASSERT_EVAL_EQ(T, "return obj:Method1()", String, "there");
         }
 
-        SECTION("overridden")
-        {
+        SECTION("overridden") {
             ASSERT_EVAL_EQ(T, "return obj:Method2()", String, "guy");
         }
     }

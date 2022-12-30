@@ -2,8 +2,7 @@
 
 #include <lua.h>
 
-enum ThreadPermissions
-{
+enum ThreadPermissions {
     PERMISSION_INHERIT = -1,
     PERMISSION_BASE = 0,
     // Default permission level. Restricted to core.

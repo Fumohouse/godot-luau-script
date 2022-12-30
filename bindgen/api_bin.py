@@ -965,8 +965,7 @@ static_assert(GDEXTENSION_VARIANT_TYPE_VARIANT_MAX == {len(variant_types)}, "var
 static_assert(GDEXTENSION_VARIANT_OP_MAX == {len(variant_ops)}, "variant operator list in api_bin is outdated");
 
 // a static const variable would result in initialization before the Variant type itself is ready
-const Variant &get_variant_value(int idx)
-{{
+const Variant &get_variant_value(int idx) {{
     static const Variant variant_values[] = {{{",".join(variant_values)}}};
     return variant_values[idx];
 }}

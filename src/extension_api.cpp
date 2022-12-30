@@ -1,13 +1,13 @@
 #include "extension_api.h"
 
 #include <gdextension_interface.h>
-#include <godot_cpp/godot.hpp>
 #include <godot_cpp/core/object.hpp>
+#include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
-#include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_permissions.h"
 #include "luagd_variant.h"
@@ -22,8 +22,7 @@ using namespace godot;
 // Reading from the bin/inc //
 //////////////////////////////
 
-static void get_variant_const(LuauVariant &out, int32_t idx)
-{
+static void get_variant_const(LuauVariant &out, int32_t idx) {
     const Variant &value = get_variant_value(idx);
 
     out.initialize((GDExtensionVariantType)value.get_type());
@@ -31,8 +30,7 @@ static void get_variant_const(LuauVariant &out, int32_t idx)
 }
 
 template <typename T>
-static T read(uint64_t &idx)
-{
+static T read(uint64_t &idx) {
     T val = *((T *)(api_bin + idx));
     idx += sizeof(T);
 
@@ -40,19 +38,16 @@ static T read(uint64_t &idx)
 }
 
 template <typename T>
-static T read_uenum(uint64_t &idx)
-{
+static T read_uenum(uint64_t &idx) {
     return (T)read<uint32_t>(idx);
 }
 
 template <typename T>
-static T read_enum(uint64_t &idx)
-{
+static T read_enum(uint64_t &idx) {
     return (T)read<int32_t>(idx);
 }
 
-static const char *read_string(uint64_t &idx)
-{
+static const char *read_string(uint64_t &idx) {
     uint64_t len = read<uint64_t>(idx);
     if (len == 0)
         return "";
@@ -63,8 +58,7 @@ static const char *read_string(uint64_t &idx)
     return ptr;
 }
 
-static ApiEnum read_api_enum(uint64_t &idx)
-{
+static ApiEnum read_api_enum(uint64_t &idx) {
     ApiEnum e;
     e.name = read_string(idx);
     e.is_bitfield = read<uint8_t>(idx);
@@ -74,10 +68,9 @@ static ApiEnum read_api_enum(uint64_t &idx)
 
     Pair<String, int32_t> *values = e.values.ptrw();
 
-    for (int j = 0; j < num_values; j++)
-    {
+    for (int j = 0; j < num_values; j++) {
         values[j] = {
-            read_string(idx),  // name
+            read_string(idx), // name
             read<int32_t>(idx) // value
         };
     }
@@ -85,24 +78,21 @@ static ApiEnum read_api_enum(uint64_t &idx)
     return e;
 }
 
-static ApiConstant read_api_constant(uint64_t &idx)
-{
+static ApiConstant read_api_constant(uint64_t &idx) {
     return {
-        read_string(idx),  // name
+        read_string(idx), // name
         read<int64_t>(idx) // value
     };
 }
 
-static ApiArgumentNoDefault read_arg_no_default(uint64_t &idx)
-{
+static ApiArgumentNoDefault read_arg_no_default(uint64_t &idx) {
     return {
-        read_string(idx),                       // name
+        read_string(idx), // name
         read_uenum<GDExtensionVariantType>(idx) // type
     };
 }
 
-static ApiVariantMethod read_builtin_method(GDExtensionVariantType type, uint64_t &idx)
-{
+static ApiVariantMethod read_builtin_method(GDExtensionVariantType type, uint64_t &idx) {
     ApiVariantMethod method;
     method.name = read_string(idx);
     method.gd_name = read_string(idx);
@@ -120,15 +110,13 @@ static ApiVariantMethod read_builtin_method(GDExtensionVariantType type, uint64_
 
     ApiArgument *args = method.arguments.ptrw();
 
-    for (int i = 0; i < num_arguments; i++)
-    {
+    for (int i = 0; i < num_arguments; i++) {
         ApiArgument &arg = args[i];
         arg.name = read_string(idx);
         arg.type = read_uenum<GDExtensionVariantType>(idx);
 
         int32_t default_variant_index = read<int32_t>(idx);
-        if (default_variant_index != -1)
-        {
+        if (default_variant_index != -1) {
             arg.has_default_value = true;
             get_variant_const(arg.default_value, default_variant_index);
         }
@@ -139,8 +127,7 @@ static ApiVariantMethod read_builtin_method(GDExtensionVariantType type, uint64_
     return method;
 }
 
-static ApiClassType read_class_type(uint64_t &idx)
-{
+static ApiClassType read_class_type(uint64_t &idx) {
     ApiClassType type;
 
     type.type = read<int32_t>(idx);
@@ -153,8 +140,7 @@ static ApiClassType read_class_type(uint64_t &idx)
     return type;
 }
 
-static ApiClassArgument read_class_arg(uint64_t &idx)
-{
+static ApiClassArgument read_class_arg(uint64_t &idx) {
     ApiClassArgument arg;
 
     arg.name = read_string(idx);
@@ -162,8 +148,7 @@ static ApiClassArgument read_class_arg(uint64_t &idx)
 
     int32_t default_variant_index = read<int32_t>(idx);
 
-    if (default_variant_index != -1)
-    {
+    if (default_variant_index != -1) {
         arg.has_default_value = true;
         get_variant_const(arg.default_value, default_variant_index);
     }
@@ -171,8 +156,7 @@ static ApiClassArgument read_class_arg(uint64_t &idx)
     return arg;
 }
 
-static ApiClassMethod read_class_method(uint64_t &idx, const StringName &class_name)
-{
+static ApiClassMethod read_class_method(uint64_t &idx, const StringName &class_name) {
     ApiClassMethod method;
 
     method.class_name = class_name;
@@ -206,39 +190,36 @@ static ApiClassMethod read_class_method(uint64_t &idx, const StringName &class_n
 //////////////////////////
 
 template <typename T>
-static void array_get_len(GDExtensionConstTypePtr p_left, GDExtensionConstTypePtr, GDExtensionTypePtr r_result)
-{
+static void array_get_len(GDExtensionConstTypePtr p_left, GDExtensionConstTypePtr, GDExtensionTypePtr r_result) {
     *((int64_t *)r_result) = ((T *)p_left)->size();
 }
 
 // ! sync with any new arrays
-static GDExtensionPtrOperatorEvaluator get_len_evaluator(GDExtensionVariantType type)
-{
-    switch (type)
-    {
-    case GDEXTENSION_VARIANT_TYPE_ARRAY:
-        return array_get_len<Array>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY:
-        return array_get_len<PackedByteArray>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_INT32_ARRAY:
-        return array_get_len<PackedInt32Array>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_INT64_ARRAY:
-        return array_get_len<PackedInt64Array>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT32_ARRAY:
-        return array_get_len<PackedFloat32Array>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT64_ARRAY:
-        return array_get_len<PackedFloat64Array>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY:
-        return array_get_len<PackedStringArray>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR2_ARRAY:
-        return array_get_len<PackedVector2Array>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR3_ARRAY:
-        return array_get_len<PackedVector3Array>;
-    case GDEXTENSION_VARIANT_TYPE_PACKED_COLOR_ARRAY:
-        return array_get_len<PackedColorArray>;
+static GDExtensionPtrOperatorEvaluator get_len_evaluator(GDExtensionVariantType type) {
+    switch (type) {
+        case GDEXTENSION_VARIANT_TYPE_ARRAY:
+            return array_get_len<Array>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY:
+            return array_get_len<PackedByteArray>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_INT32_ARRAY:
+            return array_get_len<PackedInt32Array>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_INT64_ARRAY:
+            return array_get_len<PackedInt64Array>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT32_ARRAY:
+            return array_get_len<PackedFloat32Array>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT64_ARRAY:
+            return array_get_len<PackedFloat64Array>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY:
+            return array_get_len<PackedStringArray>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR2_ARRAY:
+            return array_get_len<PackedVector2Array>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR3_ARRAY:
+            return array_get_len<PackedVector3Array>;
+        case GDEXTENSION_VARIANT_TYPE_PACKED_COLOR_ARRAY:
+            return array_get_len<PackedColorArray>;
 
-    default:
-        return nullptr;
+        default:
+            return nullptr;
     }
 }
 
@@ -246,13 +227,11 @@ static GDExtensionPtrOperatorEvaluator get_len_evaluator(GDExtensionVariantType 
 // Main //
 //////////
 
-ExtensionApi &get_extension_api()
-{
+ExtensionApi &get_extension_api() {
     static ExtensionApi extension_api;
     static bool did_init;
 
-    if (!did_init)
-    {
+    if (!did_init) {
         LOG("loading GDExtension api from binary...");
 
         uint64_t idx = 0;
@@ -293,8 +272,7 @@ ExtensionApi &get_extension_api()
 
             ApiUtilityFunction *utility_functions = extension_api.utility_functions.ptrw();
 
-            for (int i = 0; i < num_utility_functions; i++)
-            {
+            for (int i = 0; i < num_utility_functions; i++) {
                 ApiUtilityFunction &func = utility_functions[i];
 
                 func.name = read_string(idx);
@@ -327,8 +305,7 @@ ExtensionApi &get_extension_api()
 
             ApiBuiltinClass *builtin_classes = extension_api.builtin_classes.ptrw();
 
-            for (int i = 0; i < num_builtin_classes; i++)
-            {
+            for (int i = 0; i < num_builtin_classes; i++) {
                 // Info
                 ApiBuiltinClass &new_class = builtin_classes[i];
 
@@ -339,8 +316,7 @@ ExtensionApi &get_extension_api()
                 // Keyed setget
                 bool is_keyed = read<uint8_t>(idx);
 
-                if (is_keyed)
-                {
+                if (is_keyed) {
                     new_class.keyed_setter = internal::gde_interface->variant_get_ptr_keyed_setter(new_class.type);
                     new_class.keyed_getter = internal::gde_interface->variant_get_ptr_keyed_getter(new_class.type);
                     new_class.keyed_checker = internal::gde_interface->variant_get_ptr_keyed_checker(new_class.type);
@@ -349,8 +325,7 @@ ExtensionApi &get_extension_api()
                 // Indexed setget
                 int32_t indexing_return_type = read<int32_t>(idx);
 
-                if (indexing_return_type != -1)
-                {
+                if (indexing_return_type != -1) {
                     new_class.indexing_return_type = (GDExtensionVariantType)indexing_return_type;
 
                     if (new_class.name.ends_with("Array"))
@@ -374,8 +349,7 @@ ExtensionApi &get_extension_api()
 
                 ApiVariantConstant *constants = new_class.constants.ptrw();
 
-                for (int j = 0; j < num_constants; j++)
-                {
+                for (int j = 0; j < num_constants; j++) {
                     ApiVariantConstant &constant = constants[j];
 
                     constant.name = read_string(idx);
@@ -390,8 +364,7 @@ ExtensionApi &get_extension_api()
 
                 ApiVariantConstructor *constructors = new_class.constructors.ptrw();
 
-                for (int j = 0; j < num_constructors; j++)
-                {
+                for (int j = 0; j < num_constructors; j++) {
                     ApiVariantConstructor &constructor = constructors[j];
 
                     uint64_t num_args = read<uint64_t>(idx);
@@ -412,8 +385,7 @@ ExtensionApi &get_extension_api()
                 uint64_t num_members = read<uint64_t>(idx);
                 new_class.members.reserve(num_members);
 
-                for (int j = 0; j < num_members; j++)
-                {
+                for (int j = 0; j < num_members; j++) {
                     const char *name = read_string(idx);
 
                     ApiVariantMember member;
@@ -433,8 +405,7 @@ ExtensionApi &get_extension_api()
                 uint64_t num_instance_methods = read<uint64_t>(idx);
                 new_class.methods.reserve(num_instance_methods);
 
-                for (int j = 0; j < num_instance_methods; j++)
-                {
+                for (int j = 0; j < num_instance_methods; j++) {
                     ApiVariantMethod method = read_builtin_method(new_class.type, idx);
                     new_class.methods.insert(method.name, method);
                 }
@@ -454,8 +425,7 @@ ExtensionApi &get_extension_api()
                 new_class.operators.reserve(num_operator_types);
                 new_class.operator_debug_names.reserve(num_operator_types);
 
-                for (int j = 0; j < num_operator_types; j++)
-                {
+                for (int j = 0; j < num_operator_types; j++) {
                     GDExtensionVariantOperator op = read_uenum<GDExtensionVariantOperator>(idx);
 
                     Vector<ApiVariantOperator> operators;
@@ -464,18 +434,14 @@ ExtensionApi &get_extension_api()
 
                     ApiVariantOperator *ops_ptr = operators.ptrw();
 
-                    for (int k = 0; k < num_operators; k++)
-                    {
+                    for (int k = 0; k < num_operators; k++) {
                         ops_ptr[k].right_type = read_uenum<GDExtensionVariantType>(idx);
                         ops_ptr[k].return_type = read_uenum<GDExtensionVariantType>(idx);
 
-                        if (op == GDEXTENSION_VARIANT_OP_MAX)
-                        {
+                        if (op == GDEXTENSION_VARIANT_OP_MAX) {
                             // Special array __len
                             ops_ptr[k].eval = get_len_evaluator(new_class.type);
-                        }
-                        else
-                        {
+                        } else {
                             ops_ptr[k].eval = internal::gde_interface->variant_get_ptr_operator_evaluator(op, new_class.type, ops_ptr[k].right_type);
                         }
                     }
@@ -496,8 +462,7 @@ ExtensionApi &get_extension_api()
 
             ApiClass *classes = extension_api.classes.ptrw();
 
-            for (int i = 0; i < num_classes; i++)
-            {
+            for (int i = 0; i < num_classes; i++) {
                 ApiClass &new_class = classes[i];
 
                 new_class.name = read_string(idx);
@@ -533,8 +498,7 @@ ExtensionApi &get_extension_api()
                 uint64_t num_methods = read<uint64_t>(idx);
                 new_class.methods.reserve(num_methods);
 
-                for (int j = 0; j < num_methods; j++)
-                {
+                for (int j = 0; j < num_methods; j++) {
                     ApiClassMethod method = read_class_method(idx, class_name);
                     new_class.methods.insert(method.name, method);
                 }
@@ -554,8 +518,7 @@ ExtensionApi &get_extension_api()
                 uint64_t num_signals = read<uint64_t>(idx);
                 new_class.signals.reserve(num_signals);
 
-                for (int j = 0; j < num_signals; j++)
-                {
+                for (int j = 0; j < num_signals; j++) {
                     ApiClassSignal signal;
 
                     signal.name = read_string(idx);
@@ -574,8 +537,7 @@ ExtensionApi &get_extension_api()
                 uint64_t num_properties = read<uint64_t>(idx);
                 new_class.properties.reserve(num_properties);
 
-                for (int j = 0; j < num_properties; j++)
-                {
+                for (int j = 0; j < num_properties; j++) {
                     ApiClassProperty prop;
 
                     prop.name = read_string(idx);

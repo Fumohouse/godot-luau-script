@@ -84,10 +84,8 @@ def generate_stack_ops(src_dir, include_dir, api):
 #pragma GCC diagnostic ignored "-Wswitch"
 
 template <>
-void LuaStackOp<Variant>::push(lua_State *L, const Variant &value)
-{
-    switch (value.get_type())
-    {
+void LuaStackOp<Variant>::push(lua_State *L, const Variant &value) {
+    switch (value.get_type()) {
         case Variant::NIL:
             lua_pushnil(L);
             return;
@@ -146,8 +144,7 @@ case Variant::{class_snake}:
     # get
     src.append("""\
 template <>
-Variant LuaStackOp<Variant>::get(lua_State *L, int index)
-{
+Variant LuaStackOp<Variant>::get(lua_State *L, int index) {
     if (lua_isnil(L, index))
         return Variant();
 
@@ -155,8 +152,7 @@ Variant LuaStackOp<Variant>::get(lua_State *L, int index)
         return Variant(static_cast<bool>(lua_toboolean(L, index)));
 
     // TODO: this is rather frail...
-    if (lua_isnumber(L, index))
-    {
+    if (lua_isnumber(L, index)) {
         double value = lua_tonumber(L, index);
         double int_part;
 
@@ -193,16 +189,14 @@ if (LuaStackOp<{class_name}>::is(L, index))
     # TODO: What types are listed here should probably change (e.g. Callable support, if table arg support is added for lists/dicts)
     src.append("""
 template <>
-bool LuaStackOp<Variant>::is(lua_State *L, int index)
-{
+bool LuaStackOp<Variant>::is(lua_State *L, int index) {
     if (lua_istable(L, index) ||
-        lua_isfunction(L, index) ||
-        lua_islightuserdata(L, index) ||
-        lua_isthread(L, index))
+            lua_isfunction(L, index) ||
+            lua_islightuserdata(L, index) ||
+            lua_isthread(L, index))
         return false;
 
-    if (lua_type(L, index) == LUA_TUSERDATA)
-    {
+    if (lua_type(L, index) == LUA_TUSERDATA) {
         if (LuaStackOp<Object *>::is(L, index))
             return true;
 """)
@@ -227,10 +221,9 @@ if (LuaStackOp<{class_name}>::is(L, index))
 """)
 
     # check
-    src.append("""
+    src.append("""\
 template <>
-Variant LuaStackOp<Variant>::check(lua_State *L, int index)
-{
+Variant LuaStackOp<Variant>::check(lua_State *L, int index) {
     return LuaStackOp<Variant>::get(L, index);
 }
 """)

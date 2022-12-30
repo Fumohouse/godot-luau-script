@@ -2,11 +2,9 @@
 
 struct lua_State;
 
-class GDLuau
-{
+class GDLuau {
 public:
-    enum VMType
-    {
+    enum VMType {
         // Runs code for getting basic information for LuauScript.
         VM_SCRIPT_LOAD = 0,
 

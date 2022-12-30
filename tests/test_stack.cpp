@@ -7,8 +7,8 @@
 
 #include "test_utils.h"
 
-#include "luagd_stack.h"
 #include "luagd_bindings_stack.gen.h"
+#include "luagd_stack.h"
 
 using namespace godot;
 
@@ -17,8 +17,7 @@ using namespace godot;
     REQUIRE(LuaStackOp<type>::get(L, -1) == value); \
     lua_pop(L, 1);
 
-TEST_CASE_METHOD(LuauFixture, "vm: stack operations")
-{
+TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
     TEST_STACK_OP(bool, true);
     TEST_STACK_OP(int, 12);
     TEST_STACK_OP(String, "hello there! おはようございます");

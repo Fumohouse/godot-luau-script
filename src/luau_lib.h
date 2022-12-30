@@ -1,13 +1,13 @@
 #pragma once
 
 #include <gdextension_interface.h>
-#include <godot_cpp/variant/variant.hpp>
-#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
-#include <godot_cpp/templates/hash_map.hpp>
-#include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_stack.h"
 
@@ -15,8 +15,7 @@ using namespace godot;
 
 struct lua_State;
 
-struct GDProperty
-{
+struct GDProperty {
     GDExtensionVariantType type = GDEXTENSION_VARIANT_TYPE_NIL;
     uint32_t usage = PROPERTY_USAGE_DEFAULT;
 
@@ -30,8 +29,7 @@ struct GDProperty
     operator Variant() const;
 };
 
-struct GDClassProperty
-{
+struct GDClassProperty {
     GDProperty property;
 
     StringName getter;
@@ -40,8 +38,7 @@ struct GDClassProperty
     Variant default_value;
 };
 
-struct GDMethod
-{
+struct GDMethod {
     String name;
     GDProperty return_val;
     uint32_t flags = METHOD_FLAGS_DEFAULT;
@@ -52,8 +49,7 @@ struct GDMethod
     operator Variant() const;
 };
 
-struct GDClassDefinition
-{
+struct GDClassDefinition {
     String name;
     String extends;
 

@@ -1,14 +1,14 @@
 #include "register_types.h"
 
 #include <gdextension_interface.h>
-#include <godot_cpp/godot.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
-#include <godot_cpp/core/memory.hpp>
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
+#include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/godot.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 
 #include "luau_script.h"
 
@@ -16,8 +16,8 @@
 #include <vector>
 
 #include <godot_cpp/classes/os.hpp>
-#include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/char_string.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
 
 #include <catch_amalgamated.hpp>
 #endif // TESTS_ENABLED
@@ -28,8 +28,7 @@ LuauLanguage *script_language_luau = nullptr;
 Ref<ResourceFormatLoaderLuauScript> resource_loader_luau;
 Ref<ResourceFormatSaverLuauScript> resource_saver_luau;
 
-void initialize_luau_script_module(ModuleInitializationLevel p_level)
-{
+void initialize_luau_script_module(ModuleInitializationLevel p_level) {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
         return;
 
@@ -67,8 +66,7 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level)
     std::vector<const char *> argv_vec(argc + 1);
     argv_vec[0] = "luau-script"; // executable name
 
-    for (int i = 0; i < argc; i++)
-    {
+    for (int i = 0; i < argc; i++) {
         charstr_vec[i] = args[i].utf8();
         argv_vec[i + 1] = charstr_vec[i].get_data();
     }
@@ -80,8 +78,7 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level)
 #endif // TESTS_ENABLED
 }
 
-void uninitialize_luau_script_module(ModuleInitializationLevel p_level)
-{
+void uninitialize_luau_script_module(ModuleInitializationLevel p_level) {
     if (p_level != MODULE_INITIALIZATION_LEVEL_SCENE)
         return;
 
@@ -92,7 +89,7 @@ void uninitialize_luau_script_module(ModuleInitializationLevel p_level)
     // 2022-09-21: it does break. (segfault when ScriptServer cleans up)
     // should be ok if/when script languages can be properly unregistered
     // if (script_language_luau)
-        // memdelete(script_language_luau); // will this break? maybe
+    // memdelete(script_language_luau); // will this break? maybe
 
     ResourceLoader::get_singleton()->remove_resource_format_loader(resource_loader_luau);
     resource_loader_luau.unref();
@@ -103,17 +100,15 @@ void uninitialize_luau_script_module(ModuleInitializationLevel p_level)
 
 #define GD_LIB_EXPORT __attribute__((visibility("default")))
 
-extern "C"
-{
-    GD_LIB_EXPORT GDExtensionBool luau_script_init(const GDExtensionInterface *p_interface, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization)
-    {
-        godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
+extern "C" {
+GD_LIB_EXPORT GDExtensionBool luau_script_init(const GDExtensionInterface *p_interface, const GDExtensionClassLibraryPtr p_library, GDExtensionInitialization *r_initialization) {
+    godot::GDExtensionBinding::InitObject init_obj(p_interface, p_library, r_initialization);
 
-        init_obj.register_initializer(initialize_luau_script_module);
-        init_obj.register_terminator(uninitialize_luau_script_module);
+    init_obj.register_initializer(initialize_luau_script_module);
+    init_obj.register_terminator(uninitialize_luau_script_module);
 
-        init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
+    init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SCENE);
 
-        return init_obj.init();
-    }
+    return init_obj.init();
+}
 }

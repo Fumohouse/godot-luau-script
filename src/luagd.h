@@ -8,8 +8,7 @@
 
 using namespace godot;
 
-struct GDThreadData
-{
+struct GDThreadData {
     BitField<ThreadPermissions> permissions = 0;
 };
 

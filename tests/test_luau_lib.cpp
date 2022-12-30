@@ -1,11 +1,11 @@
 #include <catch_amalgamated.hpp>
 
-#include <lua.h>
 #include <gdextension_interface.h>
-#include <godot_cpp/variant/variant.hpp>
+#include <lua.h>
+#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string_name.hpp>
-#include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_stack.h"
 #include "luau_lib.h"
@@ -13,12 +13,10 @@
 
 using namespace godot;
 
-TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
-{
+TEST_CASE_METHOD(LuauFixture, "lib: gdproperty") {
     luascript_openlibs(L);
 
-    SECTION("all properties")
-    {
+    SECTION("all properties") {
         GDProperty expected;
 
         expected.type = GDEXTENSION_VARIANT_TYPE_OBJECT;
@@ -38,14 +36,13 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
                 className = "Node3D"
             })
         )ASDF",
-                  {
-                      GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                      REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
-                  });
+                {
+                    GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
+                    REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
+                });
     }
 
-    SECTION("some properties")
-    {
+    SECTION("some properties") {
         GDProperty expected;
 
         expected.type = GDEXTENSION_VARIANT_TYPE_OBJECT;
@@ -59,21 +56,19 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty")
                 className = "Node2D"
             })
         )ASDF",
-                  {
-                      GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                      REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
-                  });
+                {
+                    GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
+                    REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
+                });
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "lib: classes")
-{
+TEST_CASE_METHOD(LuauFixture, "lib: classes") {
     luascript_openlibs(L);
 
     lua_State *T = lua_newthread(L);
 
-    SECTION("explicit extends")
-    {
+    SECTION("explicit extends") {
         EVAL_THEN(T, "return { name = 'TestClass', extends = 'Node3D' }", {
             GDClassDefinition def = luascript_read_class(T, -1);
             REQUIRE(def.name == "TestClass");
@@ -81,8 +76,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
         });
     }
 
-    SECTION("default extends")
-    {
+    SECTION("default extends") {
         EVAL_THEN(T, "return { name = 'TestClass' }", {
             GDClassDefinition def = luascript_read_class(T, -1);
             REQUIRE(def.name == "TestClass");
@@ -90,8 +84,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
         });
     }
 
-    SECTION("full example")
-    {
+    SECTION("full example") {
         GDMethod expected_method;
 
         {
@@ -155,27 +148,25 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes")
                 }
             }
         )ASDF",
-                  {
-                      GDClassDefinition def = luascript_read_class(T, -1);
+                {
+                    GDClassDefinition def = luascript_read_class(T, -1);
 
-                      SECTION("methods")
-                      {
-                          REQUIRE(def.methods.has("TestMethod"));
-                          REQUIRE(def.methods.get("TestMethod").operator Dictionary() == expected_method.operator Dictionary());
-                      }
+                    SECTION("methods") {
+                        REQUIRE(def.methods.has("TestMethod"));
+                        REQUIRE(def.methods.get("TestMethod").operator Dictionary() == expected_method.operator Dictionary());
+                    }
 
-                      SECTION("properties")
-                      {
-                          REQUIRE(def.properties.has("testProperty"));
+                    SECTION("properties") {
+                        REQUIRE(def.properties.has("testProperty"));
 
-                          GDClassProperty &prop = def.properties.get("testProperty");
-                          REQUIRE(prop.property.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
-                          REQUIRE(prop.property.operator Dictionary() == expected_property.operator Dictionary());
-                          REQUIRE(prop.getter == StringName("GetTestProperty"));
-                          REQUIRE(prop.setter == StringName("SetTestProperty"));
-                          REQUIRE(prop.default_value == Variant(3.5));
-                      }
-                  });
+                        GDClassProperty &prop = def.properties.get("testProperty");
+                        REQUIRE(prop.property.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
+                        REQUIRE(prop.property.operator Dictionary() == expected_property.operator Dictionary());
+                        REQUIRE(prop.getter == StringName("GetTestProperty"));
+                        REQUIRE(prop.setter == StringName("SetTestProperty"));
+                        REQUIRE(prop.default_value == Variant(3.5));
+                    }
+                });
     }
 
     lua_pop(L, 1);

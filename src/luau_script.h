@@ -1,35 +1,33 @@
 #pragma once
 
 #include <gdextension_interface.h>
-#include <godot_cpp/templates/hash_map.hpp>
-#include <godot_cpp/variant/variant.hpp>
-#include <godot_cpp/variant/typed_array.hpp>
-#include <godot_cpp/variant/string.hpp>
-#include <godot_cpp/variant/packed_string_array.hpp>
-#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/script_extension.hpp>
-#include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/classes/resource_format_loader.hpp>
 #include <godot_cpp/classes/resource_format_saver.hpp>
-#include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/script_extension.hpp>
+#include <godot_cpp/classes/script_language_extension.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
+#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
-#include "luau_lib.h"
 #include "gd_luau.h"
+#include "luau_lib.h"
 
-namespace godot
-{
-    class Object;
-    class ScriptLanguage;
-}
+namespace godot {
+class Object;
+class ScriptLanguage;
+} //namespace godot
 
 using namespace godot;
 
 class LuauScriptInstance;
 
-class LuauScript : public ScriptExtension
-{
+class LuauScript : public ScriptExtension {
     GDCLASS(LuauScript, ScriptExtension);
 
     friend class LuauScriptInstance;
@@ -103,8 +101,7 @@ public:
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
 };
 
-class LuauScriptInstance
-{
+class LuauScriptInstance {
 private:
     lua_State *L;
 
@@ -119,8 +116,7 @@ private:
     int call_internal(const StringName &p_method, lua_State *T, int nargs, int nret);
 
 public:
-    enum PropertySetGetError
-    {
+    enum PropertySetGetError {
         PROP_OK,
         PROP_NOT_FOUND,
         PROP_WRONG_TYPE,
@@ -168,8 +164,7 @@ public:
     ~LuauScriptInstance();
 };
 
-class LuauLanguage : public ScriptLanguageExtension
-{
+class LuauLanguage : public ScriptLanguageExtension {
     GDCLASS(LuauLanguage, ScriptLanguageExtension);
 
     friend class LuauScript;
@@ -228,8 +223,7 @@ public:
     /* TO IMPLEMENT */
     void _frame() override {}
 
-    Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const override
-    {
+    Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const override {
         Dictionary output;
 
         output["valid"] = true;
@@ -297,8 +291,7 @@ public:
     ~LuauLanguage();
 };
 
-class ResourceFormatLoaderLuauScript : public ResourceFormatLoader
-{
+class ResourceFormatLoaderLuauScript : public ResourceFormatLoader {
     GDCLASS(ResourceFormatLoaderLuauScript, ResourceFormatLoader);
 
 protected:
@@ -311,8 +304,7 @@ public:
     Variant _load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int64_t p_cache_mode) const override;
 };
 
-class ResourceFormatSaverLuauScript : public ResourceFormatSaver
-{
+class ResourceFormatSaverLuauScript : public ResourceFormatSaver {
     GDCLASS(ResourceFormatSaverLuauScript, ResourceFormatSaver);
 
 protected:

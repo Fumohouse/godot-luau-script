@@ -1,9 +1,9 @@
 #pragma once
 
 #include <gdextension_interface.h>
+#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/core/defs.hpp> // TODO: 4.0-beta10: pair.hpp does not include, causes errors.
 #include <godot_cpp/core/object.hpp>
-#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -21,8 +21,7 @@ using namespace godot;
 // Generic stuff //
 ///////////////////
 
-struct ApiArgument
-{
+struct ApiArgument {
     String name;
     GDExtensionVariantType type;
     bool has_default_value;
@@ -35,21 +34,18 @@ struct ApiArgument
     }
 };
 
-struct ApiArgumentNoDefault
-{
+struct ApiArgumentNoDefault {
     String name;
     GDExtensionVariantType type;
 };
 
-struct ApiEnum
-{
+struct ApiEnum {
     const char *name;
     bool is_bitfield;
     Vector<Pair<String, int32_t>> values;
 };
 
-struct ApiConstant
-{
+struct ApiConstant {
     const char *name;
     int64_t value;
 };
@@ -58,8 +54,7 @@ struct ApiConstant
 // Utility functions //
 ///////////////////////
 
-struct ApiUtilityFunction
-{
+struct ApiUtilityFunction {
     String name;
     const char *debug_name;
 
@@ -74,15 +69,13 @@ struct ApiUtilityFunction
 // Builtins //
 //////////////
 
-struct ApiVariantOperator
-{
+struct ApiVariantOperator {
     GDExtensionVariantType right_type;
     GDExtensionPtrOperatorEvaluator eval;
     GDExtensionVariantType return_type;
 };
 
-struct ApiVariantMember
-{
+struct ApiVariantMember {
     String name;
     GDExtensionVariantType type;
 
@@ -91,20 +84,17 @@ struct ApiVariantMember
     GDExtensionPtrGetter getter;
 };
 
-struct ApiVariantConstant
-{
+struct ApiVariantConstant {
     String name;
     Variant value;
 };
 
-struct ApiVariantConstructor
-{
+struct ApiVariantConstructor {
     GDExtensionPtrConstructor func;
     Vector<ApiArgumentNoDefault> arguments;
 };
 
-struct ApiVariantMethod
-{
+struct ApiVariantMethod {
     String name;
     StringName gd_name;
     const char *debug_name;
@@ -118,8 +108,7 @@ struct ApiVariantMethod
     int32_t return_type; // GDExtensionVariantType or -1 if none; NIL -> Variant
 };
 
-struct ApiBuiltinClass
-{
+struct ApiBuiltinClass {
     String name;
     const char *metatable_name;
 
@@ -157,18 +146,16 @@ struct ApiBuiltinClass
 // Classes //
 /////////////
 
-struct ApiClassType
-{
+struct ApiClassType {
     int32_t type = -1; // GDExtensionVariantType or -1 if none; NIL -> Variant
-    String type_name;  // if OBJECT, need to check on set for properties; if bitfield/enum then it's indicated here
+    String type_name; // if OBJECT, need to check on set for properties; if bitfield/enum then it's indicated here
 
     bool is_enum;
     bool is_bitfield;
     bool is_typed_array;
 };
 
-struct ApiClassArgument
-{
+struct ApiClassArgument {
     String name;
 
     ApiClassType type;
@@ -180,8 +167,7 @@ struct ApiClassArgument
     _FORCE_INLINE_ const String &get_type_name() const { return type.type_name; }
 };
 
-struct ApiClassMethod
-{
+struct ApiClassMethod {
 private:
     GDExtensionMethodBindPtr method = nullptr;
 
@@ -203,8 +189,7 @@ public:
     ApiClassType return_type;
 
     // avoid issues with getting this before method binds are initialized
-    _FORCE_INLINE_ GDExtensionMethodBindPtr try_get_method_bind()
-    {
+    _FORCE_INLINE_ GDExtensionMethodBindPtr try_get_method_bind() {
         if (method != nullptr)
             return method;
 
@@ -214,15 +199,13 @@ public:
     }
 };
 
-struct ApiClassSignal
-{
+struct ApiClassSignal {
     String name;
     String gd_name;
     Vector<ApiClassArgument> arguments;
 };
 
-struct ApiClassProperty
-{
+struct ApiClassProperty {
     String name;
 
     Vector<ApiClassType> type;
@@ -235,8 +218,7 @@ struct ApiClassProperty
     int32_t index = -1;
 };
 
-struct ApiClass
-{
+struct ApiClass {
 private:
     Object *singleton = nullptr;
 
@@ -267,8 +249,7 @@ public:
     const char *singleton_getter_debug_name;
 
     // avoid issues with getting singleton before they are initialized
-    _FORCE_INLINE_ Object *try_get_singleton()
-    {
+    _FORCE_INLINE_ Object *try_get_singleton() {
         if (singleton != nullptr)
             return singleton;
 
@@ -287,8 +268,7 @@ public:
 // Full definition //
 /////////////////////
 
-struct ExtensionApi
-{
+struct ExtensionApi {
     Vector<ApiEnum> global_enums;
     Vector<ApiConstant> global_constants;
     Vector<ApiUtilityFunction> utility_functions;

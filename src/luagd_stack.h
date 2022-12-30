@@ -2,21 +2,19 @@
 
 #include <lua.h>
 #include <lualib.h>
-#include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/typed_array.hpp>
 
-namespace godot
-{
-    class Object;
+namespace godot {
+class Object;
 }
 
 using namespace godot;
 
 template <typename T>
-class LuaStackOp
-{
+class LuaStackOp {
 public:
     static void push(lua_State *L, const T &value);
 
@@ -53,8 +51,7 @@ template class LuaStackOp<Error>;
 
 // TODO: this whole implementation is not very good. rewrite properly?
 template <typename T>
-class LuaStackOp<TypedArray<T>>
-{
+class LuaStackOp<TypedArray<T>> {
 public:
     static void push(lua_State *L, const TypedArray<T> &value) { LuaStackOp<Array>::push(L, value); }
 
@@ -67,8 +64,7 @@ public:
 
 #define LUA_UDATA_STACK_OP(type, metatable_name, dtor)                                      \
     template <>                                                                             \
-    type *LuaStackOp<type>::alloc(lua_State *L)                                             \
-    {                                                                                       \
+    type *LuaStackOp<type>::alloc(lua_State *L) {                                           \
         type *udata = reinterpret_cast<type *>(lua_newuserdatadtor(L, sizeof(type), dtor)); \
                                                                                             \
         luaL_getmetatable(L, metatable_name);                                               \
@@ -81,16 +77,14 @@ public:
     }                                                                                       \
                                                                                             \
     template <>                                                                             \
-    void LuaStackOp<type>::push(lua_State *L, const type &value)                            \
-    {                                                                                       \
+    void LuaStackOp<type>::push(lua_State *L, const type &value) {                          \
         type *udata = LuaStackOp<type>::alloc(L);                                           \
         new (udata) type(); /* TODO: not necessary always */                                \
         *udata = value;                                                                     \
     }                                                                                       \
                                                                                             \
     template <>                                                                             \
-    bool LuaStackOp<type>::is(lua_State *L, int index)                                      \
-    {                                                                                       \
+    bool LuaStackOp<type>::is(lua_State *L, int index) {                                    \
         if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))             \
             return false;                                                                   \
                                                                                             \
@@ -105,8 +99,7 @@ public:
     }                                                                                       \
                                                                                             \
     template <>                                                                             \
-    type *LuaStackOp<type>::get_ptr(lua_State *L, int index)                                \
-    {                                                                                       \
+    type *LuaStackOp<type>::get_ptr(lua_State *L, int index) {                              \
         if (!LuaStackOp<type>::is(L, index))                                                \
             return nullptr;                                                                 \
                                                                                             \
@@ -114,8 +107,7 @@ public:
     }                                                                                       \
                                                                                             \
     template <>                                                                             \
-    type LuaStackOp<type>::get(lua_State *L, int index)                                     \
-    {                                                                                       \
+    type LuaStackOp<type>::get(lua_State *L, int index) {                                   \
         type *udata = LuaStackOp<type>::get_ptr(L, index);                                  \
         if (!udata)                                                                         \
             return type();                                                                  \
@@ -124,58 +116,51 @@ public:
     }                                                                                       \
                                                                                             \
     template <>                                                                             \
-    type *LuaStackOp<type>::check_ptr(lua_State *L, int index)                              \
-    {                                                                                       \
+    type *LuaStackOp<type>::check_ptr(lua_State *L, int index) {                            \
         return reinterpret_cast<type *>(luaL_checkudata(L, index, metatable_name));         \
     }                                                                                       \
                                                                                             \
     template <>                                                                             \
-    type LuaStackOp<type>::check(lua_State *L, int index)                                   \
-    {                                                                                       \
+    type LuaStackOp<type>::check(lua_State *L, int index) {                                 \
         return *LuaStackOp<type>::check_ptr(L, index);                                      \
     }
 
 #define NO_DTOR [](void *) {}
 #define DTOR(type)                                \
-    [](void *udata)                               \
-    {                                             \
+    [](void *udata) {                             \
         reinterpret_cast<type *>(udata)->~type(); \
     }
 
 /* OBJECTS */
 
-#define LUA_OBJECT_STACK_OP(type)                                   \
-    template <>                                                     \
-    void LuaStackOp<type *>::push(lua_State *L, type *const &value) \
-    {                                                               \
-        LuaStackOp<Object *>::push(L, value);                       \
-    }                                                               \
-                                                                    \
-    template <>                                                     \
-    type *LuaStackOp<type *>::get(lua_State *L, int index)          \
-    {                                                               \
-        Object *obj = LuaStackOp<Object *>::get(L, index);          \
-        if (obj == nullptr)                                         \
-            return nullptr;                                         \
-                                                                    \
-        return Object::cast_to<type>(obj);                          \
-    }                                                               \
-                                                                    \
-    template <>                                                     \
-    bool LuaStackOp<type *>::is(lua_State *L, int index)            \
-    {                                                               \
-        Object *obj = LuaStackOp<Object *>::get(L, index);          \
-        if (obj == nullptr)                                         \
-            return false;                                           \
-                                                                    \
-        return obj->is_class(#type);                                \
-    }                                                               \
-                                                                    \
-    template <>                                                     \
-    type *LuaStackOp<type *>::check(lua_State *L, int index)        \
-    {                                                               \
-        if (!LuaStackOp<type *>::is(L, index))                      \
-            luaL_typeerrorL(L, index, #type);                       \
-                                                                    \
-        return LuaStackOp<type *>::get(L, index);                   \
+#define LUA_OBJECT_STACK_OP(type)                                     \
+    template <>                                                       \
+    void LuaStackOp<type *>::push(lua_State *L, type *const &value) { \
+        LuaStackOp<Object *>::push(L, value);                         \
+    }                                                                 \
+                                                                      \
+    template <>                                                       \
+    type *LuaStackOp<type *>::get(lua_State *L, int index) {          \
+        Object *obj = LuaStackOp<Object *>::get(L, index);            \
+        if (obj == nullptr)                                           \
+            return nullptr;                                           \
+                                                                      \
+        return Object::cast_to<type>(obj);                            \
+    }                                                                 \
+                                                                      \
+    template <>                                                       \
+    bool LuaStackOp<type *>::is(lua_State *L, int index) {            \
+        Object *obj = LuaStackOp<Object *>::get(L, index);            \
+        if (obj == nullptr)                                           \
+            return false;                                             \
+                                                                      \
+        return obj->is_class(#type);                                  \
+    }                                                                 \
+                                                                      \
+    template <>                                                       \
+    type *LuaStackOp<type *>::check(lua_State *L, int index) {        \
+        if (!LuaStackOp<type *>::is(L, index))                        \
+            luaL_typeerrorL(L, index, #type);                         \
+                                                                      \
+        return LuaStackOp<type *>::get(L, index);                     \
     }

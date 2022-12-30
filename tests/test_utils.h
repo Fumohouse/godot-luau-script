@@ -1,18 +1,17 @@
 #pragma once
 
 #include <catch_amalgamated.hpp>
-#include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/variant/string.hpp>
 
-#include "luagd_stack.h"
 #include "luagd_bindings_stack.gen.h"
+#include "luagd_stack.h"
 
 using namespace godot;
 
 struct lua_State;
 
-class LuauFixture
-{
+class LuauFixture {
 protected:
     lua_State *L;
 
@@ -21,8 +20,7 @@ public:
     ~LuauFixture();
 };
 
-struct ExecOutput
-{
+struct ExecOutput {
     Error status;
     String error;
 };

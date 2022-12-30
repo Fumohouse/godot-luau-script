@@ -14,8 +14,7 @@ void luaGD_arrayerror(lua_State *L, const char *of, const char *got, const char 
 bool luaGD_getfield(lua_State *L, int index, const char *key);
 
 template <typename T>
-T luaGD_checkvaluetype(lua_State *L, int index, const char *key, lua_Type texpected)
-{
+T luaGD_checkvaluetype(lua_State *L, int index, const char *key, lua_Type texpected) {
     if (!LuaStackOp<T>::is(L, index))
         luaGD_valueerror(L, key, lua_typename(L, texpected), luaGD_typename(L, index));
 

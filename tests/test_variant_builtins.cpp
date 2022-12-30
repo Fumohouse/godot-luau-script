@@ -1,37 +1,31 @@
 #include <catch_amalgamated.hpp>
 
 #include <lua.h>
-#include <godot_cpp/variant/builtin_types.hpp>
-#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/variant/builtin_types.hpp>
 
 #include "test_utils.h"
 
-TEST_CASE_METHOD(LuauFixture, "builtins: constructor")
-{
+TEST_CASE_METHOD(LuauFixture, "builtins: constructor") {
     ASSERT_EVAL_EQ(L, "return Vector3(1, 2, 3)", Vector3, Vector3(1, 2, 3));
     ASSERT_EVAL_EQ(L, "return Vector3(Vector3i(4, 5, 6))", Vector3, Vector3(4, 5, 6));
 }
 
-TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions")
-{
-    SECTION("namecall style")
-    {
+TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
+    SECTION("namecall style") {
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2):Dot(Vector2(1, 2))", float, 5);
     }
 
-    SECTION("invoked from global table")
-    {
+    SECTION("invoked from global table") {
         ASSERT_EVAL_EQ(L, "return Vector2.Dot(Vector2(3, 4), Vector2(5, 6))", float, 39);
     }
 
-    SECTION("static function")
-    {
+    SECTION("static function") {
         ASSERT_EVAL_EQ(L, "return Vector2.FromAngle(5)", Vector2, Vector2::from_angle(5));
     }
 
-    SECTION("varargs")
-    {
+    SECTION("varargs") {
         Ref<PhysicsRayQueryParameters3D> params;
         params.instantiate();
 
@@ -47,10 +41,8 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions")
         lua_setglobal(L, "testCallable");
     }
 
-    SECTION("default arguments")
-    {
-        SECTION("non-vararg")
-        {
+    SECTION("default arguments") {
+        SECTION("non-vararg") {
             // alpha: default 1.0
             ASSERT_EVAL_EQ(L, "return Color.FromHsv(0.5, 0.5, 0.5)", Color, Color::from_hsv(0.5, 0.5, 0.5, 1.0));
         }
@@ -58,10 +50,8 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions")
         // no method exists with vararg and default args
     }
 
-    SECTION("non-const")
-    {
-        SECTION("non-vararg")
-        {
+    SECTION("non-const") {
+        SECTION("non-vararg") {
             PackedStringArray expected;
             expected.push_back("hello");
             expected.push_back("hi");
@@ -73,32 +63,27 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions")
 
                 return array
             )ASDF",
-                           PackedStringArray, expected);
+                    PackedStringArray, expected);
         }
 
         // all vararg methods are const
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "builtins: setget")
-{
-    SECTION("member access")
-    {
+TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
+    SECTION("member access") {
         ASSERT_EVAL_EQ(L, "return Vector2(123, 456).y", float, 456);
     }
 
-    SECTION("index access")
-    {
+    SECTION("index access") {
         ASSERT_EVAL_EQ(L, "return Vector2(123, 456)[2]", float, 456);
     }
 
-    SECTION("member set fails")
-    {
+    SECTION("member set fails") {
         ASSERT_EVAL_FAIL(L, "Vector2(123, 456).y = 0", "exec:1: type 'Vector2' is read-only");
     }
 
-    SECTION("array index set")
-    {
+    SECTION("array index set") {
         PackedStringArray expected;
         expected.push_back("hello");
 
@@ -109,11 +94,10 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget")
 
             return array
         )ASDF",
-                       PackedStringArray, expected);
+                PackedStringArray, expected);
     }
 
-    SECTION("keyed access")
-    {
+    SECTION("keyed access") {
         Dictionary input;
         input[Vector2(1, 2)] = "hi!";
 
@@ -126,8 +110,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget")
         lua_setglobal(L, "testDict");
     }
 
-    SECTION("keyed set")
-    {
+    SECTION("keyed set") {
         Dictionary expected;
         expected["one"] = 12.5;
 
@@ -137,34 +120,28 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget")
 
             return dictionary
         )ASDF",
-                       Dictionary, expected);
+                Dictionary, expected);
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "builtins: operators")
-{
-    SECTION("equality")
-    {
+TEST_CASE_METHOD(LuauFixture, "builtins: operators") {
+    SECTION("equality") {
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2) == Vector2(1, 2)", bool, true);
     }
 
-    SECTION("inequality")
-    {
+    SECTION("inequality") {
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2) ~= Vector2(1, 2)", bool, false);
     }
 
-    SECTION("addition")
-    {
+    SECTION("addition") {
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2) + Vector2(3, 4)", Vector2, Vector2(4, 6));
     }
 
-    SECTION("unary -")
-    {
+    SECTION("unary -") {
         ASSERT_EVAL_EQ(L, "return -Vector2(1, 2)", Vector2, Vector2(-1, -2));
     }
 
-    SECTION("special case: length")
-    {
+    SECTION("special case: length") {
         ASSERT_EVAL_EQ(L, R"ASDF(
             local arr = PackedStringArray()
             arr:PushBack("a")
@@ -175,24 +152,20 @@ TEST_CASE_METHOD(LuauFixture, "builtins: operators")
 
             return #arr
         )ASDF",
-                       int, 5);
+                int, 5);
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "builtins: consts and enums")
-{
-    SECTION("constants")
-    {
+TEST_CASE_METHOD(LuauFixture, "builtins: consts and enums") {
+    SECTION("constants") {
         ASSERT_EVAL_EQ(L, "return Vector2.ONE", Vector2, Vector2(1, 1));
     }
 
-    SECTION("enums")
-    {
+    SECTION("enums") {
         ASSERT_EVAL_EQ(L, "return Vector3.Axis.Z", int, 2);
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "builtins: tostring")
-{
+TEST_CASE_METHOD(LuauFixture, "builtins: tostring") {
     ASSERT_EVAL_EQ(L, "return tostring(Vector3(0, 1, 2))", String, "(0, 1, 2)");
 }
