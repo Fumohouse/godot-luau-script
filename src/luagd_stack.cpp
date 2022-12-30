@@ -76,7 +76,7 @@ static void luaGD_object_init(Object *ptr)
 {
     RefCounted *rc = Object::cast_to<RefCounted>(ptr);
     if (rc != nullptr)
-        rc->reference();
+        rc->init_ref();
 }
 
 static void luaGD_object_dtor(void *ptr)

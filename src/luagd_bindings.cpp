@@ -3,6 +3,7 @@
 #include <gdextension_interface.h>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/array.hpp>
@@ -579,12 +580,6 @@ static int luaGD_class_ctor(lua_State *L)
     Object *obj = ObjectDB::get_instance(id);
     LuaStackOp<Object *>::push(L, obj);
 
-    // refcount is instantiated to 1.
-    // we add a ref in the call above, so it's ok to decrement now to avoid object getting leaked
-    RefCounted *rc = Object::cast_to<RefCounted>(obj);
-    if (rc != nullptr)
-        rc->unreference();
-
     return 1;
 }
 
@@ -615,6 +610,18 @@ static LuauScriptInstance *get_script_instance(lua_State *L)
         return script->instance_get(self);
 
     return nullptr;
+}
+
+static void handle_object_returned(Object *obj)
+{
+    // if Godot returns a RefCounted from a method, it is always in the form of a Ref.
+    // as such, the RefCounted we receive will be initialized at a refcount of 1
+    // and is considered "initialized" (first Ref already made).
+    // we need to decrement the refcount by 1 after pushing to Luau to avoid leak.
+    RefCounted *rc = Object::cast_to<RefCounted>(obj);
+
+    if (rc != nullptr)
+        rc->unreference();
 }
 
 static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method)
@@ -654,6 +661,10 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
         if (method.return_type.type != -1)
         {
             LuaStackOp<Variant>::push(L, ret);
+
+            if (ret.get_type() == Variant::OBJECT)
+                handle_object_returned(ret.operator Object *());
+
             return 1;
         }
 
@@ -672,9 +683,17 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
 
         internal::gde_interface->object_method_bind_ptrcall(method_bind, self, pargs.ptr(), ret_ptr);
 
-        if (ret_ptr != nullptr)
+        if (ret.get_type() != -1)
         {
             ret.lua_push(L);
+
+            // handle ref returned from Godot
+            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT)
+            {
+                Object *obj = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(*ret.get_object()));
+                handle_object_returned(obj);
+            }
+
             return 1;
         }
 

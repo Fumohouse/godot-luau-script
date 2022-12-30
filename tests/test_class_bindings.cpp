@@ -102,6 +102,23 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions")
                   });
     }
 
+    SECTION("ref return")
+    {
+        EVAL_THEN(L, R"ASDF(
+            return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6), 1, Array())
+        )ASDF",
+                  {
+                      RefCounted *rc = LuaStackOp<RefCounted *>::check(L, -1);
+
+                      REQUIRE(UtilityFunctions::is_instance_valid(rc));
+
+                      lua_pop(L, 1);
+                      lua_gc(L, LUA_GCCOLLECT, 0);
+
+                      REQUIRE(!UtilityFunctions::is_instance_valid(rc));
+                  });
+    }
+
     udata->permissions = PERMISSION_BASE;
 }
 
