@@ -10,6 +10,9 @@
 #include "luagd.h"
 #include "luagd_permissions.h"
 
+#include "luagd_stack.h"
+#include "luagd_bindings_stack.gen.h"
+
 #include "test_utils.h"
 
 using namespace godot;
@@ -84,6 +87,19 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions")
         )ASDF", bool, true);
     }
 
+    SECTION("default args")
+    {
+        EVAL_THEN(L, R"ASDF(
+            return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6))
+        )ASDF",
+                  {
+                      PhysicsRayQueryParameters3D *params = LuaStackOp<PhysicsRayQueryParameters3D *>::check(L, -1);
+
+                      REQUIRE(params->get_collision_mask() == 4294967295);
+                      REQUIRE(params->get_exclude().size() == 0);
+                  });
+    }
+
     udata->permissions = PERMISSION_BASE;
 }
 
@@ -135,5 +151,5 @@ TEST_CASE_METHOD(LuauFixture, "classes: permissions")
     ASSERT_EVAL_FAIL(
         L,
         "OS.GetSingleton():GetName()",
-        "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access OS.GetName. needed permissions: 2, got: 0 !!!");
+        "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access Godot.Object.OS.GetName. needed permissions: 2, got: 0 !!!");
 }

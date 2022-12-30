@@ -151,7 +151,7 @@ public:
 
     /* Initialization */
     void initialize(GDExtensionVariantType init_type);
-    void lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, String class_name = "");
+    void lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, String type_name = "");
     void lua_push(lua_State *L);
 
     /* Assignment */

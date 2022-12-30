@@ -2,6 +2,7 @@
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp> // TODO: 4.0-beta10: pair.hpp does not include, causes errors.
+#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/pair.hpp>
@@ -26,6 +27,12 @@ struct ApiArgument
     GDExtensionVariantType type;
     bool has_default_value;
     LuauVariant default_value;
+
+    _FORCE_INLINE_ GDExtensionVariantType get_type() const { return type; }
+    _FORCE_INLINE_ const String &get_type_name() const {
+        static String type_name;
+        return type_name;
+    }
 };
 
 struct ApiArgumentNoDefault
@@ -36,14 +43,14 @@ struct ApiArgumentNoDefault
 
 struct ApiEnum
 {
-    String name;
+    const char *name;
     bool is_bitfield;
     Vector<Pair<String, int32_t>> values;
 };
 
 struct ApiConstant
 {
-    String name;
+    const char *name;
     int64_t value;
 };
 
@@ -60,7 +67,7 @@ struct ApiUtilityFunction
 
     GDExtensionPtrUtilityFunction func;
     Vector<ApiArgumentNoDefault> arguments;
-    GDExtensionVariantType return_type;
+    int32_t return_type; // GDNativeVariantType or -1 if none; NIL -> Variant
 };
 
 //////////////
@@ -70,9 +77,8 @@ struct ApiUtilityFunction
 struct ApiVariantOperator
 {
     GDExtensionVariantType right_type;
-    GDExtensionVariantType return_type;
-
     GDExtensionPtrOperatorEvaluator eval;
+    GDExtensionVariantType return_type;
 };
 
 struct ApiVariantMember
@@ -108,8 +114,8 @@ struct ApiVariantMethod
     bool is_const;
 
     GDExtensionPtrBuiltInMethod func;
-    int32_t return_type; // GDExtensionVariantType or -1 if none
     Vector<ApiArgument> arguments;
+    int32_t return_type; // GDExtensionVariantType or -1 if none; NIL -> Variant
 };
 
 struct ApiBuiltinClass
@@ -123,9 +129,9 @@ struct ApiBuiltinClass
     GDExtensionPtrKeyedGetter keyed_getter = nullptr;
     GDExtensionPtrKeyedChecker keyed_checker = nullptr; // `has` which returns a uint32_t for some reason
 
-    GDExtensionVariantType indexing_return_type;
     GDExtensionPtrIndexedSetter indexed_setter = nullptr;
     GDExtensionPtrIndexedGetter indexed_getter = nullptr;
+    GDExtensionVariantType indexing_return_type; // if no indexer, the set/get will be nullptr
 
     Vector<ApiEnum> enums;
     Vector<ApiVariantConstant> constants;
@@ -142,7 +148,6 @@ struct ApiBuiltinClass
     const char *namecall_debug_name;
 
     Vector<ApiVariantMethod> static_methods;
-    const char *global_index_debug_name;
 
     HashMap<GDExtensionVariantOperator, Vector<ApiVariantOperator>> operators;
     HashMap<GDExtensionVariantOperator, const char *> operator_debug_names;
@@ -154,9 +159,12 @@ struct ApiBuiltinClass
 
 struct ApiClassType
 {
-    GDExtensionVariantType type;
-    String class_name; // if OBJECT, need to check on set for properties
-    PropertyHint hint; // will indicate if enum, bitfield, typedarray
+    int32_t type = -1; // GDExtensionVariantType or -1 if none; NIL -> Variant
+    String type_name;  // if OBJECT, need to check on set for properties; if bitfield/enum then it's indicated here
+
+    bool is_enum;
+    bool is_bitfield;
+    bool is_typed_array;
 };
 
 struct ApiClassArgument
@@ -167,11 +175,21 @@ struct ApiClassArgument
 
     bool has_default_value;
     LuauVariant default_value;
+
+    _FORCE_INLINE_ GDExtensionVariantType get_type() const { return (GDExtensionVariantType)type.type; }
+    _FORCE_INLINE_ const String &get_type_name() const { return type.type_name; }
 };
 
 struct ApiClassMethod
 {
+private:
+    GDExtensionMethodBindPtr method = nullptr;
+
+public:
+    StringName class_name;
+
     String name;
+    const char *gd_name;
     const char *debug_name;
 
     ThreadPermissions permissions = PERMISSION_INHERIT;
@@ -179,24 +197,35 @@ struct ApiClassMethod
     bool is_const;
     bool is_static;
     bool is_vararg;
-    bool is_virtual;
 
-    GDExtensionMethodBindPtr method;
-    GDExtensionVariantType return_type;
+    uint32_t hash;
     Vector<ApiClassArgument> arguments;
+    ApiClassType return_type;
+
+    // avoid issues with getting this before method binds are initialized
+    _FORCE_INLINE_ GDExtensionMethodBindPtr try_get_method_bind()
+    {
+        if (method != nullptr)
+            return method;
+
+        StringName gd_sn = gd_name;
+        method = internal::gde_interface->classdb_get_method_bind(&class_name, &gd_sn, hash);
+        return method;
+    }
 };
 
 struct ApiClassSignal
 {
     String name;
-    Vector<ApiArgumentNoDefault> arguments;
+    String gd_name;
+    Vector<ApiClassArgument> arguments;
 };
 
 struct ApiClassProperty
 {
     String name;
 
-    ApiClassType type;
+    Vector<ApiClassType> type;
 
     String setter;
     String getter;
@@ -208,22 +237,50 @@ struct ApiClassProperty
 
 struct ApiClass
 {
+private:
+    Object *singleton = nullptr;
+
+public:
     String name;
     const char *metatable_name;
+    int32_t parent_idx = -1;
 
     ThreadPermissions default_permissions = PERMISSION_INTERNAL;
 
-    bool is_instantiable;
-    int32_t parent_idx = -1;
-
     Vector<ApiEnum> enums;
     Vector<ApiConstant> constants;
+
+    bool is_instantiable;
+    const char *constructor_debug_name;
+
     HashMap<String, ApiClassMethod> methods;
+    const char *namecall_debug_name;
+
     Vector<ApiClassMethod> static_methods;
+
     HashMap<String, ApiClassSignal> signals;
     HashMap<String, ApiClassProperty> properties;
+    const char *newindex_debug_name;
+    const char *index_debug_name;
 
-    Object *singleton;
+    StringName singleton_name;
+    const char *singleton_getter_debug_name;
+
+    // avoid issues with getting singleton before they are initialized
+    _FORCE_INLINE_ Object *try_get_singleton()
+    {
+        if (singleton != nullptr)
+            return singleton;
+
+        GDExtensionObjectPtr singleton_obj = internal::gde_interface->global_get_singleton(&singleton_name);
+        if (singleton_obj == nullptr)
+            return nullptr;
+
+        GDObjectInstanceID singleton_id = internal::gde_interface->object_get_instance_id(singleton_obj);
+        singleton = ObjectDB::get_instance(singleton_id);
+
+        return singleton;
+    }
 };
 
 /////////////////////
@@ -239,5 +296,9 @@ struct ExtensionApi
     Vector<ApiClass> classes;
 };
 
-// The implementation for this method is generated.
-const ExtensionApi &get_extension_api();
+ExtensionApi &get_extension_api();
+
+// Corresponding definitions are generated.
+extern const Variant &get_variant_value(int idx);
+extern const uint8_t api_bin[];
+extern const uint64_t api_bin_length;

@@ -28,7 +28,6 @@ T *luaGD_lightudataup(lua_State *L, int index)
         lua_tolightuserdata(L, lua_upvalueindex(index)));
 }
 
-// The implementations for these methods are generated.
 void luaGD_openbuiltins(lua_State *L);
 void luaGD_openclasses(lua_State *L);
 void luaGD_openglobals(lua_State *L);

@@ -5,9 +5,7 @@ import json
 from pathlib import Path
 
 from bindgen.stack_ops import generate_stack_ops
-from bindgen.classes import generate_luau_classes, get_luau_class_sources
-from bindgen.ptrcall import generate_ptrcall
-from bindgen.extension_api import generate_extension_api
+from bindgen.api_bin import generate_api_bin
 
 
 def open_api(filepath):
@@ -26,21 +24,13 @@ def scons_emit_files(target, source, env):
     src_dir = Path(output_dir) / "gen" / "src"
 
     files = [
-        # Classes
-        env.File("gen/include/luagd_classes.gen.h"),
-        env.File("gen/src/luagd_classes.gen.cpp"),
-
         # Stack
         env.File("gen/include/luagd_bindings_stack.gen.h"),
         env.File("gen/src/luagd_bindings_stack.gen.cpp"),
 
-        # Ptrcall
-        env.File("gen/include/luagd_ptrcall.gen.h"),
-        env.File("gen/src/luagd_ptrcall.gen.cpp"),
-
         # Extension API
-        env.File("gen/src/extension_api.gen.cpp")
-    ] + get_luau_class_sources(src_dir, api, env)
+        env.File("gen/src/extension_api_bin.gen.cpp")
+    ]
 
     env.Clean(files, target)
 
@@ -60,10 +50,7 @@ def scons_generate_bindings(target, source, env):
 
     # Codegen
     generate_stack_ops(src_dir, include_dir, api)
-    generate_ptrcall(src_dir, include_dir)
 
-    generate_luau_classes(src_dir, include_dir, api)
-
-    generate_extension_api(src_dir, api)
+    generate_api_bin(src_dir, api)
 
     return None
