@@ -3,19 +3,18 @@
     "configurations": [
         {
             "name": "linux editor debug",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "program": "${userHome}/bin/godot4",
             "args": [
                 "-v",
                 "-e"
             ],
-            "stopAtEntry": false,
             "cwd": "${workspaceFolder}/test_project"
         },
         {
             "name": "linux scene debug",
-            "type": "cppdbg",
+            "type": "lldb",
             "request": "launch",
             "program": "${userHome}/bin/godot4",
             "args": [
@@ -25,7 +24,6 @@
                 "--",
                 "--success"
             ],
-            "stopAtEntry": false,
             "cwd": "${workspaceFolder}/test_project"
         }
     ]

@@ -4,3 +4,7 @@ __pycache__/
 *.o
 *.os
 .sconsign.dblite
+
+# clangd
+.cache/
+compile_commands.json

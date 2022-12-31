@@ -3,6 +3,13 @@
 import os
 
 env = SConscript("extern/godot-cpp/SConstruct")
+
+# Will only include files added by this project, but seems to work fine for clangd
+env = env.Clone()
+env.Tool("compilation_db")
+cdb = env.CompilationDatabase()
+Alias("cdb", cdb)
+
 env["ENV"]["TERM"] = os.environ["TERM"]  # clang colors
 
 # Using this option makes a warning. Too bad!
