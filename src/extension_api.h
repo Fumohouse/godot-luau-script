@@ -26,12 +26,6 @@ struct ApiArgument {
     GDExtensionVariantType type;
     bool has_default_value;
     LuauVariant default_value;
-
-    _FORCE_INLINE_ GDExtensionVariantType get_type() const { return type; }
-    _FORCE_INLINE_ const String &get_type_name() const {
-        static String type_name;
-        return type_name;
-    }
 };
 
 struct ApiArgumentNoDefault {
@@ -162,9 +156,6 @@ struct ApiClassArgument {
 
     bool has_default_value;
     LuauVariant default_value;
-
-    _FORCE_INLINE_ GDExtensionVariantType get_type() const { return (GDExtensionVariantType)type.type; }
-    _FORCE_INLINE_ const String &get_type_name() const { return type.type_name; }
 };
 
 struct ApiClassMethod {

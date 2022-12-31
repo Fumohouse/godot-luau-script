@@ -4,6 +4,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/pair.hpp>
@@ -11,6 +12,7 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
+#include <type_traits>
 
 #include "extension_api.h"
 #include "luagd_bindings_stack.gen.h"
@@ -58,16 +60,16 @@ static void push_enum(lua_State *L, const ApiEnum &p_enum) // notation cause res
     lua_setreadonly(L, -1, true);
 }
 
-template <typename T>
-static void get_argument(lua_State *L, int idx, const T &arg, LuauVariant &out);
+/* GETTING ARGUMENTS */
 
-template <>
-void get_argument<ApiArgument>(lua_State *L, int idx, const ApiArgument &arg, LuauVariant &out) {
+// From stack
+template <typename T>
+_FORCE_INLINE_ static void get_argument(lua_State *L, int idx, const T &arg, LuauVariant &out) {
     out.lua_check(L, idx, arg.type);
 }
 
 template <>
-void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &arg, LuauVariant &out) {
+_FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &arg, LuauVariant &out) {
     const ApiClassType &type = arg.type;
 
     if (type.is_typed_array) {
@@ -78,15 +80,68 @@ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgumen
     }
 }
 
+// Defaults
+template <typename T>
+struct has_default_value_trait : std::true_type {};
+
+template <>
+struct has_default_value_trait<ApiArgumentNoDefault> : std::false_type {};
+
+template <typename TMethod, typename TArg>
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> &pargs, const TMethod &method, std::true_type const &) {
+    for (int i = nargs; i < method.arguments.size(); i++) {
+        const TArg &arg = method.arguments[i];
+
+        if (arg.has_default_value) {
+            pargs.set(i, arg.default_value.get_opaque_pointer());
+        } else {
+            LuauVariant dummy;
+            get_argument(L, i + 1 + arg_offset, arg, dummy);
+        }
+    }
+}
+
+template <typename TMethod, typename>
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> &pargs, const TMethod &method, std::false_type const &) {
+    LuauVariant dummy;
+    get_argument(L, nargs + 1 + arg_offset, method.arguments[nargs], dummy);
+}
+
+// Getters for argument types
+template <typename T>
+_FORCE_INLINE_ static GDExtensionVariantType get_arg_type(const T &arg) { return arg.type; }
+
+template <>
+_FORCE_INLINE_ GDExtensionVariantType get_arg_type<ApiClassArgument>(const ApiClassArgument &arg) { return (GDExtensionVariantType)arg.type.type; }
+
+template <typename T>
+_FORCE_INLINE_ static const String &get_arg_type_name(const T &arg) {
+    static String s;
+    return s;
+}
+
+template <>
+_FORCE_INLINE_ const String &get_arg_type_name<ApiClassArgument>(const ApiClassArgument &arg) { return arg.type.type_name; }
+
+// Getters for method types
+template <typename T>
+_FORCE_INLINE_ static bool is_method_static(const T &method) { return method.is_static; }
+
+template <>
+_FORCE_INLINE_ bool is_method_static<ApiUtilityFunction>(const ApiUtilityFunction &method) { return true; }
+
+template <typename T>
+_FORCE_INLINE_ static bool is_method_vararg(const T &method) { return method.is_vararg; }
+
 // this is magic
 template <typename T, typename TArg>
-static void get_arguments(lua_State *L,
+static int get_arguments(lua_State *L,
         Vector<Variant> &varargs,
         Vector<LuauVariant> &args,
         Vector<const void *> &pargs,
         const T &method) {
     // arg 1 is self for instance methods
-    int arg_offset = method.is_static ? 0 : 1;
+    int arg_offset = is_method_static(method) ? 0 : 1;
     int nargs = lua_gettop(L) - arg_offset;
 
     if (method.arguments.size() > nargs)
@@ -94,13 +149,13 @@ static void get_arguments(lua_State *L,
     else
         pargs.resize(nargs);
 
-    if (method.is_vararg) {
+    if (is_method_vararg(method)) {
         varargs.resize(nargs);
 
         for (int i = 0; i < nargs; i++) {
             Variant arg = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
             if (i < method.arguments.size())
-                check_variant(L, i + 1 + arg_offset, arg, method.arguments[i].get_type(), method.arguments[i].get_type_name());
+                check_variant(L, i + 1 + arg_offset, arg, get_arg_type(method.arguments[i]), get_arg_type_name(method.arguments[i]));
 
             varargs.set(i, arg);
             pargs.set(i, &varargs[i]);
@@ -117,19 +172,10 @@ static void get_arguments(lua_State *L,
         }
     }
 
-    if (nargs < method.arguments.size()) {
-        // Defaults
-        for (int i = nargs; i < method.arguments.size(); i++) {
-            const TArg &arg = method.arguments[i];
+    if (nargs < method.arguments.size())
+        get_default_args<T, TArg>(L, arg_offset, nargs, pargs, method, has_default_value_trait<TArg>());
 
-            if (arg.has_default_value) {
-                pargs.set(i, arg.default_value.get_opaque_pointer());
-            } else {
-                LuauVariant dummy;
-                get_argument(L, i + 1 + arg_offset, arg, dummy);
-            }
-        }
-    }
+    return nargs;
 }
 
 //////////////
@@ -919,35 +965,11 @@ void luaGD_openclasses(lua_State *L) {
 static int luaGD_utility_function(lua_State *L) {
     const ApiUtilityFunction *func = luaGD_lightudataup<ApiUtilityFunction>(L, 1);
 
-    int nargs = lua_gettop(L);
-
     Vector<Variant> varargs;
     Vector<LuauVariant> args;
-
     Vector<const void *> pargs;
-    pargs.resize(nargs);
 
-    if (func->is_vararg) {
-        varargs.resize(nargs);
-
-        for (int i = 0; i < nargs; i++) {
-            Variant arg = LuaStackOp<Variant>::check(L, i + 1);
-            if (i < func->arguments.size())
-                check_variant(L, i + 1, arg, func->arguments[i].type);
-
-            varargs.set(i, arg);
-            pargs.set(i, &varargs[i]);
-        }
-    } else {
-        args.resize(nargs);
-
-        for (int i = 0; i < nargs; i++) {
-            LuauVariant arg;
-            arg.lua_check(L, i + 1, func->arguments[i].type);
-            args.set(i, arg);
-            pargs.set(i, args[i].get_opaque_pointer());
-        }
-    }
+    int nargs = get_arguments<ApiUtilityFunction, ApiArgumentNoDefault>(L, varargs, args, pargs, *func);
 
     if (func->return_type == -1) {
         func->func(nullptr, pargs.ptr(), nargs);
