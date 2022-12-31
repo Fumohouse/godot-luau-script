@@ -1,12 +1,15 @@
 #include <catch_amalgamated.hpp>
 
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/node3d.hpp>
 #include <godot_cpp/classes/physics_ray_query_parameters3d.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include "lua.h"
 #include "luagd.h"
 #include "luagd_permissions.h"
 
@@ -129,6 +132,24 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
             return node.collideWithAreas
         )ASDF",
                 bool, true);
+    }
+
+    SECTION("member access with index") {
+        Ref<StyleBox> style_box;
+        style_box.instantiate();
+
+        style_box->set_default_margin(Side::SIDE_BOTTOM, 4.25);
+
+        LuaStackOp<Object *>::push(L, style_box.ptr());
+        lua_setglobal(L, "styleBox");
+
+        ASSERT_EVAL_EQ(L, R"ASDF(
+            return styleBox.contentMarginBottom
+        )ASDF",
+                double, 4.25);
+
+        lua_pushnil(L);
+        lua_setglobal(L, "styleBox");
     }
 }
 

@@ -758,6 +758,15 @@ static int luaGD_class_namecall(lua_State *L) {
     luaL_error(L, "no namecallatom");
 }
 
+static int call_property_setget(lua_State *L, const ApiClass &g_class, const ApiClassProperty &property, ApiClassMethod &method) {
+    if (property.index != -1) {
+        lua_pushinteger(L, property.index);
+        lua_insert(L, 2);
+    }
+
+    return call_class_method(L, g_class, method);
+}
+
 static int luaGD_class_index(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
@@ -790,13 +799,14 @@ static int luaGD_class_index(lua_State *L) {
 
     while (true) {
         if (current_class->properties.has(key)) {
-            lua_remove(L, 2);
+            lua_remove(L, 2); // key
 
-            const String &getter = current_class->properties[key].getter;
-            if (getter == "")
+            const ApiClassProperty &prop = current_class->properties[key];
+
+            if (prop.getter == "")
                 luaL_error(L, "property '%s' is write-only", key);
 
-            return call_class_method(L, *current_class, current_class->methods[getter]);
+            return call_property_setget(L, *current_class, prop, current_class->methods[prop.getter]);
         }
 
         INHERIT_OR_BREAK
@@ -848,14 +858,14 @@ static int luaGD_class_newindex(lua_State *L) {
 
     while (true) {
         if (current_class->properties.has(key)) {
-            lua_remove(L, 2);
+            lua_remove(L, 2); // key
 
-            const String &setter = current_class->properties[key].setter;
+            const ApiClassProperty &prop = current_class->properties[key];
 
-            if (setter == "")
+            if (prop.setter == "")
                 luaL_error(L, "property '%s' is read-only", key);
 
-            return call_class_method(L, *current_class, current_class->methods[setter]);
+            return call_property_setget(L, *current_class, prop, current_class->methods[prop.setter]);
         }
 
         INHERIT_OR_BREAK
