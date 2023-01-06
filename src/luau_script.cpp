@@ -29,6 +29,7 @@
 #include "gd_luau.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
+#include "luau_cache.h"
 #include "luau_lib.h"
 
 namespace godot {
@@ -57,7 +58,10 @@ Error LuauScript::load_source_code(const String &p_path) {
     Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::READ);
     ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), "Failed to read file: '" + p_path + "'.");
 
-    PackedByteArray bytes = file->get_buffer(file->get_length());
+    uint64_t len = file->get_length();
+    PackedByteArray bytes = file->get_buffer(len);
+    bytes.resize(len + 1);
+    bytes[len] = 0; // EOF
 
     String src;
     src.parse_utf8(reinterpret_cast<const char *>(bytes.ptr()));
@@ -89,6 +93,12 @@ static Error try_load(lua_State *L, const char *src) {
     std::string bytecode = Luau::compile(src, opts);
 
     return luau_load(L, "=load", bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
+}
+
+static bool class_exists(const StringName &class_name) {
+    // TODO: the real ClassDB is not available in godot-cpp yet. this is what we get.
+    static Object *class_db = Engine::get_singleton()->get_singleton("ClassDB");
+    return class_db->call("class_exists", class_name).operator bool();
 }
 
 Error LuauScript::_reload(bool p_keep_state) {
@@ -123,6 +133,17 @@ Error LuauScript::_reload(bool p_keep_state) {
         valid = true;
 
         lua_pop(L, 1); // thread
+
+        if (!get_path().is_empty()) {
+            base_dir = get_path().get_base_dir();
+
+            if (!definition.extends.is_empty() && !class_exists(definition.extends)) {
+                String base_script_path = base_dir.path_join(definition.extends);
+
+                Error err;
+                base = LuauCache::get_singleton()->get_script(base_script_path, err);
+            }
+        }
 
         for (const KeyValue<GDLuau::VMType, int> &pair : def_table_refs) {
             if (load_methods(pair.key, true) == OK)
@@ -196,12 +217,8 @@ bool LuauScript::_is_tool() const {
 StringName LuauScript::_get_instance_base_type() const {
     StringName extends = StringName(definition.extends);
 
-    if (extends != StringName()) {
-        // TODO: the real ClassDB is not available in godot-cpp yet. this is what we get.
-        Object *class_db = Engine::get_singleton()->get_singleton("ClassDB");
-
-        if (class_db->call("class_exists", extends).operator bool())
-            return extends;
+    if (extends != StringName() && class_exists(extends)) {
+        return extends;
     }
 
     if (base.is_valid() && base->_is_valid())
@@ -1097,6 +1114,7 @@ LuauLanguage::~LuauLanguage() {
 
 void LuauLanguage::_init() {
     luau = memnew(GDLuau);
+    cache = memnew(LuauCache);
 }
 
 void LuauLanguage::finalize() {
@@ -1106,6 +1124,11 @@ void LuauLanguage::finalize() {
     if (luau != nullptr) {
         memdelete(luau);
         luau = nullptr;
+    }
+
+    if (cache != nullptr) {
+        memdelete(cache);
+        cache = nullptr;
     }
 
     finalized = true;
@@ -1255,13 +1278,8 @@ String ResourceFormatLoaderLuauScript::_get_resource_type(const String &p_path) 
 }
 
 Variant ResourceFormatLoaderLuauScript::_load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int64_t p_cache_mode) const {
-    Ref<LuauScript> script = memnew(LuauScript);
-    Error err = script->load_source_code(p_path);
-
-    ERR_FAIL_COND_V_MSG(err != OK, Ref<LuauScript>(), "Cannot load Luau script file '" + p_path + "'.");
-
-    script->set_path(p_original_path);
-    script->reload();
+    Error err;
+    Ref<LuauScript> script = LuauCache::get_singleton()->get_script(p_path, err, p_cache_mode == CACHE_MODE_IGNORE);
 
     return script;
 }

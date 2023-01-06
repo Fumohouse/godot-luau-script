@@ -25,6 +25,7 @@ class ScriptLanguage;
 
 using namespace godot;
 
+class LuauCache;
 class LuauScriptInstance;
 
 class LuauScript : public ScriptExtension {
@@ -33,6 +34,7 @@ class LuauScript : public ScriptExtension {
     friend class LuauScriptInstance;
 
 private:
+    String base_dir;
     String source;
     HashMap<int64_t, LuauScriptInstance *> instances;
 
@@ -176,6 +178,7 @@ private:
 
     static LuauLanguage *singleton;
     GDLuau *luau;
+    LuauCache *cache;
 
     bool finalized = false;
 

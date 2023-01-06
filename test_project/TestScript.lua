@@ -1,10 +1,12 @@
 local TestClass = {
-	extends = "Node3D",
+	extends = "TestBaseScript.lua",
 	methods = {},
 }
 
 function TestClass:_Ready()
 	print("TestScript: Ready!")
+
+	self:TestMethod()
 end
 
 TestClass.methods["_Ready"] = {}
