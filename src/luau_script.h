@@ -57,7 +57,7 @@ private:
 
     Error load_methods(GDLuau::VMType p_vm_type, bool force = false);
 
-    void update_base_script();
+    void update_base_script(Error &r_error);
 
     void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
     bool update_exports_internal(bool *r_err, bool p_recursive_call, PlaceHolderScriptInstance *p_instance_to_update);

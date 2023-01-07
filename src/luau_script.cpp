@@ -136,15 +136,15 @@ static Error get_class_definition(Ref<LuauScript> script, const String &source, 
     return ERR_COMPILATION_FAILED;
 }
 
-void LuauScript::update_base_script() {
+void LuauScript::update_base_script(Error &r_error) {
+    r_error = OK;
+
     if (!get_path().is_empty()) {
         base_dir = get_path().get_base_dir();
 
         if (!definition.extends.is_empty() && !class_exists(definition.extends)) {
             String base_script_path = base_dir.path_join(definition.extends);
-
-            Error err;
-            base = LuauCache::get_singleton()->get_script(base_script_path, err);
+            base = LuauCache::get_singleton()->get_script(base_script_path, r_error);
         }
     }
 }
@@ -165,7 +165,9 @@ Error LuauScript::_reload(bool p_keep_state) {
         return err;
     }
 
-    update_base_script();
+    update_base_script(err);
+    if (err != OK || (base.is_valid() && !base->_is_valid()))
+        valid = false;
 
     for (const KeyValue<GDLuau::VMType, int> &pair : def_table_refs) {
         if (load_methods(pair.key, true) == OK)
@@ -446,7 +448,9 @@ bool LuauScript::update_exports_internal(bool *r_err, bool p_recursive_call, Pla
             }
 
             definition.extends = def.extends;
-            update_base_script();
+
+            Error err;
+            update_base_script(err);
 
             if (base.is_valid()) {
                 base->inheriters_cache.insert(get_instance_id());
