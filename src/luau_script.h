@@ -7,8 +7,11 @@
 #include <godot_cpp/classes/resource_format_loader.hpp>
 #include <godot_cpp/classes/resource_format_saver.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
+#include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
+#include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -23,6 +26,8 @@ class Object;
 class ScriptLanguage;
 } //namespace godot
 
+class PlaceHolderScriptInstance;
+
 using namespace godot;
 
 class LuauCache;
@@ -32,17 +37,30 @@ class LuauScript : public ScriptExtension {
     GDCLASS(LuauScript, ScriptExtension);
 
     friend class LuauScriptInstance;
+    friend class PlaceHolderScriptInstance;
 
 private:
     String base_dir;
     String source;
-    HashMap<int64_t, LuauScriptInstance *> instances;
+    bool source_changed_cache;
+
+    HashMap<uint64_t, LuauScriptInstance *> instances;
+    HashMap<uint64_t, PlaceHolderScriptInstance *> placeholders;
 
     bool valid;
     GDClassDefinition definition;
     HashMap<GDLuau::VMType, int> def_table_refs;
 
+    bool placeholder_fallback_enabled;
+
+    HashSet<uint64_t> inheriters_cache;
+
     Error load_methods(GDLuau::VMType p_vm_type, bool force = false);
+
+    void update_base_script();
+
+    void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
+    bool update_exports_internal(bool *r_err, bool p_recursive_call, PlaceHolderScriptInstance *p_instance_to_update);
 
 protected:
     static void _bind_methods() {}
@@ -85,15 +103,22 @@ public:
     bool _instance_has(Object *p_object) const override;
     LuauScriptInstance *instance_get(Object *p_object) const;
 
+    /* PLACEHOLDER INSTANCE */
+    bool _is_placeholder_fallback_enabled() const override { return placeholder_fallback_enabled; }
+    void *_placeholder_instance_create(Object *p_for_object) const override;
+    void _update_exports() override;
+    void _placeholder_erased(void *p_placeholder) override;
+
+    bool placeholder_has(Object *p_object) const;
+    PlaceHolderScriptInstance *placeholder_get(Object *p_object);
+
+    /* TO IMPLEMENT */
+    Dictionary _get_constants() const override { return Dictionary(); }
+
     /*
-    void _placeholder_erased(void *placeholder);
-    void *_placeholder_instance_create(Object *for_object) const;
     bool _has_script_signal(const StringName &signal) const;
     TypedArray<Dictionary> _get_script_signal_list() const;
-    void _update_exports();
     int64_t _get_member_line(const StringName &member) const;
-    Dictionary _get_constants() const;
-    bool _is_placeholder_fallback_enabled() const;
     Variant _get_rpc_config() const;
 
     // To implement later (or never)
@@ -101,6 +126,7 @@ public:
     */
 
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
+    const GDClassDefinition &get_definition() const { return definition; }
 };
 
 class LuauScriptInstance {
@@ -164,6 +190,50 @@ public:
 
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();
+};
+
+// ! sync with core/object/script_language
+// need to reimplement here because Godot does not expose placeholders to GDExtension.
+// doing this is okay because all Godot functions which request a placeholder instance assign it to a ScriptInstance *
+class PlaceHolderScriptInstance {
+private:
+    Object *owner = nullptr;
+    Ref<LuauScript> script;
+
+    List<GDProperty> properties;
+    HashMap<StringName, Variant> values;
+    HashMap<StringName, Variant> constants;
+
+public:
+    static const GDExtensionScriptInstanceInfo INSTANCE_INFO;
+
+    bool set(const StringName &p_name, const Variant &p_value);
+    bool get(const StringName &p_name, Variant &r_ret);
+
+    void get_property_state(GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
+
+    GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) const;
+    void free_property_list(const GDExtensionPropertyInfo *p_list) const;
+
+    Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const;
+
+    Object *get_owner() const { return owner; }
+
+    GDExtensionMethodInfo *get_method_list(uint32_t *r_count) const;
+    void free_method_list(const GDExtensionMethodInfo *p_list) const;
+
+    bool has_method(const StringName &p_name) const;
+
+    Ref<Script> get_script() const { return script; }
+    ScriptLanguage *get_language() const;
+
+    bool property_set_fallback(const StringName &p_name, const Variant &p_value);
+    bool property_get_fallback(const StringName &p_name, Variant &r_ret);
+
+    void update(const List<GDProperty> &p_properties, const HashMap<StringName, Variant> &p_values);
+
+    PlaceHolderScriptInstance(Ref<LuauScript> p_script, Object *p_owner);
+    ~PlaceHolderScriptInstance();
 };
 
 class LuauLanguage : public ScriptLanguageExtension {

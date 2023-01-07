@@ -1,6 +1,7 @@
 local TestClass = {
 	extends = "TestBaseScript.lua",
 	methods = {},
+	properties = {},
 }
 
 function TestClass:_Ready()
@@ -10,6 +11,12 @@ function TestClass:_Ready()
 end
 
 TestClass.methods["_Ready"] = {}
+
+TestClass.properties["testProperty"] = {
+	property = gdproperty({ name = "testProperty", type = Enum.VariantType.FLOAT }),
+	usage = Enum.PropertyUsageFlags.STORAGE,
+	default = 1.5
+}
 
 --[[
 function TestClass:_Process(delta)
