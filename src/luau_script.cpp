@@ -315,15 +315,25 @@ TypedArray<StringName> LuauScript::_get_members() const {
 bool LuauScript::_has_property_default_value(const StringName &p_property) const {
     HashMap<StringName, GDClassProperty>::ConstIterator E = definition.properties.find(p_property);
 
-    if (E)
-        return E->value.default_value != Variant();
+    if (E && E->value.default_value != Variant())
+        return true;
+
+    if (base.is_valid())
+        return base->_has_property_default_value(p_property);
 
     return false;
 }
 
 Variant LuauScript::_get_property_default_value(const StringName &p_property) const {
-    // safe as _has_property_default_value is always checked before this
-    return definition.properties.get(p_property).default_value;
+    HashMap<StringName, GDClassProperty>::ConstIterator E = definition.properties.find(p_property);
+
+    if (E && E->value.default_value != Variant())
+        return E->value.default_value;
+
+    if (base.is_valid())
+        return base->_get_property_default_value(p_property);
+
+    return Variant();
 }
 
 bool LuauScript::has_property(const StringName &p_name) const {
