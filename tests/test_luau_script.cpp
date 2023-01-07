@@ -470,6 +470,14 @@ TEST_CASE("luau script: instance") {
                 REQUIRE(!is_valid);
                 REQUIRE(err == LuauScriptInstance::PROP_WRITE_ONLY);
             }
+
+            SECTION("default value") {
+                Variant val;
+                bool get_is_valid = inst->get("testProperty4", val);
+
+                REQUIRE(get_is_valid);
+                REQUIRE(val == "hey");
+            }
         }
 
         SECTION("with getter and setter") {
@@ -506,7 +514,7 @@ TEST_CASE("luau script: instance") {
             REQUIRE(state.size() == 3);
             REQUIRE(state["testProperty"] == Variant(6.5));
             REQUIRE(state["testProperty2"] == "hello");
-            REQUIRE(state["testProperty4"] == Variant());
+            REQUIRE(state["testProperty4"] == "hey");
         }
     }
 

@@ -683,14 +683,33 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
     return -1;
 }
 
-static int instance_table_set(lua_State *L) {
-    lua_settable(L, 1);
-    return 0;
+int LuauScriptInstance::protected_table_set(lua_State *L, const Variant &p_key, const Variant &p_value) {
+    lua_pushcfunction(
+            L, [](lua_State *FL) {
+                lua_settable(FL, 1);
+                return 0;
+            },
+            "instance_table_set");
+
+    lua_getref(L, table_ref);
+    LuaStackOp<Variant>::push(L, p_key);
+    LuaStackOp<Variant>::push(L, p_value);
+
+    return lua_pcall(L, 3, 0, 0);
 }
 
-static int instance_table_get(lua_State *L) {
-    lua_gettable(L, 1);
-    return 1;
+int LuauScriptInstance::protected_table_get(lua_State *L, const Variant &p_key) {
+    lua_pushcfunction(
+            L, [](lua_State *FL) {
+                lua_gettable(FL, 1);
+                return 1;
+            },
+            "instance_table_get");
+
+    lua_getref(L, table_ref);
+    LuaStackOp<Variant>::push(L, p_key);
+
+    return lua_pcall(L, 2, 1, 0);
 }
 
 bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err) {
@@ -725,13 +744,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                 LuaStackOp<Variant>::push(ET, p_value);
                 status = call_internal(prop.setter, ET, 1, 0);
             } else {
-                lua_pushcfunction(ET, instance_table_set, "instance_table_set");
-
-                lua_getref(ET, table_ref);
-                LuaStackOp<String>::push(ET, p_name);
-                LuaStackOp<Variant>::push(ET, p_value);
-
-                status = lua_pcall(ET, 3, 0, 0);
+                status = protected_table_set(ET, String(p_name), p_value);
             }
 
             lua_pop(T, 1); // thread
@@ -788,12 +801,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
             if (prop.getter != StringName()) {
                 status = call_internal(prop.getter, ET, 0, 1);
             } else {
-                lua_pushcfunction(ET, instance_table_get, "instance_table_get");
-
-                lua_getref(ET, table_ref);
-                LuaStackOp<String>::push(ET, String(p_name));
-
-                status = lua_pcall(ET, 2, 1, 0);
+                status = protected_table_get(ET, String(p_name));
             }
 
             if (status == LUA_OK) {
@@ -1240,6 +1248,16 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     LuauScript *s = p_script.ptr();
 
     while (s != nullptr) {
+        // Initialize default values
+        for (const KeyValue<StringName, GDClassProperty> pair : s->definition.properties) {
+            const GDClassProperty &prop = pair.value;
+
+            if (prop.getter == StringName() && prop.setter == StringName()) {
+                int status = protected_table_set(T, String(pair.key), prop.default_value);
+                ERR_FAIL_COND_MSG(status != LUA_OK, "Failed to set default value");
+            }
+        }
+
         // Run _Init for each script
         Error method_err = s->load_methods(p_vm_type);
 
