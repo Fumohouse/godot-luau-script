@@ -1144,8 +1144,6 @@ void LuauScriptInstance::call(
 
             if (status == LUA_OK)
                 *r_return = LuaStackOp<Variant>::get(ET, -1);
-            else
-                ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
 
             lua_pop(T, 1); // thread
 
