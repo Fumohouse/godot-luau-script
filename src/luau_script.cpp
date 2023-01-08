@@ -481,7 +481,6 @@ bool LuauScript::update_exports_internal(bool *r_err, bool p_recursive_call, Pla
                 valid = false; // Show error in editor
                 base->valid = false;
                 base->inheriters_cache.clear(); // Prevents stack overflows
-                base.unref();
                 base = Ref<LuauScript>();
                 ERR_FAIL_V_MSG(false, "Cyclic inheritance in script class.");
             }

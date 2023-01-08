@@ -4,8 +4,7 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
-#include <godot_cpp/variant/dictionary.hpp>
-#include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include <lua.h>
@@ -13,6 +12,7 @@
 
 #include "gd_luau.h"
 #include "luagd_stack.h"
+#include "luau_cache.h"
 #include "luau_lib.h"
 #include "luau_script.h"
 
@@ -699,4 +699,110 @@ TEST_CASE("luau script: inheritance") {
     }
 
     lua_pop(L, 1); // thread
+}
+
+TEST_CASE("luau script: placeholders") {
+    GDLuau gd_luau;
+    LuauCache luau_cache;
+
+    Error err;
+    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/placeholder/Base.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script_base->_is_valid());
+
+    Ref<LuauScript> script_base2 = luau_cache.get_script("res://test_scripts/placeholder/Base2.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script_base2->_is_valid());
+
+    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/placeholder/Script.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script->_is_valid());
+
+    Object obj;
+
+    SECTION("placeholder") {
+        PlaceHolderScriptInstance *placeholder = memnew(PlaceHolderScriptInstance(script, &obj));
+        SECTION("setget") {
+            Variant val;
+
+            REQUIRE(placeholder->get("testProperty", val));
+            REQUIRE(val == Variant(4.25));
+
+            REQUIRE(placeholder->get("baseProperty", val));
+            REQUIRE(val == Variant("hello"));
+        }
+
+        SECTION("update_exports") {
+            SECTION("script invalid") {
+                // Set beforehand - default values are not available when the script is invalid
+                REQUIRE(placeholder->set("testProperty", Variant(4.75)));
+
+                String new_src = script->_get_source_code().replace("--@1", "[!@#}^syntaxerror");
+                script->_set_source_code(new_src);
+                script->_update_exports();
+
+                REQUIRE(script->_is_placeholder_fallback_enabled());
+
+                Variant val;
+                REQUIRE(placeholder->property_get_fallback("testProperty", val));
+                REQUIRE(val == Variant(4.75));
+            }
+
+            SECTION("script change") {
+                String new_src = script->_get_source_code().replace("--@1", R"ASDF(
+                    Script.properties["testProperty2"] = {
+                        property = gdproperty({ name = "testProperty2", type = Enum.VariantType.VECTOR3 }),
+                        usage = Enum.PropertyUsageFlags.STORAGE,
+                        default = Vector3(1, 2, 3)
+                    }
+                )ASDF");
+                script->_set_source_code(new_src);
+                script->_update_exports();
+
+                Variant val;
+                REQUIRE(placeholder->get("testProperty", val));
+                REQUIRE(val == Variant(4.25));
+
+                REQUIRE(placeholder->get("testProperty2", val));
+                REQUIRE(val == Variant(Vector3(1, 2, 3)));
+            }
+
+            SECTION("base script") {
+                uint64_t instance_id = script->get_instance_id();
+
+                SECTION("cyclic inheritance") {
+                    String new_src_base = script_base->_get_source_code().replace("--@1", "Base.extends = \"Script.lua\"");
+                    script_base->_set_source_code(new_src_base);
+                    script->_update_exports();
+
+                    REQUIRE(!script->_is_valid());
+                    REQUIRE(!script_base->_is_valid());
+
+                    // Because of the way cyclic inheritance is detected, the "base script" is the one that has its base unset
+                    REQUIRE(!script_base->base.is_valid());
+                    REQUIRE(script->inheriters_cache.is_empty());
+                }
+
+                SECTION("base script updating") {
+                    REQUIRE(script_base->inheriters_cache.has(instance_id));
+
+                    String new_src = script->_get_source_code().replace("--@1", "Script.extends = \"Base2.lua\"");
+                    script->_set_source_code(new_src);
+                    script->_update_exports();
+
+                    REQUIRE(!script_base->inheriters_cache.has(instance_id));
+                    REQUIRE(script_base2->inheriters_cache.has(instance_id));
+
+                    Variant val;
+
+                    REQUIRE(!placeholder->get("baseProperty", val));
+
+                    REQUIRE(placeholder->get("baseProperty2", val));
+                    REQUIRE(val == Variant(Vector2(1, 2)));
+                }
+            }
+        }
+
+        memdelete(placeholder);
+    }
 }

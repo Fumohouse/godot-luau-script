@@ -41,22 +41,17 @@ if env["iwyu"]:
     env_main["CC"] = "include-what-you-use"
     env_main["CXX"] = "include-what-you-use"
 
-sources = Glob("src/*.cpp", exclude=["src/register_types.cpp"])
+sources = Glob("src/*.cpp")
 
 env_main.Append(CPPPATH=["src/"])
 
 # Catch2
 if env["tests"]:
-    env_main.Append(CPPPATH=["extern/Catch2/extras/"])
+    env_main.Append(CPPDEFINES="TESTS_ENABLED", CPPPATH=["extern/Catch2/extras/"])
     sources.append(File("extern/Catch2/extras/catch_amalgamated.cpp"))
-
-    sources.append(env_main.SharedObject("src/register_types.cpp",
-                   CPPDEFINES=env["CPPDEFINES"] + ["TESTS_ENABLED"]))
 
     sources += Glob("tests/*.cpp")
     env_main.Append(CPPPATH=["tests/"])
-else:
-    sources.append(File("src/register_types.cpp"))
 
 if env["platform"] == "macos":
     library = env_main.SharedLibrary(
