@@ -3,7 +3,6 @@
 #include <lua.h>
 
 #include "luagd.h"
-#include "luagd_permissions.h"
 
 TEST_CASE("vm: permissions") {
     lua_State *L = luaGD_newstate(PERMISSION_INTERNAL);

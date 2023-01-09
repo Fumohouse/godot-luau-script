@@ -9,7 +9,7 @@
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "luagd_permissions.h"
+#include "luagd.h"
 #include "luagd_stack.h"
 
 using namespace godot;

@@ -11,9 +11,6 @@
 
 #include "lua.h"
 #include "luagd.h"
-#include "luagd_permissions.h"
-
-#include "luagd_bindings_stack.gen.h"
 #include "luagd_stack.h"
 
 #include "test_utils.h"
