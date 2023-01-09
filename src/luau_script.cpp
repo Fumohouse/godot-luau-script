@@ -327,10 +327,7 @@ TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
 }
 
 TypedArray<StringName> LuauScript::_get_members() const {
-    // TODO: 2022-10-08: evil witchery garbage
-    // segfault occurs when initializing with TypedArray<StringName> and relying on copy.
-    // conversion works fine. for some reason.
-    Array members;
+    TypedArray<StringName> members;
 
     for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties)
         members.push_back(pair.value.property.name);
