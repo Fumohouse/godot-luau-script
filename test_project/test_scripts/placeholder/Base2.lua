@@ -6,7 +6,7 @@ local Base2 = {
 --@1
 
 Base2.properties["baseProperty2"] = {
-    property = gdproperty({ name = "baseProperty2", type = Enum.VariantType.Vector2 }),
+    property = gdproperty({ name = "baseProperty2", type = Enum.VariantType.VECTOR2 }),
 	usage = Enum.PropertyUsageFlags.STORAGE,
     default = Vector2(1, 2)
 }

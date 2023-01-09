@@ -4,8 +4,9 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/variant/string.hpp>
 
-#include "luagd_bindings_stack.gen.h"
-#include "luagd_stack.h"
+// Used in macros
+#include "luagd_bindings_stack.gen.h" // IWYU pragma: keep
+#include "luagd_stack.h" // IWYU pragma: keep
 
 using namespace godot;
 
@@ -43,9 +44,9 @@ ExecOutput luaGD_exec(lua_State *L, const char *src);
 #define ASSERT_EVAL_EQ(L, src, type, value)             \
     EVAL_THEN(L, src, {                                 \
         CHECK(LuaStackOp<type>::check(L, -1) == value); \
-    });
+    })
 
-#define ASSERT_EVAL_OK(L, src) EVAL_THEN(L, src, {});
+#define ASSERT_EVAL_OK(L, src) EVAL_THEN(L, src, {})
 
 #define ASSERT_EVAL_FAIL(L, src, err)        \
     {                                        \

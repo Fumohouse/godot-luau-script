@@ -36,19 +36,19 @@ TEST_CASE_METHOD(LuauFixture, "classes: reference counting") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: constructor") {
-    ASSERT_EVAL_EQ(L, "return PhysicsRayQueryParameters3D():GetClass()", String, "PhysicsRayQueryParameters3D");
+    ASSERT_EVAL_EQ(L, "return PhysicsRayQueryParameters3D():GetClass()", String, "PhysicsRayQueryParameters3D")
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: singleton getter") {
-    ASSERT_EVAL_EQ(L, "return Engine.GetSingleton()", Object *, Engine::get_singleton());
+    ASSERT_EVAL_EQ(L, "return Engine.GetSingleton()", Object *, Engine::get_singleton())
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: consts and enums") {
     SECTION("constants") {
-        ASSERT_EVAL_EQ(L, "return Object.NOTIFICATION_PREDELETE", int, 1);
+        ASSERT_EVAL_EQ(L, "return Object.NOTIFICATION_PREDELETE", int, 1)
     }
 
-    SECTION("enums") {
+    SECTION("enums"){
         ASSERT_EVAL_EQ(L, "return Object.ConnectFlags.CONNECT_ONE_SHOT", int, 4)
     }
 }
@@ -62,7 +62,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
             local params = PhysicsRayQueryParameters3D()
             return params:Get(StringName("collide_with_areas"))
         )ASDF",
-                bool, false);
+                bool, false)
     }
 
     SECTION("invoked from global table") {
@@ -70,7 +70,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
             local params = PhysicsRayQueryParameters3D()
             return Object.Get(params, StringName("collide_with_areas"))
         )ASDF",
-                bool, false);
+                bool, false)
     }
 
     SECTION("varargs") {
@@ -80,7 +80,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
 
             return params.collideWithAreas
         )ASDF",
-                bool, true);
+                bool, true)
     }
 
     SECTION("default args") {
@@ -94,7 +94,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
                     REQUIRE(params->get_to() == Vector3(4, 5, 6));
                     REQUIRE(params->get_collision_mask() == 4294967295);
                     REQUIRE(params->get_exclude().size() == 0);
-                });
+                })
     }
 
     SECTION("ref return") {
@@ -110,7 +110,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
                     lua_gc(L, LUA_GCCOLLECT, 0);
 
                     REQUIRE(!UtilityFunctions::is_instance_valid(rc));
-                });
+                })
     }
 
     udata->permissions = PERMISSION_BASE;
@@ -122,7 +122,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
             local node = PhysicsRayQueryParameters3D()
             return node.collideWithAreas
         )ASDF",
-                bool, false);
+                bool, false)
     }
 
     SECTION("member set") {
@@ -131,7 +131,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
             node.collideWithAreas = true
             return node.collideWithAreas
         )ASDF",
-                bool, true);
+                bool, true)
     }
 
     SECTION("member access with index") {
@@ -146,7 +146,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
         ASSERT_EVAL_EQ(L, R"ASDF(
             return styleBox.contentMarginBottom
         )ASDF",
-                double, 4.25);
+                double, 4.25)
 
         lua_pushnil(L);
         lua_setglobal(L, "styleBox");
@@ -160,13 +160,13 @@ TEST_CASE_METHOD(LuauFixture, "classes: tostring") {
     lua_setglobal(L, "node");
 
     SECTION("normal") {
-        ASSERT_EVAL_EQ(L, "return tostring(node)", String, node->to_string());
+        ASSERT_EVAL_EQ(L, "return tostring(node)", String, node->to_string())
     }
 
     memdelete(node);
 
     SECTION("freed") {
-        ASSERT_EVAL_EQ(L, "return tostring(node)", String, "<Freed Object>");
+        ASSERT_EVAL_EQ(L, "return tostring(node)", String, "<Freed Object>")
     }
 
     lua_pushnil(L);
@@ -177,5 +177,9 @@ TEST_CASE_METHOD(LuauFixture, "classes: permissions") {
     ASSERT_EVAL_FAIL(
             L,
             "OS.GetSingleton():GetName()",
-            "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access Godot.Object.OS.GetName. needed permissions: 2, got: 0 !!!");
+            "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access Godot.Object.OS.GetName. needed permissions: 2, got: 0 !!!")
+}
+
+TEST_CASE_METHOD(LuauFixture, "classes: invalid global access") {
+    ASSERT_EVAL_FAIL(L, "return Object.duhduhduh", "exec:1: 'duhduhduh' is not a valid member of 'Object'")
 }

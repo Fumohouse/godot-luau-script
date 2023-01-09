@@ -7,9 +7,11 @@
 
 #define luaGD_typename(L, index) lua_typename(L, lua_type(L, index))
 
-void luaGD_keyerror(lua_State *L, const char *of, const char *got, const char *expected);
-void luaGD_valueerror(lua_State *L, const char *key, const char *got, const char *expected);
-void luaGD_arrayerror(lua_State *L, const char *of, const char *got, const char *expected);
+#define luaGD_indexerror(L, key, of) luaL_error(L, "'%s' is not a valid member of '%s'", key, of)
+
+#define luaGD_keyerror(L, of, got, expected) luaL_error(L, "invalid type for key of %s: got %s, expected %s", of, got, expected)
+#define luaGD_valueerror(L, key, got, expected) luaL_error(L, "invalid type for value of key %s: got %s, expected %s", key, got, expected)
+#define luaGD_arrayerror(L, of, got, expected) luaL_error(L, "invalid type for %s array: got %s, expected %s", of, got, expected)
 
 bool luaGD_getfield(lua_State *L, int index, const char *key);
 

@@ -48,6 +48,23 @@ static void check_variant(lua_State *L, int idx, const Variant &val, GDExtension
     }
 }
 
+static int luaGD_global_index(lua_State *L) {
+    const char *name = lua_tostring(L, lua_upvalueindex(1));
+
+    // Copy key to front of stack
+    lua_pushvalue(L, 2);
+    lua_insert(L, 1);
+
+    lua_rawget(L, 2);
+
+    if (lua_isnil(L, -1))
+        luaGD_indexerror(L, luaL_checkstring(L, 1), name);
+
+    lua_pop(L, 1); // key
+
+    return 1;
+}
+
 static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause reserved keyword
     lua_createtable(L, 0, p_enum.values.size());
 
@@ -55,6 +72,15 @@ static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause r
         lua_pushinteger(L, value.second);
         lua_setfield(L, -2, value.first.utf8().get_data());
     }
+
+    lua_createtable(L, 0, 1);
+
+    lua_pushstring(L, p_enum.name);
+    lua_pushcclosure(L, luaGD_global_index, "Enum.__index", 1); // TODO: name
+    lua_setfield(L, -2, "__index");
+
+    lua_setreadonly(L, -1, true);
+    lua_setmetatable(L, -2);
 
     lua_setreadonly(L, -1, true);
 }
@@ -261,9 +287,7 @@ static int luaGD_builtin_newindex(lua_State *L) {
     if (builtin_class->members.has(key.operator String()))
         luaL_error(L, "type '%s' is read-only", builtin_class->name.utf8().get_data());
     else
-        luaL_error(L, "%s is not a valid member of '%s'",
-                key.operator String().utf8().get_data(),
-                builtin_class->name.utf8().get_data());
+        luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name.utf8().get_data());
 }
 
 static int luaGD_builtin_index(lua_State *L) {
@@ -317,9 +341,7 @@ static int luaGD_builtin_index(lua_State *L) {
         }
     }
 
-    luaL_error(L, "%s is not a valid member of '%s'",
-            key.operator String().utf8().get_data(),
-            builtin_class->name.utf8().get_data());
+    luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name.utf8().get_data());
 }
 
 static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_class, const ApiVariantMethod &method) {
@@ -819,7 +841,7 @@ static int luaGD_class_index(lua_State *L) {
             return 1;
     }
 
-    luaL_error(L, "%s is not a valid member of %s", key, current_class->name.utf8().get_data());
+    luaGD_indexerror(L, key, current_class->name.utf8().get_data());
 }
 
 static int luaGD_class_newindex(lua_State *L) {
@@ -877,7 +899,7 @@ static int luaGD_class_newindex(lua_State *L) {
             return 0;
     }
 
-    luaL_error(L, "%s is not a valid member of %s", key, current_class->name.utf8().get_data());
+    luaGD_indexerror(L, key, current_class->name.utf8().get_data());
 }
 
 static int luaGD_class_singleton_getter(lua_State *L) {
@@ -1010,6 +1032,15 @@ void luaGD_openglobals(lua_State *L) {
     push_enum(L, get_permissions_enum());
     lua_setfield(L, -2, get_permissions_enum().name);
 
+    lua_createtable(L, 0, 1);
+
+    lua_pushstring(L, "Enum");
+    lua_pushcclosure(L, luaGD_global_index, "Enum.__index", 1);
+    lua_setfield(L, -2, "__index");
+
+    lua_setreadonly(L, -1, true);
+    lua_setmetatable(L, -2);
+
     lua_setreadonly(L, -1, true);
     lua_setglobal(L, "Enum");
 
@@ -1021,6 +1052,15 @@ void luaGD_openglobals(lua_State *L) {
         lua_pushinteger(L, global_constant.value);
         lua_setfield(L, -2, global_constant.name);
     }
+
+    lua_createtable(L, 0, 1);
+
+    lua_pushstring(L, "Constants");
+    lua_pushcclosure(L, luaGD_global_index, "Constants.__index", 1);
+    lua_setfield(L, -2, "__index");
+
+    lua_setreadonly(L, -1, true);
+    lua_setmetatable(L, -2);
 
     lua_setreadonly(L, -1, true);
     lua_setglobal(L, "Constants");
@@ -1057,6 +1097,11 @@ void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
 
     lua_pushstring(L, mt_name);
     lua_setfield(L, -2, "__fortype");
+
+    // global index
+    lua_pushstring(L, global_name);
+    lua_pushcclosure(L, luaGD_global_index, "_G.__index", 1); // TODO: name?
+    lua_setfield(L, -2, "__index");
 
     // for typeof and type errors
     lua_pushstring(L, global_name);
