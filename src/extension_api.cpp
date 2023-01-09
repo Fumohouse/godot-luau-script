@@ -156,7 +156,7 @@ static ApiClassArgument read_class_arg(uint64_t &idx) {
     return arg;
 }
 
-static ApiClassMethod read_class_method(uint64_t &idx, const StringName &class_name) {
+static ApiClassMethod read_class_method(uint64_t &idx, const char *class_name) {
     ApiClassMethod method;
 
     method.class_name = class_name;
@@ -328,7 +328,7 @@ ExtensionApi &get_extension_api() {
                 if (indexing_return_type != -1) {
                     new_class.indexing_return_type = (GDExtensionVariantType)indexing_return_type;
 
-                    if (new_class.name.ends_with("Array"))
+                    if (String(new_class.name).ends_with("Array"))
                         new_class.indexed_setter = internal::gde_interface->variant_get_ptr_indexed_setter(new_class.type);
 
                     new_class.indexed_getter = internal::gde_interface->variant_get_ptr_indexed_getter(new_class.type);
@@ -493,13 +493,11 @@ ExtensionApi &get_extension_api() {
                 new_class.constructor_debug_name = read_string(idx);
 
                 // Methods
-                StringName class_name = new_class.name;
-
                 uint64_t num_methods = read<uint64_t>(idx);
                 new_class.methods.reserve(num_methods);
 
                 for (int j = 0; j < num_methods; j++) {
-                    ApiClassMethod method = read_class_method(idx, class_name);
+                    ApiClassMethod method = read_class_method(idx, new_class.name);
                     new_class.methods.insert(method.name, method);
                 }
 
@@ -512,7 +510,7 @@ ExtensionApi &get_extension_api() {
                 ApiClassMethod *static_methods = new_class.static_methods.ptrw();
 
                 for (int j = 0; j < num_static_methods; j++)
-                    static_methods[j] = read_class_method(idx, class_name);
+                    static_methods[j] = read_class_method(idx, new_class.name);
 
                 // Signals
                 uint64_t num_signals = read<uint64_t>(idx);

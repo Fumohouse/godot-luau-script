@@ -15,7 +15,6 @@
 #include <type_traits>
 
 #include "extension_api.h"
-#include "luagd_bindings_stack.gen.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
@@ -36,7 +35,7 @@ static bool variant_types_compatible(Variant::Type t1, Variant::Type t2) {
             (t1 == Variant::INT && t2 == Variant::FLOAT);
 }
 
-static void check_variant(lua_State *L, int idx, const Variant &val, GDExtensionVariantType p_expected_type, String type_name = "") {
+static void check_variant(lua_State *L, int idx, const Variant &val, GDExtensionVariantType p_expected_type, const String &type_name = "") {
     Variant::Type expected_type = (Variant::Type)p_expected_type;
 
     if (expected_type != Variant::NIL && !variant_types_compatible(val.get_type(), expected_type))
@@ -188,7 +187,7 @@ static int get_arguments(lua_State *L,
         args.resize(nargs);
 
         if (nargs > method.arguments.size())
-            luaL_error(L, "too many arguments to '%s' (expected at most %d)", method.name.utf8().get_data(), method.arguments.size());
+            luaL_error(L, "too many arguments to '%s' (expected at most %d)", method.name, method.arguments.size());
 
         for (int i = 0; i < nargs; i++) {
             get_argument(L, i + 1 + arg_offset, method.arguments[i], args.ptrw()[i]);
@@ -284,9 +283,9 @@ static int luaGD_builtin_newindex(lua_State *L) {
 
     // All other set operations are invalid
     if (builtin_class->members.has(key.operator String()))
-        luaL_error(L, "type '%s' is read-only", builtin_class->name.utf8().get_data());
+        luaL_error(L, "type '%s' is read-only", builtin_class->name);
     else
-        luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name.utf8().get_data());
+        luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name);
 }
 
 static int luaGD_builtin_index(lua_State *L) {
@@ -340,7 +339,7 @@ static int luaGD_builtin_index(lua_State *L) {
         }
     }
 
-    luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name.utf8().get_data());
+    luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name);
 }
 
 static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_class, const ApiVariantMethod &method) {
@@ -420,7 +419,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
         if (builtin_class->methods.has(name))
             return call_builtin_method(L, *builtin_class, builtin_class->methods.get(name));
 
-        luaL_error(L, "'%s' is not a valid method of '%s'", name, builtin_class->name.utf8().get_data());
+        luaL_error(L, "'%s' is not a valid method of '%s'", name, builtin_class->name);
     }
 
     luaL_error(L, "no namecallatom");
@@ -465,7 +464,7 @@ void luaGD_openbuiltins(lua_State *L) {
     const ExtensionApi &extension_api = get_extension_api();
 
     for (const ApiBuiltinClass &builtin_class : extension_api.builtin_classes) {
-        luaGD_newlib(L, builtin_class.name.utf8().get_data(), builtin_class.metatable_name);
+        luaGD_newlib(L, builtin_class.name, builtin_class.metatable_name);
 
         // Enums
         for (const ApiEnum &class_enum : builtin_class.enums) {
@@ -476,7 +475,7 @@ void luaGD_openbuiltins(lua_State *L) {
         // Constants
         for (const ApiVariantConstant &constant : builtin_class.constants) {
             LuaStackOp<Variant>::push(L, constant.value);
-            lua_setfield(L, -3, constant.name.utf8().get_data());
+            lua_setfield(L, -3, constant.name);
         }
 
         // Constructors (global __call)
@@ -502,12 +501,12 @@ void luaGD_openbuiltins(lua_State *L) {
         // All methods (global table)
         for (const KeyValue<String, ApiVariantMethod> &pair : builtin_class.methods) {
             push_builtin_method(L, builtin_class, pair.value);
-            lua_setfield(L, -3, pair.value.name.utf8().get_data());
+            lua_setfield(L, -3, pair.value.name);
         }
 
         for (const ApiVariantMethod &static_method : builtin_class.static_methods) {
             push_builtin_method(L, builtin_class, static_method);
-            lua_setfield(L, -3, static_method.name.utf8().get_data());
+            lua_setfield(L, -3, static_method.name);
         }
 
         // Operators (misc metatable)
@@ -749,7 +748,7 @@ static int luaGD_class_namecall(lua_State *L) {
             } else {
                 int nargs = lua_gettop(L);
 
-                LuaStackOp<String>::push(L, name);
+                lua_pushstring(L, name);
                 bool is_valid = inst->table_get(L);
 
                 if (is_valid) {
@@ -772,7 +771,7 @@ static int luaGD_class_namecall(lua_State *L) {
             INHERIT_OR_BREAK
         }
 
-        luaL_error(L, "%s is not a valid method of %s", name, current_class->name.utf8().get_data());
+        luaL_error(L, "%s is not a valid method of %s", name, current_class->name);
     }
 
     luaL_error(L, "no namecallatom");
@@ -840,7 +839,7 @@ static int luaGD_class_index(lua_State *L) {
             return 1;
     }
 
-    luaGD_indexerror(L, key, current_class->name.utf8().get_data());
+    luaGD_indexerror(L, key, current_class->name);
 }
 
 static int luaGD_class_newindex(lua_State *L) {
@@ -898,7 +897,7 @@ static int luaGD_class_newindex(lua_State *L) {
             return 0;
     }
 
-    luaGD_indexerror(L, key, current_class->name.utf8().get_data());
+    luaGD_indexerror(L, key, current_class->name);
 }
 
 static int luaGD_class_singleton_getter(lua_State *L) {
@@ -908,7 +907,7 @@ static int luaGD_class_singleton_getter(lua_State *L) {
 
     Object *singleton = g_class->try_get_singleton();
     if (singleton == nullptr)
-        luaL_error(L, "could not get singleton '%s'", g_class->name.utf8().get_data());
+        luaL_error(L, "could not get singleton '%s'", g_class->name);
 
     LuaStackOp<Object *>::push(L, singleton);
     return 1;
@@ -924,7 +923,7 @@ void luaGD_openclasses(lua_State *L) {
     for (int i = 0; i < extension_api.classes.size(); i++) {
         ApiClass &g_class = classes[i];
 
-        luaGD_newlib(L, g_class.name.utf8().get_data(), g_class.metatable_name);
+        luaGD_newlib(L, g_class.name, g_class.metatable_name);
 
         // Enums
         for (const ApiEnum &class_enum : g_class.enums) {
@@ -939,7 +938,7 @@ void luaGD_openclasses(lua_State *L) {
         }
 
         // Constructor (global __call)
-        LuaStackOp<String>::push(L, g_class.name);
+        lua_pushstring(L, g_class.name);
         lua_pushcclosure(L,
                 g_class.is_instantiable
                         ? luaGD_class_ctor
@@ -958,12 +957,12 @@ void luaGD_openclasses(lua_State *L) {
         // All methods (global table)
         for (KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
             push_class_method(L, g_class, pair.value);
-            lua_setfield(L, -3, pair.value.name.utf8().get_data());
+            lua_setfield(L, -3, pair.value.name);
         }
 
         for (ApiClassMethod &static_method : g_class.static_methods) {
             push_class_method(L, g_class, static_method);
-            lua_setfield(L, -3, static_method.name.utf8().get_data());
+            lua_setfield(L, -3, static_method.name);
         }
 
         // TODO Signals ?
@@ -1068,7 +1067,7 @@ void luaGD_openglobals(lua_State *L) {
     for (const ApiUtilityFunction &utility_function : api.utility_functions) {
         lua_pushlightuserdata(L, (void *)&utility_function);
         lua_pushcclosure(L, luaGD_utility_function, utility_function.debug_name, 1);
-        lua_setglobal(L, utility_function.name.utf8().get_data());
+        lua_setglobal(L, utility_function.name);
     }
 }
 

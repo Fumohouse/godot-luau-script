@@ -22,14 +22,14 @@ using namespace godot;
 ///////////////////
 
 struct ApiArgument {
-    String name;
+    const char *name;
     GDExtensionVariantType type;
     bool has_default_value;
     LuauVariant default_value;
 };
 
 struct ApiArgumentNoDefault {
-    String name;
+    const char *name;
     GDExtensionVariantType type;
 };
 
@@ -49,7 +49,7 @@ struct ApiConstant {
 ///////////////////////
 
 struct ApiUtilityFunction {
-    String name;
+    const char *name;
     const char *debug_name;
 
     bool is_vararg;
@@ -70,7 +70,7 @@ struct ApiVariantOperator {
 };
 
 struct ApiVariantMember {
-    String name;
+    const char *name;
     GDExtensionVariantType type;
 
     // builtin type members are read-only in luau
@@ -79,7 +79,7 @@ struct ApiVariantMember {
 };
 
 struct ApiVariantConstant {
-    String name;
+    const char *name;
     Variant value;
 };
 
@@ -89,7 +89,7 @@ struct ApiVariantConstructor {
 };
 
 struct ApiVariantMethod {
-    String name;
+    const char *name;
     StringName gd_name;
     const char *debug_name;
 
@@ -103,7 +103,7 @@ struct ApiVariantMethod {
 };
 
 struct ApiBuiltinClass {
-    String name;
+    const char *name;
     const char *metatable_name;
 
     GDExtensionVariantType type;
@@ -150,7 +150,7 @@ struct ApiClassType {
 };
 
 struct ApiClassArgument {
-    String name;
+    const char *name;
 
     ApiClassType type;
 
@@ -163,9 +163,9 @@ private:
     GDExtensionMethodBindPtr method = nullptr;
 
 public:
-    StringName class_name;
+    const char *class_name;
 
-    String name;
+    const char *name;
     const char *gd_name;
     const char *debug_name;
 
@@ -184,20 +184,21 @@ public:
         if (method != nullptr)
             return method;
 
+        StringName class_sn = class_name;
         StringName gd_sn = gd_name;
-        method = internal::gde_interface->classdb_get_method_bind(&class_name, &gd_sn, hash);
+        method = internal::gde_interface->classdb_get_method_bind(&class_sn, &gd_sn, hash);
         return method;
     }
 };
 
 struct ApiClassSignal {
-    String name;
-    String gd_name;
+    const char *name;
+    StringName gd_name;
     Vector<ApiClassArgument> arguments;
 };
 
 struct ApiClassProperty {
-    String name;
+    const char *name;
 
     Vector<ApiClassType> type;
 
@@ -214,7 +215,7 @@ private:
     Object *singleton = nullptr;
 
 public:
-    String name;
+    const char *name;
     const char *metatable_name;
     int32_t parent_idx = -1;
 
