@@ -17,7 +17,7 @@ using namespace godot;
 
 #define PROPERTY_MT_NAME "Luau.GDProperty"
 
-LUA_UDATA_STACK_OP(GDProperty, PROPERTY_MT_NAME, DTOR(GDProperty))
+UDATA_STACK_OP_IMPL(GDProperty, PROPERTY_MT_NAME, DTOR(GDProperty))
 
 /* STRUCTS */
 

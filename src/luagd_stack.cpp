@@ -31,53 +31,39 @@ bool luaGD_metatables_match(lua_State *L, int index, const char *metatable_name)
 
 /* BASIC TYPES */
 
-#define LUA_BASIC_STACK_OP(type, op_name, is_name)                                                               \
-    template <>                                                                                                  \
+#define BASIC_STACK_OP_IMPL(type, op_name, is_name)                                                              \
     void LuaStackOp<type>::push(lua_State *L, const type &value) { lua_push##op_name(L, value); }                \
-                                                                                                                 \
-    template <>                                                                                                  \
     type LuaStackOp<type>::get(lua_State *L, int index) { return static_cast<type>(lua_to##op_name(L, index)); } \
-                                                                                                                 \
-    template <>                                                                                                  \
     bool LuaStackOp<type>::is(lua_State *L, int index) { return lua_is##is_name(L, index); }                     \
-                                                                                                                 \
-    template <>                                                                                                  \
     type LuaStackOp<type>::check(lua_State *L, int index) { return static_cast<type>(luaL_check##op_name(L, index)); }
 
-LUA_BASIC_STACK_OP(bool, boolean, boolean);
-LUA_BASIC_STACK_OP(int, integer, number);
-LUA_BASIC_STACK_OP(float, number, number);
-
-/* FOR BINDINGS */
+BASIC_STACK_OP_IMPL(bool, boolean, boolean);
+BASIC_STACK_OP_IMPL(int, integer, number);
+BASIC_STACK_OP_IMPL(float, number, number);
 
 // this is only a little bit shady. don't worry about it
-LUA_BASIC_STACK_OP(double, number, number);
-LUA_BASIC_STACK_OP(int8_t, number, number);
-LUA_BASIC_STACK_OP(uint8_t, unsigned, number);
-LUA_BASIC_STACK_OP(int16_t, number, number);
-LUA_BASIC_STACK_OP(uint16_t, unsigned, number);
-LUA_BASIC_STACK_OP(uint32_t, unsigned, number);
-LUA_BASIC_STACK_OP(int64_t, number, number);
-LUA_BASIC_STACK_OP(Error, integer, number);
+BASIC_STACK_OP_IMPL(double, number, number);
+BASIC_STACK_OP_IMPL(int8_t, number, number);
+BASIC_STACK_OP_IMPL(uint8_t, unsigned, number);
+BASIC_STACK_OP_IMPL(int16_t, number, number);
+BASIC_STACK_OP_IMPL(uint16_t, unsigned, number);
+BASIC_STACK_OP_IMPL(uint32_t, unsigned, number);
+BASIC_STACK_OP_IMPL(int64_t, number, number);
 
 /* STRING */
 
-template <>
 void LuaStackOp<String>::push(lua_State *L, const String &value) {
     lua_pushstring(L, value.utf8().get_data());
 }
 
-template <>
 String LuaStackOp<String>::get(lua_State *L, int index) {
     return String::utf8(lua_tostring(L, index));
 }
 
-template <>
 bool LuaStackOp<String>::is(lua_State *L, int index) {
     return lua_isstring(L, index);
 }
 
-template <>
 String LuaStackOp<String>::check(lua_State *L, int index) {
     return String::utf8(luaL_checkstring(L, index));
 }
@@ -99,8 +85,7 @@ static void luaGD_object_dtor(void *ptr) {
         rc->unreference();
 }
 
-template <>
-void LuaStackOp<Object *>::push(lua_State *L, Object *const &value) {
+void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
     GDObjectInstanceID *udata =
             reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
 
@@ -118,7 +103,6 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *const &value) {
     lua_setmetatable(L, -2);
 }
 
-template <>
 bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
         return false;
@@ -135,7 +119,6 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     return is_obj;
 }
 
-template <>
 Object *LuaStackOp<Object *>::get(lua_State *L, int index) {
     if (!LuaStackOp<Object *>::is(L, index))
         return nullptr;
@@ -146,7 +129,6 @@ Object *LuaStackOp<Object *>::get(lua_State *L, int index) {
     return obj_ptr;
 }
 
-template <>
 Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
     if (!LuaStackOp<Object *>::is(L, index))
         luaL_typeerrorL(L, index, "Object");
@@ -184,7 +166,7 @@ bool luaGD_isarray(lua_State *L, int index, const char *metatable_name, Variant:
 
 #define ARRAY_METATABLE_NAME "Godot.Builtin.Array"
 
-LUA_UDATA_PUSH(Array);
+UDATA_PUSH(Array);
 
 static void array_set(Array &array, int index, Variant elem) {
     array[index] = elem;
@@ -202,6 +184,6 @@ Array LuaStackOp<Array>::check(lua_State *L, int index, Variant::Type type, cons
     return luaGD_checkarray<Array>(L, index, ARRAY_METATABLE_NAME, type, class_name, array_set);
 }
 
-LUA_UDATA_ALLOC(Array, ARRAY_METATABLE_NAME, DTOR(Array))
-LUA_UDATA_GET_PTR(Array, ARRAY_METATABLE_NAME)
-LUA_UDATA_CHECK_PTR(Array, ARRAY_METATABLE_NAME)
+UDATA_ALLOC(Array, ARRAY_METATABLE_NAME, DTOR(Array))
+UDATA_GET_PTR(Array, ARRAY_METATABLE_NAME)
+UDATA_CHECK_PTR(Array, ARRAY_METATABLE_NAME)

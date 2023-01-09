@@ -27,21 +27,9 @@ def generate_stack_ops(src_dir, include_dir, api):
 
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
+
+using namespace godot;
 """)
-
-    # Object includes
-    skip_classes = ["Object", "ClassDB"]
-    classes = [g_class for g_class in api["classes"]
-               if not (g_class["name"] in skip_classes)]
-
-    for g_class in classes:
-        snake_name = binding_generator.camel_to_snake(g_class["name"])
-        include = f"#include <godot_cpp/classes/{snake_name}.hpp>"
-        src.append(include)
-        header.append(include)
-
-    src.append("")
-    header.append("\nusing namespace godot;\n")
 
     # Builtin classes
     builtins_filtered = [
@@ -70,32 +58,20 @@ def generate_stack_ops(src_dir, include_dir, api):
             array_elem_type, array_elem_variant_type = array_elem_types[class_name]
             array_elem_variant_type = "Variant::" + array_elem_variant_type
 
-            src.append(f"LUA_ARRAY_STACK_OP({class_name}, {array_elem_variant_type}, {array_elem_type}, \"{metatable_name}\")")
+            src.append(f"ARRAY_STACK_OP_IMPL({class_name}, {array_elem_variant_type}, {array_elem_type}, \"{metatable_name}\")")
         elif "has_destructor" in b_class and b_class["has_destructor"]:
             src.append(
-                f"LUA_UDATA_STACK_OP({class_name}, \"{metatable_name}\", DTOR({class_name}));")
+                f"UDATA_STACK_OP_IMPL({class_name}, \"{metatable_name}\", DTOR({class_name}));")
         else:
             src.append(
-                f"LUA_UDATA_STACK_OP({class_name}, \"{metatable_name}\", NO_DTOR);")
+                f"UDATA_STACK_OP_IMPL({class_name}, \"{metatable_name}\", NO_DTOR);")
 
-        header.append(f"template class LuaStackOp<{class_name}>;")
-
-    src.append("")
-    header.append("")
-
-    # Object classes
-    for g_class in classes:
-        class_name = g_class["name"]
-        metatable_name = constants.class_metatable_prefix + class_name
-
-        src.append(f"LUA_OBJECT_STACK_OP({class_name});")
-        header.append(f"template class LuaStackOp<{class_name} *>;")
+        header.append(f"STACK_OP_PTR_DEF({class_name})")
 
     src.append("")
     header.append("")
 
     # Variant
-
     indent_level = 0
 
     # push
@@ -103,7 +79,6 @@ def generate_stack_ops(src_dir, include_dir, api):
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wswitch"
 
-template <>
 void LuaStackOp<Variant>::push(lua_State *L, const Variant &value) {
     switch (value.get_type()) {
         case Variant::NIL:
@@ -163,7 +138,6 @@ case Variant::{class_snake}:
 
     # get
     src.append("""\
-template <>
 Variant LuaStackOp<Variant>::get(lua_State *L, int index) {
     if (lua_isnil(L, index))
         return Variant();
@@ -207,9 +181,7 @@ if (LuaStackOp<{class_name}>::is(L, index))
 """)
 
     # is
-    # TODO: What types are listed here should probably change (e.g. Callable support, if table arg support is added for lists/dicts)
     src.append("""
-template <>
 bool LuaStackOp<Variant>::is(lua_State *L, int index) {
     if (lua_istable(L, index) ||
             lua_isfunction(L, index) ||
@@ -243,13 +215,10 @@ if (LuaStackOp<{class_name}>::is(L, index))
 
     # check
     src.append("""\
-template <>
 Variant LuaStackOp<Variant>::check(lua_State *L, int index) {
     return LuaStackOp<Variant>::get(L, index);
 }
 """)
-
-    header.append("\ntemplate class LuaStackOp<Variant>;")
 
     # Save
     write_file(src_dir / "luagd_bindings_stack.gen.cpp", src)

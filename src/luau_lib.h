@@ -62,7 +62,7 @@ struct GDClassDefinition {
     HashMap<StringName, GDClassProperty> properties;
 };
 
-template class LuaStackOp<GDProperty>;
+STACK_OP_PTR_DEF(GDProperty)
 
 void luascript_openlibs(lua_State *L);
 GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path = "");

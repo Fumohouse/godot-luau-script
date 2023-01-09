@@ -24,7 +24,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: reference counting") {
     Ref<PhysicsRayQueryParameters3D> params;
     params.instantiate();
 
-    LuaStackOp<PhysicsRayQueryParameters3D *>::push(L, params.ptr());
+    LuaStackOp<Object *>::push(L, params.ptr());
     params->unreference();
 
     REQUIRE(UtilityFunctions::is_instance_valid(params));
@@ -88,8 +88,10 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
             return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6))
         )ASDF",
                 {
-                    Ref<PhysicsRayQueryParameters3D> params = LuaStackOp<PhysicsRayQueryParameters3D *>::check(L, -1);
+                    Ref<PhysicsRayQueryParameters3D> params = Object::cast_to<PhysicsRayQueryParameters3D>(
+                            LuaStackOp<Object *>::check(L, -1));
 
+                    REQUIRE(params.is_valid());
                     REQUIRE(params->get_from() == Vector3(1, 2, 3));
                     REQUIRE(params->get_to() == Vector3(4, 5, 6));
                     REQUIRE(params->get_collision_mask() == 4294967295);
@@ -102,7 +104,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
             return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6), 1, Array())
         )ASDF",
                 {
-                    RefCounted *rc = LuaStackOp<RefCounted *>::check(L, -1);
+                    RefCounted *rc = Object::cast_to<RefCounted>(LuaStackOp<Object *>::check(L, -1));
 
                     REQUIRE(UtilityFunctions::is_instance_valid(rc));
 
@@ -156,7 +158,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
 TEST_CASE_METHOD(LuauFixture, "classes: tostring") {
     Node3D *node = memnew(Node3D);
 
-    LuaStackOp<Node3D *>::push(L, node);
+    LuaStackOp<Object *>::push(L, node);
     lua_setglobal(L, "node");
 
     SECTION("normal") {
