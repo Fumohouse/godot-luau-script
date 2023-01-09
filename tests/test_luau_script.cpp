@@ -701,6 +701,46 @@ TEST_CASE("luau script: inheritance") {
     lua_pop(L, 1); // thread
 }
 
+TEST_CASE("luau script: base script loading") {
+    GDLuau gd_luau;
+    LuauCache luau_cache;
+
+    Error err;
+    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/base_script/Base.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script_base->_is_valid());
+
+    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/base_script/Script.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script->_is_valid());
+
+    SECTION("base loading") {
+        REQUIRE(script->base == script_base);
+    }
+
+    SECTION("base invalid") {
+        String orig_src = script_base->_get_source_code();
+        String new_src = orig_src.replace("--@1", "@#%^!@*&#syntaxerror");
+        script_base->_set_source_code(new_src);
+
+        script_base->_reload(true);
+        script->_reload(true);
+
+        REQUIRE(!script_base->_is_valid());
+        REQUIRE(!script->_is_valid());
+
+        SECTION("base restored") {
+            script_base->_set_source_code(orig_src);
+
+            script_base->_reload(true);
+            script->_reload(true);
+
+            REQUIRE(script_base->_is_valid());
+            REQUIRE(script->_is_valid());
+        }
+    }
+}
+
 TEST_CASE("luau script: placeholders") {
     GDLuau gd_luau;
     LuauCache luau_cache;
