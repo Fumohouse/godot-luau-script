@@ -146,7 +146,13 @@ void LuauScript::update_base_script(Error &r_error) {
         base_dir = get_path().get_base_dir();
 
         if (!definition.extends.is_empty() && !class_exists(definition.extends)) {
-            String base_script_path = base_dir.path_join(definition.extends);
+            String base_script_path;
+
+            if (definition.extends.begins_with("res://"))
+                base_script_path = definition.extends;
+            else
+                base_script_path = base_dir.path_join(definition.extends);
+
             base = LuauCache::get_singleton()->get_script(base_script_path, r_error);
         }
     }
