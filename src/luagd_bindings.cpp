@@ -48,8 +48,7 @@ static void check_variant(lua_State *L, int idx, const Variant &val, GDExtension
     }
 }
 
-static void push_enum(lua_State *L, const ApiEnum &p_enum) // notation cause reserved keyword
-{
+static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause reserved keyword
     lua_createtable(L, 0, p_enum.values.size());
 
     for (const Pair<String, int32_t> &value : p_enum.values) {
@@ -1007,6 +1006,9 @@ void luaGD_openglobals(lua_State *L) {
         push_enum(L, global_enum);
         lua_setfield(L, -2, global_enum.name);
     }
+
+    push_enum(L, get_permissions_enum());
+    lua_setfield(L, -2, get_permissions_enum().name);
 
     lua_setreadonly(L, -1, true);
     lua_setglobal(L, "Enum");

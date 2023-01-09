@@ -8,10 +8,10 @@
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "luagd_utils.h"
-
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_stack.h"
+#include "luagd_utils.h"
+#include "luau_script.h"
 
 using namespace godot;
 
@@ -185,7 +185,7 @@ void luascript_openlibs(lua_State *L) {
     lua_setglobal(L, "gdproperty");
 }
 
-GDClassDefinition luascript_read_class(lua_State *L, int idx) {
+GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path) {
     GDClassDefinition def;
 
     if (luaGD_getfield(L, idx, "name"))
@@ -195,6 +195,13 @@ GDClassDefinition luascript_read_class(lua_State *L, int idx) {
         def.extends = luaGD_checkvaluetype<String>(L, -1, "extends", LUA_TSTRING);
     else
         def.extends = "RefCounted";
+
+    if (luaGD_getfield(L, idx, "permissions")) {
+        if (path.is_empty() || LuauLanguage::get_singleton() == nullptr || !LuauLanguage::get_singleton()->is_core_script(path))
+            luaL_error(L, "!!! cannot set permissions on a non-core script !!!");
+
+        def.permissions = static_cast<ThreadPermissions>(luaGD_checkvaluetype<int32_t>(L, -1, "permissions", LUA_TNUMBER));
+    }
 
     if (luaGD_getfield(L, idx, "tool"))
         def.is_tool = luaGD_checkvaluetype<bool>(L, -1, "tool", LUA_TBOOLEAN);

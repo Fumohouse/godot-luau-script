@@ -9,6 +9,7 @@
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
+#include "luagd_permissions.h"
 #include "luagd_stack.h"
 
 using namespace godot;
@@ -53,6 +54,8 @@ struct GDClassDefinition {
     String name;
     String extends;
 
+    ThreadPermissions permissions = PERMISSION_BASE;
+
     bool is_tool;
 
     HashMap<StringName, GDMethod> methods;
@@ -62,4 +65,4 @@ struct GDClassDefinition {
 template class LuaStackOp<GDProperty>;
 
 void luascript_openlibs(lua_State *L);
-GDClassDefinition luascript_read_class(lua_State *L, int idx);
+GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path = "");

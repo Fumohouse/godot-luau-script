@@ -1,15 +1,15 @@
 #include "luau_script.h"
 
 #include <Luau/Compiler.h>
+#include <gdextension_interface.h>
 #include <lua.h>
 #include <string.h>
-#include <string>
-
-#include <gdextension_interface.h>
+#include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
@@ -24,9 +24,12 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>
+#include <string>
 
 #include "gd_luau.h"
+#include "luagd.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luau_cache.h"
@@ -121,7 +124,7 @@ static Error get_class_definition(Ref<LuauScript> script, const String &source, 
             return ERR_COMPILATION_FAILED;
         }
 
-        r_def = luascript_read_class(T, 1);
+        r_def = luascript_read_class(T, 1, script->get_path());
         r_is_valid = true;
 
         lua_pop(L, 1); // thread
@@ -362,9 +365,12 @@ const GDClassProperty &LuauScript::get_property(const StringName &p_name) const 
 }
 
 void *LuauScript::_instance_create(Object *p_for_object) const {
-    // TODO: decide which vm to use
-    LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, GDLuau::VMType::VM_CORE));
+    GDLuau::VMType type = GDLuau::VM_USER;
 
+    if (!get_path().is_empty() && LuauLanguage::get_singleton()->is_core_script(get_path()))
+        type = GDLuau::VM_CORE;
+
+    LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, GDLuau::VM_CORE));
     return internal::gde_interface->script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
 }
 
@@ -380,7 +386,6 @@ LuauScriptInstance *LuauScript::instance_get(Object *p_object) const {
 
 void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
     PlaceHolderScriptInstance *internal = memnew(PlaceHolderScriptInstance(Ref<LuauScript>(this), p_for_object));
-
     return internal::gde_interface->script_instance_create(&PlaceHolderScriptInstance::INSTANCE_INFO, internal);
 }
 
@@ -1239,7 +1244,13 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     }
 
     L = GDLuau::get_singleton()->get_vm(p_vm_type);
-    T = lua_newthread(L);
+
+    if (p_script->definition.permissions != PERMISSION_BASE) {
+        UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->definition.permissions);
+        CRASH_COND_MSG(!LuauLanguage::get_singleton()->is_core_script(p_script->get_path()), "!!! non-core script declared permissions !!!");
+    }
+
+    T = luaGD_newthread(L, p_script->definition.permissions);
     luaL_sandboxthread(T);
     thread_ref = lua_ref(L, -1);
 
@@ -1678,9 +1689,43 @@ LuauLanguage::~LuauLanguage() {
     singleton = nullptr;
 }
 
+void LuauLanguage::discover_core_scripts(const String &path) {
+    UtilityFunctions::print_verbose("Searching for core scripts in ", path, "...");
+
+    Ref<DirAccess> dir = DirAccess::open(path);
+    ERR_FAIL_COND_MSG(!dir.is_valid(), "Failed to open directory");
+
+    Error err = dir->list_dir_begin();
+    ERR_FAIL_COND_MSG(err != OK, "Failed to list directory");
+
+    String file_name = dir->get_next();
+
+    while (!file_name.is_empty()) {
+        String file_name_full = path.path_join(file_name);
+
+        if (dir->current_is_dir()) {
+            discover_core_scripts(file_name_full);
+        } else {
+            String res_type = ResourceFormatLoaderLuauScript::get_resource_type(file_name_full);
+
+            if (res_type == LuauLanguage::get_singleton()->_get_type()) {
+                UtilityFunctions::print_verbose("Discovered core script: ", file_name_full);
+                core_scripts.insert(file_name_full);
+            }
+        }
+
+        file_name = dir->get_next();
+    }
+}
+
 void LuauLanguage::_init() {
     luau = memnew(GDLuau);
     cache = memnew(LuauCache);
+
+    UtilityFunctions::print_verbose("======== Discovering core scripts ========");
+    discover_core_scripts();
+    UtilityFunctions::print_verbose("Done! ", core_scripts.size(), " core scripts discovered.");
+    UtilityFunctions::print_verbose("==========================================");
 }
 
 void LuauLanguage::finalize() {
@@ -1822,6 +1867,10 @@ bool LuauLanguage::_has_named_classes() const {
     return false;
 }
 
+bool LuauLanguage::is_core_script(const String &p_path) const {
+    return core_scripts.has(p_path);
+}
+
 //////////////
 // RESOURCE //
 //////////////
@@ -1839,8 +1888,12 @@ bool ResourceFormatLoaderLuauScript::_handles_type(const StringName &p_type) con
     return p_type == StringName("Script") || p_type == LuauLanguage::get_singleton()->_get_type();
 }
 
-String ResourceFormatLoaderLuauScript::_get_resource_type(const String &p_path) const {
+String ResourceFormatLoaderLuauScript::get_resource_type(const String &p_path) {
     return p_path.get_extension().to_lower() == "lua" ? LuauLanguage::get_singleton()->_get_type() : "";
+}
+
+String ResourceFormatLoaderLuauScript::_get_resource_type(const String &p_path) const {
+    return get_resource_type(p_path);
 }
 
 Variant ResourceFormatLoaderLuauScript::_load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int64_t p_cache_mode) const {

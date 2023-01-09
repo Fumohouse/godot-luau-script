@@ -1,5 +1,6 @@
 local TestClass = {
 	extends = "TestBaseScript.lua",
+	permissions = Enum.Permissions.INTERNAL,
 	methods = {},
 	properties = {},
 }
@@ -8,6 +9,10 @@ function TestClass:_Ready()
 	print("TestScript: Ready!")
 
 	self:TestMethod()
+
+	-- Exit the test once complete
+	print_rich("[color=green]Tests finished![/color] Exiting...")
+	self:GetTree():Quit()
 end
 
 TestClass.methods["_Ready"] = {}
