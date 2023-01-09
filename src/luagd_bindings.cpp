@@ -97,9 +97,8 @@ template <>
 _FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &arg, LuauVariant &out) {
     const ApiClassType &type = arg.type;
 
-    if (type.is_typed_array) {
-        // TODO: type check the array (can be Variant or class type)
-        out.lua_check(L, idx, GDEXTENSION_VARIANT_TYPE_ARRAY);
+    if (type.typed_array_type != GDEXTENSION_VARIANT_TYPE_NIL) {
+        out.lua_check(L, idx, GDEXTENSION_VARIANT_TYPE_ARRAY, type.type_name, type.typed_array_type);
     } else {
         out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
     }

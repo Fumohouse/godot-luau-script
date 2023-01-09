@@ -135,7 +135,7 @@ static ApiClassType read_class_type(uint64_t &idx) {
 
     type.is_enum = read<uint8_t>(idx);
     type.is_bitfield = read<uint8_t>(idx);
-    type.is_typed_array = read<uint8_t>(idx);
+    type.typed_array_type = read_uenum<GDExtensionVariantType>(idx);
 
     return type;
 }

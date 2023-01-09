@@ -146,7 +146,16 @@ public:
 
     /* Initialization */
     void initialize(GDExtensionVariantType init_type);
-    void lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, String type_name = "");
+    static bool lua_is(
+            lua_State *L, int idx,
+            GDExtensionVariantType required_type,
+            const String &type_name = "",
+            GDExtensionVariantType typed_array_type = GDEXTENSION_VARIANT_TYPE_NIL);
+    void lua_check(
+            lua_State *L, int idx,
+            GDExtensionVariantType required_type,
+            const String &type_name = "",
+            GDExtensionVariantType typed_array_type = GDEXTENSION_VARIANT_TYPE_NIL);
     void lua_push(lua_State *L);
 
     /* Assignment */

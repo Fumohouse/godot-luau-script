@@ -48,6 +48,10 @@ def write_string(io, string):
 # Common #
 ##########
 
+def is_object_type(type_name, classes):
+    return True in [c["name"] == type_name for c in classes]
+
+
 # ! must keep in sync with Variant::Type
 variant_types = [
     "Variant",
@@ -517,23 +521,27 @@ def generate_class_type(io, type_string, classes):
     type_name = ""
     is_enum = False
     is_bitfield = False
-    is_typed_array = False
+    typed_array_type = get_variant_type("Variant")
 
     typed_array_prefix = "typedarray::"
     enum_prefix = "enum::"
     bitfield_prefix = "bitfield::"
 
-    is_obj = True in [c["name"] == type_string for c in classes]
-
     if type_string == "Nil":
         pass
-    elif is_obj:
+    elif is_object_type(type_string, classes):
         variant_type = get_variant_type("Object")
         type_name = type_string
     elif type_string.startswith(typed_array_prefix):
+        array_type_name = type_string.split(":")[-1]
+
         variant_type = get_variant_type("Array")
-        type_name = type_string.split(":")[-1]
-        is_typed_array = True
+
+        if is_object_type(array_type_name, classes):
+            type_name = array_type_name
+            typed_array_type = get_variant_type("Object")
+        else:
+            typed_array_type = get_variant_type(array_type_name)
     elif type_string.startswith(enum_prefix):
         variant_type = get_variant_type("int")
         type_name = type_string[len(enum_prefix):]
@@ -550,7 +558,7 @@ def generate_class_type(io, type_string, classes):
     write_string(io, type_name)  # String type_name
     write_bool(io, is_enum)  # bool is_enum
     write_bool(io, is_bitfield)  # bool is_bitfield
-    write_bool(io, is_typed_array)  # bool is_typed_array
+    write_uint32(io, typed_array_type)  # Variant::Type typed_array_type
 
     return variant_type, type_name
 

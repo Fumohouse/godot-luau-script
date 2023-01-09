@@ -146,7 +146,7 @@ struct ApiClassType {
 
     bool is_enum;
     bool is_bitfield;
-    bool is_typed_array;
+    GDExtensionVariantType typed_array_type;
 };
 
 struct ApiClassArgument {

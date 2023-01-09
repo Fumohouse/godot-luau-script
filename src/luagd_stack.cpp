@@ -1,4 +1,5 @@
 #include "luagd_stack.h"
+#include "luagd_variant.h"
 
 #include <gdextension_interface.h>
 #include <lua.h>
@@ -7,8 +8,23 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/object.hpp>
+#include <godot_cpp/variant/array.hpp>
 
 using namespace godot;
+
+bool luaGD_metatables_match(lua_State *L, int index, const char *metatable_name) {
+    if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
+        return false;
+
+    luaL_getmetatable(L, metatable_name);
+    if (lua_isnil(L, -1))
+        luaL_error(L, "Metatable not found: %s", metatable_name);
+
+    bool result = lua_equal(L, -1, -2);
+    lua_pop(L, 2);
+
+    return result;
+}
 
 // Template specialization is weird!!!
 // This way seems to work fine...
@@ -137,3 +153,55 @@ Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
 
     return LuaStackOp<Object *>::get(L, index);
 }
+
+/* ARRAY */
+
+bool luaGD_isarray(lua_State *L, int index, const char *metatable_name, Variant::Type type, const String &class_name) {
+    if (luaGD_metatables_match(L, index, metatable_name))
+        return true;
+
+    if (!lua_istable(L, index))
+        return false;
+
+    if (type == Variant::NIL)
+        return true;
+
+    index = lua_absindex(L, index);
+
+    int len = lua_objlen(L, index);
+    for (int i = 1; i <= len; i++) {
+        lua_pushinteger(L, i);
+        lua_gettable(L, index);
+
+        if (!LuauVariant::lua_is(L, -1, (GDExtensionVariantType)type, class_name))
+            return false;
+
+        lua_pop(L, 1);
+    }
+
+    return true;
+}
+
+#define ARRAY_METATABLE_NAME "Godot.Builtin.Array"
+
+LUA_UDATA_PUSH(Array);
+
+static void array_set(Array &array, int index, Variant elem) {
+    array[index] = elem;
+}
+
+Array LuaStackOp<Array>::get(lua_State *L, int index, Variant::Type type, const String &class_name) {
+    return luaGD_getarray<Array>(L, index, ARRAY_METATABLE_NAME, type, class_name, array_set);
+}
+
+bool LuaStackOp<Array>::is(lua_State *L, int index, Variant::Type type, const String &class_name) {
+    return luaGD_isarray(L, index, ARRAY_METATABLE_NAME, type, class_name);
+}
+
+Array LuaStackOp<Array>::check(lua_State *L, int index, Variant::Type type, const String &class_name) {
+    return luaGD_checkarray<Array>(L, index, ARRAY_METATABLE_NAME, type, class_name, array_set);
+}
+
+LUA_UDATA_ALLOC(Array, ARRAY_METATABLE_NAME, DTOR(Array))
+LUA_UDATA_GET_PTR(Array, ARRAY_METATABLE_NAME)
+LUA_UDATA_CHECK_PTR(Array, ARRAY_METATABLE_NAME)

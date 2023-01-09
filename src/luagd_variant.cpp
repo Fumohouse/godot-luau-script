@@ -17,7 +17,8 @@
 // beware of random SIGINTs and SIGSEGVs out of nowhere. :)
 
 typedef void (*LuauVariantNoRet)(LuauVariant &self);
-typedef void (*LuauVariantLuaCheck)(LuauVariant &self, lua_State *L, int idx, String type_name);
+typedef bool (*LuauVariantLuaIs)(lua_State *L, int idx, const String &type_name, GDExtensionVariantType typed_array_type);
+typedef bool (*LuauVariantLuaCheck)(LuauVariant &self, lua_State *L, int idx, const String &type_name, GDExtensionVariantType typed_array_type);
 typedef void (*LuauVariantLuaPush)(LuauVariant &self, lua_State *L);
 typedef void *(*LuauVariantGetPtr)(LuauVariant &self);
 typedef const void *(*LuauVariantGetPtrConst)(const LuauVariant &self);
@@ -33,6 +34,7 @@ struct VariantTypeMethods {
     LuauVariantGetPtr get_ptr;
     LuauVariantGetPtrConst get_ptr_const;
     LuauVariantNoRet initialize;
+    LuauVariantLuaIs lua_is;
     LuauVariantLuaCheck lua_check;
     LuauVariantLuaPush lua_push;
     LuauVariantNoRet destroy;
@@ -45,25 +47,29 @@ static void no_op(LuauVariant &self) {}
 #define GETTER(getter_name) [](LuauVariant &self) -> void * { return self.getter_name(); }
 #define GETTER_CONST(getter_name) [](const LuauVariant &self) -> const void * { return self.getter_name(); }
 
-#define SIMPLE_METHODS(type, get, union_name)                                \
-    {                                                                        \
-        false,                                                               \
-                GETTER(get),                                                 \
-                GETTER_CONST(get),                                           \
-                no_op,                                                       \
-                [](LuauVariant &self, lua_State *L, int idx, String) {       \
-                    self._data.union_name = LuaStackOp<type>::check(L, idx); \
-                },                                                           \
-                [](LuauVariant &self, lua_State *L) {                        \
-                    LuaStackOp<type>::push(L, self._data.union_name);        \
-                },                                                           \
-                no_op,                                                       \
-                [](LuauVariant &self, const LuauVariant &other) {            \
-                    self._data.union_name = other._data.union_name;          \
-                },                                                           \
-                [](LuauVariant &self, const Variant &val) {                  \
-                    self._data.union_name = val;                             \
-                }                                                            \
+#define SIMPLE_METHODS(type, get, union_name)                                                          \
+    {                                                                                                  \
+        false,                                                                                         \
+                GETTER(get),                                                                           \
+                GETTER_CONST(get),                                                                     \
+                no_op,                                                                                 \
+                [](lua_State *L, int idx, const String &, GDExtensionVariantType) {                    \
+                    return LuaStackOp<type>::is(L, idx);                                               \
+                },                                                                                     \
+                [](LuauVariant &self, lua_State *L, int idx, const String &, GDExtensionVariantType) { \
+                    self._data.union_name = LuaStackOp<type>::check(L, idx);                           \
+                    return true;                                                                       \
+                },                                                                                     \
+                [](LuauVariant &self, lua_State *L) {                                                  \
+                    LuaStackOp<type>::push(L, self._data.union_name);                                  \
+                },                                                                                     \
+                no_op,                                                                                 \
+                [](LuauVariant &self, const LuauVariant &other) {                                      \
+                    self._data.union_name = other._data.union_name;                                    \
+                },                                                                                     \
+                [](LuauVariant &self, const Variant &val) {                                            \
+                    self._data.union_name = val;                                                       \
+                }                                                                                      \
     }
 
 #define DATA_INIT(type) [](LuauVariant &self) { memnew_placement(self._data._data, type); }
@@ -84,19 +90,23 @@ static void no_op(LuauVariant &self) {}
             *((type *)self._data._data) = val;  \
     }
 
-#define DATA_METHODS(type, get)                                            \
-    {                                                                      \
-        true,                                                              \
-                GETTER(get),                                               \
-                GETTER_CONST(get),                                         \
-                DATA_INIT(type),                                           \
-                [](LuauVariant &self, lua_State *L, int idx, String) {     \
-                    self._data._ptr = LuaStackOp<type>::check_ptr(L, idx); \
-                },                                                         \
-                DATA_PUSH(type),                                           \
-                DATA_DTOR(type),                                           \
-                DATA_COPY(type),                                           \
-                DATA_ASSIGN(type)                                          \
+#define DATA_METHODS(type, get)                                                                        \
+    {                                                                                                  \
+        true,                                                                                          \
+                GETTER(get),                                                                           \
+                GETTER_CONST(get),                                                                     \
+                DATA_INIT(type),                                                                       \
+                [](lua_State *L, int idx, const String &, GDExtensionVariantType) {                    \
+                    return LuaStackOp<type>::is(L, idx);                                               \
+                },                                                                                     \
+                [](LuauVariant &self, lua_State *L, int idx, const String &, GDExtensionVariantType) { \
+                    self._data._ptr = LuaStackOp<type>::check_ptr(L, idx);                             \
+                    return true;                                                                       \
+                },                                                                                     \
+                DATA_PUSH(type),                                                                       \
+                DATA_DTOR(type),                                                                       \
+                DATA_COPY(type),                                                                       \
+                DATA_ASSIGN(type)                                                                      \
     }
 
 #define PTR_INIT(type, union_name) [](LuauVariant &self) { self._data.union_name = memnew(type); }
@@ -117,19 +127,23 @@ static void no_op(LuauVariant &self) {}
             *self._data.union_name = val;       \
     }
 
-#define PTR_METHODS(type, get, union_name)                                 \
-    {                                                                      \
-        true,                                                              \
-                GETTER(get),                                               \
-                GETTER_CONST(get),                                         \
-                PTR_INIT(type, union_name),                                \
-                [](LuauVariant &self, lua_State *L, int idx, String) {     \
-                    self._data._ptr = LuaStackOp<type>::check_ptr(L, idx); \
-                },                                                         \
-                PTR_PUSH(type, union_name),                                \
-                PTR_DTOR(type, union_name),                                \
-                PTR_COPY(union_name),                                      \
-                PTR_ASSIGN(type, union_name)                               \
+#define PTR_METHODS(type, get, union_name)                                                             \
+    {                                                                                                  \
+        true,                                                                                          \
+                GETTER(get),                                                                           \
+                GETTER_CONST(get),                                                                     \
+                PTR_INIT(type, union_name),                                                            \
+                [](lua_State *L, int idx, const String &, GDExtensionVariantType) {                    \
+                    return LuaStackOp<type>::is(L, idx);                                               \
+                },                                                                                     \
+                [](LuauVariant &self, lua_State *L, int idx, const String &, GDExtensionVariantType) { \
+                    self._data._ptr = LuaStackOp<type>::check_ptr(L, idx);                             \
+                    return true;                                                                       \
+                },                                                                                     \
+                PTR_PUSH(type, union_name),                                                            \
+                PTR_DTOR(type, union_name),                                                            \
+                PTR_COPY(union_name),                                                                  \
+                PTR_ASSIGN(type, union_name)                                                           \
     }
 
 static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
@@ -138,8 +152,12 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
             GETTER(get_variant),
             GETTER_CONST(get_variant),
             PTR_INIT(Variant, _variant),
-            [](LuauVariant &self, lua_State *L, int idx, String) {
+            [](lua_State *L, int idx, const String &, GDExtensionVariantType) {
+                return LuaStackOp<Variant>::is(L, idx);
+            },
+            [](LuauVariant &self, lua_State *L, int idx, const String &, GDExtensionVariantType) {
                 *self._data._variant = LuaStackOp<Variant>::check(L, idx);
+                return false;
             },
             PTR_PUSH(Variant, _variant),
             PTR_DTOR(Variant, _variant),
@@ -155,8 +173,12 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
             GETTER(get_string),
             GETTER_CONST(get_string),
             DATA_INIT(String),
-            [](LuauVariant &self, lua_State *L, int idx, String) {
+            [](lua_State *L, int idx, const String &, GDExtensionVariantType) -> bool {
+                return lua_isstring(L, idx);
+            },
+            [](LuauVariant &self, lua_State *L, int idx, const String &, GDExtensionVariantType) {
                 *((String *)self._data._data) = LuaStackOp<String>::check(L, idx);
+                return false;
             },
             DATA_PUSH(String),
             DATA_DTOR(String),
@@ -189,7 +211,14 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
             [](LuauVariant &self) {
                 self._data._object = nullptr;
             },
-            [](LuauVariant &self, lua_State *L, int idx, String type_name) {
+            [](lua_State *L, int idx, const String &type_name, GDExtensionVariantType) {
+                Object *obj = LuaStackOp<Object *>::get(L, idx);
+                if (obj == nullptr)
+                    return false;
+
+                return obj->is_class(type_name);
+            },
+            [](LuauVariant &self, lua_State *L, int idx, const String &type_name, GDExtensionVariantType) {
                 Object *obj = LuaStackOp<Object *>::check(L, idx);
                 if (obj == nullptr)
                     luaL_error(L, "Object has been freed");
@@ -198,6 +227,7 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
                     luaL_typeerrorL(L, idx, type_name.utf8().get_data());
 
                 self._data._object = obj->_owner;
+                return false;
             },
             [](LuauVariant &self, lua_State *L) {
                 Object *inst = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(self._data._object));
@@ -213,7 +243,26 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
     DATA_METHODS(Callable, get_callable),
     DATA_METHODS(Signal, get_signal),
     DATA_METHODS(Dictionary, get_dictionary),
-    DATA_METHODS(Array, get_array),
+    { true,
+            GETTER(get_array),
+            GETTER_CONST(get_array),
+            DATA_INIT(Array),
+            [](lua_State *L, int idx, const String &type_name, GDExtensionVariantType typed_array_type) {
+                return LuaStackOp<Array>::is(L, idx, (Variant::Type)typed_array_type, type_name);
+            },
+            [](LuauVariant &self, lua_State *L, int idx, const String &type_name, GDExtensionVariantType typed_array_type) {
+                if (Array *ptr = LuaStackOp<Array>::get_ptr(L, idx)) {
+                    self._data._ptr = ptr;
+                    return true;
+                }
+
+                *(Array *)self._data._data = LuaStackOp<Array>::check(L, idx);
+                return false;
+            },
+            DATA_PUSH(Array),
+            DATA_DTOR(Array),
+            DATA_COPY(Array),
+            DATA_ASSIGN(Array) },
 
     DATA_METHODS(PackedByteArray, get_byte_array),
     DATA_METHODS(PackedInt32Array, get_int32_array),
@@ -240,17 +289,20 @@ void LuauVariant::initialize(GDExtensionVariantType init_type) {
     type = init_type;
 }
 
-void LuauVariant::lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, String type_name) {
+bool LuauVariant::lua_is(lua_State *L, int idx, GDExtensionVariantType required_type, const String &type_name, GDExtensionVariantType typed_array_type) {
+    return type_methods[required_type].lua_is(L, idx, type_name, typed_array_type);
+}
+
+void LuauVariant::lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, const String &type_name, GDExtensionVariantType typed_array_type) {
     const VariantTypeMethods &methods = type_methods[required_type];
 
     if (methods.checks_luau_ptr) {
         type = required_type;
-        from_luau = true;
     } else {
         initialize(required_type);
     }
 
-    methods.lua_check(*this, L, idx, type_name);
+    from_luau = methods.lua_check(*this, L, idx, type_name, typed_array_type);
 }
 
 void LuauVariant::lua_push(lua_State *L) {

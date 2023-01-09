@@ -16,8 +16,8 @@ def generate_stack_ops(src_dir, include_dir, api):
 #include <lualib.h>
 #include <cmath>
 #include <godot_cpp/variant/builtin_types.hpp>
-#include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/variant/variant.hpp>
 """)
 
     header.append("""\
@@ -51,7 +51,27 @@ def generate_stack_ops(src_dir, include_dir, api):
         class_name = b_class["name"]
         metatable_name = constants.builtin_metatable_prefix + class_name
 
-        if "has_destructor" in b_class and b_class["has_destructor"]:
+        if class_name == "Array":
+            # Special case
+            continue
+        elif class_name.endswith("Array"):
+            array_elem_types = {
+                "PackedByteArray": ("uint32_t", "INT"),
+                "PackedInt32Array": ("int32_t", "INT"),
+                "PackedInt64Array": ("int64_t", "INT"),
+                "PackedFloat32Array": ("float", "FLOAT"),
+                "PackedFloat64Array": ("double", "FLOAT"),
+                "PackedStringArray": ("String", "STRING"),
+                "PackedVector2Array": ("Vector2", "VECTOR2"),
+                "PackedVector3Array": ("Vector3", "VECTOR3"),
+                "PackedColorArray": ("Color", "COLOR"),
+            }
+
+            array_elem_type, array_elem_variant_type = array_elem_types[class_name]
+            array_elem_variant_type = "Variant::" + array_elem_variant_type
+
+            src.append(f"LUA_ARRAY_STACK_OP({class_name}, {array_elem_variant_type}, {array_elem_type}, \"{metatable_name}\")")
+        elif "has_destructor" in b_class and b_class["has_destructor"]:
             src.append(
                 f"LUA_UDATA_STACK_OP({class_name}, \"{metatable_name}\", DTOR({class_name}));")
         else:
@@ -152,7 +172,8 @@ Variant LuaStackOp<Variant>::get(lua_State *L, int index) {
         return Variant(static_cast<bool>(lua_toboolean(L, index)));
 
     // TODO: this is rather frail...
-    if (lua_isnumber(L, index)) {
+    // Check type explicitly. Otherwise, strings can be considered numbers
+    if (lua_type(L, index) == LUA_TNUMBER) {
         double value = lua_tonumber(L, index);
         double int_part;
 
