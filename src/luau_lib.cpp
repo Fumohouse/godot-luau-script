@@ -2,13 +2,15 @@
 
 #include <gdextension_interface.h>
 #include <lualib.h>
+#include <godot_cpp/classes/multiplayer_api.hpp>
+#include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "luagd_bindings_stack.gen.h"
+#include "lua.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luau_script.h"
@@ -66,6 +68,21 @@ GDMethod::operator Variant() const {
     return this->operator Dictionary();
 }
 
+GDRpc::operator Dictionary() const {
+    Dictionary dict;
+
+    dict["rpc_mode"] = rpc_mode;
+    dict["transfer_mode"] = transfer_mode;
+    dict["call_local"] = call_local;
+    dict["channel"] = channel;
+
+    return dict;
+}
+
+GDRpc::operator Variant() const {
+    return this->operator Dictionary();
+}
+
 /* PROPERTY */
 
 static int luascript_gdproperty(lua_State *L) {
@@ -95,27 +112,33 @@ static int luascript_gdproperty(lua_State *L) {
     return 1;
 }
 
-static GDMethod luascript_read_method(lua_State *L, int idx) {
-    GDMethod method;
-
+static void luascript_read_args(lua_State *L, int idx, Vector<GDProperty> &arguments) {
     if (luaGD_getfield(L, idx, "args")) {
         if (lua_type(L, -1) != LUA_TTABLE)
             luaGD_valueerror(L, "args", luaGD_typename(L, -1), "table");
 
         int args_len = lua_objlen(L, -1);
+        arguments.resize(args_len);
+
         for (int i = 1; i <= args_len; i++) {
             lua_rawgeti(L, -1, i);
 
             if (!LuaStackOp<GDProperty>::is(L, -1))
                 luaGD_arrayerror(L, "args", luaGD_typename(L, -1), "GDProperty");
 
-            method.arguments.push_back(LuaStackOp<GDProperty>::get(L, -1));
+            arguments.set(i - 1, LuaStackOp<GDProperty>::get(L, -1));
 
             lua_pop(L, 1); // rawgeti
         }
 
         lua_pop(L, 1); // args
     }
+}
+
+static GDMethod luascript_read_method(lua_State *L, int idx) {
+    GDMethod method;
+
+    luascript_read_args(L, idx, method.arguments);
 
     if (luaGD_getfield(L, idx, "defaultArgs")) {
         if (lua_type(L, -1) != LUA_TTABLE)
@@ -174,6 +197,34 @@ static GDClassProperty luascript_read_class_property(lua_State *L, int idx) {
     return property;
 }
 
+static GDRpc luascript_read_rpc(lua_State *L, int idx) {
+    GDRpc rpc;
+
+    if (luaGD_getfield(L, idx, "rpcMode")) {
+        if (!lua_isnumber(L, -1))
+            luaGD_valueerror(L, "rpcMode", luaGD_typename(L, -1), "MultiplayerAPI.RPCMode");
+
+        rpc.rpc_mode = (MultiplayerAPI::RPCMode)lua_tointeger(L, -1);
+        lua_pop(L, 1);
+    }
+
+    if (luaGD_getfield(L, idx, "transferMode")) {
+        if (!lua_isnumber(L, -1))
+            luaGD_valueerror(L, "rpcMode", luaGD_typename(L, -1), "MultiplayerPeer.TransferMode");
+
+        rpc.transfer_mode = (MultiplayerPeer::TransferMode)lua_tointeger(L, -1);
+        lua_pop(L, 1);
+    }
+
+    if (luaGD_getfield(L, idx, "callLocal"))
+        rpc.call_local = luaGD_checkvaluetype<bool>(L, -1, "callLocal", LUA_TBOOLEAN);
+
+    if (luaGD_getfield(L, idx, "channel"))
+        rpc.channel = luaGD_checkvaluetype<int>(L, -1, "channel", LUA_TNUMBER);
+
+    return rpc;
+}
+
 /* EXPOSED FUNCTIONS */
 
 void luascript_openlibs(lua_State *L) {
@@ -184,6 +235,30 @@ void luascript_openlibs(lua_State *L) {
     lua_pushcfunction(L, luascript_gdproperty, "_G.gdproperty");
     lua_setglobal(L, "gdproperty");
 }
+
+#define READ_MAP(table_key, expr)                                                           \
+    if (luaGD_getfield(L, idx, table_key)) {                                                \
+        if (lua_type(L, -1) != LUA_TTABLE)                                                  \
+            luaGD_valueerror(L, table_key, luaGD_typename(L, -1), "table");                 \
+                                                                                            \
+        lua_pushnil(L);                                                                     \
+                                                                                            \
+        while (lua_next(L, -2) != 0) {                                                      \
+            if (!LuaStackOp<String>::is(L, -2))                                             \
+                luaGD_keyerror(L, table_key " table", luaGD_typename(L, -2), "string");     \
+                                                                                            \
+            String key = LuaStackOp<String>::get(L, -2);                                    \
+                                                                                            \
+            if (lua_type(L, -1) != LUA_TTABLE)                                              \
+                luaGD_valueerror(L, key.utf8().get_data(), luaGD_typename(L, -1), "table"); \
+                                                                                            \
+            expr;                                                                           \
+                                                                                            \
+            lua_pop(L, 1); /* value in this iteration */                                    \
+        }                                                                                   \
+                                                                                            \
+        lua_pop(L, 1); /* table */                                                          \
+    }
 
 GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path) {
     GDClassDefinition def;
@@ -206,54 +281,33 @@ GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path
     if (luaGD_getfield(L, idx, "tool"))
         def.is_tool = luaGD_checkvaluetype<bool>(L, -1, "tool", LUA_TBOOLEAN);
 
-    if (luaGD_getfield(L, idx, "methods")) {
-        if (lua_type(L, -1) != LUA_TTABLE)
-            luaGD_valueerror(L, "methods", luaGD_typename(L, -1), "table");
+    READ_MAP("methods", {
+        GDMethod method = luascript_read_method(L, -1);
+        method.name = key;
 
-        lua_pushnil(L);
+        def.methods[key] = method;
+    });
 
-        while (lua_next(L, -2) != 0) {
-            if (!LuaStackOp<String>::is(L, -2))
-                luaGD_keyerror(L, "methods table", luaGD_typename(L, -2), "string");
+    READ_MAP("properties", {
+        def.properties[key] = luascript_read_class_property(L, -1);
+    });
 
-            String method_name = LuaStackOp<String>::get(L, -2);
+    READ_MAP("signals", {
+        // Signals are stored as methods with only name and arguments
+        GDMethod signal;
+        signal.name = key;
 
-            if (lua_type(L, -1) != LUA_TTABLE)
-                luaGD_valueerror(L, method_name.utf8().get_data(), luaGD_typename(L, -1), "table");
+        luascript_read_args(L, -1, signal.arguments);
 
-            GDMethod method = luascript_read_method(L, -1);
-            method.name = method_name;
+        def.signals[key] = signal;
+    });
 
-            def.methods[method_name] = method;
+    READ_MAP("rpcs", {
+        GDRpc rpc = luascript_read_rpc(L, -1);
+        rpc.name = key;
 
-            lua_pop(L, 1); // value in this iteration
-        }
-
-        lua_pop(L, 1); // methods
-    }
-
-    if (luaGD_getfield(L, idx, "properties")) {
-        if (lua_type(L, -1) != LUA_TTABLE)
-            luaGD_valueerror(L, "properties", luaGD_typename(L, -1), "table");
-
-        lua_pushnil(L);
-
-        while (lua_next(L, -2) != 0) {
-            if (!LuaStackOp<String>::is(L, -2))
-                luaGD_keyerror(L, "property table", luaGD_typename(L, -2), "string");
-
-            String property_name = LuaStackOp<String>::check(L, -2);
-
-            if (lua_type(L, -1) != LUA_TTABLE)
-                luaGD_valueerror(L, property_name.utf8().get_data(), luaGD_typename(L, -1), "table");
-
-            def.properties[property_name] = luascript_read_class_property(L, -1);
-
-            lua_pop(L, 1); // value in this iteration
-        }
-
-        lua_pop(L, 1); // properties
-    }
+        def.rpcs[key] = rpc;
+    });
 
     return def;
 }

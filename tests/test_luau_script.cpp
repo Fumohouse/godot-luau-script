@@ -31,7 +31,22 @@ TEST_CASE("luau script: script load") {
             name = "TestClass",
             tool = true,
             methods = {},
-            properties = {}
+            properties = {},
+            signals = {
+                testSignal = {
+                    args = {
+                        gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
+                    }
+                }
+            },
+            rpcs = {
+                testRpc = {
+                    rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,
+                    transferMode = MultiplayerPeer.TransferMode.RELIABLE,
+                    callLocal = true,
+                    channel = 4
+                }
+            }
         }
 
         function TestClass:TestMethod()
@@ -88,8 +103,14 @@ TEST_CASE("luau script: script load") {
         REQUIRE(script->_get_property_default_value("testProperty") == Variant(5.5));
     }
 
+    SECTION("signal methods") {
+        REQUIRE(script->_has_script_signal("testSignal"));
+        REQUIRE(script->_get_script_signal_list()[0].get("args").operator Array().size() == 1);
+    }
+
     SECTION("misc") {
         REQUIRE(script->get_instance_base_type() == StringName("RefCounted"));
+        REQUIRE(script->_get_rpc_config().operator Dictionary().has("testRpc"));
     }
 }
 
@@ -103,7 +124,14 @@ TEST_CASE("luau script: instance") {
         local TestClass = {
             name = "TestClass",
             methods = {},
-            properties = {}
+            properties = {},
+            signals = {
+                testSignal = {
+                    args = {
+                        gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
+                    }
+                }
+            }
         }
 
         local testClassIndex = {}
@@ -563,6 +591,10 @@ TEST_CASE("luau script: instance") {
         }
 
         SECTION("index") {
+            SECTION("signal") {
+                ASSERT_EVAL_EQ(T, "return obj.testSignal", Signal, Signal(&obj, "testSignal"));
+            }
+
             SECTION("registered") {
                 ASSERT_EVAL_EQ(T, "return obj.testProperty", float, 6.5f);
             }

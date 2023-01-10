@@ -3,6 +3,8 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/multiplayer_api.hpp>
+#include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -39,7 +41,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty") {
                 {
                     GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
                     REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
-                });
+                })
     }
 
     SECTION("some properties") {
@@ -59,7 +61,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty") {
                 {
                     GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
                     REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
-                });
+                })
     }
 }
 
@@ -68,21 +70,19 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
 
     lua_State *T = lua_newthread(L);
 
-    SECTION("explicit extends") {
+    SECTION("explicit extends"){
         EVAL_THEN(T, "return { name = 'TestClass', extends = 'Node3D' }", {
             GDClassDefinition def = luascript_read_class(T, -1);
             REQUIRE(def.name == "TestClass");
             REQUIRE(def.extends == "Node3D");
-        });
+        })
     }
 
-    SECTION("default extends") {
-        EVAL_THEN(T, "return { name = 'TestClass' }", {
-            GDClassDefinition def = luascript_read_class(T, -1);
-            REQUIRE(def.name == "TestClass");
-            REQUIRE(def.extends == "RefCounted");
-        });
-    }
+    SECTION("default extends"){ EVAL_THEN(T, "return { name = 'TestClass' }", {
+        GDClassDefinition def = luascript_read_class(T, -1);
+        REQUIRE(def.name == "TestClass");
+        REQUIRE(def.extends == "RefCounted");
+    }) }
 
     SECTION("full example") {
         GDMethod expected_method;
@@ -145,6 +145,21 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                         setter = "SetTestProperty",
                         default = 3.5
                     }
+                },
+                signals = {
+                    testSignal = {
+                        args = {
+                            gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
+                        }
+                    }
+                },
+                rpcs = {
+                    testRpc = {
+                        rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,
+                        transferMode = MultiplayerPeer.TransferMode.RELIABLE,
+                        callLocal = true,
+                        channel = 4
+                    }
                 }
             }
         )ASDF",
@@ -159,14 +174,36 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                     SECTION("properties") {
                         REQUIRE(def.properties.has("testProperty"));
 
-                        GDClassProperty &prop = def.properties.get("testProperty");
+                        const GDClassProperty &prop = def.properties.get("testProperty");
                         REQUIRE(prop.property.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
                         REQUIRE(prop.property.operator Dictionary() == expected_property.operator Dictionary());
                         REQUIRE(prop.getter == StringName("GetTestProperty"));
                         REQUIRE(prop.setter == StringName("SetTestProperty"));
                         REQUIRE(prop.default_value == Variant(3.5));
                     }
-                });
+
+                    SECTION("signals") {
+                        REQUIRE(def.signals.has("testSignal"));
+
+                        const GDMethod &signal = def.signals.get("testSignal");
+                        REQUIRE(signal.arguments.size() == 1);
+
+                        const GDProperty &arg = signal.arguments[0];
+                        REQUIRE(arg.name == "arg1");
+                        REQUIRE(arg.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
+                    }
+
+                    SECTION("rpcs") {
+                        REQUIRE(def.rpcs.has("testRpc"));
+
+                        const GDRpc &rpc = def.rpcs.get("testRpc");
+                        REQUIRE(rpc.name == "testRpc");
+                        REQUIRE(rpc.rpc_mode == MultiplayerAPI::RPC_MODE_ANY_PEER);
+                        REQUIRE(rpc.transfer_mode == MultiplayerPeer::TRANSFER_MODE_RELIABLE);
+                        REQUIRE(rpc.call_local);
+                        REQUIRE(rpc.channel == 4);
+                    }
+                })
     }
 
     lua_pop(L, 1);

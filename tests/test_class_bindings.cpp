@@ -116,6 +116,18 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: setget") {
+    SECTION("signal") {
+        Node3D node;
+
+        LuaStackOp<Object *>::push(L, &node);
+        lua_setglobal(L, "testNode");
+
+        ASSERT_EVAL_EQ(L, "return testNode.visibilityChanged", Signal, Signal(&node, "visibility_changed"));
+
+        lua_pushnil(L);
+        lua_setglobal(L, "testNode");
+    }
+
     SECTION("member access") {
         ASSERT_EVAL_EQ(L, R"ASDF(
             local node = PhysicsRayQueryParameters3D()

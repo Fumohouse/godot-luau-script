@@ -2,8 +2,10 @@
 
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/multiplayer_api.hpp>
+#include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
-#include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
@@ -43,8 +45,20 @@ struct GDMethod {
     String name;
     GDProperty return_val;
     uint32_t flags = METHOD_FLAGS_DEFAULT;
-    List<GDProperty> arguments;
-    List<Variant> default_arguments;
+    Vector<GDProperty> arguments;
+    Vector<Variant> default_arguments;
+
+    operator Dictionary() const;
+    operator Variant() const;
+};
+
+// ! Reference: modules/multiplayer/scene_rpc_interface.cpp _parse_rpc_config
+struct GDRpc {
+    String name;
+    MultiplayerAPI::RPCMode rpc_mode = MultiplayerAPI::RPC_MODE_AUTHORITY;
+    MultiplayerPeer::TransferMode transfer_mode = MultiplayerPeer::TRANSFER_MODE_RELIABLE;
+    bool call_local = false;
+    int channel = 0;
 
     operator Dictionary() const;
     operator Variant() const;
@@ -60,6 +74,8 @@ struct GDClassDefinition {
 
     HashMap<StringName, GDMethod> methods;
     HashMap<StringName, GDClassProperty> properties;
+    HashMap<StringName, GDMethod> signals;
+    HashMap<StringName, GDRpc> rpcs;
 };
 
 STACK_OP_PTR_DEF(GDProperty)

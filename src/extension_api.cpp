@@ -529,6 +529,8 @@ ExtensionApi &get_extension_api() {
 
                     for (int k = 0; k < num_args; k++)
                         args[k] = read_class_arg(idx);
+
+                    new_class.signals.insert(signal.name, signal);
                 }
 
                 // Properties

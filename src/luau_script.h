@@ -102,6 +102,11 @@ public:
     bool has_property(const StringName &p_name) const;
     const GDClassProperty &get_property(const StringName &p_name) const;
 
+    bool _has_script_signal(const StringName &signal) const override;
+    TypedArray<Dictionary> _get_script_signal_list() const override;
+
+    Variant _get_rpc_config() const override;
+
     /* INSTANCE */
     void *_instance_create(Object *p_for_object) const override;
     bool _instance_has(Object *p_object) const override;
@@ -120,10 +125,7 @@ public:
     Dictionary _get_constants() const override { return Dictionary(); }
 
     /*
-    bool _has_script_signal(const StringName &signal) const;
-    TypedArray<Dictionary> _get_script_signal_list() const;
     int64_t _get_member_line(const StringName &member) const;
-    Variant _get_rpc_config() const;
 
     // To implement later (or never)
     TypedArray<Dictionary> _get_documentation() const;
@@ -228,6 +230,7 @@ public:
     bool table_get(lua_State *T) const;
 
     const GDClassProperty *get_property(const StringName &p_name) const;
+    const GDMethod *get_signal(const StringName &p_name) const;
 
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();

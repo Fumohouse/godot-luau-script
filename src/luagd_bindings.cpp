@@ -10,15 +10,18 @@
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <type_traits>
 
 #include "extension_api.h"
 #include "luagd.h"
+#include "luagd_bindings_stack.gen.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luagd_variant.h"
+#include "luau_lib.h"
 #include "luau_script.h"
 
 namespace godot {
@@ -789,13 +792,17 @@ static int call_property_setget(lua_State *L, const ApiClass &g_class, const Api
 static int luaGD_class_index(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
+    Object *self = LuaStackOp<Object *>::check(L, 1);
     const char *key = luaL_checkstring(L, 2);
 
     bool attempt_table_get = false;
     LuauScriptInstance *inst = get_script_instance(L);
 
     if (inst != nullptr) {
-        if (const GDClassProperty *prop = inst->get_property(key)) {
+        if (const GDMethod *signal = inst->get_signal(key)) {
+            LuaStackOp<Signal>::push(L, Signal(self, key));
+            return 1;
+        } else if (const GDClassProperty *prop = inst->get_property(key)) {
             if (prop->setter != StringName() && prop->getter == StringName())
                 luaL_error(L, "property '%s' is write-only", key);
 
@@ -817,7 +824,12 @@ static int luaGD_class_index(lua_State *L) {
     }
 
     while (true) {
-        if (current_class->properties.has(key)) {
+        HashMap<String, ApiClassSignal>::ConstIterator E = current_class->signals.find(key);
+
+        if (E) {
+            LuaStackOp<Signal>::push(L, Signal(self, E->value.gd_name));
+            return 1;
+        } else if (current_class->properties.has(key)) {
             lua_remove(L, 2); // key
 
             const ApiClassProperty &prop = current_class->properties[key];

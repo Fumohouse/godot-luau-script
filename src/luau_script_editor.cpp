@@ -78,7 +78,7 @@ bool LuauScript::update_exports_internal(bool *r_err, bool p_recursive_call, Pla
             }
 
             // Update properties, signals
-            // TODO: Signals
+            definition.signals = def.signals;
             definition.properties = def.properties;
         } else {
             placeholder_fallback_enabled = true;
