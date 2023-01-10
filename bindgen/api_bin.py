@@ -304,10 +304,10 @@ def ctor_help_string(class_name, constructors):
                 if argument != arguments[-1]:
                     args_str += ", "
 
-        lines.append(f"- {class_name}({args_str})")
+        lines.append(f"{constants.indent}- {class_name}({args_str})")
 
-    return "no constructors matched. expected one of the following:\\n" + \
-        "\n".join([constants.indent + f"\"{line}\\n\"" for line in lines])
+    return "no constructors matched. expected one of the following:\n" + \
+        "\n".join(lines)
 
 
 def generate_builtin_class(io, builtin_class, variant_values, variant_value_map):
