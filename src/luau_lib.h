@@ -76,6 +76,7 @@ struct GDClassDefinition {
     HashMap<StringName, GDClassProperty> properties;
     HashMap<StringName, GDMethod> signals;
     HashMap<StringName, GDRpc> rpcs;
+    HashMap<StringName, Variant> constants;
 };
 
 STACK_OP_PTR_DEF(GDProperty)

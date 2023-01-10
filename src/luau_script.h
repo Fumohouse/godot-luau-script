@@ -107,6 +107,8 @@ public:
 
     Variant _get_rpc_config() const override;
 
+    Dictionary _get_constants() const override;
+
     /* INSTANCE */
     void *_instance_create(Object *p_for_object) const override;
     bool _instance_has(Object *p_object) const override;
@@ -120,9 +122,6 @@ public:
 
     bool placeholder_has(Object *p_object) const;
     PlaceHolderScriptInstance *placeholder_get(Object *p_object);
-
-    /* TO IMPLEMENT */
-    Dictionary _get_constants() const override { return Dictionary(); }
 
     /*
     int64_t _get_member_line(const StringName &member) const;
@@ -231,6 +230,7 @@ public:
 
     const GDClassProperty *get_property(const StringName &p_name) const;
     const GDMethod *get_signal(const StringName &p_name) const;
+    const Variant *get_constant(const StringName &p_name) const;
 
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();

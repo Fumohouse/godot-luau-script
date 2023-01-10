@@ -131,6 +131,9 @@ TEST_CASE("luau script: instance") {
                         gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
                     }
                 }
+            },
+            constants = {
+                TEST_CONSTANT = Vector2(1, 2)
             }
         }
 
@@ -573,6 +576,10 @@ TEST_CASE("luau script: instance") {
                 ASSERT_EVAL_FAIL(T, "obj.TestMethod = 1234", "exec:1: cannot assign to method 'TestMethod'");
             }
 
+            SECTION("constant read-only") {
+                ASSERT_EVAL_FAIL(T, "obj.TEST_CONSTANT = 1234", "exec:1: cannot assign to constant 'TEST_CONSTANT'");
+            }
+
             SECTION("registered") {
                 EVAL_THEN(T, "obj.testProperty = 2.5", {
                     Variant ret;
@@ -605,6 +612,10 @@ TEST_CASE("luau script: instance") {
 
             SECTION("method") {
                 ASSERT_EVAL_EQ(T, "return obj.TestMethod", Callable, Callable(&obj, "TestMethod"));
+            }
+
+            SECTION("constant") {
+                ASSERT_EVAL_EQ(T, "return obj.TEST_CONSTANT", Vector2, Vector2(1, 2));
             }
 
             SECTION("registered") {

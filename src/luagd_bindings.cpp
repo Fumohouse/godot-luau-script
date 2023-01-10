@@ -826,6 +826,9 @@ static int luaGD_class_index(lua_State *L) {
         } else if (inst->has_method(key)) {
             LuaStackOp<Callable>::push(L, Callable(self, key));
             return 1;
+        } else if (const Variant *constant = inst->get_constant(key)) {
+            LuaStackOp<Variant>::push(L, *constant);
+            return 1;
         } else {
             // object properties should take precedence over arbitrary values
             attempt_table_get = true;
@@ -910,6 +913,8 @@ static int luaGD_class_newindex(lua_State *L) {
             SIGNAL_ASSIGN_ERROR;
         } else if (inst->has_method(key)) {
             METHOD_ASSIGN_ERROR;
+        } else if (inst->get_constant(key) != nullptr) {
+            luaL_error(L, "cannot assign to constant '%s'", key);
         } else {
             // object properties should take precedence over arbitrary values
             attempt_table_set = true;

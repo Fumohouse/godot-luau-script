@@ -236,29 +236,34 @@ void luascript_openlibs(lua_State *L) {
     lua_setglobal(L, "gdproperty");
 }
 
-#define READ_MAP(table_key, expr)                                                           \
-    if (luaGD_getfield(L, idx, table_key)) {                                                \
-        if (lua_type(L, -1) != LUA_TTABLE)                                                  \
-            luaGD_valueerror(L, table_key, luaGD_typename(L, -1), "table");                 \
-                                                                                            \
-        lua_pushnil(L);                                                                     \
-                                                                                            \
-        while (lua_next(L, -2) != 0) {                                                      \
-            if (!LuaStackOp<String>::is(L, -2))                                             \
-                luaGD_keyerror(L, table_key " table", luaGD_typename(L, -2), "string");     \
-                                                                                            \
-            String key = LuaStackOp<String>::get(L, -2);                                    \
-                                                                                            \
-            if (lua_type(L, -1) != LUA_TTABLE)                                              \
-                luaGD_valueerror(L, key.utf8().get_data(), luaGD_typename(L, -1), "table"); \
-                                                                                            \
-            expr;                                                                           \
-                                                                                            \
-            lua_pop(L, 1); /* value in this iteration */                                    \
-        }                                                                                   \
-                                                                                            \
-        lua_pop(L, 1); /* table */                                                          \
+#define READ_MAP(table_key, expr)                                                       \
+    if (luaGD_getfield(L, idx, table_key)) {                                            \
+        if (lua_type(L, -1) != LUA_TTABLE)                                              \
+            luaGD_valueerror(L, table_key, luaGD_typename(L, -1), "table");             \
+                                                                                        \
+        lua_pushnil(L);                                                                 \
+                                                                                        \
+        while (lua_next(L, -2) != 0) {                                                  \
+            if (!LuaStackOp<String>::is(L, -2))                                         \
+                luaGD_keyerror(L, table_key " table", luaGD_typename(L, -2), "string"); \
+                                                                                        \
+            String key = LuaStackOp<String>::get(L, -2);                                \
+                                                                                        \
+            expr;                                                                       \
+                                                                                        \
+            lua_pop(L, 1); /* value in this iteration */                                \
+        }                                                                               \
+                                                                                        \
+        lua_pop(L, 1); /* table */                                                      \
     }
+
+#define READ_MAP_TABLE(table_key, expr)                                                 \
+    READ_MAP(table_key, {                                                               \
+        if (lua_type(L, -1) != LUA_TTABLE)                                              \
+            luaGD_valueerror(L, key.utf8().get_data(), luaGD_typename(L, -1), "table"); \
+                                                                                        \
+        expr;                                                                           \
+    });
 
 GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path) {
     GDClassDefinition def;
@@ -281,18 +286,18 @@ GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path
     if (luaGD_getfield(L, idx, "tool"))
         def.is_tool = luaGD_checkvaluetype<bool>(L, -1, "tool", LUA_TBOOLEAN);
 
-    READ_MAP("methods", {
+    READ_MAP_TABLE("methods", {
         GDMethod method = luascript_read_method(L, -1);
         method.name = key;
 
         def.methods[key] = method;
     });
 
-    READ_MAP("properties", {
+    READ_MAP_TABLE("properties", {
         def.properties[key] = luascript_read_class_property(L, -1);
     });
 
-    READ_MAP("signals", {
+    READ_MAP_TABLE("signals", {
         // Signals are stored as methods with only name and arguments
         GDMethod signal;
         signal.name = key;
@@ -302,11 +307,18 @@ GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path
         def.signals[key] = signal;
     });
 
-    READ_MAP("rpcs", {
+    READ_MAP_TABLE("rpcs", {
         GDRpc rpc = luascript_read_rpc(L, -1);
         rpc.name = key;
 
         def.rpcs[key] = rpc;
+    });
+
+    READ_MAP("constants", {
+        if (!LuaStackOp<Variant>::is(L, -1))
+            luaGD_valueerror(L, key.utf8().get_data(), luaGD_typename(L, -1), "Variant");
+
+        def.constants[key] = LuaStackOp<Variant>::get(L, -1);
     });
 
     return def;

@@ -160,6 +160,9 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                         callLocal = true,
                         channel = 4
                     }
+                },
+                constants = {
+                    TEST_CONSTANT = Vector2(1, 2)
                 }
             }
         )ASDF",
@@ -202,6 +205,11 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                         REQUIRE(rpc.transfer_mode == MultiplayerPeer::TRANSFER_MODE_RELIABLE);
                         REQUIRE(rpc.call_local);
                         REQUIRE(rpc.channel == 4);
+                    }
+
+                    SECTION("constants") {
+                        REQUIRE(def.constants.has("TEST_CONSTANT"));
+                        REQUIRE(def.constants["TEST_CONSTANT"] == Vector2(1, 2));
                     }
                 })
     }

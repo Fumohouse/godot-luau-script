@@ -389,6 +389,15 @@ Variant LuauScript::_get_rpc_config() const {
     return rpcs;
 }
 
+Dictionary LuauScript::_get_constants() const {
+    Dictionary constants;
+
+    for (const KeyValue<StringName, Variant> &pair : definition.constants)
+        constants[pair.key] = pair.value;
+
+    return constants;
+}
+
 void *LuauScript::_instance_create(Object *p_for_object) const {
     GDLuau::VMType type = GDLuau::VM_USER;
 
@@ -1094,8 +1103,25 @@ const GDMethod *LuauScriptInstance::get_signal(const StringName &p_name) const {
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
-        if (s->_has_script_signal(p_name))
-            return &s->get_definition().signals.get(p_name);
+        HashMap<StringName, GDMethod>::ConstIterator E = s->get_definition().signals.find(p_name);
+
+        if (E)
+            return &E->value;
+
+        s = s->base.ptr();
+    }
+
+    return nullptr;
+}
+
+const Variant *LuauScriptInstance::get_constant(const StringName &p_name) const {
+    const LuauScript *s = script.ptr();
+
+    while (s != nullptr) {
+        HashMap<StringName, Variant>::ConstIterator E = s->get_definition().constants.find(p_name);
+
+        if (E)
+            return &E->value;
 
         s = s->base.ptr();
     }
