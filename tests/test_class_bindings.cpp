@@ -7,6 +7,8 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/variant/callable.hpp>
+#include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "lua.h"
@@ -32,20 +34,20 @@ TEST_CASE_METHOD(LuauFixture, "classes: reference counting") {
     REQUIRE(!UtilityFunctions::is_instance_valid(params));
 }
 
-TEST_CASE_METHOD(LuauFixture, "classes: constructor") {
+TEST_CASE_METHOD(LuauFixture, "classes: constructor"){
     ASSERT_EVAL_EQ(L, "return PhysicsRayQueryParameters3D():GetClass()", String, "PhysicsRayQueryParameters3D")
 }
 
-TEST_CASE_METHOD(LuauFixture, "classes: singleton getter") {
+TEST_CASE_METHOD(LuauFixture, "classes: singleton getter"){
     ASSERT_EVAL_EQ(L, "return Engine.GetSingleton()", Object *, Engine::get_singleton())
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: consts and enums") {
-    SECTION("constants") {
+    SECTION("constants"){
         ASSERT_EVAL_EQ(L, "return Object.NOTIFICATION_PREDELETE", int, 1)
     }
 
-    SECTION("enums"){
+    SECTION("enums") {
         ASSERT_EVAL_EQ(L, "return Object.ConnectFlags.CONNECT_ONE_SHOT", int, 4)
     }
 }
@@ -54,7 +56,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
     GDThreadData *udata = luaGD_getthreaddata(L);
     udata->permissions = PERMISSION_INTERNAL;
 
-    SECTION("namecall style") {
+    SECTION("namecall style"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D()
             return params:Get(StringName("collide_with_areas"))
@@ -62,7 +64,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
                 bool, false)
     }
 
-    SECTION("invoked from global table") {
+    SECTION("invoked from global table"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D()
             return Object.Get(params, StringName("collide_with_areas"))
@@ -70,7 +72,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
                 bool, false)
     }
 
-    SECTION("varargs") {
+    SECTION("varargs"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D()
             params:Call(StringName("set"), StringName("collide_with_areas"), true)
@@ -80,7 +82,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
                 bool, true)
     }
 
-    SECTION("default args") {
+    SECTION("default args"){
         EVAL_THEN(L, R"ASDF(
             return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6))
         )ASDF",
@@ -96,7 +98,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
                 })
     }
 
-    SECTION("ref return") {
+    SECTION("ref return"){
         EVAL_THEN(L, R"ASDF(
             return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6), 1, Array())
         )ASDF",
@@ -122,13 +124,37 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
         LuaStackOp<Object *>::push(L, &node);
         lua_setglobal(L, "testNode");
 
-        ASSERT_EVAL_EQ(L, "return testNode.visibilityChanged", Signal, Signal(&node, "visibility_changed"));
+        SECTION("get") {
+            ASSERT_EVAL_EQ(L, "return testNode.visibilityChanged", Signal, Signal(&node, "visibility_changed"));
+        }
+
+        SECTION("set disallowed") {
+            ASSERT_EVAL_FAIL(L, "testNode.visibilityChanged = 1234", "exec:1: cannot assign to signal 'visibilityChanged'");
+        }
 
         lua_pushnil(L);
         lua_setglobal(L, "testNode");
     }
 
-    SECTION("member access") {
+    SECTION("method callable") {
+        Object obj;
+
+        LuaStackOp<Object *>::push(L, &obj);
+        lua_setglobal(L, "testObject");
+
+        SECTION("get") {
+            ASSERT_EVAL_EQ(L, "return testObject.GetClass", Callable, Callable(&obj, "get_class"));
+        }
+
+        SECTION("set disallowed") {
+            ASSERT_EVAL_FAIL(L, "testObject.GetClass = 1234", "exec:1: cannot assign to method 'GetClass'");
+        }
+
+        lua_pushnil(L);
+        lua_setglobal(L, "testObject");
+    }
+
+    SECTION("member access"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local node = PhysicsRayQueryParameters3D()
             return node.collideWithAreas
@@ -136,7 +162,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
                 bool, false)
     }
 
-    SECTION("member set") {
+    SECTION("member set"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local node = PhysicsRayQueryParameters3D()
             node.collideWithAreas = true
@@ -170,13 +196,13 @@ TEST_CASE_METHOD(LuauFixture, "classes: tostring") {
     LuaStackOp<Object *>::push(L, node);
     lua_setglobal(L, "node");
 
-    SECTION("normal") {
+    SECTION("normal"){
         ASSERT_EVAL_EQ(L, "return tostring(node)", String, node->to_string())
     }
 
     memdelete(node);
 
-    SECTION("freed") {
+    SECTION("freed"){
         ASSERT_EVAL_EQ(L, "return tostring(node)", String, "<Freed Object>")
     }
 
@@ -184,7 +210,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: tostring") {
     lua_setglobal(L, "node");
 }
 
-TEST_CASE_METHOD(LuauFixture, "classes: permissions") {
+TEST_CASE_METHOD(LuauFixture, "classes: permissions"){
     ASSERT_EVAL_FAIL(
             L,
             "OS.GetSingleton():GetName()",

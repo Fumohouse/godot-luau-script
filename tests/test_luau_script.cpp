@@ -565,6 +565,14 @@ TEST_CASE("luau script: instance") {
         }
 
         SECTION("newindex") {
+            SECTION("signal read-only") {
+                ASSERT_EVAL_FAIL(T, "obj.testSignal = 1234", "exec:1: cannot assign to signal 'testSignal'");
+            }
+
+            SECTION("method read-only") {
+                ASSERT_EVAL_FAIL(T, "obj.TestMethod = 1234", "exec:1: cannot assign to method 'TestMethod'");
+            }
+
             SECTION("registered") {
                 EVAL_THEN(T, "obj.testProperty = 2.5", {
                     Variant ret;
@@ -593,6 +601,10 @@ TEST_CASE("luau script: instance") {
         SECTION("index") {
             SECTION("signal") {
                 ASSERT_EVAL_EQ(T, "return obj.testSignal", Signal, Signal(&obj, "testSignal"));
+            }
+
+            SECTION("method") {
+                ASSERT_EVAL_EQ(T, "return obj.TestMethod", Callable, Callable(&obj, "TestMethod"));
             }
 
             SECTION("registered") {

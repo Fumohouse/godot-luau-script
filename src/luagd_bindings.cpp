@@ -10,6 +10,7 @@
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -804,10 +805,7 @@ static int luaGD_class_index(lua_State *L) {
     LuauScriptInstance *inst = get_script_instance(L);
 
     if (inst != nullptr) {
-        if (const GDMethod *signal = inst->get_signal(key)) {
-            LuaStackOp<Signal>::push(L, Signal(self, key));
-            return 1;
-        } else if (const GDClassProperty *prop = inst->get_property(key)) {
+        if (const GDClassProperty *prop = inst->get_property(key)) {
             if (prop->setter != StringName() && prop->getter == StringName())
                 luaL_error(L, "property '%s' is write-only", key);
 
@@ -822,6 +820,12 @@ static int luaGD_class_index(lua_State *L) {
                 luaL_error(L, "failed to get property '%s'; see previous errors for more information", key);
             else
                 luaL_error(L, "failed to get property '%s': unknown error", key); // due to the checks above, this should hopefully never happen
+        } else if (const GDMethod *signal = inst->get_signal(key)) {
+            LuaStackOp<Signal>::push(L, Signal(self, key));
+            return 1;
+        } else if (inst->has_method(key)) {
+            LuaStackOp<Callable>::push(L, Callable(self, key));
+            return 1;
         } else {
             // object properties should take precedence over arbitrary values
             attempt_table_get = true;
@@ -829,12 +833,7 @@ static int luaGD_class_index(lua_State *L) {
     }
 
     while (true) {
-        HashMap<String, ApiClassSignal>::ConstIterator E = current_class->signals.find(key);
-
-        if (E) {
-            LuaStackOp<Signal>::push(L, Signal(self, E->value.gd_name));
-            return 1;
-        } else if (current_class->properties.has(key)) {
+        if (current_class->properties.has(key)) {
             lua_remove(L, 2); // key
 
             const ApiClassProperty &prop = current_class->properties[key];
@@ -843,6 +842,20 @@ static int luaGD_class_index(lua_State *L) {
                 luaL_error(L, "property '%s' is write-only", key);
 
             return call_property_setget(L, *current_class, prop, current_class->methods[prop.getter]);
+        }
+
+        HashMap<String, ApiClassSignal>::ConstIterator E = current_class->signals.find(key);
+
+        if (E) {
+            LuaStackOp<Signal>::push(L, Signal(self, E->value.gd_name));
+            return 1;
+        }
+
+        HashMap<String, ApiClassMethod>::ConstIterator F = current_class->methods.find(key);
+
+        if (F) {
+            LuaStackOp<Callable>::push(L, Callable(self, F->value.gd_name));
+            return 1;
         }
 
         INHERIT_OR_BREAK
@@ -859,9 +872,13 @@ static int luaGD_class_index(lua_State *L) {
     luaGD_indexerror(L, key, current_class->name);
 }
 
+#define SIGNAL_ASSIGN_ERROR luaL_error(L, "cannot assign to signal '%s'", key)
+#define METHOD_ASSIGN_ERROR luaL_error(L, "cannot assign to method '%s'", key)
+
 static int luaGD_class_newindex(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
+    Object *self = LuaStackOp<Object *>::check(L, 1);
     const char *key = luaL_checkstring(L, 2);
 
     bool attempt_table_set = false;
@@ -886,6 +903,10 @@ static int luaGD_class_newindex(lua_State *L) {
                 luaL_error(L, "failed to set property '%s'; see previous errors for more information", key);
             else
                 luaL_error(L, "failed to set property '%s': unknown error", key); // should never happen
+        } else if (inst->get_signal(key) != nullptr) {
+            SIGNAL_ASSIGN_ERROR;
+        } else if (inst->has_method(key)) {
+            METHOD_ASSIGN_ERROR;
         } else {
             // object properties should take precedence over arbitrary values
             attempt_table_set = true;
@@ -903,6 +924,12 @@ static int luaGD_class_newindex(lua_State *L) {
 
             return call_property_setget(L, *current_class, prop, current_class->methods[prop.setter]);
         }
+
+        if (current_class->signals.has(key))
+            SIGNAL_ASSIGN_ERROR;
+
+        if (current_class->methods.has(key))
+            METHOD_ASSIGN_ERROR;
 
         INHERIT_OR_BREAK
     }
