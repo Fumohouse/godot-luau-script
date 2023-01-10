@@ -120,6 +120,7 @@ struct ApiBuiltinClass {
     Vector<ApiVariantConstant> constants;
 
     Vector<ApiVariantConstructor> constructors;
+    ThreadPermissions constructor_permissions = PERMISSION_BASE;
     const char *constructor_debug_name;
     const char *constructor_error_string;
 

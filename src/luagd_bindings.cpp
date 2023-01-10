@@ -227,6 +227,8 @@ static int luaGD_builtin_ctor(lua_State *L) {
     Vector<const void *> pargs;
     pargs.resize(nargs);
 
+    luaGD_checkpermissions(L, builtin_class->constructor_debug_name, builtin_class->constructor_permissions);
+
     for (const ApiVariantConstructor &ctor : builtin_class->constructors) {
         if (nargs != ctor.arguments.size())
             continue;
@@ -624,14 +626,12 @@ static void handle_object_returned(Object *obj) {
         rc->unreference();
 }
 
-static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
-    ThreadPermissions permissions;
-    if (method.permissions != -1)
-        permissions = (ThreadPermissions)method.permissions;
-    else
-        permissions = g_class.default_permissions;
+static ThreadPermissions get_method_permissions(const ApiClass &g_class, const ApiClassMethod &method) {
+    return method.permissions != PERMISSION_INHERIT ? method.permissions : g_class.default_permissions;
+}
 
-    luaGD_checkpermissions(L, method.debug_name, permissions);
+static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
+    luaGD_checkpermissions(L, method.debug_name, get_method_permissions(g_class, method));
 
     Vector<Variant> varargs;
     Vector<LuauVariant> args;
@@ -854,7 +854,10 @@ static int luaGD_class_index(lua_State *L) {
         HashMap<String, ApiClassMethod>::ConstIterator F = current_class->methods.find(key);
 
         if (F) {
+            // ! Protect against potentially dangerous Callable access
+            luaGD_checkpermissions(L, F->value.debug_name, get_method_permissions(*current_class, F->value));
             LuaStackOp<Callable>::push(L, Callable(self, F->value.gd_name));
+
             return 1;
         }
 
@@ -1008,8 +1011,6 @@ void luaGD_openclasses(lua_State *L) {
             push_class_method(L, g_class, static_method);
             lua_setfield(L, -3, static_method.name);
         }
-
-        // TODO Signals ?
 
         // Properties (__newindex, __index)
         lua_pushinteger(L, i);

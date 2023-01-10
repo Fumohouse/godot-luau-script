@@ -93,7 +93,7 @@ void luaGD_checkpermissions(lua_State *L, const char *name, ThreadPermissions pe
     if ((udata->permissions & permissions) != permissions) {
         luaL_error(
                 L,
-                "!!! THREAD PERMISSION VIOLATION: attempted to access %s. needed permissions: %d, got: %li !!!",
+                "!!! THREAD PERMISSION VIOLATION: attempted to access '%s'. needed permissions: %d, got: %li !!!",
                 name, permissions, udata->permissions.operator int64_t());
     }
 }

@@ -146,6 +146,10 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
             ASSERT_EVAL_EQ(L, "return testObject.GetClass", Callable, Callable(&obj, "get_class"));
         }
 
+        SECTION("get permissions") {
+            ASSERT_EVAL_FAIL(L, "return testObject.Call", "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!");
+        }
+
         SECTION("set disallowed") {
             ASSERT_EVAL_FAIL(L, "testObject.GetClass = 1234", "exec:1: cannot assign to method 'GetClass'");
         }
@@ -214,7 +218,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: permissions"){
     ASSERT_EVAL_FAIL(
             L,
             "OS.GetSingleton():GetName()",
-            "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access Godot.Object.OS.GetName. needed permissions: 2, got: 0 !!!")
+            "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.OS.GetName'. needed permissions: 2, got: 0 !!!")
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: invalid global access") {

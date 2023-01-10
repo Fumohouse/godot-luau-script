@@ -10,6 +10,7 @@
 TEST_CASE_METHOD(LuauFixture, "builtins: constructor") {
     ASSERT_EVAL_EQ(L, "return Vector3(1, 2, 3)", Vector3, Vector3(1, 2, 3))
     ASSERT_EVAL_EQ(L, "return Vector3(Vector3i(4, 5, 6))", Vector3, Vector3(4, 5, 6))
+    ASSERT_EVAL_FAIL(L, "return Callable()", "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access 'Callable.__call'. needed permissions: 1, got: 0 !!!");
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
