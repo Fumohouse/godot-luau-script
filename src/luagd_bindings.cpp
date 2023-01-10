@@ -119,6 +119,7 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
         const TArg &arg = method.arguments[i];
 
         if (arg.has_default_value) {
+            // Not using get_opaque_pointer_arg: default arguments shouldn't ever be objects anyway
             pargs.set(i, arg.default_value.get_opaque_pointer());
         } else {
             LuauVariant dummy;
@@ -192,9 +193,11 @@ static int get_arguments(lua_State *L,
         if (nargs > method.arguments.size())
             luaL_error(L, "too many arguments to '%s' (expected at most %d)", method.name, method.arguments.size());
 
+        LuauVariant *args_ptr = args.ptrw();
+
         for (int i = 0; i < nargs; i++) {
             get_argument(L, i + 1 + arg_offset, method.arguments[i], args.ptrw()[i]);
-            pargs.set(i, args[i].get_opaque_pointer());
+            pargs.set(i, args_ptr[i].get_opaque_pointer_arg());
         }
     }
 
@@ -229,6 +232,8 @@ static int luaGD_builtin_ctor(lua_State *L) {
 
         bool valid = true;
 
+        LuauVariant *args_ptr = args.ptrw();
+
         for (int i = 0; i < nargs; i++) {
             GDExtensionVariantType type = ctor.arguments[i].type;
 
@@ -242,7 +247,7 @@ static int luaGD_builtin_ctor(lua_State *L) {
             arg.lua_check(L, i + 1, type);
 
             args.set(i, arg);
-            pargs.set(i, args[i].get_opaque_pointer());
+            pargs.set(i, args_ptr[i].get_opaque_pointer_arg());
         }
 
         if (!valid)

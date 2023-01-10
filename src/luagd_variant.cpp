@@ -16,12 +16,12 @@
 // also, this class is easily the most demented thing in this entire project.
 // beware of random SIGINTs and SIGSEGVs out of nowhere. :)
 
+typedef void *(*LuauVariantGetPtr)(LuauVariant &self, bool is_arg);
+typedef const void *(*LuauVariantGetPtrConst)(const LuauVariant &self);
 typedef void (*LuauVariantNoRet)(LuauVariant &self);
 typedef bool (*LuauVariantLuaIs)(lua_State *L, int idx, const String &type_name, GDExtensionVariantType typed_array_type);
 typedef bool (*LuauVariantLuaCheck)(LuauVariant &self, lua_State *L, int idx, const String &type_name, GDExtensionVariantType typed_array_type);
 typedef void (*LuauVariantLuaPush)(LuauVariant &self, lua_State *L);
-typedef void *(*LuauVariantGetPtr)(LuauVariant &self);
-typedef const void *(*LuauVariantGetPtrConst)(const LuauVariant &self);
 typedef void (*LuauVariantCopy)(LuauVariant &self, const LuauVariant &other);
 typedef void (*LuauVariantAssign)(LuauVariant &self, const Variant &val);
 
@@ -44,7 +44,7 @@ struct VariantTypeMethods {
 
 static void no_op(LuauVariant &self) {}
 
-#define GETTER(getter_name) [](LuauVariant &self) -> void * { return self.getter_name(); }
+#define GETTER(getter_name) [](LuauVariant &self, bool) -> void * { return self.getter_name(); }
 #define GETTER_CONST(getter_name) [](const LuauVariant &self) -> const void * { return self.getter_name(); }
 
 #define SIMPLE_METHODS(type, get, union_name)                                                          \
@@ -206,7 +206,12 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
     DATA_METHODS(NodePath, get_node_path),
     DATA_METHODS(RID, get_rid),
     { false,
-            GETTER(get_object),
+            [](LuauVariant &self, bool is_arg) -> void *{
+                if (is_arg)
+                    return self.get_object_arg();
+                else
+                    return self.get_object();
+            },
             GETTER_CONST(get_object),
             [](LuauVariant &self) {
                 self._data._object = nullptr;
@@ -216,14 +221,14 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
                 if (obj == nullptr)
                     return false;
 
-                return obj->is_class(type_name);
+                return type_name.is_empty() || obj->is_class(type_name);
             },
             [](LuauVariant &self, lua_State *L, int idx, const String &type_name, GDExtensionVariantType) {
                 Object *obj = LuaStackOp<Object *>::check(L, idx);
                 if (obj == nullptr)
                     luaL_error(L, "Object has been freed");
 
-                if (!obj->is_class(type_name))
+                if (!type_name.is_empty() && !obj->is_class(type_name))
                     luaL_typeerrorL(L, idx, type_name.utf8().get_data());
 
                 self._data._object = obj->_owner;
@@ -275,8 +280,12 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
     DATA_METHODS(PackedColorArray, get_color_array)
 };
 
+void *LuauVariant::get_opaque_pointer_arg() {
+    return type_methods[type].get_ptr(*this, true);
+}
+
 void *LuauVariant::get_opaque_pointer() {
-    return type_methods[type].get_ptr(*this);
+    return type_methods[type].get_ptr(*this, false);
 }
 
 const void *LuauVariant::get_opaque_pointer() const {

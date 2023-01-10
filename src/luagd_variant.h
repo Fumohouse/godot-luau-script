@@ -119,7 +119,23 @@ public:
     DATA_GETTER(StringName, string_name)
     DATA_GETTER(NodePath, node_path)
     DATA_GETTER(RID, rid)
-    SIMPLE_GETTER(GDExtensionObjectPtr, object, _object)
+
+    SIMPLE_GETTER(GDExtensionObjectPtr, object, _object);
+
+    // TODO: 2023-01-09: This may change. Tracking https://github.com/godotengine/godot/issues/61967.
+    // Special case. Object pointers are treated as GodotObject * when passing to Godot,
+    // and GodotObject ** when returning from Godot.
+
+    // Current understanding of the situation:
+    // - Use _arg for all arguments
+    // - _arg is never needed for return values or builtin/class `self`
+    // - _arg is never needed for values which will never be Object
+
+    // This is a mess. Hopefully it gets fixed at some point.
+    _FORCE_INLINE_ GDExtensionObjectPtr get_object_arg() {
+        return _data._object;
+    }
+
     DATA_GETTER(Callable, callable)
     DATA_GETTER(Signal, signal)
     DATA_GETTER(Dictionary, dictionary)
@@ -137,6 +153,7 @@ public:
 
     PTR_GETTER(Variant, variant, _variant);
 
+    void *get_opaque_pointer_arg();
     void *get_opaque_pointer();
     const void *get_opaque_pointer() const;
 
