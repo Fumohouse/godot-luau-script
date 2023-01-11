@@ -22,7 +22,10 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
 
     if (needs_init) {
         script.instantiate();
-        script->set_path(p_path);
+
+        // This is done for tests, as Godot is holding onto references to scripts for some reason.
+        // Shouldn't really have side effects, hopefully.
+        script->take_over_path(p_path);
     }
 
     if (p_ignore_cache || needs_init) {

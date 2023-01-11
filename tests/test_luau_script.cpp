@@ -901,3 +901,85 @@ TEST_CASE("luau script: placeholders") {
         memdelete(placeholder);
     }
 }
+
+TEST_CASE("luau script: reloading at runtime") {
+    GDLuau gd_luau;
+    LuauCache luau_cache;
+
+    Error err;
+    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/placeholder/Base.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script_base->_is_valid());
+
+    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/placeholder/Script.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script->_is_valid());
+
+    Object base_obj;
+    base_obj.set_script(script_base);
+    LuauScriptInstance *inst_base = script_base->instance_get(&base_obj);
+    inst_base->set("baseProperty", "hey");
+
+    Object obj;
+    obj.set_script(script);
+    LuauScriptInstance *inst = script->instance_get(&obj);
+    inst->set("testProperty", 5.25);
+
+    Variant val;
+
+    SECTION("reload") {
+        String new_src = script->_get_source_code().replace("--@1", R"ASDF(
+            Script.properties["testProperty2"] = {
+                property = gdproperty({ name = "testProperty2", type = Enum.VariantType.FLOAT }),
+                default = 1.25
+            }
+        )ASDF");
+        script->_set_source_code(new_src);
+        LuauLanguage::get_singleton()->_reload_tool_script(script, false);
+
+        inst = script->instance_get(&obj);
+        REQUIRE(inst->get("testProperty2", val));
+        REQUIRE(val == Variant(1.25));
+    }
+
+    SECTION("reload base reloads inherited") {
+        String new_src = script_base->_get_source_code().replace("--@1", R"ASDF(
+            Base.properties["baseProperty2"] = {
+                property = gdproperty({ name = "baseProperty2", type = Enum.VariantType.FLOAT }),
+                default = 1.5
+            }
+        )ASDF");
+        script_base->_set_source_code(new_src);
+        LuauLanguage::get_singleton()->_reload_tool_script(script_base, false);
+
+        inst_base = script_base->instance_get(&base_obj);
+        REQUIRE(inst_base->get("baseProperty2", val));
+        REQUIRE(val == Variant(1.5));
+
+        inst = script->instance_get(&obj);
+    }
+
+    SECTION("invalid then valid keeps state") {
+        String old_src = script->_get_source_code();
+        String new_src = old_src.replace("--@1", "#^%}^)[}(_+[}-(");
+        script->_set_source_code(new_src);
+        LuauLanguage::get_singleton()->_reload_tool_script(script, false);
+
+        REQUIRE(!script->_is_valid());
+        REQUIRE(!script->pending_reload_state.is_empty());
+
+        script->_set_source_code(old_src);
+        LuauLanguage::get_singleton()->_reload_tool_script(script, false);
+
+        REQUIRE(script->_is_valid());
+        REQUIRE(script->pending_reload_state.is_empty());
+
+        inst = script->instance_get(&obj);
+    }
+
+    REQUIRE(inst->get("testProperty", val));
+    REQUIRE(val == Variant(5.25));
+
+    REQUIRE(inst_base->get("baseProperty", val));
+    REQUIRE(val == Variant("hey"));
+}

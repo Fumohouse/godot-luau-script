@@ -1,11 +1,34 @@
 #include "luau_script.h"
 
+#include <gdextension_interface.h>
+#include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/mutex_lock.hpp>
+#include <godot_cpp/core/object.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/hash_set.hpp>
+#include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/pair.hpp>
+#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
+#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/variant/variant.hpp>
+
+namespace godot {
+class Object;
+};
+
+// Much of the editor-specific implementations are based heavily on the GDScript implementation
+// (especially placeholder and reloading functionality).
+// See README.md for license information.
+
 void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
     PlaceHolderScriptInstance *internal = memnew(PlaceHolderScriptInstance(Ref<LuauScript>(this), p_for_object));
     return internal::gde_interface->script_instance_create(&PlaceHolderScriptInstance::INSTANCE_INFO, internal);
 }
 
-// Based on GDScript implementation. See license information in README.md.
 void LuauScript::_update_exports() {
     bool cyclic_error = false;
     update_exports_internal(&cyclic_error, false, nullptr);
@@ -145,6 +168,171 @@ bool LuauScript::placeholder_has(Object *p_object) const {
 
 PlaceHolderScriptInstance *LuauScript::placeholder_get(Object *p_object) {
     return placeholders.get(p_object->get_instance_id());
+}
+
+Ref<Script> LuauLanguage::_make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const {
+    Ref<LuauScript> script;
+    script.instantiate();
+
+    // TODO: actual template stuff
+
+    return script;
+}
+
+// Sort such that base scripts come first.
+struct LuauScriptDepSort {
+    bool operator()(const Ref<LuauScript> &a, const Ref<LuauScript> &b) const {
+        if (a == b) {
+            return false;
+        }
+
+        const LuauScript *s = static_cast<const LuauScript *>(b->_get_base_script().ptr());
+
+        while (s != nullptr) {
+            if (s == a.ptr())
+                return true;
+
+            s = static_cast<const LuauScript *>(s->_get_base_script().ptr());
+        }
+
+        return false;
+    }
+};
+
+List<Ref<LuauScript>> LuauLanguage::get_scripts() const {
+    List<Ref<LuauScript>> scripts;
+
+    {
+        MutexLock lock(this->lock);
+
+        const SelfList<LuauScript> *elem = script_list.first();
+
+        while (elem) {
+            String path = elem->self()->get_path();
+
+            if (ResourceFormatLoaderLuauScript::get_resource_type(path) == _get_type()) {
+                // Ref prevents accidental deallocation of scripts (?)
+                scripts.push_back(Ref<LuauScript>(elem->self()));
+            }
+
+            elem = elem->next();
+        }
+    }
+
+    scripts.sort_custom<LuauScriptDepSort>();
+
+    return scripts;
+}
+
+void LuauLanguage::_reload_all_scripts() {
+    List<Ref<LuauScript>> scripts = get_scripts();
+
+    for (Ref<LuauScript> &script : scripts) {
+        script->load_source_code(script->get_path());
+        script->_reload(true);
+    }
+}
+
+void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) {
+    // Step 1: List all scripts
+    List<Ref<LuauScript>> scripts = get_scripts();
+
+    // Step 2: Save state (if soft) and remove scripts from instances
+    HashMap<Ref<LuauScript>, ScriptInstanceState> to_reload;
+
+    for (const Ref<LuauScript> &script : scripts) {
+        if (script != p_script && !to_reload.has(script->_get_base_script()))
+            continue;
+
+        to_reload.insert(script, ScriptInstanceState());
+
+        if (!p_soft_reload) {
+            ScriptInstanceState &map = to_reload[script];
+
+            HashMap<uint64_t, LuauScriptInstance *> instances = script->instances;
+
+            for (const KeyValue<uint64_t, LuauScriptInstance *> &pair : instances) {
+                Object *obj = pair.value->get_owner();
+
+                List<Pair<StringName, Variant>> state;
+                pair.value->get_property_state(state);
+                map[obj->get_instance_id()] = state;
+
+                obj->set_script(Variant());
+            }
+
+            HashMap<uint64_t, PlaceHolderScriptInstance *> placeholder_instances = script->placeholders;
+
+            for (const KeyValue<uint64_t, PlaceHolderScriptInstance *> &pair : placeholder_instances) {
+                Object *obj = pair.value->get_owner();
+
+                List<Pair<StringName, Variant>> state;
+                pair.value->get_property_state(state);
+                map[obj->get_instance_id()] = state;
+
+                obj->set_script(Variant());
+            }
+
+            // Restore state from failed reload instead
+            for (const KeyValue<uint64_t, List<Pair<StringName, Variant>>> &pair : script->pending_reload_state) {
+                map[pair.key] = pair.value;
+            }
+        }
+    }
+
+    // Step 3: Reload scripts and load saved state if any
+    for (const KeyValue<Ref<LuauScript>, ScriptInstanceState> &E : to_reload) {
+        Ref<LuauScript> scr = E.key;
+        scr->_reload(p_soft_reload);
+
+        for (const KeyValue<uint64_t, List<Pair<StringName, Variant>>> &F : E.value) {
+            const List<Pair<StringName, Variant>> &saved_state = F.value;
+
+            Object *obj = ObjectDB::get_instance(F.key);
+            if (obj == nullptr)
+                return;
+
+            if (!p_soft_reload) {
+                // Object::set_script returns early if the scripts are the same,
+                // which they may be if the reload previously failed (pending).
+                obj->set_script(Variant());
+            }
+
+            obj->set_script(scr);
+
+            HashMap<uint64_t, LuauScriptInstance *>::ConstIterator G = scr->instances.find(F.key);
+
+            if (G) {
+                for (const Pair<StringName, Variant> &I : saved_state) {
+                    G->value->set(I.first, I.second);
+                }
+            }
+
+            HashMap<uint64_t, PlaceHolderScriptInstance *>::ConstIterator H = scr->placeholders.find(F.key);
+
+            if (H) {
+                if (scr->_is_placeholder_fallback_enabled()) {
+                    for (const Pair<StringName, Variant> &I : saved_state) {
+                        H->value->property_set_fallback(I.first, I.second);
+                    }
+                } else {
+                    for (const Pair<StringName, Variant> &I : saved_state) {
+                        H->value->set(I.first, I.second);
+                    }
+                }
+            }
+
+            if (!G && !H) {
+                // Script load failed; save state to reload later
+                if (!scr->pending_reload_state.has(F.key)) {
+                    scr->pending_reload_state[F.key] = saved_state;
+                }
+            } else {
+                // State is loaded; clear it now
+                scr->pending_reload_state.erase(F.key);
+            }
+        }
+    }
 }
 
 //////////////////////////

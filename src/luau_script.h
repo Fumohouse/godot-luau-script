@@ -12,6 +12,8 @@
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/pair.hpp>
+#include <godot_cpp/templates/self_list.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -30,16 +32,21 @@ class PlaceHolderScriptInstance;
 
 using namespace godot;
 
+typedef HashMap<uint64_t, List<Pair<StringName, Variant>>> ScriptInstanceState;
+
 class LuauCache;
 class LuauScriptInstance;
 
 class LuauScript : public ScriptExtension {
     GDCLASS(LuauScript, ScriptExtension);
 
+    friend class LuauLanguage;
     friend class LuauScriptInstance;
     friend class PlaceHolderScriptInstance;
 
 private:
+    SelfList<LuauScript> script_list;
+
     String base_dir;
     String source;
     bool source_changed_cache;
@@ -67,6 +74,8 @@ public:
 #endif // TESTS_ENABLED
     Ref<LuauScript> base;
     HashSet<uint64_t> inheriters_cache;
+
+    ScriptInstanceState pending_reload_state;
 
 protected:
     static void _bind_methods() {}
@@ -132,6 +141,9 @@ public:
 
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
     const GDClassDefinition &get_definition() const { return definition; }
+
+    LuauScript();
+    ~LuauScript();
 };
 
 class ScriptInstance {
@@ -170,6 +182,7 @@ public:
     virtual bool get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err = nullptr) = 0;
 
     void get_property_state(GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
+    void get_property_state(List<Pair<StringName, Variant>> &p_list);
 
     virtual GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) const = 0;
     void free_property_list(const GDExtensionPropertyInfo *p_list) const;
@@ -288,12 +301,15 @@ private:
     GDLuau *luau;
     LuauCache *cache;
 
+    SelfList<LuauScript>::List script_list;
     HashSet<String> core_scripts;
 
     bool finalized = false;
     void finalize();
 
     void discover_core_scripts(const String &path = "res://");
+
+    List<Ref<LuauScript>> get_scripts() const;
 
 protected:
     static void _bind_methods() {}
@@ -322,6 +338,9 @@ public:
     /* ... */
     Object *_create_script() const override;
     Ref<Script> _make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
+
+    void _reload_all_scripts() override;
+    void _reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) override;
 
     /* ???: pure virtual functions which have no clear purpose */
     Error _execute_file(const String &p_path) override;
@@ -361,8 +380,6 @@ public:
     bool _can_inherit_from_file() const;
     int64_t _find_function(const String &class_name, const String &function_name) const;
     String _make_function(const String &class_name, const String &function_name, const PackedStringArray &function_args) const;
-    void _reload_all_scripts();
-    void _reload_tool_script(const Ref<Script> &script, bool soft_reload);
 
     // To implement later (or never)
     void _add_global_constant(const StringName &name, const Variant &value);

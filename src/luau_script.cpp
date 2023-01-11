@@ -428,6 +428,21 @@ void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
     lua_remove(T, -2);
 }
 
+LuauScript::LuauScript() :
+        script_list(this) {
+    {
+        MutexLock lock(LuauLanguage::get_singleton()->lock);
+        LuauLanguage::get_singleton()->script_list.add(&script_list);
+    }
+}
+
+LuauScript::~LuauScript() {
+    {
+        MutexLock lock(LuauLanguage::get_singleton()->lock);
+        LuauLanguage::get_singleton()->script_list.remove(&script_list);
+    }
+}
+
 ////////////////////////////
 // SCRIPT INSTANCE COMMON //
 ////////////////////////////
@@ -542,6 +557,15 @@ void ScriptInstance::get_property_state(GDExtensionScriptInstancePropertyStateAd
     }
 
     free_property_list(props);
+}
+
+static void add_to_state(GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value, void *p_userdata) {
+    List<Pair<StringName, Variant>> *list = reinterpret_cast<List<Pair<StringName, Variant>> *>(p_userdata);
+    list->push_back({ *(const StringName *)p_name, *(const Variant *)p_value });
+}
+
+void ScriptInstance::get_property_state(List<Pair<StringName, Variant>> &p_list) {
+    get_property_state(add_to_state, &p_list);
 }
 
 void ScriptInstance::free_property_list(const GDExtensionPropertyInfo *p_list) const {
@@ -1382,15 +1406,6 @@ bool LuauLanguage::_supports_builtin_mode() const {
 
 Object *LuauLanguage::_create_script() const {
     return memnew(LuauScript);
-}
-
-Ref<Script> LuauLanguage::_make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const {
-    Ref<LuauScript> script;
-    script.instantiate();
-
-    // TODO: actual template stuff
-
-    return script;
 }
 
 Error LuauLanguage::_execute_file(const String &p_path) {
