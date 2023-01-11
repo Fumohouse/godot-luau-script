@@ -70,7 +70,7 @@ struct GDClassDefinition {
 
     ThreadPermissions permissions = PERMISSION_BASE;
 
-    bool is_tool;
+    bool is_tool = false;
 
     HashMap<StringName, GDMethod> methods;
     HashMap<StringName, GDClassProperty> properties;
