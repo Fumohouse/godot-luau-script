@@ -27,16 +27,13 @@ TEST_CASE("luau script: script load") {
     script.instantiate();
 
     script->set_source_code(R"ASDF(
-        local TestClass = gdclass({
-            name = "TestClass",
-            tool = true
-        })
+        local TestClass = gdclass("TestClass")
+            :Tool(true)
 
-        TestClass:RegisterSignal("testSignal", {
-            args = {
-                gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
-            }
-        })
+        TestClass:RegisterSignal("testSignal")
+            :Args(
+                { name = "arg1", type = Enum.VariantType.FLOAT }
+            )
 
         TestClass:RegisterRpc("TestRpc", {
             rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,
@@ -48,17 +45,15 @@ TEST_CASE("luau script: script load") {
         function TestClass:TestMethod()
         end
 
-        TestClass:RegisterMethod("TestMethod", {})
+        TestClass:RegisterMethod("TestMethod")
 
         function TestClass:__WeirdMethodName()
         end
 
-        TestClass:RegisterMethod("__WeirdMethodName", {})
+        TestClass:RegisterMethod("__WeirdMethodName")
 
-        TestClass:RegisterProperty("testProperty", {
-            property = gdproperty({ type = Enum.VariantType.FLOAT }),
-            default = 5.5
-        })
+        TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.FLOAT })
+            :Default(5.5)
 
         return TestClass
     )ASDF");
@@ -117,13 +112,12 @@ TEST_CASE("luau script: instance") {
     script.instantiate();
 
     script->set_source_code(R"ASDF(
-        local TestClass = gdclass({ name = "TestClass" })
+        local TestClass = gdclass("TestClass")
 
-        TestClass:RegisterSignal("testSignal", {
-            args = {
-                gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
-            }
-        })
+        TestClass:RegisterSignal("testSignal")
+            :Args(
+                { name = "arg1", type = Enum.VariantType.FLOAT }
+            )
 
         TestClass:RegisterConstant("TEST_CONSTANT", Vector2(1, 2))
 
@@ -144,7 +138,7 @@ TEST_CASE("luau script: instance") {
         function TestClass:_Ready()
         end
 
-        TestClass:RegisterMethod("_Ready", {})
+        TestClass:RegisterMethod("_Ready")
 
         function TestClass:_Notification(what)
             if what == 42 then
@@ -152,51 +146,49 @@ TEST_CASE("luau script: instance") {
             end
         end
 
-        TestClass:RegisterMethod("_Notification", {})
+        TestClass:RegisterMethod("_Notification")
 
         function TestClass:_ToString()
             return "my awesome class"
         end
 
-        TestClass:RegisterMethod("_ToString", {})
+        TestClass:RegisterMethod("_ToString")
 
         function TestClass:TestMethod(arg1, arg2)
             return string.format("%.1f, %s", arg1, arg2)
         end
 
-        TestClass:RegisterMethod("TestMethod", {
-            args = {
-                gdproperty({
+        TestClass:RegisterMethod("TestMethod")
+            :Args(
+                {
                     name = "arg1",
                     type = Enum.VariantType.FLOAT
-                }),
-                gdproperty({
+                },
+                {
                     name = "arg2",
                     type = Enum.VariantType.STRING
-                })
-            },
-            defaultArgs = { "hi" },
-            returnVal = gdproperty({ type = Enum.VariantType.STRING })
-        })
+                }
+            )
+            :DefaultArgs("hi")
+            :ReturnVal({ type = Enum.VariantType.STRING })
 
         function TestClass:TestMethod2(arg1, arg2)
             return 3.14
         end
 
-        TestClass:RegisterMethod("TestMethod2", {
-            args = {
-                gdproperty({
+        TestClass:RegisterMethod("TestMethod2")
+            :Args(
+                {
                     name = "arg1",
                     type = Enum.VariantType.STRING
-                }),
-                gdproperty({
+                },
+                {
                     name = "arg2",
                     type = Enum.VariantType.INT
-                })
-            },
-            defaultArgs = { "godot", 1 },
-            returnVal = gdproperty({ type = Enum.VariantType.FLOAT })
-        })
+                }
+            )
+            :DefaultArgs("godot", 1)
+            :ReturnVal({ type = Enum.VariantType.FLOAT })
 
         function TestClass:GetTestProperty()
             return 2 * self._testProperty
@@ -206,36 +198,27 @@ TEST_CASE("luau script: instance") {
             self._testProperty = val
         end
 
-        TestClass:RegisterProperty("testProperty", {
-            property = gdproperty({ type = Enum.VariantType.FLOAT }),
-            getter = "GetTestProperty",
-            setter = "SetTestProperty",
-            default = 5.5
-        })
+        TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.FLOAT })
+            :SetGet("SetTestProperty", "GetTestProperty")
+            :Default(5.5)
 
         function TestClass:GetTestProperty2()
             return "hello"
         end
 
-        TestClass:RegisterProperty("testProperty2", {
-            property = gdproperty({ type = Enum.VariantType.STRING }),
-            getter = "GetTestProperty2",
-            default = "hey"
-        })
+        TestClass:RegisterProperty("testProperty2", { type = Enum.VariantType.STRING })
+            :SetGet(nil, "GetTestProperty2")
+            :Default("hey")
 
         function TestClass:SetTestProperty3(val)
         end
 
-        TestClass:RegisterProperty("testProperty3", {
-            property = gdproperty({ type = Enum.VariantType.STRING }),
-            setter = "SetTestProperty3",
-            default = "hey"
-        })
+        TestClass:RegisterProperty("testProperty3", { type = Enum.VariantType.STRING })
+            :SetGet("SetTestProperty3")
+            :Default("hey")
 
-        TestClass:RegisterProperty("testProperty4", {
-            property = gdproperty({ type = Enum.VariantType.STRING }),
-            default = "hey"
-        })
+        TestClass:RegisterProperty("testProperty4", { type = Enum.VariantType.STRING })
+            :Default("hey")
 
         return TestClass
     )ASDF");
@@ -633,41 +616,32 @@ TEST_CASE("luau script: inheritance") {
     script1.instantiate();
 
     script1->set_source_code(R"ASDF(
-        local Script1 = gdclass({
-            name = "Script1",
-            extends = "Object"
-        })
+        local Script1 = gdclass("Script1", "Object")
 
         function Script1._Init(obj, tbl)
             tbl.property1 = "hey"
             tbl.property2 = "hi"
         end
 
-        Script1:RegisterProperty("property1", {
-            property = gdproperty({ type = Enum.VariantType.STRING }),
-            default = "hey"
-        })
+        Script1:RegisterProperty("property1", { type = Enum.VariantType.STRING })
+            :Default("hey")
 
-        Script1:RegisterProperty("property2", {
-            property = gdproperty({ type = Enum.VariantType.STRING }),
-            default = "hi"
-        })
+        Script1:RegisterProperty("property2", { type = Enum.VariantType.STRING })
+            :Default("hi")
 
         function Script1:Method1()
             return "there"
         end
 
-        Script1:RegisterMethod("Method1", {
-            returnVal = gdproperty({ type = Enum.VariantType.STRING })
-        })
+        Script1:RegisterMethod("Method1")
+            :ReturnVal({ type = Enum.VariantType.STRING })
 
         function Script1:Method2()
             return "world"
         end
 
-        Script1:RegisterMethod("Method2", {
-            returnVal = gdproperty({ type = Enum.VariantType.STRING })
-        })
+        Script1:RegisterMethod("Method2")
+            :ReturnVal({ type = Enum.VariantType.STRING })
 
         return Script1
     )ASDF");
@@ -681,20 +655,15 @@ TEST_CASE("luau script: inheritance") {
     script2->base = script1;
 
     script2->set_source_code(R"ASDF(
-        local Script2 = gdclass({
-            name = "Script2",
-            extends = "Script1"
-        })
+        local Script2 = gdclass("Script2", "Script1")
 
         function Script2:GetProperty2()
             return "hihi"
         end
 
-        Script2:RegisterProperty("property2", {
-            property = gdproperty({ type = Enum.VariantType.STRING }),
-            getter = "GetProperty2",
-            default = "hi"
-        })
+        Script2:RegisterProperty("property2", { type = Enum.VariantType.STRING })
+            :SetGet(nil, "GetProperty2")
+            :Default("hi")
 
         function Script2:Method2()
             return "guy"
@@ -831,10 +800,8 @@ TEST_CASE("luau script: placeholders") {
 
             SECTION("script change") {
                 String new_src = script->_get_source_code().replace("--@1", R"ASDF(
-                    Script:RegisterProperty("testProperty2", {
-                        property = gdproperty({ type = Enum.VariantType.VECTOR3 }),
-                        default = Vector3(1, 2, 3)
-                    })
+                    Script:RegisterProperty("testProperty2", { type = Enum.VariantType.VECTOR3 })
+                        :Default(Vector3(1, 2, 3))
                 )ASDF");
                 script->_set_source_code(new_src);
                 script->_update_exports();
@@ -851,7 +818,7 @@ TEST_CASE("luau script: placeholders") {
                 uint64_t instance_id = script->get_instance_id();
 
                 SECTION("cyclic inheritance") {
-                    String new_src_base = script_base->_get_source_code().replace("extends = \"Node\"", "extends = \"Script.lua\"");
+                    String new_src_base = script_base->_get_source_code().replace("\"Node\"", "\"Script.lua\"");
                     script_base->_set_source_code(new_src_base);
                     script->_update_exports();
 
@@ -866,7 +833,7 @@ TEST_CASE("luau script: placeholders") {
                 SECTION("base script updating") {
                     REQUIRE(script_base->inheriters_cache.has(instance_id));
 
-                    String new_src = script->_get_source_code().replace("extends = \"Base.lua\"", "extends = \"Base2.lua\"");
+                    String new_src = script->_get_source_code().replace("\"Base.lua\"", "\"Base2.lua\"");
                     script->_set_source_code(new_src);
                     script->_update_exports();
 
@@ -914,10 +881,8 @@ TEST_CASE("luau script: reloading at runtime") {
 
     SECTION("reload") {
         String new_src = script->_get_source_code().replace("--@1", R"ASDF(
-            Script:RegisterProperty("testProperty2", {
-                property = gdproperty({ type = Enum.VariantType.FLOAT }),
-                default = 1.25
-            })
+            Script:RegisterProperty("testProperty2", { type = Enum.VariantType.FLOAT })
+                :Default(1.25)
         )ASDF");
         script->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script, false);
@@ -929,10 +894,8 @@ TEST_CASE("luau script: reloading at runtime") {
 
     SECTION("reload base reloads inherited") {
         String new_src = script_base->_get_source_code().replace("--@1", R"ASDF(
-            Base:RegisterProperty("baseProperty2", {
-                property = gdproperty({ type = Enum.VariantType.FLOAT }),
-                default = 1.5
-            })
+            Base:RegisterProperty("baseProperty2", { type = Enum.VariantType.FLOAT })
+                :Default(1.5)
         )ASDF");
         script_base->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script_base, false);

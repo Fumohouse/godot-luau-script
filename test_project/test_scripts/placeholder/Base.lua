@@ -1,10 +1,8 @@
-local Base = gdclass({ extends = "Node" })
+local Base = gdclass(nil, "Node")
 
 --@1
 
-Base:RegisterProperty("baseProperty", {
-    property = gdproperty({ type = Enum.VariantType.STRING }),
-    default = "hello"
-})
+Base:RegisterProperty("baseProperty", { type = Enum.VariantType.STRING })
+    :Default("hello")
 
 return Base

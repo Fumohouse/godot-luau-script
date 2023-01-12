@@ -1196,9 +1196,11 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     udata->path = p_script->get_path();
 
     thread_ref = lua_ref(L, -1);
+    lua_pop(L, 1); // thread
 
     lua_newtable(T);
     table_ref = lua_ref(T, -1);
+    lua_pop(T, 1); // table
 
     LuauScript *s = p_script.ptr();
 

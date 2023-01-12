@@ -1,7 +1,5 @@
-local TestClass = gdclass({
-	extends = "TestBaseScript.lua",
-	permissions = Enum.Permissions.INTERNAL
-})
+local TestClass = gdclass(nil, "TestBaseScript.lua")
+	:Permissions(Enum.Permissions.INTERNAL)
 
 function TestClass:_Ready()
 	print("TestScript: Ready!")
@@ -13,26 +11,9 @@ function TestClass:_Ready()
 	self:GetTree():Quit()
 end
 
-TestClass:RegisterMethod("_Ready", {})
+TestClass:RegisterMethod("_Ready")
 
-TestClass:RegisterProperty("testProperty", {
-	property = gdproperty({ type = Enum.VariantType.FLOAT }),
-	default = 1.5
-})
-
---[[
-function TestClass:_Process(delta)
-	print("Processing ", delta)
-end
-
-TestClass:RegisterMethod("_Process", {
-	args = {
-		gdproperty({
-			name = "delta",
-			type = Enum.VariantType.FLOAT
-		})
-	}
-})
-]]
+TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.FLOAT })
+	:Default(1.5)
 
 return TestClass

@@ -433,7 +433,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
         luaGD_nomethoderror(L, name, builtin_class->name);
     }
 
-    luaL_error(L, "no namecallatom");
+    luaGD_nonamecallatomerror(L);
 }
 
 static int luaGD_builtin_operator(lua_State *L) {
@@ -783,7 +783,7 @@ static int luaGD_class_namecall(lua_State *L) {
         luaGD_nomethoderror(L, name, current_class->name);
     }
 
-    luaL_error(L, "no namecallatom");
+    luaGD_nonamecallatomerror(L);
 }
 
 static int call_property_setget(lua_State *L, const ApiClass &g_class, const ApiClassProperty &property, ApiClassMethod &method) {

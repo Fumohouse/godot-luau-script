@@ -29,18 +29,18 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty") {
         expected.class_name = "Node3D";
 
         EVAL_THEN(L, R"ASDF(
-            return gdproperty({
+            return {
                 type = Enum.VariantType.OBJECT,
                 name = "testProp",
                 hint = Enum.PropertyHint.ENUM,
                 hintString = "val1,val2,val3",
                 usage = Enum.PropertyUsageFlags.NONE,
                 className = "Node3D"
-            })
+            }
         )ASDF",
                 {
-                    GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                    REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
+                    GDProperty prop = luascript_read_property(L, -1);
+                    REQUIRE(prop.operator Dictionary() == expected.operator Dictionary());
                 })
     }
 
@@ -52,15 +52,15 @@ TEST_CASE_METHOD(LuauFixture, "lib: gdproperty") {
         expected.class_name = "Node2D";
 
         EVAL_THEN(L, R"ASDF(
-            return gdproperty({
+            return {
                 type = Enum.VariantType.OBJECT,
                 name = "testProp",
                 className = "Node2D"
-            })
+            }
         )ASDF",
                 {
-                    GDProperty *prop = LuaStackOp<GDProperty>::check_ptr(L, -1);
-                    REQUIRE(prop->operator Dictionary() == expected.operator Dictionary());
+                    GDProperty prop = luascript_read_property(L, -1);
+                    REQUIRE(prop.operator Dictionary() == expected.operator Dictionary());
                 })
     }
 }
@@ -71,7 +71,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
     lua_State *T = lua_newthread(L);
 
     SECTION("explicit extends") {
-        EVAL_THEN(T, "return gdclass({ name = 'TestClass', extends = 'Node3D' })", {
+        EVAL_THEN(T, "return gdclass('TestClass', 'Node3D')", {
             GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
             REQUIRE(def->name == "TestClass");
             REQUIRE(def->extends == "Node3D");
@@ -79,24 +79,16 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
     }
 
     SECTION("default extends") {
-        EVAL_THEN(T, "return gdclass({ name = 'TestClass' })", {
+        EVAL_THEN(T, "return gdclass('TestClass')", {
             GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
             REQUIRE(def->name == "TestClass");
             REQUIRE(def->extends == "RefCounted");
         })
     }
 
-    SECTION("can't set reserved key") {
-        ASSERT_EVAL_FAIL(T, R"ASDF(
-            local TestClass = gdclass({ extends = "Node" })
-            function TestClass:extends() end
-        )ASDF",
-                "exec:3: cannot set 'extends' on GDClassDefinition: key is reserved")
-    }
-
     SECTION("get from definition table") {
         EVAL_THEN(T, R"ASDF(
-            local TestClass = gdclass({ extends = "Node" })
+            local TestClass = gdclass(nil, "Node")
             function TestClass:TestMethod() end
 
             return TestClass
@@ -140,40 +132,32 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
         expected_property.type = GDEXTENSION_VARIANT_TYPE_FLOAT;
 
         EVAL_THEN(T, R"ASDF(
-            local TestClass = gdclass({
-                name = "TestClass",
-                extends = "Node3D",
-                tool = true
-            })
+            local TestClass = gdclass("TestClass", "Node3D")
+                :Tool(true)
 
-            TestClass:RegisterMethod("TestMethod", {
-                args = {
-                    gdproperty({
+            TestClass:RegisterMethod("TestMethod")
+                :Args(
+                    {
                         name = "arg1",
                         type = Enum.VariantType.FLOAT
-                    }),
-                    gdproperty({
+                    },
+                    {
                         name = "arg2",
                         type = Enum.VariantType.STRING
-                    })
-                },
-                defaultArgs = { 1, "godot" },
-                returnVal = gdproperty({ type = Enum.VariantType.STRING }),
-                flags = Enum.MethodFlags.NORMAL
-            })
+                    }
+                )
+                :DefaultArgs(1, "godot")
+                :ReturnVal({ type = Enum.VariantType.STRING })
+                :Flags(Enum.MethodFlags.NORMAL)
 
-            TestClass:RegisterProperty("testProperty", {
-                property = gdproperty({ type = Enum.VariantType.FLOAT }),
-                getter = "GetTestProperty",
-                setter = "SetTestProperty",
-                default = 3.5
-            })
+            TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.FLOAT })
+                :SetGet("SetTestProperty", "GetTestProperty")
+                :Default(3.5)
 
-            TestClass:RegisterSignal("testSignal", {
-                args = {
-                    gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
-                }
-            })
+            TestClass:RegisterSignal("testSignal")
+                :Args(
+                    { name = "arg1", type = Enum.VariantType.FLOAT }
+                )
 
             TestClass:RegisterRpc("TestRpc", {
                 rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,

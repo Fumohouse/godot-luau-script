@@ -1,14 +1,12 @@
-local TestBaseScript = gdclass({ extends = "Node3D" })
+local TestBaseScript = gdclass(nil, "Node3D")
 
 function TestBaseScript:TestMethod()
 	print("TestBaseScript: TestMethod")
 end
 
-TestBaseScript:RegisterMethod("TestMethod", {})
+TestBaseScript:RegisterMethod("TestMethod")
 
-TestBaseScript:RegisterProperty("baseProperty", {
-	property = gdproperty({ type = Enum.VariantType.STRING }),
-	default = "hi"
-})
+TestBaseScript:RegisterProperty("baseProperty", { type = Enum.VariantType.STRING })
+	:Default("hi")
 
 return TestBaseScript

@@ -262,3 +262,32 @@ TArray luaGD_checkarray(lua_State *L, int index, const char *metatable_name, Var
     type LuaStackOp<type>::check(lua_State *L, int index) {                                    \
         return luaGD_checkarray<type>(L, index, metatable_name, variant_type, "", type##_set); \
     }
+
+/* POINTER */
+
+#define PTR_OP_DEF(type) STACK_OP_DEF_BASE(type *, type *)
+
+#define PTR_STACK_OP_IMPL(type, metatable_name)                                       \
+    void LuaStackOp<type *>::push(lua_State *L, type *value) {                        \
+        type **udata = reinterpret_cast<type **>(lua_newuserdata(L, sizeof(void *))); \
+                                                                                      \
+        luaL_getmetatable(L, metatable_name);                                         \
+        if (lua_isnil(L, -1))                                                         \
+            luaL_error(L, "Metatable not found: " metatable_name);                    \
+                                                                                      \
+        lua_setmetatable(L, -2);                                                      \
+                                                                                      \
+        *udata = value;                                                               \
+    }                                                                                 \
+                                                                                      \
+    type *LuaStackOp<type *>::get(lua_State *L, int index) {                          \
+        return *reinterpret_cast<type **>(lua_touserdata(L, index));                  \
+    }                                                                                 \
+                                                                                      \
+    bool LuaStackOp<type *>::is(lua_State *L, int index) {                            \
+        return luaGD_metatables_match(L, index, metatable_name);                      \
+    }                                                                                 \
+                                                                                      \
+    type *LuaStackOp<type *>::check(lua_State *L, int index) {                        \
+        return *reinterpret_cast<type **>(luaL_checkudata(L, index, metatable_name)); \
+    }

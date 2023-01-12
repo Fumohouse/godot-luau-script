@@ -49,6 +49,8 @@ struct GDMethod {
     Vector<GDProperty> arguments;
     Vector<Variant> default_arguments;
 
+    bool is_signal = false;
+
     operator Dictionary() const;
     operator Variant() const;
 };
@@ -69,7 +71,7 @@ struct GDClassDefinition {
     int table_ref = -1;
 
     String name;
-    String extends;
+    String extends = "RefCounted";
 
     ThreadPermissions permissions = PERMISSION_BASE;
 
@@ -82,10 +84,10 @@ struct GDClassDefinition {
     HashMap<StringName, GDRpc> rpcs;
     HashMap<StringName, Variant> constants;
 
-    void set_prop(const String &name, const GDClassProperty &prop);
+    int set_prop(const String &name, const GDClassProperty &prop);
 };
 
-STACK_OP_PTR_DEF(GDProperty)
 STACK_OP_PTR_DEF(GDClassDefinition)
 
+GDProperty luascript_read_property(lua_State *L, int idx);
 void luascript_openlibs(lua_State *L);
