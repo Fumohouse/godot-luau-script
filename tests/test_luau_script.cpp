@@ -833,7 +833,6 @@ TEST_CASE("luau script: placeholders") {
                 String new_src = script->_get_source_code().replace("--@1", R"ASDF(
                     Script:RegisterProperty("testProperty2", {
                         property = gdproperty({ type = Enum.VariantType.VECTOR3 }),
-                        usage = Enum.PropertyUsageFlags.STORAGE,
                         default = Vector3(1, 2, 3)
                     })
                 )ASDF");

@@ -4,6 +4,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <string.h>
+#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/core/error_macros.hpp>
@@ -113,7 +114,7 @@ static int luascript_gdproperty(lua_State *L) {
         property.name = luaGD_checkvaluetype<String>(L, -1, "name", LUA_TSTRING);
 
     if (luaGD_getfield(L, 1, "hint"))
-        property.hint = luaGD_checkvaluetype<uint32_t>(L, -1, "hint", LUA_TNUMBER);
+        property.hint = static_cast<PropertyHint>(luaGD_checkvaluetype<uint32_t>(L, -1, "hint", LUA_TNUMBER));
 
     if (luaGD_getfield(L, 1, "hintString"))
         property.hint_string = luaGD_checkvaluetype<String>(L, -1, "hintString", LUA_TSTRING);

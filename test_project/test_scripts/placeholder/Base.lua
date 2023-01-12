@@ -4,7 +4,6 @@ local Base = gdclass({ extends = "Node" })
 
 Base:RegisterProperty("baseProperty", {
     property = gdproperty({ type = Enum.VariantType.STRING }),
-	usage = Enum.PropertyUsageFlags.STORAGE,
     default = "hello"
 })
 

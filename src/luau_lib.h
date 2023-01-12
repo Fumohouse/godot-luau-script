@@ -4,6 +4,7 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
+#include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
@@ -20,12 +21,12 @@ struct lua_State;
 
 struct GDProperty {
     GDExtensionVariantType type = GDEXTENSION_VARIANT_TYPE_NIL;
-    uint32_t usage = PROPERTY_USAGE_DEFAULT;
+    BitField<PropertyUsageFlags> usage = PROPERTY_USAGE_DEFAULT;
 
     String name;
     StringName class_name;
 
-    uint32_t hint = PROPERTY_HINT_NONE;
+    PropertyHint hint = PROPERTY_HINT_NONE;
     String hint_string;
 
     operator Dictionary() const;
@@ -44,7 +45,7 @@ struct GDClassProperty {
 struct GDMethod {
     String name;
     GDProperty return_val;
-    uint32_t flags = METHOD_FLAGS_DEFAULT;
+    BitField<MethodFlags> flags = METHOD_FLAGS_DEFAULT;
     Vector<GDProperty> arguments;
     Vector<Variant> default_arguments;
 

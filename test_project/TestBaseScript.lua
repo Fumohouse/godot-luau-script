@@ -8,7 +8,6 @@ TestBaseScript:RegisterMethod("TestMethod", {})
 
 TestBaseScript:RegisterProperty("baseProperty", {
 	property = gdproperty({ type = Enum.VariantType.STRING }),
-	usage = Enum.PropertyUsageFlags.STORAGE,
 	default = "hi"
 })
 
