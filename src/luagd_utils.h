@@ -8,6 +8,7 @@
 #define luaGD_typename(L, index) lua_typename(L, lua_type(L, index))
 
 #define luaGD_indexerror(L, key, of) luaL_error(L, "'%s' is not a valid member of '%s'", key, of)
+#define luaGD_nomethoderror(L, key, of) luaL_error(L, "'%s' is not a valid method of '%s'", key, of)
 
 #define luaGD_keyerror(L, of, got, expected) luaL_error(L, "invalid type for key of %s: got %s, expected %s", of, got, expected)
 #define luaGD_valueerror(L, key, got, expected) luaL_error(L, "invalid type for value of key %s: got %s, expected %s", key, got, expected)

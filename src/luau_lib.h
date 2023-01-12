@@ -65,6 +65,8 @@ struct GDRpc {
 };
 
 struct GDClassDefinition {
+    int table_ref = -1;
+
     String name;
     String extends;
 
@@ -73,13 +75,16 @@ struct GDClassDefinition {
     bool is_tool = false;
 
     HashMap<StringName, GDMethod> methods;
-    HashMap<StringName, GDClassProperty> properties;
+    HashMap<StringName, uint64_t> property_indices;
+    Vector<GDClassProperty> properties;
     HashMap<StringName, GDMethod> signals;
     HashMap<StringName, GDRpc> rpcs;
     HashMap<StringName, Variant> constants;
+
+    void set_prop(const String &name, const GDClassProperty &prop);
 };
 
 STACK_OP_PTR_DEF(GDProperty)
+STACK_OP_PTR_DEF(GDClassDefinition)
 
 void luascript_openlibs(lua_State *L);
-GDClassDefinition luascript_read_class(lua_State *L, int idx, const String &path = "");

@@ -1,14 +1,11 @@
-local Script = {
-    extends = "Base.lua",
-    properties = {},
-}
+local Script = gdclass({ extends = "Base.lua" })
 
 --@1
 
-Script.properties["testProperty"] = {
-    property = gdproperty({ name = "testProperty", type = Enum.VariantType.FLOAT }),
+Script:RegisterProperty("testProperty", {
+    property = gdproperty({ type = Enum.VariantType.FLOAT }),
 	usage = Enum.PropertyUsageFlags.STORAGE,
     default = 4.25
-}
+})
 
 return Script

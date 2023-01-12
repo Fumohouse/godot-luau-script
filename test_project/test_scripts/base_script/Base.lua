@@ -1,6 +1,4 @@
-local Base = {
-    extends = "Node",
-}
+local Base = gdclass({ extends = "Node" })
 
 --@1
 

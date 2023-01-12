@@ -70,19 +70,42 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
 
     lua_State *T = lua_newthread(L);
 
-    SECTION("explicit extends"){
-        EVAL_THEN(T, "return { name = 'TestClass', extends = 'Node3D' }", {
-            GDClassDefinition def = luascript_read_class(T, -1);
-            REQUIRE(def.name == "TestClass");
-            REQUIRE(def.extends == "Node3D");
+    SECTION("explicit extends") {
+        EVAL_THEN(T, "return gdclass({ name = 'TestClass', extends = 'Node3D' })", {
+            GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
+            REQUIRE(def->name == "TestClass");
+            REQUIRE(def->extends == "Node3D");
         })
     }
 
-    SECTION("default extends"){ EVAL_THEN(T, "return { name = 'TestClass' }", {
-        GDClassDefinition def = luascript_read_class(T, -1);
-        REQUIRE(def.name == "TestClass");
-        REQUIRE(def.extends == "RefCounted");
-    }) }
+    SECTION("default extends") {
+        EVAL_THEN(T, "return gdclass({ name = 'TestClass' })", {
+            GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
+            REQUIRE(def->name == "TestClass");
+            REQUIRE(def->extends == "RefCounted");
+        })
+    }
+
+    SECTION("can't set reserved key") {
+        ASSERT_EVAL_FAIL(T, R"ASDF(
+            local TestClass = gdclass({ extends = "Node" })
+            function TestClass:extends() end
+        )ASDF",
+                "exec:3: cannot set 'extends' on GDClassDefinition: key is reserved")
+    }
+
+    SECTION("get from definition table") {
+        EVAL_THEN(T, R"ASDF(
+            local TestClass = gdclass({ extends = "Node" })
+            function TestClass:TestMethod() end
+
+            return TestClass
+        )ASDF",
+                {
+                    lua_getfield(T, -1, "TestMethod");
+                    REQUIRE(lua_type(T, -1) == LUA_TFUNCTION);
+                })
+    }
 
     SECTION("full example") {
         GDMethod expected_method;
@@ -117,67 +140,64 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
         expected_property.type = GDEXTENSION_VARIANT_TYPE_FLOAT;
 
         EVAL_THEN(T, R"ASDF(
-            return {
+            local TestClass = gdclass({
                 name = "TestClass",
                 extends = "Node3D",
-                tool = true,
-                methods = {
-                    TestMethod = {
-                        args = {
-                            gdproperty({
-                                name = "arg1",
-                                type = Enum.VariantType.FLOAT
-                            }),
-                            gdproperty({
-                                name = "arg2",
-                                type = Enum.VariantType.STRING
-                            })
-                        },
-                        defaultArgs = { 1, "godot" },
-                        returnVal = gdproperty({ type = Enum.VariantType.STRING }),
-                        flags = Enum.MethodFlags.NORMAL
-                    }
+                tool = true
+            })
+
+            TestClass:RegisterMethod("TestMethod", {
+                args = {
+                    gdproperty({
+                        name = "arg1",
+                        type = Enum.VariantType.FLOAT
+                    }),
+                    gdproperty({
+                        name = "arg2",
+                        type = Enum.VariantType.STRING
+                    })
                 },
-                properties = {
-                    testProperty = {
-                        property = gdproperty({ name = "testProperty", type = Enum.VariantType.FLOAT }),
-                        getter = "GetTestProperty",
-                        setter = "SetTestProperty",
-                        default = 3.5
-                    }
-                },
-                signals = {
-                    testSignal = {
-                        args = {
-                            gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
-                        }
-                    }
-                },
-                rpcs = {
-                    testRpc = {
-                        rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,
-                        transferMode = MultiplayerPeer.TransferMode.RELIABLE,
-                        callLocal = true,
-                        channel = 4
-                    }
-                },
-                constants = {
-                    TEST_CONSTANT = Vector2(1, 2)
+                defaultArgs = { 1, "godot" },
+                returnVal = gdproperty({ type = Enum.VariantType.STRING }),
+                flags = Enum.MethodFlags.NORMAL
+            })
+
+            TestClass:RegisterProperty("testProperty", {
+                property = gdproperty({ type = Enum.VariantType.FLOAT }),
+                getter = "GetTestProperty",
+                setter = "SetTestProperty",
+                default = 3.5
+            })
+
+            TestClass:RegisterSignal("testSignal", {
+                args = {
+                    gdproperty({ name = "arg1", type = Enum.VariantType.FLOAT })
                 }
-            }
+            })
+
+            TestClass:RegisterRpc("TestRpc", {
+                rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,
+                transferMode = MultiplayerPeer.TransferMode.RELIABLE,
+                callLocal = true,
+                channel = 4
+            })
+
+            TestClass:RegisterConstant("TEST_CONSTANT", Vector2(1, 2))
+
+            return TestClass
         )ASDF",
                 {
-                    GDClassDefinition def = luascript_read_class(T, -1);
+                    GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
 
                     SECTION("methods") {
-                        REQUIRE(def.methods.has("TestMethod"));
-                        REQUIRE(def.methods.get("TestMethod").operator Dictionary() == expected_method.operator Dictionary());
+                        REQUIRE(def->methods.has("TestMethod"));
+                        REQUIRE(def->methods.get("TestMethod").operator Dictionary() == expected_method.operator Dictionary());
                     }
 
                     SECTION("properties") {
-                        REQUIRE(def.properties.has("testProperty"));
+                        REQUIRE(def->property_indices.has("testProperty"));
 
-                        const GDClassProperty &prop = def.properties.get("testProperty");
+                        const GDClassProperty &prop = def->properties[def->property_indices["testProperty"]];
                         REQUIRE(prop.property.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
                         REQUIRE(prop.property.operator Dictionary() == expected_property.operator Dictionary());
                         REQUIRE(prop.getter == StringName("GetTestProperty"));
@@ -186,9 +206,9 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                     }
 
                     SECTION("signals") {
-                        REQUIRE(def.signals.has("testSignal"));
+                        REQUIRE(def->signals.has("testSignal"));
 
-                        const GDMethod &signal = def.signals.get("testSignal");
+                        const GDMethod &signal = def->signals.get("testSignal");
                         REQUIRE(signal.arguments.size() == 1);
 
                         const GDProperty &arg = signal.arguments[0];
@@ -197,10 +217,10 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                     }
 
                     SECTION("rpcs") {
-                        REQUIRE(def.rpcs.has("testRpc"));
+                        REQUIRE(def->rpcs.has("TestRpc"));
 
-                        const GDRpc &rpc = def.rpcs.get("testRpc");
-                        REQUIRE(rpc.name == "testRpc");
+                        const GDRpc &rpc = def->rpcs.get("TestRpc");
+                        REQUIRE(rpc.name == "TestRpc");
                         REQUIRE(rpc.rpc_mode == MultiplayerAPI::RPC_MODE_ANY_PEER);
                         REQUIRE(rpc.transfer_mode == MultiplayerPeer::TRANSFER_MODE_RELIABLE);
                         REQUIRE(rpc.call_local);
@@ -208,8 +228,8 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                     }
 
                     SECTION("constants") {
-                        REQUIRE(def.constants.has("TEST_CONSTANT"));
-                        REQUIRE(def.constants["TEST_CONSTANT"] == Vector2(1, 2));
+                        REQUIRE(def->constants.has("TEST_CONSTANT"));
+                        REQUIRE(def->constants["TEST_CONSTANT"] == Vector2(1, 2));
                     }
                 })
     }

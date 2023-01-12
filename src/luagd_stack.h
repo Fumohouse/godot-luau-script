@@ -85,6 +85,7 @@ bool luaGD_metatables_match(lua_State *L, int index, const char *metatable_name)
 #define UDATA_ALLOC(type, metatable_name, dtor)                                             \
     type *LuaStackOp<type>::alloc(lua_State *L) {                                           \
         type *udata = reinterpret_cast<type *>(lua_newuserdatadtor(L, sizeof(type), dtor)); \
+        new (udata) type();                                                                 \
                                                                                             \
         luaL_getmetatable(L, metatable_name);                                               \
         if (lua_isnil(L, -1))                                                               \
@@ -98,7 +99,6 @@ bool luaGD_metatables_match(lua_State *L, int index, const char *metatable_name)
 #define UDATA_PUSH(type)                                           \
     void LuaStackOp<type>::push(lua_State *L, const type &value) { \
         type *udata = LuaStackOp<type>::alloc(L);                  \
-        new (udata) type();                                        \
         *udata = value;                                            \
     }
 

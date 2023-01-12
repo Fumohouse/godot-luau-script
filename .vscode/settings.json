@@ -3,8 +3,5 @@
         ".sconsign.dblite": true,
         "**/*.o": true,
         "**/*.os": true
-    },
-    "luau-lsp.types.definitionFiles": [
-        "design/class.d.lua"
-    ]
+    }
 }

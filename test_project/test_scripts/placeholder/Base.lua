@@ -1,14 +1,11 @@
-local Base = {
-    extends = "Node",
-    properties = {},
-}
+local Base = gdclass({ extends = "Node" })
 
 --@1
 
-Base.properties["baseProperty"] = {
-    property = gdproperty({ name = "baseProperty", type = Enum.VariantType.STRING }),
+Base:RegisterProperty("baseProperty", {
+    property = gdproperty({ type = Enum.VariantType.STRING }),
 	usage = Enum.PropertyUsageFlags.STORAGE,
     default = "hello"
-}
+})
 
 return Base

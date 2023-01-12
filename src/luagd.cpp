@@ -27,8 +27,11 @@ static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
     GDThreadData *udata = memnew(GDThreadData);
     lua_setthreaddata(L, udata);
 
-    if (LP != nullptr)
-        udata->permissions = luaGD_getthreaddata(LP)->permissions;
+    if (LP != nullptr) {
+        GDThreadData *parent_udata = luaGD_getthreaddata(LP);
+        udata->permissions = parent_udata->permissions;
+        udata->path = parent_udata->path;
+    }
 
     return udata;
 }

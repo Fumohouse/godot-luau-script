@@ -1,6 +1,4 @@
-local Script = {
-    extends = "Base.lua",
-}
+local Script = gdclass({ extends = "Base.lua" })
 
 --@1
 

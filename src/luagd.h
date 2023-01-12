@@ -3,6 +3,7 @@
 #include <lua.h>
 #include <godot_cpp/core/method_ptrcall.hpp> // TODO: unused. required to prevent compile error when specializing PtrToArg.
 #include <godot_cpp/core/type_info.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 using namespace godot;
 
@@ -23,6 +24,7 @@ void luaGD_checkpermissions(lua_State *L, const char *name, ThreadPermissions pe
 const ApiEnum &get_permissions_enum();
 struct GDThreadData {
     BitField<ThreadPermissions> permissions = 0;
+    String path;
 };
 
 lua_State *luaGD_newstate(ThreadPermissions base_permissions);

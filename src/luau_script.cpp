@@ -114,17 +114,20 @@ Error LuauScript::get_class_definition(Ref<LuauScript> script, const String &sou
     lua_State *T = lua_newthread(L);
     luaL_sandboxthread(T);
 
+    GDThreadData *udata = luaGD_getthreaddata(T);
+    udata->path = script->get_path();
+
     if (try_load(T, source.utf8().get_data()) == OK) {
         LUAU_LOAD_RESUME(script)
 
-        if (lua_isnil(T, 1) || lua_type(T, 1) != LUA_TTABLE) {
+        if (lua_isnil(T, 1) || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
             lua_pop(L, 1); // thread
             LUAU_LOAD_ERR(script, 1, LUAU_LOAD_NO_DEF_MSG);
 
             return ERR_COMPILATION_FAILED;
         }
 
-        r_def = luascript_read_class(T, 1, script->get_path());
+        r_def = LuaStackOp<GDClassDefinition>::get(T, -1);
         r_is_valid = true;
 
         lua_pop(L, 1); // thread
@@ -197,10 +200,13 @@ Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool force) {
     lua_State *T = lua_newthread(L);
     luaL_sandboxthread(T);
 
+    GDThreadData *udata = luaGD_getthreaddata(T);
+    udata->path = get_path();
+
     if (try_load(T, source.utf8().get_data()) == OK) {
         LUAU_LOAD_RESUME(this)
 
-        if (lua_gettop(T) < 1) {
+        if (lua_gettop(T) < 1 || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
             LUAU_LOAD_ERR(this, 1, LUAU_LOAD_NO_DEF_MSG);
             return ERR_COMPILATION_FAILED;
         }
@@ -208,7 +214,7 @@ Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool force) {
         if (def_table_refs.has(p_vm_type))
             lua_unref(L, def_table_refs[p_vm_type]);
 
-        def_table_refs[p_vm_type] = lua_ref(T, -1);
+        def_table_refs[p_vm_type] = LuaStackOp<GDClassDefinition>::get_ptr(T, 1)->table_ref;
         lua_pop(L, 1); // thread
 
         return OK;
@@ -320,8 +326,8 @@ Dictionary LuauScript::_get_method_info(const StringName &p_method) const {
 TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
     TypedArray<Dictionary> properties;
 
-    for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties)
-        properties.push_back(pair.value.property.operator Dictionary());
+    for (const GDClassProperty &prop : definition.properties)
+        properties.push_back(prop.property.operator Dictionary());
 
     return properties;
 }
@@ -329,16 +335,16 @@ TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
 TypedArray<StringName> LuauScript::_get_members() const {
     TypedArray<StringName> members;
 
-    for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties)
-        members.push_back(pair.value.property.name);
+    for (const GDClassProperty &prop : definition.properties)
+        members.push_back(prop.property.name);
 
     return members;
 }
 
 bool LuauScript::_has_property_default_value(const StringName &p_property) const {
-    HashMap<StringName, GDClassProperty>::ConstIterator E = definition.properties.find(p_property);
+    HashMap<StringName, uint64_t>::ConstIterator E = definition.property_indices.find(p_property);
 
-    if (E && E->value.default_value != Variant())
+    if (E && definition.properties[E->value].default_value != Variant())
         return true;
 
     if (base.is_valid())
@@ -348,10 +354,10 @@ bool LuauScript::_has_property_default_value(const StringName &p_property) const
 }
 
 Variant LuauScript::_get_property_default_value(const StringName &p_property) const {
-    HashMap<StringName, GDClassProperty>::ConstIterator E = definition.properties.find(p_property);
+    HashMap<StringName, uint64_t>::ConstIterator E = definition.property_indices.find(p_property);
 
-    if (E && E->value.default_value != Variant())
-        return E->value.default_value;
+    if (E && definition.properties[E->value].default_value != Variant())
+        return definition.properties[E->value].default_value;
 
     if (base.is_valid())
         return base->_get_property_default_value(p_property);
@@ -360,11 +366,11 @@ Variant LuauScript::_get_property_default_value(const StringName &p_property) co
 }
 
 bool LuauScript::has_property(const StringName &p_name) const {
-    return definition.properties.has(p_name);
+    return definition.property_indices.has(p_name);
 }
 
 const GDClassProperty &LuauScript::get_property(const StringName &p_name) const {
-    return definition.properties.get(p_name);
+    return definition.properties[definition.property_indices[p_name]];
 }
 
 bool LuauScript::_has_script_signal(const StringName &signal) const {
@@ -441,6 +447,15 @@ LuauScript::~LuauScript() {
         MutexLock lock(LuauLanguage::get_singleton()->lock);
         LuauLanguage::get_singleton()->script_list.remove(&script_list);
     }
+
+    if (GDLuau::get_singleton() != nullptr) {
+        for (const KeyValue<GDLuau::VMType, int> &pair : def_table_refs) {
+            lua_State *L = GDLuau::get_singleton()->get_vm(pair.key);
+            lua_unref(L, pair.value);
+        }
+    }
+
+    def_table_refs.clear();
 }
 
 ////////////////////////////
@@ -776,8 +791,10 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
     LuauScript *s = script.ptr();
 
     while (s != nullptr) {
-        if (s->definition.properties.has(p_name)) {
-            const GDClassProperty &prop = s->definition.properties[p_name];
+        HashMap<StringName, uint64_t>::ConstIterator E = s->definition.property_indices.find(p_name);
+
+        if (E) {
+            const GDClassProperty &prop = s->definition.properties[E->value];
 
             // Check type
             if (prop.property.type != GDEXTENSION_VARIANT_TYPE_NIL && (GDExtensionVariantType)p_value.get_type() != prop.property.type) {
@@ -842,8 +859,10 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
     LuauScript *s = script.ptr();
 
     while (s != nullptr) {
-        if (s->definition.properties.has(p_name)) {
-            const GDClassProperty &prop = s->definition.properties[p_name];
+        HashMap<StringName, uint64_t>::ConstIterator E = s->definition.property_indices.find(p_name);
+
+        if (E) {
+            const GDClassProperty &prop = s->definition.properties[E->value];
 
             // Check write-only (setter, no getter)
             if (prop.setter != StringName() && prop.getter == StringName()) {
@@ -903,14 +922,14 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
-        for (const KeyValue<StringName, GDClassProperty> &pair : s->definition.properties) {
-            if (defined.has(pair.key))
+        for (const GDClassProperty &prop : s->definition.properties) {
+            if (defined.has(prop.property.name))
                 continue;
 
-            defined.insert(pair.key);
+            defined.insert(prop.property.name);
 
             GDExtensionPropertyInfo dst;
-            copy_prop(pair.value.property, dst);
+            copy_prop(prop.property, dst);
 
             properties.push_back(dst);
         }
@@ -931,11 +950,13 @@ Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bo
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
-        if (s->definition.properties.has(p_name)) {
+        HashMap<StringName, uint64_t>::ConstIterator E = s->definition.property_indices.find(p_name);
+
+        if (E) {
             if (r_is_valid != nullptr)
                 *r_is_valid = true;
 
-            return (Variant::Type)s->definition.properties[p_name].property.type;
+            return (Variant::Type)s->definition.properties[E->value].property.type;
         }
 
         s = s->base.ptr();
@@ -1170,6 +1191,10 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
     T = luaGD_newthread(L, p_script->definition.permissions);
     luaL_sandboxthread(T);
+
+    GDThreadData *udata = luaGD_getthreaddata(T);
+    udata->path = p_script->get_path();
+
     thread_ref = lua_ref(L, -1);
 
     lua_newtable(T);
@@ -1179,11 +1204,9 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
     while (s != nullptr) {
         // Initialize default values
-        for (const KeyValue<StringName, GDClassProperty> pair : s->definition.properties) {
-            const GDClassProperty &prop = pair.value;
-
+        for (const GDClassProperty &prop : s->definition.properties) {
             if (prop.getter == StringName() && prop.setter == StringName()) {
-                int status = protected_table_set(T, String(pair.key), prop.default_value);
+                int status = protected_table_set(T, String(prop.property.name), prop.default_value);
                 ERR_FAIL_COND_MSG(status != LUA_OK, "Failed to set default value");
             }
         }

@@ -430,7 +430,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
         if (builtin_class->methods.has(name))
             return call_builtin_method(L, *builtin_class, builtin_class->methods.get(name));
 
-        luaL_error(L, "'%s' is not a valid method of '%s'", name, builtin_class->name);
+        luaGD_nomethoderror(L, name, builtin_class->name);
     }
 
     luaL_error(L, "no namecallatom");
@@ -780,7 +780,7 @@ static int luaGD_class_namecall(lua_State *L) {
             INHERIT_OR_BREAK
         }
 
-        luaL_error(L, "%s is not a valid method of %s", name, current_class->name);
+        luaGD_nomethoderror(L, name, current_class->name);
     }
 
     luaL_error(L, "no namecallatom");

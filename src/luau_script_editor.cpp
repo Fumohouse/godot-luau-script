@@ -51,11 +51,9 @@ void LuauScript::_update_exports() {
 }
 
 void LuauScript::update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values) {
-    for (const KeyValue<StringName, GDClassProperty> &pair : definition.properties) {
-        const GDClassProperty &prop = pair.value;
-
+    for (const GDClassProperty &prop : definition.properties) {
         properties.push_back(prop.property);
-        values[pair.key] = prop.default_value;
+        values[prop.property.name] = prop.default_value;
     }
 
     if (base.is_valid()) {
