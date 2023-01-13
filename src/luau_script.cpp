@@ -1449,6 +1449,19 @@ Object *LuauLanguage::_create_script() const {
     return memnew(LuauScript);
 }
 
+void LuauLanguage::_add_global_constant(const StringName &p_name, const Variant &p_value) {
+    // TODO: Difference between these two functions?
+    _add_named_global_constant(p_name, p_value);
+}
+
+void LuauLanguage::_add_named_global_constant(const StringName &p_name, const Variant &p_value) {
+    global_constants[p_name] = p_value;
+}
+
+void LuauLanguage::_remove_named_global_constant(const StringName &p_name) {
+    global_constants.erase(p_name);
+}
+
 Error LuauLanguage::_execute_file(const String &p_path) {
     // Unused by Godot; purpose unclear
     return OK;

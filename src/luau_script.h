@@ -298,11 +298,13 @@ private:
     Mutex lock;
 
     static LuauLanguage *singleton;
-    GDLuau *luau;
-    LuauCache *cache;
+    GDLuau *luau = nullptr;
+    LuauCache *cache = nullptr;
 
     SelfList<LuauScript>::List script_list;
     HashSet<String> core_scripts;
+
+    HashMap<StringName, Variant> global_constants;
 
     bool finalized = false;
     void finalize();
@@ -341,6 +343,10 @@ public:
 
     void _reload_all_scripts() override;
     void _reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) override;
+
+    void _add_global_constant(const StringName &p_name, const Variant &p_value) override;
+    void _add_named_global_constant(const StringName &p_name, const Variant &p_value) override;
+    void _remove_named_global_constant(const StringName &p_name) override;
 
     /* ???: pure virtual functions which have no clear purpose */
     Error _execute_file(const String &p_path) override;
@@ -382,10 +388,6 @@ public:
     String _make_function(const String &class_name, const String &function_name, const PackedStringArray &function_args) const;
 
     // To implement later (or never)
-    void _add_global_constant(const StringName &name, const Variant &value);
-    void _add_named_global_constant(const StringName &name, const Variant &value);
-    void _remove_named_global_constant(const StringName &name);
-
     TypedArray<Dictionary> _get_built_in_templates(const StringName &object) const;
     bool _is_using_templates();
 
@@ -419,6 +421,7 @@ public:
     */
 
     bool is_core_script(const String &p_path) const;
+    const HashMap<StringName, Variant> &get_global_constants() const { return global_constants; }
 
     LuauLanguage();
     ~LuauLanguage();

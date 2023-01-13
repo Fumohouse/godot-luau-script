@@ -5,6 +5,7 @@ function TestClass:_Ready()
 	print("TestScript: Ready!")
 
 	self:TestMethod()
+	TestAutoLoad:TestMethod()
 
 	-- Exit the test once complete
 	print_rich("[color=green]Tests finished![/color] Exiting...")
