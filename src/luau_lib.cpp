@@ -17,6 +17,7 @@
 #include "luagd.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
+#include "luagd_variant.h"
 #include "luau_script.h"
 
 using namespace godot;
@@ -346,7 +347,24 @@ static int luascript_classprop_namecall(lua_State *L) {
 
     if (const char *key = lua_namecallatom(L, nullptr)) {
         if (strcmp(key, "Default") == 0) {
-            prop->default_value = LuaStackOp<Variant>::check(L, 2);
+            // NIL type means value must be nil. Godot does not support setting the value of a NIL property.
+            if (prop->property.type == GDEXTENSION_VARIANT_TYPE_NIL) {
+                luaL_checktype(L, 2, LUA_TNIL);
+                prop->default_value = Variant();
+            } else {
+                if (!LuauVariant::lua_is(L, 2, prop->property.type, prop->property.class_name)) {
+                    String type_name;
+                    if (prop->property.class_name.is_empty()) {
+                        type_name = Variant::get_type_name((Variant::Type)prop->property.type);
+                    } else {
+                        type_name = prop->property.class_name;
+                    }
+
+                    luaL_typeerror(L, 2, type_name.utf8().get_data());
+                }
+
+                prop->default_value = LuaStackOp<Variant>::check(L, 2);
+            }
         } else if (strcmp(key, "SetGet") == 0) {
             prop->setter = luaL_optstring(L, 2, "");
             prop->getter = luaL_optstring(L, 3, "");

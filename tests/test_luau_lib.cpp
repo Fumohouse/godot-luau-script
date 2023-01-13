@@ -99,6 +99,24 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                 })
     }
 
+    SECTION("default property value type checks") {
+        SECTION("non-nil") {
+            ASSERT_EVAL_FAIL(T, R"ASDF(
+                local TestClass = gdclass()
+                TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.FLOAT }):Default("what?")
+            )ASDF",
+                    "exec:3: invalid argument #2 to 'Luau.GDClassProperty.__namecall' (float expected, got string)")
+        }
+
+        SECTION("nil") {
+            ASSERT_EVAL_FAIL(T, R"ASDF(
+                local TestClass = gdclass()
+                TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.NIL }):Default("what?")
+            )ASDF",
+                    "exec:3: invalid argument #2 to 'Luau.GDClassProperty.__namecall' (nil expected, got string)")
+        }
+    }
+
     SECTION("full example") {
         GDMethod expected_method;
 
