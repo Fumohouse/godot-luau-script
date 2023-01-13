@@ -6,7 +6,7 @@ end
 
 TestBaseScript:RegisterMethod("TestMethod")
 
-TestBaseScript:RegisterProperty("baseProperty", { type = Enum.VariantType.STRING })
+TestBaseScript:RegisterProperty("baseProperty", Enum.VariantType.STRING)
 	:Default("hi")
 
 return TestBaseScript

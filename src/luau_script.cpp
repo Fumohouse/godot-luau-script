@@ -326,8 +326,17 @@ Dictionary LuauScript::_get_method_info(const StringName &p_method) const {
 TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
     TypedArray<Dictionary> properties;
 
-    for (const GDClassProperty &prop : definition.properties)
-        properties.push_back(prop.property.operator Dictionary());
+    const LuauScript *s = this;
+
+    while (s != nullptr) {
+        // Reverse to add properties from base scripts first.
+        for (int i = definition.properties.size() - 1; i >= 0; i--) {
+            const GDClassProperty &prop = definition.properties[i];
+            properties.push_front(prop.property.operator Dictionary());
+        }
+
+        s = s->base.ptr();
+    }
 
     return properties;
 }
@@ -797,7 +806,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             const GDClassProperty &prop = s->definition.properties[E->value];
 
             // Check type
-            if (prop.property.type != GDEXTENSION_VARIANT_TYPE_NIL && (GDExtensionVariantType)p_value.get_type() != prop.property.type) {
+            if ((GDExtensionVariantType)p_value.get_type() != prop.property.type) {
                 if (r_err != nullptr)
                     *r_err = PROP_WRONG_TYPE;
 
@@ -921,8 +930,13 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
 
     const LuauScript *s = script.ptr();
 
+    // Push properties in reverse then reverse the entire vector.
+    // Ensures base properties are first.
+    // (see _get_script_property_list)
     while (s != nullptr) {
-        for (const GDClassProperty &prop : s->definition.properties) {
+        for (int i = s->definition.properties.size() - 1; i >= 0; i--) {
+            const GDClassProperty &prop = s->definition.properties[i];
+
             if (defined.has(prop.property.name))
                 continue;
 
@@ -936,6 +950,8 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
 
         s = s->base.ptr();
     }
+
+    properties.reverse();
 
     int size = properties.size();
     *r_count = size;

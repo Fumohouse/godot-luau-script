@@ -52,7 +52,7 @@ TEST_CASE("luau script: script load") {
 
         TestClass:RegisterMethod("__WeirdMethodName")
 
-        TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.FLOAT })
+        TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
             :Default(5.5)
 
         return TestClass
@@ -198,7 +198,7 @@ TEST_CASE("luau script: instance") {
             self._testProperty = val
         end
 
-        TestClass:RegisterProperty("testProperty", { type = Enum.VariantType.FLOAT })
+        TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
             :SetGet("SetTestProperty", "GetTestProperty")
             :Default(5.5)
 
@@ -206,18 +206,18 @@ TEST_CASE("luau script: instance") {
             return "hello"
         end
 
-        TestClass:RegisterProperty("testProperty2", { type = Enum.VariantType.STRING })
+        TestClass:RegisterProperty("testProperty2", Enum.VariantType.STRING)
             :SetGet(nil, "GetTestProperty2")
             :Default("hey")
 
         function TestClass:SetTestProperty3(val)
         end
 
-        TestClass:RegisterProperty("testProperty3", { type = Enum.VariantType.STRING })
+        TestClass:RegisterProperty("testProperty3", Enum.VariantType.STRING)
             :SetGet("SetTestProperty3")
             :Default("hey")
 
-        TestClass:RegisterProperty("testProperty4", { type = Enum.VariantType.STRING })
+        TestClass:RegisterProperty("testProperty4", Enum.VariantType.STRING)
             :Default("hey")
 
         return TestClass
@@ -623,10 +623,10 @@ TEST_CASE("luau script: inheritance") {
             tbl.property2 = "hi"
         end
 
-        Script1:RegisterProperty("property1", { type = Enum.VariantType.STRING })
+        Script1:RegisterProperty("property1", Enum.VariantType.STRING)
             :Default("hey")
 
-        Script1:RegisterProperty("property2", { type = Enum.VariantType.STRING })
+        Script1:RegisterProperty("property2", Enum.VariantType.STRING)
             :Default("hi")
 
         function Script1:Method1()
@@ -661,7 +661,7 @@ TEST_CASE("luau script: inheritance") {
             return "hihi"
         end
 
-        Script2:RegisterProperty("property2", { type = Enum.VariantType.STRING })
+        Script2:RegisterProperty("property2", Enum.VariantType.STRING)
             :SetGet(nil, "GetProperty2")
             :Default("hi")
 
@@ -800,7 +800,7 @@ TEST_CASE("luau script: placeholders") {
 
             SECTION("script change") {
                 String new_src = script->_get_source_code().replace("--@1", R"ASDF(
-                    Script:RegisterProperty("testProperty2", { type = Enum.VariantType.VECTOR3 })
+                    Script:RegisterProperty("testProperty2", Enum.VariantType.VECTOR3)
                         :Default(Vector3(1, 2, 3))
                 )ASDF");
                 script->_set_source_code(new_src);
@@ -881,7 +881,7 @@ TEST_CASE("luau script: reloading at runtime") {
 
     SECTION("reload") {
         String new_src = script->_get_source_code().replace("--@1", R"ASDF(
-            Script:RegisterProperty("testProperty2", { type = Enum.VariantType.FLOAT })
+            Script:RegisterProperty("testProperty2", Enum.VariantType.FLOAT)
                 :Default(1.25)
         )ASDF");
         script->_set_source_code(new_src);
@@ -894,7 +894,7 @@ TEST_CASE("luau script: reloading at runtime") {
 
     SECTION("reload base reloads inherited") {
         String new_src = script_base->_get_source_code().replace("--@1", R"ASDF(
-            Base:RegisterProperty("baseProperty2", { type = Enum.VariantType.FLOAT })
+            Base:RegisterProperty("baseProperty2", Enum.VariantType.FLOAT)
                 :Default(1.5)
         )ASDF");
         script_base->_set_source_code(new_src);
