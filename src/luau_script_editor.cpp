@@ -1,4 +1,3 @@
-#include "luau_lib.h"
 #include "luau_script.h"
 
 #include <gdextension_interface.h>
@@ -20,6 +19,7 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "gd_luau.h"
+#include "luau_cache.h"
 
 namespace godot {
 class Object;
@@ -39,27 +39,30 @@ void LuauScript::_update_exports() {
         return;
 
     bool cyclic_error = false;
-    update_exports_internal(&cyclic_error, false, nullptr);
+    update_exports_internal(&cyclic_error, nullptr);
 
     if (cyclic_error)
         return;
 
     // Update inheriting scripts
-    HashSet<uint64_t> copy = inheriters_cache; // Gets modified by _update_exports
+    HashSet<String> copy = dependents; // Gets modified by _update_exports
 
-    for (const uint64_t &E : copy) {
-        Object *ptr = ObjectDB::get_instance(E);
-        LuauScript *s = Object::cast_to<LuauScript>(ptr);
+    for (const String &E : copy) {
+        Error err;
+        Ref<LuauScript> scr = LuauCache::get_singleton()->get_script(E, err);
 
-        if (s == nullptr)
+        // Most likely means cyclic inheritance.
+        // Skip silently as this method is called several times at once, and an error (or several) for cyclic dependency
+        // should already have been printed.
+        if (scr->has_dependent(get_path()))
             continue;
 
-        s->_update_exports();
+        scr->_update_exports();
     }
 }
 
 void LuauScript::update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values) {
-    if (base.is_valid()) {
+    if (base.is_valid() && base->_is_valid()) {
         base->update_exports_values(properties, values);
     }
 
@@ -69,17 +72,8 @@ void LuauScript::update_exports_values(List<GDProperty> &properties, HashMap<Str
     }
 }
 
-// `p_recursive_call` indicates whether this method was called from within this method.
-bool LuauScript::update_exports_internal(bool *r_err, bool p_recursive_call, PlaceHolderScriptInstance *p_instance_to_update) {
-    // Step 1: Base cache
-    static Vector<LuauScript *> base_caches;
-    if (!p_recursive_call) {
-        base_caches.clear();
-    }
-
-    base_caches.append(this);
-
-    // Step 2: Reload base class, properties, and signals from source
+bool LuauScript::update_exports_internal(bool *r_err, PlaceHolderScriptInstance *p_instance_to_update) {
+    // Step 1: Reload base class, properties, and signals from source
     bool changed = false;
 
     if (source_changed_cache) {
@@ -91,20 +85,8 @@ bool LuauScript::update_exports_internal(bool *r_err, bool p_recursive_call, Pla
         Error err = get_class_definition(this, nullptr, def, is_valid);
 
         if (err == OK) {
-            // Update base class, inheriter cache
-            if (base.is_valid()) {
-                base->inheriters_cache.erase(get_instance_id());
-                base = Ref<LuauScript>();
-            }
-
+            // Update base class
             definition.extends = def.extends;
-
-            Error err;
-            update_base_script(err);
-
-            if (base.is_valid()) {
-                base->inheriters_cache.insert(get_instance_id());
-            }
 
             // Update properties, signals
             definition.signals = def.signals;
@@ -119,33 +101,27 @@ bool LuauScript::update_exports_internal(bool *r_err, bool p_recursive_call, Pla
 
     placeholder_fallback_enabled = false;
 
-    // Step 3: Check base cache for cyclic inheritance
-    // See the GDScript implementation.
-    if (base.is_valid() && base->_is_valid()) {
-        for (int i = 0; i < base_caches.size(); i++) {
-            if (base_caches[i] == base.ptr()) {
-                if (r_err != nullptr) {
-                    *r_err = true;
-                }
+    // Step 2: Update base and base scripts
+    // This always happens (i.e. not only when source changed) to be certain that any cyclic inheritance is caught.
+    Error err;
+    update_base_script(err, true);
 
-                valid = false; // Show error in editor
-                base->valid = false;
-                base->inheriters_cache.clear(); // Prevents stack overflows
-                base = Ref<LuauScript>();
-                ERR_FAIL_V_MSG(false, "Cyclic inheritance in script class.");
-            }
-        }
+    if (err == ERR_CYCLIC_LINK) {
+        if (r_err != nullptr)
+            *r_err = true;
 
-        if (base->update_exports_internal(r_err, true, nullptr)) {
-            if (r_err != nullptr && *r_err) {
-                return false;
-            }
-
-            changed = true;
-        }
+        return false;
     }
 
-    // Step 4: Update placeholder instances
+    if (base.is_valid() && base->update_exports_internal(r_err, nullptr)) {
+        if (r_err != nullptr && *r_err) {
+            return false;
+        }
+
+        changed = true;
+    }
+
+    // Step 3: Update placeholder instances
     if ((changed || p_instance_to_update != nullptr) && placeholders.size() > 0) {
         List<GDProperty> properties;
         HashMap<StringName, Variant> values;
@@ -682,7 +658,7 @@ PlaceHolderScriptInstance::PlaceHolderScriptInstance(Ref<LuauScript> p_script, O
         owner(p_owner) {
     // Placeholder instance creation takes place in a const method.
     script->placeholders.insert(p_owner->get_instance_id(), this);
-    script->update_exports_internal(nullptr, false, this);
+    script->update_exports_internal(nullptr, this);
 }
 
 PlaceHolderScriptInstance::~PlaceHolderScriptInstance() {

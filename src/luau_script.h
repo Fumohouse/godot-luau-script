@@ -65,13 +65,14 @@ private:
     HashMap<GDLuau::VMType, GDClassDefinition> vm_defs;
 
     bool placeholder_fallback_enabled;
+    Ref<LuauScript> cyclic_base;
 
     Error load_methods(GDLuau::VMType p_vm_type, bool p_force = false);
 
-    void update_base_script(Error &r_error);
+    void update_base_script(Error &r_error, bool p_recursive = false);
 
     void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
-    bool update_exports_internal(bool *r_err, bool p_recursive_call, PlaceHolderScriptInstance *p_instance_to_update);
+    bool update_exports_internal(bool *r_err, PlaceHolderScriptInstance *p_instance_to_update);
 
     static Error get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid);
 
@@ -79,7 +80,6 @@ private:
 public:
 #endif // TESTS_ENABLED
     Ref<LuauScript> base;
-    HashSet<uint64_t> inheriters_cache;
 
     ScriptInstanceState pending_reload_state;
 

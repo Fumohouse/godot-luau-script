@@ -15,7 +15,10 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
     if (cache.has(p_path)) {
         script = cache[p_path];
 
-        ERR_FAIL_COND_V_MSG(script->is_reloading(), script, "cyclic dependency detected. script requested from cache while it was loading.");
+        if (script->is_reloading()) {
+            r_error = ERR_CYCLIC_LINK;
+            ERR_FAIL_V_MSG(script, "cyclic dependency detected in " + p_path + ". script requested from cache while it was loading.");
+        }
 
         if (!p_ignore_cache) {
             if (!p_dependent.is_empty()) {

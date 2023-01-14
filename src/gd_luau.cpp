@@ -61,11 +61,6 @@ void GDLuau::push_module(lua_State *L, LuauScript *p_script) {
 
         lua_remove(L, -2); // thread
     } else {
-        if (!p_script->_is_valid()) {
-            LuaStackOp<String>::push(L, "could not require invalid script at " + p_script->get_path());
-            return;
-        }
-
         GDClassDefinition *def = LuaStackOp<GDClassDefinition>::alloc(L);
         bool is_valid;
 

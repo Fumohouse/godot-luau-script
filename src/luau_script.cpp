@@ -156,7 +156,7 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
     return ERR_COMPILATION_FAILED;
 }
 
-void LuauScript::update_base_script(Error &r_error) {
+void LuauScript::update_base_script(Error &r_error, bool p_recursive) {
     r_error = OK;
 
     if (!get_path().is_empty()) {
@@ -170,7 +170,42 @@ void LuauScript::update_base_script(Error &r_error) {
             else
                 base_script_path = base_dir.path_join(definition.extends);
 
+            if (base.is_valid())
+                base->dependents.erase(get_path());
+
+            Ref<LuauScript> prev_cyclic = cyclic_base;
+
             base = LuauCache::get_singleton()->get_script(base_script_path, r_error, false, get_path());
+
+            if (dependents.has(base_script_path) || r_error == ERR_CYCLIC_LINK) {
+                r_error = ERR_CYCLIC_LINK;
+
+                valid = false;
+                base->valid = false;
+                cyclic_base = base;
+                base.unref();
+
+                // Avoid spewing errors on _update_exports if the cyclic base has not changed.
+                ERR_FAIL_COND_MSG(cyclic_base != prev_cyclic, "cyclic inheritance detected at " + get_path() + ". halting base script load.");
+                return;
+            }
+
+            if (r_error != OK)
+                return;
+
+            if (p_recursive && base.is_valid()) {
+                base->update_base_script(r_error);
+            }
+
+            if (cyclic_base.is_valid()) {
+                if (base != cyclic_base) {
+                    cyclic_base->dependents.erase(get_path());
+                }
+
+                cyclic_base.unref();
+            }
+        } else {
+            base.unref();
         }
     }
 }
@@ -201,9 +236,12 @@ Error LuauScript::_reload(bool p_keep_state) {
         return err;
     }
 
-    update_base_script(err);
-    if (err != OK || (base.is_valid() && !base->_is_valid()))
+    update_base_script(err, true);
+    if (err != OK || (base.is_valid() && !base->_is_valid())) {
         valid = false;
+        _is_reloading = false;
+        return err;
+    }
 
     for (const KeyValue<GDLuau::VMType, GDClassDefinition> &pair : vm_defs) {
         if (load_methods(pair.key, true) == OK)
@@ -215,7 +253,6 @@ Error LuauScript::_reload(bool p_keep_state) {
     }
 
     _is_reloading = false;
-
     return OK;
 }
 
@@ -285,7 +322,7 @@ StringName LuauScript::_get_instance_base_type() const {
 
 Ref<Script> LuauScript::_get_base_script() const {
     return base;
-};
+}
 
 bool LuauScript::_inherits_script(const Ref<Script> &p_script) const {
     Ref<LuauScript> script = p_script;

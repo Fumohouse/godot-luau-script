@@ -772,6 +772,7 @@ TEST_CASE("luau script: placeholders") {
 
     SECTION("placeholder") {
         PlaceHolderScriptInstance *placeholder = memnew(PlaceHolderScriptInstance(script, &obj));
+
         SECTION("setget") {
             Variant val;
 
@@ -815,7 +816,7 @@ TEST_CASE("luau script: placeholders") {
             }
 
             SECTION("base script") {
-                uint64_t instance_id = script->get_instance_id();
+                String path = script->get_path();
 
                 SECTION("cyclic inheritance") {
                     String new_src_base = script_base->_get_source_code().replace("\"Node\"", "\"Script.lua\"");
@@ -824,21 +825,17 @@ TEST_CASE("luau script: placeholders") {
 
                     REQUIRE(!script->_is_valid());
                     REQUIRE(!script_base->_is_valid());
-
-                    // Because of the way cyclic inheritance is detected, the "base script" is the one that has its base unset
-                    REQUIRE(!script_base->base.is_valid());
-                    REQUIRE(script->inheriters_cache.is_empty());
                 }
 
                 SECTION("base script updating") {
-                    REQUIRE(script_base->inheriters_cache.has(instance_id));
+                    REQUIRE(script_base->has_dependent(path));
 
                     String new_src = script->_get_source_code().replace("\"Base.lua\"", "\"Base2.lua\"");
                     script->_set_source_code(new_src);
                     script->_update_exports();
 
-                    REQUIRE(!script_base->inheriters_cache.has(instance_id));
-                    REQUIRE(script_base2->inheriters_cache.has(instance_id));
+                    REQUIRE(!script_base->has_dependent(path));
+                    REQUIRE(script_base2->has_dependent(path));
 
                     Variant val;
 
