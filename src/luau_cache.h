@@ -18,7 +18,7 @@ private:
 public:
     static LuauCache *get_singleton() { return singleton; }
 
-    Ref<LuauScript> get_script(const String &p_path, Error &r_error, bool p_ignore_cache = false);
+    Ref<LuauScript> get_script(const String &p_path, Error &r_error, bool p_ignore_cache = false, const String &p_dependent = "");
 
     LuauCache();
     ~LuauCache();

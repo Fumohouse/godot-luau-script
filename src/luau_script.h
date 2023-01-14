@@ -41,11 +41,16 @@ class LuauScript : public ScriptExtension {
     GDCLASS(LuauScript, ScriptExtension);
 
     friend class LuauLanguage;
+    friend class LuauCache;
+    friend class GDLuau;
     friend class LuauScriptInstance;
     friend class PlaceHolderScriptInstance;
 
 private:
     SelfList<LuauScript> script_list;
+
+    bool _is_module = false;
+    HashSet<String> dependents;
 
     String base_dir;
     String source;
@@ -54,20 +59,21 @@ private:
     HashMap<uint64_t, LuauScriptInstance *> instances;
     HashMap<uint64_t, PlaceHolderScriptInstance *> placeholders;
 
+    bool _is_reloading = false;
     bool valid;
     GDClassDefinition definition;
-    HashMap<GDLuau::VMType, int> def_table_refs;
+    HashMap<GDLuau::VMType, GDClassDefinition> vm_defs;
 
     bool placeholder_fallback_enabled;
 
-    Error load_methods(GDLuau::VMType p_vm_type, bool force = false);
+    Error load_methods(GDLuau::VMType p_vm_type, bool p_force = false);
 
     void update_base_script(Error &r_error);
 
     void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
     bool update_exports_internal(bool *r_err, bool p_recursive_call, PlaceHolderScriptInstance *p_instance_to_update);
 
-    static Error get_class_definition(Ref<LuauScript> script, const String &source, GDClassDefinition &r_def, bool &r_is_valid);
+    static Error get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid);
 
 #ifdef TESTS_ENABLED
 public:
@@ -141,6 +147,14 @@ public:
 
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
     const GDClassDefinition &get_definition() const { return definition; }
+
+    bool is_reloading() const { return _is_reloading; }
+
+    bool is_module() const { return _is_module; }
+    bool has_dependent(const String &p_path) const;
+
+    Error load_module(lua_State *L) const;
+    void reload_module();
 
     LuauScript();
     ~LuauScript();

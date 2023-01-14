@@ -1,0 +1,3 @@
+return {
+	testConstant = "hello!"
+}

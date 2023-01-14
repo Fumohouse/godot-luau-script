@@ -79,24 +79,39 @@ Error LuauScript::load_source_code(const String &p_path) {
 #define LUAU_LOAD_YIELD_MSG "Luau Error: Script yielded when loading definition."
 #define LUAU_LOAD_NO_DEF_MSG "Luau Error: Script did not return a valid class definition."
 
-#define LUAU_LOAD_RESUME(script)                        \
-    int status = lua_resume(T, nullptr, 0);             \
+#define LUAU_LOAD_RESUME(script, TL, L)                 \
+    int status = lua_resume(L, nullptr, 0);             \
                                                         \
     if (status == LUA_YIELD) {                          \
         LUAU_LOAD_ERR(script, 1, LUAU_LOAD_YIELD_MSG);  \
+                                                        \
+        lua_pop(TL, 1); /* thread */                    \
         return ERR_COMPILATION_FAILED;                  \
     } else if (status != LUA_OK) {                      \
-        String err = LuaStackOp<String>::get(T, -1);    \
+        String err = LuaStackOp<String>::get(L, -1);    \
         LUAU_LOAD_ERR(script, 1, "Luau Error: " + err); \
                                                         \
+        lua_pop(TL, 1); /* thread */                    \
         return ERR_COMPILATION_FAILED;                  \
     }
 
-static Error try_load(lua_State *L, const char *src) {
+static Error try_load(const LuauScript *script, lua_State *L, String *r_err = nullptr) {
     Luau::CompileOptions opts;
-    std::string bytecode = Luau::compile(src, opts);
+    std::string bytecode = Luau::compile(script->_get_source_code().utf8().get_data(), opts);
 
-    return luau_load(L, "=load", bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
+    String chunkname = "=" + script->get_path().get_file();
+
+    Error ret = luau_load(L, chunkname.utf8().get_data(), bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
+
+    if (ret != OK) {
+        String err = LuaStackOp<String>::get(L, -1);
+        LUAU_LOAD_ERR(script, 1, "Luau Error: " + err);
+
+        if (r_err != nullptr)
+            *r_err = err;
+    }
+
+    return ret;
 }
 
 static bool class_exists(const StringName &class_name) {
@@ -105,24 +120,26 @@ static bool class_exists(const StringName &class_name) {
     return class_db->call("class_exists", class_name).operator bool();
 }
 
-Error LuauScript::get_class_definition(Ref<LuauScript> script, const String &source, GDClassDefinition &r_def, bool &r_is_valid) {
+Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid) {
     // TODO: error line numbers?
 
     r_is_valid = false;
 
-    lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
+    if (L == nullptr)
+        L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
+
     lua_State *T = lua_newthread(L);
     luaL_sandboxthread(T);
 
     GDThreadData *udata = luaGD_getthreaddata(T);
-    udata->path = script->get_path();
+    udata->script = p_script;
 
-    if (try_load(T, source.utf8().get_data()) == OK) {
-        LUAU_LOAD_RESUME(script)
+    if (try_load(p_script.ptr(), T) == OK) {
+        LUAU_LOAD_RESUME(p_script, L, T)
 
         if (lua_isnil(T, 1) || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
             lua_pop(L, 1); // thread
-            LUAU_LOAD_ERR(script, 1, LUAU_LOAD_NO_DEF_MSG);
+            LUAU_LOAD_ERR(p_script, 1, LUAU_LOAD_NO_DEF_MSG);
 
             return ERR_COMPILATION_FAILED;
         }
@@ -133,9 +150,6 @@ Error LuauScript::get_class_definition(Ref<LuauScript> script, const String &sou
         lua_pop(L, 1); // thread
         return OK;
     }
-
-    String err = LuaStackOp<String>::get(T, -1);
-    LUAU_LOAD_ERR(script, 1, "Luau Error: " + err);
 
     lua_pop(L, 1); // thread
 
@@ -156,12 +170,21 @@ void LuauScript::update_base_script(Error &r_error) {
             else
                 base_script_path = base_dir.path_join(definition.extends);
 
-            base = LuauCache::get_singleton()->get_script(base_script_path, r_error);
+            base = LuauCache::get_singleton()->get_script(base_script_path, r_error, false, get_path());
         }
     }
 }
 
 Error LuauScript::_reload(bool p_keep_state) {
+    if (_is_module)
+        return OK;
+
+    ERR_FAIL_COND_V_MSG(_is_reloading, ERR_CYCLIC_LINK, "cyclic dependency detected. requested script load when it was already loading.");
+
+    _is_reloading = true;
+
+    dependents.clear();
+
     bool has_instances;
 
     {
@@ -171,9 +194,10 @@ Error LuauScript::_reload(bool p_keep_state) {
 
     ERR_FAIL_COND_V(!p_keep_state && has_instances, ERR_ALREADY_IN_USE);
 
-    Error err = get_class_definition(this, source, definition, valid);
+    Error err = get_class_definition(this, nullptr, definition, valid);
 
     if (err != OK) {
+        _is_reloading = false;
         return err;
     }
 
@@ -181,19 +205,22 @@ Error LuauScript::_reload(bool p_keep_state) {
     if (err != OK || (base.is_valid() && !base->_is_valid()))
         valid = false;
 
-    for (const KeyValue<GDLuau::VMType, int> &pair : def_table_refs) {
+    for (const KeyValue<GDLuau::VMType, GDClassDefinition> &pair : vm_defs) {
         if (load_methods(pair.key, true) == OK)
             continue;
 
         valid = false;
+        _is_reloading = false;
         return ERR_COMPILATION_FAILED;
     }
+
+    _is_reloading = false;
 
     return OK;
 }
 
-Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool force) {
-    if (!force && def_table_refs.has(p_vm_type))
+Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool p_force) {
+    if (!p_force && vm_defs.has(p_vm_type))
         return ERR_SKIP;
 
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
@@ -201,27 +228,24 @@ Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool force) {
     luaL_sandboxthread(T);
 
     GDThreadData *udata = luaGD_getthreaddata(T);
-    udata->path = get_path();
+    udata->script = Ref<LuauScript>(this);
 
-    if (try_load(T, source.utf8().get_data()) == OK) {
-        LUAU_LOAD_RESUME(this)
+    if (try_load(this, T) == OK) {
+        LUAU_LOAD_RESUME(this, L, T)
 
         if (lua_gettop(T) < 1 || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
             LUAU_LOAD_ERR(this, 1, LUAU_LOAD_NO_DEF_MSG);
             return ERR_COMPILATION_FAILED;
         }
 
-        if (def_table_refs.has(p_vm_type))
-            lua_unref(L, def_table_refs[p_vm_type]);
+        if (vm_defs.has(p_vm_type))
+            lua_unref(L, vm_defs[p_vm_type].table_ref);
 
-        def_table_refs[p_vm_type] = LuaStackOp<GDClassDefinition>::get_ptr(T, 1)->table_ref;
+        vm_defs[p_vm_type] = LuaStackOp<GDClassDefinition>::get(T, 1);
         lua_pop(L, 1); // thread
 
         return OK;
     }
-
-    String err = LuaStackOp<String>::get(T, -1);
-    LUAU_LOAD_ERR(this, 1, "Luau Error: " + err);
 
     lua_pop(L, 1); // thread
 
@@ -239,7 +263,7 @@ bool LuauScript::_is_valid() const {
 bool LuauScript::_can_instantiate() const {
     // TODO: built-in scripting languages check if scripting is enabled OR if this is a tool script
     // Scripting is disabled by default in the editor, check is ~equivalent
-    return valid && (_is_tool() || !Engine::get_singleton()->is_editor_hint());
+    return !_is_module && valid && (_is_tool() || !Engine::get_singleton()->is_editor_hint());
 }
 
 bool LuauScript::_is_tool() const {
@@ -437,10 +461,54 @@ void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
     ERR_FAIL_COND_MSG(lua_mainthread(L) != lua_mainthread(T), "cannot push definition table to a thread from a different VM than the one being queried");
 
-    lua_getref(T, def_table_refs[p_vm_type]);
+    lua_getref(T, vm_defs[p_vm_type].table_ref);
     lua_insert(T, -2);
     lua_gettable(T, -2);
     lua_remove(T, -2);
+}
+
+bool LuauScript::has_dependent(const String &p_path) const {
+    return dependents.has(p_path);
+}
+
+// Based on Luau Repl implementation.
+Error LuauScript::load_module(lua_State *L) const {
+    // Use main thread to avoid inheriting L's environment.
+    lua_State *GL = lua_mainthread(L);
+    lua_State *ML = lua_newthread(GL);
+
+    GDThreadData *udata = luaGD_getthreaddata(ML);
+    udata->script = this;
+
+    lua_xmove(GL, L, 1); // thread
+
+    luaL_sandboxthread(ML);
+
+    String err;
+
+    if (try_load(this, ML, &err) == OK) {
+        LUAU_LOAD_RESUME(this, L, ML)
+
+        if (lua_gettop(ML) == 0) {
+#define NO_RET_ERR "module must return a value"
+
+            lua_pushstring(L, NO_RET_ERR);
+            ERR_FAIL_V_MSG(ERR_COMPILATION_FAILED, NO_RET_ERR);
+        }
+
+        if (!lua_istable(ML, -1) && !lua_isfunction(L, -1)) {
+#define RET_ERR "module must return a function or table"
+
+            lua_pushstring(L, RET_ERR);
+            ERR_FAIL_V_MSG(ERR_COMPILATION_FAILED, RET_ERR);
+        }
+
+        lua_xmove(ML, L, 1);
+        return OK;
+    }
+
+    LuaStackOp<String>::push(L, err);
+    return ERR_COMPILATION_FAILED;
 }
 
 LuauScript::LuauScript() :
@@ -458,13 +526,13 @@ LuauScript::~LuauScript() {
     }
 
     if (GDLuau::get_singleton() != nullptr) {
-        for (const KeyValue<GDLuau::VMType, int> &pair : def_table_refs) {
+        for (const KeyValue<GDLuau::VMType, GDClassDefinition> &pair : vm_defs) {
             lua_State *L = GDLuau::get_singleton()->get_vm(pair.key);
-            lua_unref(L, pair.value);
+            lua_unref(L, pair.value.table_ref);
         }
     }
 
-    def_table_refs.clear();
+    vm_defs.clear();
 }
 
 ////////////////////////////
@@ -742,7 +810,7 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
 
         if (!lua_isnil(ET, -1)) {
             if (lua_type(ET, -1) != LUA_TFUNCTION)
-                luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaGD_typename(ET, -1), "function");
+                luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaL_typename(ET, -1), "function");
 
             lua_insert(ET, -nargs - 1);
 
@@ -1209,7 +1277,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     luaL_sandboxthread(T);
 
     GDThreadData *udata = luaGD_getthreaddata(T);
-    udata->path = p_script->get_path();
+    udata->script = p_script;
 
     thread_ref = lua_ref(L, -1);
     lua_pop(L, 1); // thread
@@ -1238,7 +1306,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
             if (!lua_isnil(T, -1)) {
                 if (lua_type(T, -1) != LUA_TFUNCTION)
-                    luaGD_valueerror(T, "_Init", luaGD_typename(T, -1), "function");
+                    luaGD_valueerror(T, "_Init", luaL_typename(T, -1), "function");
 
                 LuaStackOp<Object *>::push(T, p_owner);
                 lua_getref(T, table_ref);

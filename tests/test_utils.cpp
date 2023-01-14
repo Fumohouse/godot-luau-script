@@ -7,6 +7,7 @@
 #include <string>
 
 #include "luagd.h"
+#include "luagd_permissions.h"
 #include "luagd_stack.h"
 
 LuauFixture::LuauFixture() {

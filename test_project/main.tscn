@@ -4,3 +4,12 @@
 
 [node name="Node3D" type="Node3D"]
 script = ExtResource("1_by8ae")
+testRange = null
+testRangeF = null
+testFlags2DRender = null
+testFlags2DPhysics = null
+testFlags2DNavigation = null
+testFlags3DRender = null
+testFlags3DPhysics = null
+testFlags3DNavigation = null
+testColorNoAlpha = null

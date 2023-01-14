@@ -1,0 +1,19 @@
+#pragma once
+
+#include <lua.h>
+
+class ApiEnum;
+
+// ! Must update ApiEnum whenever this is changed
+enum ThreadPermissions {
+    PERMISSION_INHERIT = -1,
+    PERMISSION_BASE = 0,
+    // Default permission level. Restricted to core.
+    PERMISSION_INTERNAL = 1 << 0,
+    PERMISSION_OS = 1 << 1,
+    PERMISSION_FILE = 1 << 2,
+    PERMISSION_HTTP = 1 << 3
+};
+
+void luaGD_checkpermissions(lua_State *L, const char *name, ThreadPermissions permissions);
+const ApiEnum &get_permissions_enum();

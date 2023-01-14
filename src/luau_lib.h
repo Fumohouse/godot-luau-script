@@ -12,7 +12,7 @@
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "luagd.h"
+#include "luagd_permissions.h"
 #include "luagd_stack.h"
 
 using namespace godot;
@@ -83,6 +83,8 @@ struct GDClassDefinition {
     HashMap<StringName, GDMethod> signals;
     HashMap<StringName, GDRpc> rpcs;
     HashMap<StringName, Variant> constants;
+
+    bool is_readonly = false;
 
     int set_prop(const String &name, const GDClassProperty &prop);
 };

@@ -1,6 +1,7 @@
 #include "luau_cache.h"
 
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/core/error_macros.hpp>
 
 #include "luau_script.h"
 
@@ -8,14 +9,21 @@ using namespace godot;
 
 LuauCache *LuauCache::singleton = nullptr;
 
-Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache) {
+Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache, const String &p_dependent) {
     Ref<LuauScript> script;
 
     if (cache.has(p_path)) {
         script = cache[p_path];
 
-        if (!p_ignore_cache)
+        ERR_FAIL_COND_V_MSG(script->is_reloading(), script, "cyclic dependency detected. script requested from cache while it was loading.");
+
+        if (!p_ignore_cache) {
+            if (!p_dependent.is_empty()) {
+                script->dependents.insert(p_dependent);
+            }
+
             return script;
+        }
     }
 
     bool needs_init = script.is_null();
@@ -35,8 +43,18 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
             return script;
     }
 
-    script->_reload(true);
+    if (!p_dependent.is_empty()) {
+        script->dependents.insert(p_dependent);
+    }
+
+    // Set cache before _reload to prevent infinite recursion inside.
     cache[p_path] = script;
+
+    if (p_path.ends_with(".mod.lua")) {
+        script->_is_module = true;
+    } else {
+        script->_reload(true);
+    }
 
     return script;
 }

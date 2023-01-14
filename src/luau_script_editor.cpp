@@ -1,6 +1,9 @@
+#include "luau_lib.h"
 #include "luau_script.h"
 
 #include <gdextension_interface.h>
+#include <lua.h>
+#include <lualib.h>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -16,6 +19,8 @@
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
+#include "gd_luau.h"
+
 namespace godot {
 class Object;
 };
@@ -30,6 +35,9 @@ void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
 }
 
 void LuauScript::_update_exports() {
+    if (_is_module)
+        return;
+
     bool cyclic_error = false;
     update_exports_internal(&cyclic_error, false, nullptr);
 
@@ -80,7 +88,7 @@ bool LuauScript::update_exports_internal(bool *r_err, bool p_recursive_call, Pla
 
         GDClassDefinition def;
         bool is_valid;
-        Error err = get_class_definition(this, source, def, is_valid);
+        Error err = get_class_definition(this, nullptr, def, is_valid);
 
         if (err == OK) {
             // Update base class, inheriter cache
@@ -177,17 +185,17 @@ Ref<Script> LuauLanguage::_make_template(const String &p_template, const String 
     return script;
 }
 
-// Sort such that base scripts come first.
+// Sort such that base scripts and modules come first.
 struct LuauScriptDepSort {
     bool operator()(const Ref<LuauScript> &a, const Ref<LuauScript> &b) const {
         if (a == b) {
             return false;
         }
 
-        const LuauScript *s = static_cast<const LuauScript *>(b->_get_base_script().ptr());
+        const LuauScript *s = b.ptr();
 
         while (s != nullptr) {
-            if (s == a.ptr())
+            if (a->has_dependent(s->get_path()))
                 return true;
 
             s = static_cast<const LuauScript *>(s->_get_base_script().ptr());
@@ -196,6 +204,38 @@ struct LuauScriptDepSort {
         return false;
     }
 };
+
+void LuauScript::reload_module() {
+    dependents.clear();
+
+    for (int i = GDLuau::VM_SCRIPT_LOAD; i < GDLuau::VM_MAX; i++) {
+        lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
+
+        luaL_findtable(L, LUA_REGISTRYINDEX, GDLuau::MODULE_TABLE, 1);
+
+        CharString path = get_path().utf8();
+        lua_getfield(L, -1, path.get_data());
+
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 2); // nil, MODULE_TABLE
+            continue;
+        }
+
+        lua_pop(L, 1); // value
+
+        GDLuau::push_module(L, this);
+
+        if (lua_isstring(L, -1)) {
+            ERR_PRINT(LuaStackOp<String>::get(L, -1));
+
+            lua_pop(L, 2); // error, MODULE_TABLE
+            return;
+        }
+
+        lua_setfield(L, -2, path.get_data());
+        lua_pop(L, 1); // MODULE_TABLE
+    }
+}
 
 List<Ref<LuauScript>> LuauLanguage::get_scripts() const {
     List<Ref<LuauScript>> scripts;
@@ -227,7 +267,9 @@ void LuauLanguage::_reload_all_scripts() {
 
     for (Ref<LuauScript> &script : scripts) {
         script->load_source_code(script->get_path());
+
         script->_reload(true);
+        script->reload_module();
     }
 }
 
@@ -239,12 +281,21 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
     HashMap<Ref<LuauScript>, ScriptInstanceState> to_reload;
 
     for (const Ref<LuauScript> &script : scripts) {
-        if (script != p_script && !to_reload.has(script->_get_base_script()))
+        bool dependency_changed = false;
+
+        for (const KeyValue<Ref<LuauScript>, ScriptInstanceState> &pair : to_reload) {
+            if (pair.key->has_dependent(script->get_path())) {
+                dependency_changed = true;
+                break;
+            }
+        }
+
+        if (script != p_script && !dependency_changed && !to_reload.has(script->_get_base_script()))
             continue;
 
         to_reload.insert(script, ScriptInstanceState());
 
-        if (!p_soft_reload) {
+        if (!p_soft_reload && !script->is_module()) {
             ScriptInstanceState &map = to_reload[script];
 
             HashMap<uint64_t, LuauScriptInstance *> instances = script->instances;
@@ -282,6 +333,7 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
     for (const KeyValue<Ref<LuauScript>, ScriptInstanceState> &E : to_reload) {
         Ref<LuauScript> scr = E.key;
         scr->_reload(p_soft_reload);
+        scr->reload_module();
 
         for (const KeyValue<uint64_t, List<Pair<StringName, Variant>>> &F : E.value) {
             const List<Pair<StringName, Variant>> &saved_state = F.value;

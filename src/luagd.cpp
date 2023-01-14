@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <godot_cpp/core/memory.hpp>
 
-#include "extension_api.h"
+#include "luagd_permissions.h"
 #include "luagd_bindings.h"
 
 using namespace godot;
@@ -30,7 +30,7 @@ static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
     if (LP != nullptr) {
         GDThreadData *parent_udata = luaGD_getthreaddata(LP);
         udata->permissions = parent_udata->permissions;
-        udata->path = parent_udata->path;
+        udata->script = parent_udata->script;
     }
 
     return udata;
@@ -88,31 +88,4 @@ void luaGD_close(lua_State *L) {
 
 GDThreadData *luaGD_getthreaddata(lua_State *L) {
     return reinterpret_cast<GDThreadData *>(lua_getthreaddata(L));
-}
-
-void luaGD_checkpermissions(lua_State *L, const char *name, ThreadPermissions permissions) {
-    GDThreadData *udata = luaGD_getthreaddata(L);
-
-    if ((udata->permissions & permissions) != permissions) {
-        luaL_error(
-                L,
-                "!!! THREAD PERMISSION VIOLATION: attempted to access '%s'. needed permissions: %d, got: %li !!!",
-                name, permissions, udata->permissions.operator int64_t());
-    }
-}
-
-const ApiEnum &get_permissions_enum() {
-    static ApiEnum e = {
-        "Permissions",
-        true,
-        {
-                { "BASE", PERMISSION_BASE },
-                { "INTERNAL", PERMISSION_INTERNAL },
-                { "OS", PERMISSION_OS },
-                { "FILE", PERMISSION_FILE },
-                { "HTTP", PERMISSION_HTTP },
-        }
-    };
-
-    return e;
 }

@@ -859,13 +859,16 @@ TEST_CASE("luau script: reloading at runtime") {
     LuauCache luau_cache;
 
     Error err;
-    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/placeholder/Base.lua", err);
+    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/reload/Base.lua", err);
     REQUIRE(err == OK);
     REQUIRE(script_base->_is_valid());
 
-    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/placeholder/Script.lua", err);
+    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/reload/Script.lua", err);
     REQUIRE(err == OK);
     REQUIRE(script->_is_valid());
+
+    Ref<LuauScript> module = luau_cache.get_script("res://test_scripts/reload/Module.mod.lua", err);
+    REQUIRE(err == OK);
 
     Object base_obj;
     base_obj.set_script(script_base);
@@ -922,6 +925,19 @@ TEST_CASE("luau script: reloading at runtime") {
         REQUIRE(script->_is_valid());
         REQUIRE(script->pending_reload_state.is_empty());
 
+        inst = script->instance_get(&obj);
+    }
+
+    SECTION("reload module reloads dependencies") {
+        REQUIRE(script_base->get_definition().properties[0].default_value == Variant("hello"));
+
+        String new_src = module->_get_source_code().replace("hello", "hey there");
+        module->_set_source_code(new_src);
+        LuauLanguage::get_singleton()->_reload_tool_script(module, false);
+
+        REQUIRE(script_base->get_definition().properties[0].default_value == Variant("hey there"));
+
+        inst_base = script_base->instance_get(&base_obj);
         inst = script->instance_get(&obj);
     }
 

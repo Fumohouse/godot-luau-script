@@ -17,8 +17,8 @@
 #include <type_traits>
 
 #include "extension_api.h"
-#include "luagd.h"
 #include "luagd_bindings_stack.gen.h"
+#include "luagd_permissions.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luagd_variant.h"

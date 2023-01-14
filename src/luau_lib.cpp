@@ -144,7 +144,7 @@ static GDRpc luascript_read_rpc(lua_State *L, int idx) {
 
     if (luaGD_getfield(L, idx, "rpcMode")) {
         if (!lua_isnumber(L, -1))
-            luaGD_valueerror(L, "rpcMode", luaGD_typename(L, -1), "MultiplayerAPI.RPCMode");
+            luaGD_valueerror(L, "rpcMode", luaL_typename(L, -1), "MultiplayerAPI.RPCMode");
 
         rpc.rpc_mode = (MultiplayerAPI::RPCMode)lua_tointeger(L, -1);
         lua_pop(L, 1);
@@ -152,7 +152,7 @@ static GDRpc luascript_read_rpc(lua_State *L, int idx) {
 
     if (luaGD_getfield(L, idx, "transferMode")) {
         if (!lua_isnumber(L, -1))
-            luaGD_valueerror(L, "rpcMode", luaGD_typename(L, -1), "MultiplayerPeer.TransferMode");
+            luaGD_valueerror(L, "rpcMode", luaL_typename(L, -1), "MultiplayerPeer.TransferMode");
 
         rpc.transfer_mode = (MultiplayerPeer::TransferMode)lua_tointeger(L, -1);
         lua_pop(L, 1);
@@ -184,9 +184,13 @@ static int luascript_gdclass(lua_State *L) {
     return 1;
 }
 
+#define luascript_gdclass_readonly_error(L) luaL_error(L, "this definition is read-only")
+
 static int luascript_gdclass_namecall(lua_State *L) {
     if (const char *key = lua_namecallatom(L, nullptr)) {
         GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
+        if (def->is_readonly)
+            luascript_gdclass_readonly_error(L);
 
         // Chaining functions
         if (strcmp(key, "Tool") == 0) {
@@ -201,7 +205,8 @@ static int luascript_gdclass_namecall(lua_State *L) {
 
             GDThreadData *udata = luaGD_getthreaddata(L);
 
-            if (udata->path.is_empty() || LuauLanguage::get_singleton() == nullptr || !LuauLanguage::get_singleton()->is_core_script(udata->path))
+            String path = udata->script->get_path();
+            if (path.is_empty() || LuauLanguage::get_singleton() == nullptr || !LuauLanguage::get_singleton()->is_core_script(path))
                 luaL_error(L, "!!! cannot set permissions on a non-core script !!!");
 
             def->permissions = static_cast<ThreadPermissions>(permissions);
@@ -303,6 +308,9 @@ static int luascript_gdclass_namecall(lua_State *L) {
 
 static int luascript_gdclass_newindex(lua_State *L) {
     GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
+    if (def->is_readonly)
+        luascript_gdclass_readonly_error(L);
+
     const char *key = luaL_checkstring(L, 2);
     luaL_checktype(L, 3, LUA_TFUNCTION);
 
@@ -317,13 +325,12 @@ static int luascript_gdclass_newindex(lua_State *L) {
 
 static int luascript_gdclass_index(lua_State *L) {
     GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
-    luaL_checkstring(L, 2);
+    const char *key = luaL_checkstring(L, 2);
 
     ERR_FAIL_COND_V_MSG(def->table_ref < 0, 0, "Failed to get method on class definition: table ref is invalid");
 
     lua_getref(L, def->table_ref);
-    lua_pushvalue(L, 2);
-    lua_gettable(L, -2);
+    lua_getfield(L, -1, key);
 
     return 1;
 }
