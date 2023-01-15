@@ -544,6 +544,14 @@ static int luascript_classprop_namecall(lua_State *L) {
 
             prop->property.hint = PROPERTY_HINT_COLOR_NO_ALPHA;
             prop->property.hint_string = String();
+        } else if (strcmp(key, "TypedArray") == 0) {
+            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_ARRAY)
+                luaGD_hinterror(L, "typed array", "array");
+
+            const char *type = luaL_checkstring(L, 2);
+
+            prop->property.hint = PROPERTY_HINT_ARRAY_TYPE;
+            prop->property.hint_string = type;
         } else {
             luaGD_nomethoderror(L, key, "GDClassProperty");
         }

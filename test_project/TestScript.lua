@@ -126,6 +126,10 @@ TestClass:RegisterProperty("testExpEasing", Enum.VariantType.FLOAT)
 TestClass:RegisterProperty("testColorNoAlpha", Enum.VariantType.COLOR)
 	:NoAlpha()
 
+-- Array
+TestClass:RegisterProperty("testTypedArray", Enum.VariantType.ARRAY)
+	:TypedArray("RID")
+
 TestClass:PropertyGroup("")
 
 -- Category
