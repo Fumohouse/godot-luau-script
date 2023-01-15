@@ -15,6 +15,7 @@
 
 #include "extension_api.h"
 #include "gd_luau.h"
+#include "godot_cpp/classes/global_constants.hpp"
 #include "luagd.h"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_permissions.h"
@@ -114,13 +115,13 @@ template <>
 struct has_default_value_trait<ApiArgumentNoDefault> : std::false_type {};
 
 template <typename TMethod, typename TArg>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> &pargs, const TMethod &method, std::true_type const &) {
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::true_type const &) {
     for (int i = nargs; i < method.arguments.size(); i++) {
         const TArg &arg = method.arguments[i];
 
         if (arg.has_default_value) {
             // Not using get_opaque_pointer_arg: default arguments shouldn't ever be objects anyway
-            pargs.set(i, arg.default_value.get_opaque_pointer());
+            pargs->set(i, arg.default_value.get_opaque_pointer());
         } else {
             LuauVariant dummy;
             get_argument(L, i + 1 + arg_offset, arg, dummy);
@@ -128,8 +129,28 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
     }
 }
 
+template <>
+_FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
+        lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const GDMethod &method, std::true_type const &) {
+    int args_allowed = method.arguments.size();
+    int args_default = method.default_arguments.size();
+    int args_required = args_allowed - args_default;
+
+    for (int i = nargs; i < args_allowed; i++) {
+        const GDProperty &arg = method.arguments[i];
+
+        if (i >= args_required) {
+            pargs->set(i, &method.default_arguments[i - args_required]);
+        } else {
+            LuauVariant dummy;
+            get_argument(L, i + 1 + arg_offset, arg, dummy);
+        }
+    }
+}
+
+
 template <typename TMethod, typename>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> &pargs, const TMethod &method, std::false_type const &) {
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::false_type const &) {
     LuauVariant dummy;
     get_argument(L, nargs + 1 + arg_offset, method.arguments[nargs], dummy);
 }
@@ -142,62 +163,69 @@ template <>
 _FORCE_INLINE_ GDExtensionVariantType get_arg_type<ApiClassArgument>(const ApiClassArgument &arg) { return (GDExtensionVariantType)arg.type.type; }
 
 template <typename T>
-_FORCE_INLINE_ static const String &get_arg_type_name(const T &arg) {
-    static String s;
-    return s;
-}
+_FORCE_INLINE_ static String get_arg_type_name(const T &arg) { return String(); }
 
 template <>
-_FORCE_INLINE_ const String &get_arg_type_name<ApiClassArgument>(const ApiClassArgument &arg) { return arg.type.type_name; }
+_FORCE_INLINE_ String get_arg_type_name<ApiClassArgument>(const ApiClassArgument &arg) { return arg.type.type_name; }
+
+template <>
+_FORCE_INLINE_ String get_arg_type_name<GDProperty>(const GDProperty &arg) { return arg.class_name; }
 
 // Getters for method types
 template <typename T>
 _FORCE_INLINE_ static bool is_method_static(const T &method) { return method.is_static; }
 
 template <>
-_FORCE_INLINE_ bool is_method_static<ApiUtilityFunction>(const ApiUtilityFunction &method) { return true; }
+_FORCE_INLINE_ bool is_method_static<ApiUtilityFunction>(const ApiUtilityFunction &) { return true; }
+
+template <>
+_FORCE_INLINE_ bool is_method_static<GDMethod>(const GDMethod &) { return false; }
 
 template <typename T>
 _FORCE_INLINE_ static bool is_method_vararg(const T &method) { return method.is_vararg; }
 
+template <>
+_FORCE_INLINE_ bool is_method_vararg<GDMethod>(const GDMethod &method) { return true; }
+
 // this is magic
 template <typename T, typename TArg>
 static int get_arguments(lua_State *L,
-        Vector<Variant> &varargs,
-        Vector<LuauVariant> &args,
-        Vector<const void *> &pargs,
+        const char *method_name,
+        Vector<Variant> *varargs,
+        Vector<LuauVariant> *args,
+        Vector<const void *> *pargs,
         const T &method) {
     // arg 1 is self for instance methods
     int arg_offset = is_method_static(method) ? 0 : 1;
     int nargs = lua_gettop(L) - arg_offset;
 
     if (method.arguments.size() > nargs)
-        pargs.resize(method.arguments.size());
+        pargs->resize(method.arguments.size());
     else
-        pargs.resize(nargs);
+        pargs->resize(nargs);
 
     if (is_method_vararg(method)) {
-        varargs.resize(nargs);
+        varargs->resize(nargs);
 
         for (int i = 0; i < nargs; i++) {
             Variant arg = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
             if (i < method.arguments.size())
                 check_variant(L, i + 1 + arg_offset, arg, get_arg_type(method.arguments[i]), get_arg_type_name(method.arguments[i]));
 
-            varargs.set(i, arg);
-            pargs.set(i, &varargs[i]);
+            varargs->set(i, arg);
+            pargs->set(i, &varargs->operator[](i));
         }
     } else {
-        args.resize(nargs);
+        args->resize(nargs);
 
         if (nargs > method.arguments.size())
-            luaL_error(L, "too many arguments to '%s' (expected at most %d)", method.name, method.arguments.size());
+            luaL_error(L, "too many arguments to '%s' (expected at most %d)", method_name, method.arguments.size());
 
-        LuauVariant *args_ptr = args.ptrw();
+        LuauVariant *args_ptr = args->ptrw();
 
         for (int i = 0; i < nargs; i++) {
-            get_argument(L, i + 1 + arg_offset, method.arguments[i], args.ptrw()[i]);
-            pargs.set(i, args_ptr[i].get_opaque_pointer_arg());
+            get_argument(L, i + 1 + arg_offset, method.arguments[i], args->ptrw()[i]);
+            pargs->set(i, args_ptr[i].get_opaque_pointer_arg());
         }
     }
 
@@ -440,7 +468,7 @@ static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_clas
     Vector<LuauVariant> args;
     Vector<const void *> pargs;
 
-    get_arguments<ApiVariantMethod, ApiArgument>(L, varargs, args, pargs, method);
+    get_arguments<ApiVariantMethod, ApiArgument>(L, method.name, &varargs, &args, &pargs, method);
 
     if (method.is_vararg) {
         Variant ret;
@@ -726,7 +754,7 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
     Vector<LuauVariant> args;
     Vector<const void *> pargs;
 
-    get_arguments<ApiClassMethod, ApiClassArgument>(L, varargs, args, pargs, method);
+    get_arguments<ApiClassMethod, ApiClassArgument>(L, method.name, &varargs, &args, &pargs, method);
 
     GDExtensionObjectPtr self = nullptr;
 
@@ -801,9 +829,10 @@ static int luaGD_class_namecall(lua_State *L) {
         if (LuauScriptInstance *inst = get_script_instance(L)) {
             GDThreadData *udata = luaGD_getthreaddata(L);
 
-            if (udata->vm_type != GDLuau::VM_MAX) {
+            if (inst->get_vm_type() == udata->vm_type) {
                 // Attempt to call from definition table.
                 int nargs = lua_gettop(L);
+                int nargs_to_send = nargs;
 
                 // Type checking.
                 if (const GDMethod *method = inst->get_method(name)) {
@@ -813,17 +842,23 @@ static int luaGD_class_namecall(lua_State *L) {
                     int args_default = method->default_arguments.size();
                     int args_required = args_allowed - args_default;
 
-                    // i = 2: skip `self`
-                    for (int i = 2; i <= args_required; i++) {
-                        const GDProperty &arg = method->arguments[i - 1];
+                    // Sizes and start indices listed like this because it's confusing.
+                    int first_arg_idx = 2;
+                    int last_required_arg_idx = args_required + 1;
+
+                    for (int i = first_arg_idx; i <= last_required_arg_idx; i++) {
+                        const GDProperty &arg = method->arguments[i - first_arg_idx];
                         dummy.lua_check(L, i, arg.type, arg.class_name);
                     }
 
-                    for (int i = args_required + 1; i <= args_allowed; i++) {
-                        const GDProperty &arg = method->arguments[i - 1];
+                    int first_default_idx = last_required_arg_idx + 1;
+                    int last_arg_idx = args_allowed + 1;
+
+                    for (int i = first_default_idx; i <= last_arg_idx; i++) {
+                        const GDProperty &arg = method->arguments[i - first_arg_idx];
 
                         if (i > nargs)
-                            LuaStackOp<Variant>::push(L, method->default_arguments[i - args_required - 1]);
+                            LuaStackOp<Variant>::push(L, method->default_arguments[i - first_default_idx]);
                         else
                             dummy.lua_check(L, i, arg.type, arg.class_name);
                     }
@@ -837,7 +872,9 @@ static int luaGD_class_namecall(lua_State *L) {
 
                     if (lua_isfunction(L, -1)) {
                         lua_insert(L, 1);
-                        lua_call(L, nargs, LUA_MULTRET);
+
+                        // Must re-get nargs in case default arguments were added.
+                        lua_call(L, lua_gettop(L) - 1, LUA_MULTRET);
 
                         return lua_gettop(L);
                     }
@@ -846,6 +883,23 @@ static int luaGD_class_namecall(lua_State *L) {
 
                     s = s->get_base().ptr();
                 }
+            }
+
+            if (const GDMethod *method = inst->get_method(name)) {
+                // Attempt to use instance `call` (cross-vm method call).
+                Vector<Variant> varargs;
+                Vector<const void *> pargs;
+
+                get_arguments<GDMethod, GDProperty>(L, name, &varargs, nullptr, &pargs, *method);
+
+                Variant ret;
+                GDExtensionCallError err;
+                inst->call(name, reinterpret_cast<const Variant *const *>(pargs.ptr()), pargs.size(), &ret, &err);
+
+                // Error should have been sent out when getting arguments, so ignore it.
+
+                LuaStackOp<Variant>::push(L, ret);
+                return 1;
             }
 
             {
@@ -1143,7 +1197,7 @@ static int luaGD_utility_function(lua_State *L) {
     Vector<LuauVariant> args;
     Vector<const void *> pargs;
 
-    int nargs = get_arguments<ApiUtilityFunction, ApiArgumentNoDefault>(L, varargs, args, pargs, *func);
+    int nargs = get_arguments<ApiUtilityFunction, ApiArgumentNoDefault>(L, func->name, &varargs, &args, &pargs, *func);
 
     if (func->return_type == -1) {
         func->func(nullptr, pargs.ptr(), nargs);

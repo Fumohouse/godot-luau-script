@@ -257,6 +257,8 @@ public:
     bool table_set(lua_State *T) const;
     bool table_get(lua_State *T) const;
 
+    GDLuau::VMType get_vm_type() const { return vm_type; }
+
     const GDMethod *get_method(const StringName &p_name) const;
     const GDClassProperty *get_property(const StringName &p_name) const;
     const GDMethod *get_signal(const StringName &p_name) const;

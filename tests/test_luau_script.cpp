@@ -543,6 +543,10 @@ TEST_CASE("luau script: instance") {
                 ASSERT_EVAL_EQ(T, "return obj:NonRegisteredMethod()", String, "what's up");
             }
 
+            SECTION("default args") {
+                ASSERT_EVAL_EQ(T, "return obj:TestMethod(2.5)", String, "2.5, hi");
+            }
+
             SECTION("registered method") {
                 ASSERT_EVAL_EQ(T, "return obj:TestMethod(2.5, 'asdf')", String, "2.5, asdf");
             }
