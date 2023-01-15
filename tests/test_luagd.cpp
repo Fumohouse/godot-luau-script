@@ -2,11 +2,12 @@
 
 #include <lua.h>
 
+#include "gd_luau.h"
 #include "luagd.h"
 #include "luagd_permissions.h"
 
 TEST_CASE("vm: permissions") {
-    lua_State *L = luaGD_newstate(PERMISSION_INTERNAL);
+    lua_State *L = luaGD_newstate(GDLuau::VM_MAX, PERMISSION_INTERNAL);
     GDThreadData *udata = luaGD_getthreaddata(L);
 
     SECTION("vm initialized") {

@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <godot_cpp/core/memory.hpp>
 
+#include "gd_luau.h"
 #include "luagd_permissions.h"
 #include "luagd_bindings.h"
 
@@ -29,6 +30,7 @@ static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
 
     if (LP != nullptr) {
         GDThreadData *parent_udata = luaGD_getthreaddata(LP);
+        udata->vm_type = parent_udata->vm_type;
         udata->permissions = parent_udata->permissions;
         udata->script = parent_udata->script;
     }
@@ -48,7 +50,7 @@ static void luaGD_userthread(lua_State *LP, lua_State *L) {
     }
 }
 
-lua_State *luaGD_newstate(ThreadPermissions base_permissions) {
+lua_State *luaGD_newstate(GDLuau::VMType vm_type, ThreadPermissions base_permissions) {
     lua_State *L = lua_newstate(luaGD_alloc, nullptr);
 
     luaL_openlibs(L);
@@ -57,6 +59,7 @@ lua_State *luaGD_newstate(ThreadPermissions base_permissions) {
     luaGD_openglobals(L);
 
     GDThreadData *udata = luaGD_initthreaddata(nullptr, L);
+    udata->vm_type = vm_type;
     udata->permissions = base_permissions;
 
     lua_Callbacks *callbacks = lua_callbacks(L);

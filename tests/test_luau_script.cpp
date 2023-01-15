@@ -127,6 +127,10 @@ TEST_CASE("luau script: instance") {
             return "hi there"
         end
 
+        function TestClass:NonRegisteredMethod()
+            return "what's up"
+        end
+
         function TestClass._Init(obj, tbl)
             setmetatable(tbl, { __index = testClassIndex })
 
@@ -533,6 +537,10 @@ TEST_CASE("luau script: instance") {
         SECTION("namecall") {
             SECTION("from table index") {
                 ASSERT_EVAL_EQ(T, "return obj:PrivateMethod()", String, "hi there");
+            }
+
+            SECTION("non-registered method") {
+                ASSERT_EVAL_EQ(T, "return obj:NonRegisteredMethod()", String, "what's up");
             }
 
             SECTION("registered method") {

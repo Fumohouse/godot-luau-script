@@ -1267,6 +1267,24 @@ bool LuauScriptInstance::table_get(lua_State *T) const {
     return true;
 }
 
+#define DEF_GETTER(type, method_name, def_key)                                                     \
+    const type *LuauScriptInstance::get_##method_name(const StringName &p_name) const {            \
+        const LuauScript *s = script.ptr();                                                        \
+                                                                                                   \
+        while (s != nullptr) {                                                                     \
+            HashMap<StringName, type>::ConstIterator E = s->get_definition().def_key.find(p_name); \
+                                                                                                   \
+            if (E)                                                                                 \
+                return &E->value;                                                                  \
+                                                                                                   \
+            s = s->base.ptr();                                                                     \
+        }                                                                                          \
+                                                                                                   \
+        return nullptr;                                                                            \
+    }
+
+DEF_GETTER(GDMethod, method, methods)
+
 const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name) const {
     const LuauScript *s = script.ptr();
 
@@ -1280,35 +1298,8 @@ const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name
     return nullptr;
 }
 
-const GDMethod *LuauScriptInstance::get_signal(const StringName &p_name) const {
-    const LuauScript *s = script.ptr();
-
-    while (s != nullptr) {
-        HashMap<StringName, GDMethod>::ConstIterator E = s->get_definition().signals.find(p_name);
-
-        if (E)
-            return &E->value;
-
-        s = s->base.ptr();
-    }
-
-    return nullptr;
-}
-
-const Variant *LuauScriptInstance::get_constant(const StringName &p_name) const {
-    const LuauScript *s = script.ptr();
-
-    while (s != nullptr) {
-        HashMap<StringName, Variant>::ConstIterator E = s->get_definition().constants.find(p_name);
-
-        if (E)
-            return &E->value;
-
-        s = s->base.ptr();
-    }
-
-    return nullptr;
-}
+DEF_GETTER(GDMethod, signal, signals)
+DEF_GETTER(Variant, constant, constants)
 
 LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type) :
         script(p_script), owner(p_owner), vm_type(p_vm_type) {

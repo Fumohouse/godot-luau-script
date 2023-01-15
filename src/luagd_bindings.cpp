@@ -17,6 +17,8 @@
 #include <type_traits>
 
 #include "extension_api.h"
+#include "gd_luau.h"
+#include "luagd.h"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
@@ -710,51 +712,57 @@ static int luaGD_class_namecall(lua_State *L) {
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
         if (LuauScriptInstance *inst = get_script_instance(L)) {
-            if (inst->has_method(name)) {
-                int arg_count = lua_gettop(L) - 1;
+            GDThreadData *udata = luaGD_getthreaddata(L);
 
-                Vector<Variant> args;
-                args.resize(arg_count);
+            if (udata->vm_type != GDLuau::VM_MAX) {
+                // Attempt to call from definition table.
+                int nargs = lua_gettop(L);
 
-                Vector<const Variant *> pargs;
-                pargs.resize(arg_count);
+                // Type checking.
+                if (const GDMethod *method = inst->get_method(name)) {
+                    LuauVariant dummy;
 
-                for (int i = 2; i <= lua_gettop(L); i++) {
-                    args.set(i - 2, LuaStackOp<Variant>::get(L, i));
-                    pargs.set(i - 2, &args[i - 2]);
+                    int args_allowed = method->arguments.size();
+                    int args_default = method->default_arguments.size();
+                    int args_required = args_allowed - args_default;
+
+                    // i = 2: skip `self`
+                    for (int i = 2; i <= args_required; i++) {
+                        const GDProperty &arg = method->arguments[i - 1];
+                        dummy.lua_check(L, i, arg.type, arg.class_name);
+                    }
+
+                    for (int i = args_required + 1; i <= args_allowed; i++) {
+                        const GDProperty &arg = method->arguments[i - 1];
+
+                        if (i > nargs)
+                            LuaStackOp<Variant>::push(L, method->default_arguments[i - args_required - 1]);
+                        else
+                            dummy.lua_check(L, i, arg.type, arg.class_name);
+                    }
                 }
 
-                Variant ret;
-                GDExtensionCallError err;
-                inst->call(name, pargs.ptr(), args.size(), &ret, &err);
+                LuauScript *s = inst->get_script().ptr();
 
-                switch (err.error) {
-                    case GDEXTENSION_CALL_OK:
-                        LuaStackOp<Variant>::push(L, ret);
-                        return 1;
+                while (s != nullptr) {
+                    lua_pushstring(L, name);
+                    s->def_table_get(udata->vm_type, L);
 
-                    case GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT:
-                        luaL_error(L, "invalid argument #%d to '%s' (%s expected, got %s)",
-                                err.argument + 1,
-                                name,
-                                Variant::get_type_name((Variant::Type)err.expected).utf8().get_data(),
-                                Variant::get_type_name(args[err.argument].get_type()).utf8().get_data());
+                    if (lua_isfunction(L, -1)) {
+                        lua_insert(L, 1);
+                        lua_call(L, nargs, LUA_MULTRET);
 
-                    case GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS:
-                        luaL_error(L, "missing argument #%d to '%s' (expected at least %d)",
-                                args.size() + 2,
-                                name,
-                                err.argument);
+                        return lua_gettop(L);
+                    }
 
-                    case GDEXTENSION_CALL_ERROR_TOO_MANY_ARGUMENTS:
-                        luaL_error(L, "too many arguments to '%s' (expected at most %d)",
-                                name,
-                                err.argument);
+                    lua_pop(L, 1); // value
 
-                    default:
-                        luaL_error(L, "unknown error occurred when calling '%s'", name);
+                    s = s->get_base().ptr();
                 }
-            } else {
+            }
+
+            {
+                // Attempt to call from instance table.
                 int nargs = lua_gettop(L);
 
                 lua_pushstring(L, name);
@@ -762,13 +770,13 @@ static int luaGD_class_namecall(lua_State *L) {
 
                 if (is_valid) {
                     if (lua_isfunction(L, -1)) {
-                        lua_insert(L, -nargs - 1);
+                        lua_insert(L, 1);
                         lua_call(L, nargs, LUA_MULTRET);
 
                         return lua_gettop(L);
-                    } else {
-                        lua_pop(L, 1);
                     }
+
+                    lua_pop(L, 1); // value
                 }
             }
         }

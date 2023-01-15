@@ -144,7 +144,7 @@ static const luaL_Reg global_funcs[] = {
 };
 
 void GDLuau::init_vm(VMType p_type) {
-    lua_State *L = luaGD_newstate(PERMISSION_BASE);
+    lua_State *L = luaGD_newstate(p_type, PERMISSION_BASE);
     luascript_openlibs(L);
 
     luaL_register(L, "_G", global_funcs);

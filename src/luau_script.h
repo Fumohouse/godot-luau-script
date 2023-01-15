@@ -259,6 +259,7 @@ public:
     bool table_set(lua_State *T) const;
     bool table_get(lua_State *T) const;
 
+    const GDMethod *get_method(const StringName &p_name) const;
     const GDClassProperty *get_property(const StringName &p_name) const;
     const GDMethod *get_signal(const StringName &p_name) const;
     const Variant *get_constant(const StringName &p_name) const;
