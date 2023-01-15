@@ -120,6 +120,8 @@ int GDLuau::gdluau_require(lua_State *L) {
             lua_pop(L, 1); // def
             LuaStackOp<String>::push(L, "could not get class definition for script at " + script->get_path());
         }
+
+        def->is_readonly = true;
     }
 
     lua_pushvalue(L, -1);
