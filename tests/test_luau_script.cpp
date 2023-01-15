@@ -851,6 +851,61 @@ TEST_CASE("luau script: placeholders") {
     }
 }
 
+TEST_CASE("luau script: require") {
+    GDLuau gd_luau;
+    LuauCache luau_cache;
+
+    Error err;
+    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/require/Base.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script_base->_is_valid());
+
+    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/require/Script.lua", err);
+    REQUIRE(err == OK);
+    REQUIRE(script->_is_valid());
+
+    Ref<LuauScript> module = luau_cache.get_script("res://test_scripts/require/Module.mod.lua", err);
+    REQUIRE(err == OK);
+
+    Ref<LuauScript> module2 = luau_cache.get_script("res://test_scripts/require/Module2.mod.lua", err);
+    REQUIRE(err == OK);
+
+    SECTION("requiring a class") {
+        REQUIRE(script->get_property("baseMsg").default_value == Variant("what's up"));
+    }
+
+    SECTION("requiring a dedicated module") {
+        REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hello"));
+    }
+
+    SECTION("cyclic dependencies") {
+        SECTION("module-module") {
+            String new_src = module->_get_source_code().replace("--@1", "require('test_scripts.require.Module2')");
+            module->_set_source_code(new_src);
+            LuauLanguage::get_singleton()->_reload_tool_script(module, false);
+
+            REQUIRE(!script_base->_is_valid());
+        }
+
+        SECTION("class-class") {
+            String new_src = script_base->_get_source_code().replace("--@1", "require('test_scripts.require.Script')");
+            script_base->_set_source_code(new_src);
+            LuauLanguage::get_singleton()->_reload_tool_script(script_base, false);
+
+            REQUIRE(!script_base->_is_valid());
+            REQUIRE(!script->_is_valid());
+        }
+
+        SECTION("module-class") {
+            String new_src = module->_get_source_code().replace("--@1", "require('test_scripts.require.Base')");
+            module->_set_source_code(new_src);
+            LuauLanguage::get_singleton()->_reload_tool_script(module, false);
+
+            REQUIRE(!script_base->_is_valid());
+        }
+    }
+}
+
 TEST_CASE("luau script: reloading at runtime") {
     GDLuau gd_luau;
     LuauCache luau_cache;
@@ -926,13 +981,13 @@ TEST_CASE("luau script: reloading at runtime") {
     }
 
     SECTION("reload module reloads dependencies") {
-        REQUIRE(script_base->get_definition().properties[0].default_value == Variant("hello"));
+        REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hello"));
 
         String new_src = module->_get_source_code().replace("hello", "hey there");
         module->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(module, false);
 
-        REQUIRE(script_base->get_definition().properties[0].default_value == Variant("hey there"));
+        REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hey there"));
 
         inst_base = script_base->instance_get(&base_obj);
         inst = script->instance_get(&obj);

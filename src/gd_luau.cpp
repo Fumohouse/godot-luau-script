@@ -50,27 +50,6 @@ static int finishrequire(lua_State *L) {
     return 1;
 }
 
-void GDLuau::push_module(lua_State *L, LuauScript *p_script) {
-    CharString path = p_script->get_path().utf8();
-
-    if (p_script->is_module()) {
-        if (p_script->load_module(L) != OK) {
-            LuaStackOp<String>::push(L, "failed to load module at " + p_script->get_path());
-            return;
-        }
-
-        lua_remove(L, -2); // thread
-    } else {
-        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::alloc(L);
-        bool is_valid;
-
-        LuauScript::get_class_definition(p_script, lua_mainthread(L), *def, is_valid);
-
-        if (!is_valid)
-            LuaStackOp<String>::push(L, "could not get class definition for script at " + p_script->get_path());
-    }
-}
-
 int GDLuau::gdluau_require(lua_State *L) {
     String name = LuaStackOp<String>::check(L, 1);
 
@@ -104,6 +83,12 @@ int GDLuau::gdluau_require(lua_State *L) {
     if (udata->script->get_path() == full_path)
         luaL_error(L, "cannot require current script");
 
+    if (udata->script->has_dependent(full_path)) {
+        luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
+                udata->script->get_path().utf8().get_data(),
+                full_path_utf8.get_data());
+    }
+
     // Load and write dependency.
     Error err;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err, false, udata->script->get_path());
@@ -117,10 +102,23 @@ int GDLuau::gdluau_require(lua_State *L) {
     lua_pop(L, 1);
 
     // Load module and return.
-    push_module(L, script.ptr());
+    if (script->is_module()) {
+        if (script->load_module(L) != OK) {
+            LuaStackOp<String>::push(L, "failed to load module at " + script->get_path());
+        } else {
+            lua_remove(L, -2); // thread
+        }
+    } else {
+        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::alloc(L);
+        bool is_valid;
 
-    if (lua_isstring(L, -1))
-        lua_error(L);
+        LuauScript::get_class_definition(script, lua_mainthread(L), *def, is_valid);
+
+        if (!is_valid) {
+            lua_pop(L, 1); // def
+            LuaStackOp<String>::push(L, "could not get class definition for script at " + script->get_path());
+        }
+    }
 
     lua_pushvalue(L, -1);
     lua_setfield(L, -3, full_path_utf8.get_data());

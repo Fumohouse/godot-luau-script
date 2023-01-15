@@ -33,8 +33,6 @@ public:
 
     lua_State *get_vm(VMType p_type);
 
-    static void push_module(lua_State *L, LuauScript *p_script);
-
     GDLuau();
     ~GDLuau();
 };

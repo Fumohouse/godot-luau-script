@@ -186,7 +186,7 @@ void LuauScript::update_base_script(Error &r_error, bool p_recursive) {
                 base.unref();
 
                 // Avoid spewing errors on _update_exports if the cyclic base has not changed.
-                ERR_FAIL_COND_MSG(cyclic_base != prev_cyclic, "cyclic inheritance detected at " + get_path() + ". halting base script load.");
+                ERR_FAIL_COND_MSG(cyclic_base != prev_cyclic, "cyclic inheritance detected in " + get_path() + ". halting base script load.");
                 return;
             }
 

@@ -16,6 +16,7 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "gd_luau.h"
@@ -181,34 +182,14 @@ struct LuauScriptDepSort {
     }
 };
 
-void LuauScript::reload_module() {
-    dependents.clear();
-
+void LuauScript::unload_module() {
     for (int i = GDLuau::VM_SCRIPT_LOAD; i < GDLuau::VM_MAX; i++) {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
 
         luaL_findtable(L, LUA_REGISTRYINDEX, GDLuau::MODULE_TABLE, 1);
+        lua_pushnil(L);
+        lua_setfield(L, -2, get_path().utf8().get_data());
 
-        CharString path = get_path().utf8();
-        lua_getfield(L, -1, path.get_data());
-
-        if (lua_isnil(L, -1)) {
-            lua_pop(L, 2); // nil, MODULE_TABLE
-            continue;
-        }
-
-        lua_pop(L, 1); // value
-
-        GDLuau::push_module(L, this);
-
-        if (lua_isstring(L, -1)) {
-            ERR_PRINT(LuaStackOp<String>::get(L, -1));
-
-            lua_pop(L, 2); // error, MODULE_TABLE
-            return;
-        }
-
-        lua_setfield(L, -2, path.get_data());
         lua_pop(L, 1); // MODULE_TABLE
     }
 }
@@ -242,10 +223,12 @@ void LuauLanguage::_reload_all_scripts() {
     List<Ref<LuauScript>> scripts = get_scripts();
 
     for (Ref<LuauScript> &script : scripts) {
-        script->load_source_code(script->get_path());
+        script->unload_module();
+    }
 
+    for (Ref<LuauScript> &script : scripts) {
+        script->load_source_code(script->get_path());
         script->_reload(true);
-        script->reload_module();
     }
 }
 
@@ -256,7 +239,7 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
     // Step 2: Save state (if soft) and remove scripts from instances
     HashMap<Ref<LuauScript>, ScriptInstanceState> to_reload;
 
-    for (const Ref<LuauScript> &script : scripts) {
+    for (Ref<LuauScript> &script : scripts) {
         bool dependency_changed = false;
 
         for (const KeyValue<Ref<LuauScript>, ScriptInstanceState> &pair : to_reload) {
@@ -270,6 +253,7 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
             continue;
 
         to_reload.insert(script, ScriptInstanceState());
+        script->unload_module();
 
         if (!p_soft_reload && !script->is_module()) {
             ScriptInstanceState &map = to_reload[script];
@@ -308,8 +292,9 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
     // Step 3: Reload scripts and load saved state if any
     for (const KeyValue<Ref<LuauScript>, ScriptInstanceState> &E : to_reload) {
         Ref<LuauScript> scr = E.key;
+        UtilityFunctions::print_verbose("Reloading script: ", scr->get_path());
+
         scr->_reload(p_soft_reload);
-        scr->reload_module();
 
         for (const KeyValue<uint64_t, List<Pair<StringName, Variant>>> &F : E.value) {
             const List<Pair<StringName, Variant>> &saved_state = F.value;

@@ -154,7 +154,7 @@ public:
     bool has_dependent(const String &p_path) const;
 
     Error load_module(lua_State *L) const;
-    void reload_module();
+    void unload_module();
 
     LuauScript();
     ~LuauScript();
