@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
@@ -18,6 +19,7 @@
 #include "luau_cache.h"
 #include "luau_lib.h"
 #include "luau_script.h"
+#include "task_scheduler.h"
 
 using namespace godot;
 
@@ -126,13 +128,26 @@ int GDLuau::gdluau_require(lua_State *L) {
     return finishrequire(L);
 }
 
+static int gdluau_wait(lua_State *L) {
+    double duration = LuaStackOp<double>::check(L, 1);
+
+    WaitTask *task = memnew(WaitTask(L, duration));
+    LuauLanguage::get_singleton()->get_task_scheduler().register_task(L, task);
+
+    return lua_yield(L, 0);
+}
+
+static const luaL_Reg global_funcs[] = {
+    { "require", GDLuau::gdluau_require },
+    { "wait", gdluau_wait },
+    { nullptr, nullptr }
+};
+
 void GDLuau::init_vm(VMType p_type) {
     lua_State *L = luaGD_newstate(PERMISSION_BASE);
     luascript_openlibs(L);
 
-    // require
-    lua_pushcfunction(L, gdluau_require, "require");
-    lua_setglobal(L, "require");
+    luaL_register(L, "_G", global_funcs);
 
     // Global metatable
     lua_createtable(L, 0, 1);
@@ -175,4 +190,18 @@ GDLuau::~GDLuau() {
 
 lua_State *GDLuau::get_vm(VMType p_type) {
     return vms[p_type];
+}
+
+void GDLuau::gc_step(const uint32_t *p_step, double delta) {
+    for (int i = 0; i < VM_MAX; i++) {
+        lua_State *L = get_vm(VMType(i));
+        lua_gc(L, LUA_GCSTEP, p_step[i] * delta);
+    }
+}
+
+void GDLuau::gc_size(int32_t *r_buffer) {
+    for (int i = 0; i < VM_MAX; i++) {
+        lua_State *L = get_vm(VMType(i));
+        r_buffer[i] = lua_gc(L, LUA_GCCOUNT, 0);
+    }
 }

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 struct lua_State;
 class LuauScript;
 
@@ -24,14 +26,16 @@ private:
     lua_State *vms[VM_MAX];
     void init_vm(VMType p_type);
 
+public:
     static int gdluau_require(lua_State *L);
 
-public:
     static const char *MODULE_TABLE;
 
     static GDLuau *get_singleton() { return singleton; }
 
     lua_State *get_vm(VMType p_type);
+    void gc_step(const uint32_t *p_step, double delta);
+    void gc_size(int32_t *r_buffer);
 
     GDLuau();
     ~GDLuau();

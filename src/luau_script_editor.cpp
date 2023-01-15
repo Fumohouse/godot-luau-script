@@ -175,7 +175,7 @@ struct LuauScriptDepSort {
             if (a->has_dependent(s->get_path()))
                 return true;
 
-            s = static_cast<const LuauScript *>(s->_get_base_script().ptr());
+            s = s->get_base().ptr();
         }
 
         return false;
@@ -183,7 +183,7 @@ struct LuauScriptDepSort {
 };
 
 void LuauScript::unload_module() {
-    for (int i = GDLuau::VM_SCRIPT_LOAD; i < GDLuau::VM_MAX; i++) {
+    for (int i = 0; i < GDLuau::VM_MAX; i++) {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
 
         luaL_findtable(L, LUA_REGISTRYINDEX, GDLuau::MODULE_TABLE, 1);

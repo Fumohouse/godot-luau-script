@@ -4,6 +4,13 @@ local TestModule = require("TestModule")
 local TestClass = gdclass(nil, "TestBaseScript.lua")
 	:Permissions(Enum.Permissions.INTERNAL)
 
+function TestClass:Counter()
+	for i = 3, 1, -1 do
+		print(i.."!")
+		wait(1)
+	end
+end
+
 function TestClass:_Ready()
 	print("TestScript: Ready!")
 
@@ -13,6 +20,8 @@ function TestClass:_Ready()
 	TestAutoLoad:TestMethod()
 
 	print(TestModule.testConstant)
+
+	TestClass.Counter(self)
 
 	-- Exit the test once complete
 	print_rich("[color=green]Tests finished![/color] Exiting...")

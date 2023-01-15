@@ -34,8 +34,8 @@ ExecOutput luaGD_exec(lua_State *L, const char *src) {
             output.status = OK;
             return output;
         } else if (status == LUA_YIELD) {
-            output.status = FAILED;
-            output.error = "Unexpected yield";
+            INFO("thread yielded");
+            output.status = OK;
             return output;
         }
 

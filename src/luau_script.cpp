@@ -11,6 +11,7 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_language.hpp>
+#include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -854,12 +855,16 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
             LuaStackOp<Object *>::push(ET, owner);
             lua_insert(ET, -nargs - 1);
 
-            int status = lua_pcall(ET, nargs + 1, nret, 0); // +1 for self
+            int status = lua_resume(ET, nullptr, nargs + 1);
 
-            if (status != LUA_OK) {
+            if (status != LUA_OK && status != LUA_YIELD) {
                 ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
                 lua_pop(ET, 1);
+                return status;
             }
+
+            for (int i = lua_gettop(ET); i < nret; i++)
+                lua_pushnil(ET);
 
             return status;
         } else {
@@ -945,13 +950,16 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                     *r_err = PROP_OK;
 
                 return true;
-            } else if (status == -1) {
-                ERR_PRINT("setter for " + p_name + " not found");
+            } else if (status == LUA_YIELD) {
+                if (r_err != nullptr)
+                    *r_err = PROP_SET_FAILED;
 
+                ERR_FAIL_V_MSG(false, "setter for " + p_name + " yielded unexpectedly");
+            } else if (status == -1) {
                 if (r_err != nullptr)
                     *r_err = PROP_NOT_FOUND;
 
-                return false;
+                ERR_FAIL_V_MSG(false, "setter for " + p_name + " not found");
             } else {
                 if (r_err != nullptr)
                     *r_err = PROP_SET_FAILED;
@@ -1171,11 +1179,18 @@ void LuauScriptInstance::call(
 
             int status = call_internal(actual_name, ET, args_allowed, 1);
 
-            if (status == LUA_OK)
+            if (status == LUA_OK) {
                 *r_return = LuaStackOp<Variant>::get(ET, -1);
+            } else if (status == LUA_YIELD) {
+                if (method.return_val.type != GDEXTENSION_VARIANT_TYPE_NIL) {
+                    lua_pop(T, 1); // thread
+                    ERR_FAIL_MSG("non-void method yielded unexpectedly");
+                }
+
+                *r_return = Variant();
+            }
 
             lua_pop(T, 1); // thread
-
             return;
         }
 
@@ -1565,6 +1580,21 @@ void LuauLanguage::_add_named_global_constant(const StringName &p_name, const Va
 
 void LuauLanguage::_remove_named_global_constant(const StringName &p_name) {
     global_constants.erase(p_name);
+}
+
+void LuauLanguage::_frame() {
+    uint64_t new_ticks = Time::get_singleton()->get_ticks_usec();
+    double time_scale = Engine::get_singleton()->get_time_scale();
+
+    double delta;
+    if (ticks_usec == 0)
+        delta = 0;
+    else
+        delta = (new_ticks - ticks_usec) / 1e6f;
+
+    task_scheduler.frame(delta * time_scale);
+
+    ticks_usec = new_ticks;
 }
 
 Error LuauLanguage::_execute_file(const String &p_path) {

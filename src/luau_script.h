@@ -22,6 +22,7 @@
 
 #include "gd_luau.h"
 #include "luau_lib.h"
+#include "task_scheduler.h"
 
 namespace godot {
 class Object;
@@ -145,6 +146,8 @@ public:
     TypedArray<Dictionary> _get_documentation() const;
     */
 
+    Ref<LuauScript> get_base() const { return base; }
+
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
     const GDClassDefinition &get_definition() const { return definition; }
 
@@ -225,7 +228,7 @@ private:
     int thread_ref;
     lua_State *T;
 
-    int call_internal(const StringName &p_method, lua_State *T, int nargs, int nret);
+    int call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret);
 
     int protected_table_set(lua_State *L, const Variant &p_key, const Variant &p_value);
     int protected_table_get(lua_State *L, const Variant &p_key);
@@ -246,6 +249,7 @@ public:
     bool has_method(const StringName &p_name) const override;
 
     void call(const StringName &p_method, const Variant *const *p_args, const GDExtensionInt p_argument_count, Variant *r_return, GDExtensionCallError *r_error);
+
     void notification(int32_t p_what);
     void to_string(GDExtensionBool *r_is_valid, String *r_out);
 
@@ -314,6 +318,9 @@ private:
     static LuauLanguage *singleton;
     GDLuau *luau = nullptr;
     LuauCache *cache = nullptr;
+    TaskScheduler task_scheduler;
+
+    uint64_t ticks_usec;
 
     SelfList<LuauScript>::List script_list;
     HashSet<String> core_scripts;
@@ -362,6 +369,8 @@ public:
     void _add_named_global_constant(const StringName &p_name, const Variant &p_value) override;
     void _remove_named_global_constant(const StringName &p_name) override;
 
+    void _frame() override;
+
     /* ???: pure virtual functions which have no clear purpose */
     Error _execute_file(const String &p_path) override;
     bool _has_named_classes() const override;
@@ -374,7 +383,6 @@ public:
     // Error _open_in_external_editor(const Ref<Script> &script, int64_t line, int64_t column);
 
     /* TO IMPLEMENT */
-    void _frame() override {}
 
     Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const override {
         Dictionary output;
@@ -436,6 +444,7 @@ public:
 
     bool is_core_script(const String &p_path) const;
     const HashMap<StringName, Variant> &get_global_constants() const { return global_constants; }
+    TaskScheduler &get_task_scheduler() { return task_scheduler; }
 
     LuauLanguage();
     ~LuauLanguage();
