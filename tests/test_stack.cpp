@@ -36,13 +36,6 @@ TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
         REQUIRE(LuaStackOp<type>::check(L, -1) == expected_arr); \
     }
 
-#define CHECK_ARR_TYPED(var_type)                                           \
-    {                                                                       \
-        REQUIRE(LuaStackOp<Array>::is(L, -1, var_type));                    \
-        REQUIRE(LuaStackOp<Array>::get(L, -1, var_type) == expected_arr);   \
-        REQUIRE(LuaStackOp<Array>::check(L, -1, var_type) == expected_arr); \
-    }
-
 TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
     SECTION("packed array") {
         PackedStringArray expected_arr;
@@ -94,32 +87,6 @@ TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
                     return { "1", 2.5, Vector2(3, 4) }
                 )ASDF",
                         CHECK_ARR(Array));
-            }
-        }
-
-        SECTION("typed") {
-            Array expected_arr;
-            expected_arr.push_back(Vector2(1, 2));
-            expected_arr.push_back(Vector2(3, 4));
-            expected_arr.push_back(Vector2(5, 6));
-
-            SECTION("Godot") {
-                EVAL_THEN(L, R"ASDF(
-                    local arr = Array()
-                    arr:PushBack(Vector2(1, 2))
-                    arr:PushBack(Vector2(3, 4))
-                    arr:PushBack(Vector2(5, 6))
-
-                    return arr
-                )ASDF",
-                        CHECK_ARR_TYPED(Variant::VECTOR2));
-            }
-
-            SECTION("coerced") {
-                EVAL_THEN(L, R"ASDF(
-                    return { Vector2(1, 2), Vector2(3, 4), Vector2(5, 6) }
-                )ASDF",
-                        CHECK_ARR_TYPED(Variant::VECTOR2));
             }
         }
     }

@@ -99,12 +99,7 @@ _FORCE_INLINE_ static void get_argument(lua_State *L, int idx, const T &arg, Lua
 template <>
 _FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &arg, LuauVariant &out) {
     const ApiClassType &type = arg.type;
-
-    if (type.typed_array_type != GDEXTENSION_VARIANT_TYPE_NIL) {
-        out.lua_check(L, idx, GDEXTENSION_VARIANT_TYPE_ARRAY, type.type_name, type.typed_array_type);
-    } else {
-        out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
-    }
+    out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
 }
 
 // Defaults

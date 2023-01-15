@@ -172,16 +172,16 @@ static void array_set(Array &array, int index, Variant elem) {
     array[index] = elem;
 }
 
-Array LuaStackOp<Array>::get(lua_State *L, int index, Variant::Type type, const String &class_name) {
-    return luaGD_getarray<Array>(L, index, ARRAY_METATABLE_NAME, type, class_name, array_set);
+Array LuaStackOp<Array>::get(lua_State *L, int index) {
+    return luaGD_getarray<Array>(L, index, ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
 }
 
-bool LuaStackOp<Array>::is(lua_State *L, int index, Variant::Type type, const String &class_name) {
-    return luaGD_isarray(L, index, ARRAY_METATABLE_NAME, type, class_name);
+bool LuaStackOp<Array>::is(lua_State *L, int index) {
+    return luaGD_isarray(L, index, ARRAY_METATABLE_NAME, Variant::NIL, "");
 }
 
-Array LuaStackOp<Array>::check(lua_State *L, int index, Variant::Type type, const String &class_name) {
-    return luaGD_checkarray<Array>(L, index, ARRAY_METATABLE_NAME, type, class_name, array_set);
+Array LuaStackOp<Array>::check(lua_State *L, int index) {
+    return luaGD_checkarray<Array>(L, index, ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
 }
 
 UDATA_ALLOC(Array, ARRAY_METATABLE_NAME, DTOR(Array))

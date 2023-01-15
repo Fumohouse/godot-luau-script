@@ -63,20 +63,7 @@ STACK_OP_DEF_BASE(Object *, Object *)
 // Implementation is generated.
 STACK_OP_DEF(Variant)
 
-template <>
-struct LuaStackOp<Array> {
-    static void push(lua_State *L, const Array &value);
-
-    static Array get(lua_State *L, int index, Variant::Type type = Variant::NIL, const String &class_name = "");
-    static bool is(lua_State *L, int index, Variant::Type type = Variant::NIL, const String &class_name = "");
-    static Array check(lua_State *L, int index, Variant::Type type = Variant::NIL, const String &class_name = "");
-
-    /* USERDATA */
-
-    static Array *alloc(lua_State *L);
-    static Array *get_ptr(lua_State *L, int index);
-    static Array *check_ptr(lua_State *L, int index);
-};
+STACK_OP_PTR_DEF(Array)
 
 /* USERDATA */
 
