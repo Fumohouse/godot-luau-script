@@ -1556,6 +1556,10 @@ bool LuauLanguage::_supports_builtin_mode() const {
     return false;
 }
 
+bool LuauLanguage::_can_inherit_from_file() const {
+    return true;
+}
+
 Object *LuauLanguage::_create_script() const {
     return memnew(LuauScript);
 }

@@ -139,13 +139,11 @@ public:
     bool placeholder_has(Object *p_object) const;
     PlaceHolderScriptInstance *placeholder_get(Object *p_object);
 
-    /*
-    int64_t _get_member_line(const StringName &member) const;
+    /* TO IMPLEMENT */
+    int64_t _get_member_line(const StringName &p_member) const override { return -1; }
+    TypedArray<Dictionary> _get_documentation() const override { return TypedArray<Dictionary>(); }
 
-    // To implement later (or never)
-    TypedArray<Dictionary> _get_documentation() const;
-    */
-
+    /* MISC (NON OVERRIDE) */
     Ref<LuauScript> get_base() const { return base; }
 
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
@@ -358,19 +356,21 @@ public:
     PackedStringArray _get_string_delimiters() const override;
 
     bool _supports_builtin_mode() const override;
+    bool _can_inherit_from_file() const override;
 
     /* ... */
     Object *_create_script() const override;
     Ref<Script> _make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
-
-    void _reload_all_scripts() override;
-    void _reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) override;
 
     void _add_global_constant(const StringName &p_name, const Variant &p_value) override;
     void _add_named_global_constant(const StringName &p_name, const Variant &p_value) override;
     void _remove_named_global_constant(const StringName &p_name) override;
 
     void _frame() override;
+
+    /* EDITOR */
+    void _reload_all_scripts() override;
+    void _reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) override;
 
     /* ???: pure virtual functions which have no clear purpose */
     Error _execute_file(const String &p_path) override;
@@ -384,7 +384,6 @@ public:
     // Error _open_in_external_editor(const Ref<Script> &script, int64_t line, int64_t column);
 
     /* TO IMPLEMENT */
-
     Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const override {
         Dictionary output;
 
@@ -393,7 +392,24 @@ public:
         return output;
     }
 
-    // Debugger
+    bool _is_using_templates() override { return false; }
+    TypedArray<Dictionary> _get_built_in_templates(const StringName &p_object) const override { return TypedArray<Dictionary>(); }
+
+    Dictionary _complete_code(const String &p_code, const String &p_path, Object *p_owner) const override { return Dictionary(); }
+    Dictionary _lookup_code(const String &p_code, const String &p_symbol, const String &p_path, Object *p_owner) const override { return Dictionary(); }
+    String _auto_indent_code(const String &p_code, int64_t p_from_line, int64_t p_to_line) const override { return p_code; }
+
+    int64_t _find_function(const String &p_class_name, const String &p_function_name) const override { return -1; }
+    String _make_function(const String &p_class_name, const String &p_function_name, const PackedStringArray &p_function_args) const override { return String(); }
+
+    bool _supports_documentation() const override { return false; }
+    TypedArray<Dictionary> _get_public_functions() const override { return TypedArray<Dictionary>(); }
+    Dictionary _get_public_constants() const override { return Dictionary(); }
+    TypedArray<Dictionary> _get_public_annotations() const override { return TypedArray<Dictionary>(); }
+
+    bool _handles_global_class_type(const String &type) const override { return false; }
+    Dictionary _get_global_class_name(const String &path) const override { return Dictionary(); }
+
     // String _debug_get_error() const;
     // int64_t _debug_get_stack_level_count() const;
     // int64_t _debug_get_stack_level_line(int64_t level) const;
@@ -406,35 +422,14 @@ public:
     TypedArray<Dictionary> _debug_get_current_stack_info() override { return TypedArray<Dictionary>(); }
 
     /*
-    bool _can_inherit_from_file() const;
-    int64_t _find_function(const String &class_name, const String &function_name) const;
-    String _make_function(const String &class_name, const String &function_name, const PackedStringArray &function_args) const;
-
     // To implement later (or never)
-    TypedArray<Dictionary> _get_built_in_templates(const StringName &object) const;
-    bool _is_using_templates();
-
-    Dictionary _complete_code(const String &code, const String &path, Object *owner) const;
-    Dictionary _lookup_code(const String &code, const String &symbol, const String &path, Object *owner) const;
-    String _auto_indent_code(const String &code, int64_t from_line, int64_t to_line) const;
-
     String _validate_path(const String &path) const; // used by C# only to prevent naming class to keyword. probably not super necessary
-
-    // Non-essential. For class icons?
-    bool _handles_global_class_type(const String &type) const;
-    Dictionary _get_global_class_name(const String &path) const;
 
     // Profiler
     void _profiling_start();
     void _profiling_stop();
     int64_t _profiling_get_accumulated_data(ScriptLanguageExtensionProfilingInfo *info_array, int64_t info_max);
     int64_t _profiling_get_frame_data(ScriptLanguageExtensionProfilingInfo *info_array, int64_t info_max);
-
-    // For docs
-    bool _supports_documentation() const;
-    Array _get_public_functions() const;
-    Dictionary _get_public_constants() const;
-    TypedArray<Dictionary> _get_public_annotations() const;
 
     // Seemingly unused by Godot
     void *_alloc_instance_binding_data(Object *object);
