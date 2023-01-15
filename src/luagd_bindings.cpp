@@ -9,10 +9,7 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
-#include <godot_cpp/variant/array.hpp>
-#include <godot_cpp/variant/callable.hpp>
-#include <godot_cpp/variant/signal.hpp>
-#include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <type_traits>
 
@@ -213,6 +210,89 @@ static int get_arguments(lua_State *L,
 //////////////
 // Builtins //
 //////////////
+
+/* SPECIAL ARRAY BEHAVIOR */
+
+template <typename T>
+static int luaGD_array_len(lua_State *L) {
+    T *array = LuaStackOp<T>::check_ptr(L, 1);
+    lua_pushinteger(L, array->size());
+
+    return 1;
+}
+
+template <typename TArray, typename TElem>
+static int luaGD_array_next(lua_State *L) {
+    TArray *array = LuaStackOp<TArray>::check_ptr(L, 1);
+    int idx = luaL_checkinteger(L, 2);
+    idx++;
+
+    // Lua is 1 indexed :))))
+    if (idx > array->size()) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    lua_pushinteger(L, idx);
+    LuaStackOp<TElem>::push(L, array->operator[](idx - 1));
+    return 2;
+}
+
+static int luaGD_array_iter(lua_State *L) {
+    lua_pushvalue(L, lua_upvalueindex(1)); // next
+    lua_pushvalue(L, 1); // array
+    lua_pushinteger(L, 0); // initial index
+
+    return 3;
+}
+
+struct ArrayTypeInfo {
+    const char *len_debug_name;
+    lua_CFunction len;
+
+    const char *iter_next_debug_name;
+    lua_CFunction iter_next;
+};
+
+#define BUILTIN_MT_PREFIX "Godot.Builtin."
+#define ARRAY_INFO(type, elem_type)         \
+    static const ArrayTypeInfo type##_info{ \
+        BUILTIN_MT_PREFIX #type ".__len",   \
+        luaGD_array_len<type>,              \
+        BUILTIN_MT_PREFIX #type ".next",    \
+        luaGD_array_next<type, elem_type>   \
+    };                                      \
+                                            \
+    return &type##_info;
+
+// ! sync with any new arrays
+static const ArrayTypeInfo *get_array_type_info(GDExtensionVariantType type) {
+    switch (type) {
+        case GDEXTENSION_VARIANT_TYPE_ARRAY:
+            ARRAY_INFO(Array, Variant)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY:
+            ARRAY_INFO(PackedByteArray, uint8_t)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_INT32_ARRAY:
+            ARRAY_INFO(PackedInt32Array, int32_t)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_INT64_ARRAY:
+            ARRAY_INFO(PackedInt64Array, int64_t)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT32_ARRAY:
+            ARRAY_INFO(PackedFloat32Array, float)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT64_ARRAY:
+            ARRAY_INFO(PackedFloat64Array, double)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY:
+            ARRAY_INFO(PackedStringArray, String)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR2_ARRAY:
+            ARRAY_INFO(PackedVector2Array, Vector2)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR3_ARRAY:
+            ARRAY_INFO(PackedVector3Array, Vector3)
+        case GDEXTENSION_VARIANT_TYPE_PACKED_COLOR_ARRAY:
+            ARRAY_INFO(PackedColorArray, Color)
+
+        default:
+            return nullptr;
+    }
+}
 
 static int luaGD_builtin_ctor(lua_State *L) {
     const ApiBuiltinClass *builtin_class = luaGD_lightudataup<ApiBuiltinClass>(L, 1);
@@ -558,16 +638,23 @@ void luaGD_openbuiltins(lua_State *L) {
                     op_mt_name = "__unm";
                     break;
 
-                // Special (non-Godot) operators
-                case GDEXTENSION_VARIANT_OP_MAX:
-                    op_mt_name = "__len";
-                    break;
-
                 default:
                     ERR_FAIL_MSG("variant operator not handled");
             }
 
             lua_setfield(L, -4, op_mt_name);
+        }
+
+        // Array type handling
+        if (const ArrayTypeInfo *arr_type_info = get_array_type_info(builtin_class.type)) {
+            // __len
+            lua_pushcfunction(L, arr_type_info->len, arr_type_info->len_debug_name);
+            lua_setfield(L, -4, "__len");
+
+            // __iter
+            lua_pushcfunction(L, arr_type_info->iter_next, arr_type_info->iter_next_debug_name);
+            lua_pushcclosure(L, luaGD_array_iter, BUILTIN_MT_PREFIX "Array.__iter", 1);
+            lua_setfield(L, -4, "__iter");
         }
 
         luaGD_poplib(L, false);

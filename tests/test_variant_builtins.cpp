@@ -174,3 +174,25 @@ TEST_CASE_METHOD(LuauFixture, "builtins: tostring") {
 TEST_CASE_METHOD(LuauFixture, "builtins: invalid global access") {
     ASSERT_EVAL_FAIL(L, "return Vector3.duhduhduh", "exec:1: 'duhduhduh' is not a valid member of 'Vector3'")
 }
+
+TEST_CASE_METHOD(LuauFixture, "builtins: array __iter special case") {
+    PackedStringArray expected;
+    expected.push_back("1!");
+    expected.push_back("2!");
+    expected.push_back("3!");
+
+    ASSERT_EVAL_EQ(L, R"ASDF(
+        local array = PackedStringArray()
+        array:PushBack("1!")
+        array:PushBack("2!")
+        array:PushBack("3!")
+
+        local copy = PackedStringArray()
+        for i, v in array do
+            copy:PushBack(v)
+        end
+
+        return copy
+    )ASDF",
+            PackedStringArray, expected)
+}

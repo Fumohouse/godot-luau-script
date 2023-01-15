@@ -484,21 +484,7 @@ def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, 
                 "return_type": return_type
             })
 
-        num_ops = len(operators_map)
-        if class_name.endswith("Array"):
-            num_ops += 1
-
-        write_uint64(io, num_ops)  # uint64_t num_operator_types
-
-        # array __len special case
-        if class_name.endswith("Array"):
-            write_uint32(io, len(variant_ops))  # Variant::Operator op
-            write_uint64(io, 1)  # uint64_t num_operators
-
-            write_uint32(io, 0)  # Variant::Type right_op
-            # Variant::Type return_type
-            write_uint32(io, get_variant_type("int"))
-            write_string(io, f"{metatable_name}.__len")  # String debug_name
+        write_uint64(io, len(operators_map))  # uint64_t num_operator_types
 
         for variant_op_name, ops in operators_map.items():
             # Variant::Operator op

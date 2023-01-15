@@ -185,44 +185,6 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *class_name) {
     return method;
 }
 
-//////////////////////////
-// Array __len operator //
-//////////////////////////
-
-template <typename T>
-static void array_get_len(GDExtensionConstTypePtr p_left, GDExtensionConstTypePtr, GDExtensionTypePtr r_result) {
-    *((int64_t *)r_result) = ((T *)p_left)->size();
-}
-
-// ! sync with any new arrays
-static GDExtensionPtrOperatorEvaluator get_len_evaluator(GDExtensionVariantType type) {
-    switch (type) {
-        case GDEXTENSION_VARIANT_TYPE_ARRAY:
-            return array_get_len<Array>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY:
-            return array_get_len<PackedByteArray>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_INT32_ARRAY:
-            return array_get_len<PackedInt32Array>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_INT64_ARRAY:
-            return array_get_len<PackedInt64Array>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT32_ARRAY:
-            return array_get_len<PackedFloat32Array>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_FLOAT64_ARRAY:
-            return array_get_len<PackedFloat64Array>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_STRING_ARRAY:
-            return array_get_len<PackedStringArray>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR2_ARRAY:
-            return array_get_len<PackedVector2Array>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR3_ARRAY:
-            return array_get_len<PackedVector3Array>;
-        case GDEXTENSION_VARIANT_TYPE_PACKED_COLOR_ARRAY:
-            return array_get_len<PackedColorArray>;
-
-        default:
-            return nullptr;
-    }
-}
-
 //////////
 // Main //
 //////////
@@ -438,13 +400,7 @@ ExtensionApi &get_extension_api() {
                     for (int k = 0; k < num_operators; k++) {
                         ops_ptr[k].right_type = read_uenum<GDExtensionVariantType>(idx);
                         ops_ptr[k].return_type = read_uenum<GDExtensionVariantType>(idx);
-
-                        if (op == GDEXTENSION_VARIANT_OP_MAX) {
-                            // Special array __len
-                            ops_ptr[k].eval = get_len_evaluator(new_class.type);
-                        } else {
-                            ops_ptr[k].eval = internal::gde_interface->variant_get_ptr_operator_evaluator(op, new_class.type, ops_ptr[k].right_type);
-                        }
+                        ops_ptr[k].eval = internal::gde_interface->variant_get_ptr_operator_evaluator(op, new_class.type, ops_ptr[k].right_type);
                     }
 
                     new_class.operators.insert(op, operators);
