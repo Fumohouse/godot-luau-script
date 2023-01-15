@@ -312,7 +312,6 @@ static int luascript_gdclass_newindex(lua_State *L) {
         luascript_gdclass_readonly_error(L);
 
     const char *key = luaL_checkstring(L, 2);
-    luaL_checktype(L, 3, LUA_TFUNCTION);
 
     ERR_FAIL_COND_V_MSG(def->table_ref < 0, 0, "Failed to set method on class definition: table ref is invalid");
 
