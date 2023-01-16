@@ -53,35 +53,23 @@ static int finishrequire(lua_State *L) {
 }
 
 int GDLuau::gdluau_require(lua_State *L) {
-    String name = LuaStackOp<String>::check(L, 1);
+    String path = LuaStackOp<String>::check(L, 1);
+    GDThreadData *udata = luaGD_getthreaddata(L);
 
     luaL_findtable(L, LUA_REGISTRYINDEX, GDLuau::MODULE_TABLE, 1);
 
-    String full_path = "res://";
+    // Get full path.
+    String full_path = String("res://").path_join(path);
 
-    {
-        // Get full path.
-        PackedStringArray segments = name.split(".");
-
-        for (int i = 0; i < segments.size(); i++) {
-            const String &segment = segments[i];
-            full_path = full_path.path_join(segment);
-        }
-
-        if (FileAccess::file_exists(full_path + ".lua")) {
-            full_path = full_path + ".lua";
-        } else if (FileAccess::file_exists(full_path + ".mod.lua")) {
-            full_path = full_path + ".mod.lua";
-        } else {
-            luaL_error(L, "could not find module: %s", name.utf8().get_data());
-        }
+    if (FileAccess::file_exists(full_path + ".lua")) {
+        full_path = full_path + ".lua";
+    } else {
+        luaL_error(L, "could not find module: %s", path.utf8().get_data());
     }
 
     CharString full_path_utf8 = full_path.utf8();
 
     // Checks.
-    GDThreadData *udata = luaGD_getthreaddata(L);
-
     if (udata->script->get_path() == full_path)
         luaL_error(L, "cannot require current script");
 
@@ -139,8 +127,8 @@ static int gdluau_wait(lua_State *L) {
     return lua_yield(L, 0);
 }
 
-static const luaL_Reg global_funcs[] = {
-    { "require", GDLuau::gdluau_require },
+const luaL_Reg GDLuau::global_funcs[] = {
+    { "require", gdluau_require },
     { "wait", gdluau_wait },
     { nullptr, nullptr }
 };

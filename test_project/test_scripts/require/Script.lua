@@ -1,4 +1,4 @@
-local Base = require("test_scripts.require.Base")
+local Base = require("test_scripts/require/Base")
 --@1
 
 local Script = gdclass(nil, "Base.lua")

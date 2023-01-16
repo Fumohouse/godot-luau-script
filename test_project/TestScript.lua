@@ -1,5 +1,5 @@
 local TestBaseScript = require("TestBaseScript")
-local TestModule = require("TestModule")
+local TestModule = require("TestModule.mod")
 
 local TestClass = gdclass(nil, "TestBaseScript.lua")
 	:Permissions(Enum.Permissions.INTERNAL)

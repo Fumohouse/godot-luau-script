@@ -1,4 +1,4 @@
-local Module = require("test_scripts.reload.Module")
+local Module = require("test_scripts/reload/Module.mod")
 local Base = gdclass(nil, "Node")
 
 --@1
