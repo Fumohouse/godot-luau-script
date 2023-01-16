@@ -374,6 +374,9 @@ public:
     void _reload_all_scripts() override;
     void _reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) override;
 
+    bool _handles_global_class_type(const String &p_type) const override;
+    Dictionary _get_global_class_name(const String &p_path) const override;
+
     /* ???: pure virtual functions which have no clear purpose */
     Error _execute_file(const String &p_path) override;
     bool _has_named_classes() const override;
@@ -386,7 +389,7 @@ public:
     // Error _open_in_external_editor(const Ref<Script> &script, int64_t line, int64_t column);
 
     /* TO IMPLEMENT */
-    Dictionary _validate(const String &script, const String &path, bool validate_functions, bool validate_errors, bool validate_warnings, bool validate_safe_lines) const override {
+    Dictionary _validate(const String &p_script, const String &p_path, bool p_validate_functions, bool p_validate_errors, bool p_validate_warnings, bool p_validate_safe_lines) const override {
         Dictionary output;
 
         output["valid"] = true;
@@ -408,9 +411,6 @@ public:
     TypedArray<Dictionary> _get_public_functions() const override { return TypedArray<Dictionary>(); }
     Dictionary _get_public_constants() const override { return Dictionary(); }
     TypedArray<Dictionary> _get_public_annotations() const override { return TypedArray<Dictionary>(); }
-
-    bool _handles_global_class_type(const String &type) const override { return false; }
-    Dictionary _get_global_class_name(const String &path) const override { return Dictionary(); }
 
     // String _debug_get_error() const;
     // int64_t _debug_get_stack_level_count() const;

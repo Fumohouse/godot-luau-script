@@ -215,6 +215,13 @@ static int luascript_gdclass_namecall(lua_State *L) {
             return 1;
         }
 
+        if (strcmp(key, "IconPath") == 0) {
+            def->icon_path = LuaStackOp<String>::check(L, 2);
+
+            lua_settop(L, 1); // return def;
+            return 1;
+        }
+
         // "Raw" functions
         if (strcmp(key, "RegisterMethod") == 0) {
             String name = LuaStackOp<String>::check(L, 2);

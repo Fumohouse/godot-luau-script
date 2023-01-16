@@ -11,6 +11,7 @@ LuauCache *LuauCache::singleton = nullptr;
 
 Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache, const String &p_dependent) {
     Ref<LuauScript> script;
+    r_error = OK;
 
     if (cache.has(p_path)) {
         script = cache[p_path];

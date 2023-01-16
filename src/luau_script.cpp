@@ -1357,16 +1357,16 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
                 int status = lua_pcall(T, 2, 0, 0);
 
                 if (status == LUA_YIELD) {
-                    ERR_PRINT(p_script->definition.name + ":_Init yielded unexpectedly");
+                    ERR_PRINT(p_script->get_path() + ":_Init yielded unexpectedly");
                 } else if (status != LUA_OK) {
-                    ERR_PRINT(p_script->definition.name + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
+                    ERR_PRINT(p_script->get_path() + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
                     lua_pop(T, 1);
                 }
             } else {
                 lua_pop(T, 1);
             }
         } else {
-            ERR_PRINT("Couldn't load script methods for " + p_script->definition.name);
+            ERR_PRINT("Couldn't load script methods for " + p_script->get_path());
         }
 
         s = s->base.ptr();

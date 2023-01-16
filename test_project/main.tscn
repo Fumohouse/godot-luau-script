@@ -13,3 +13,4 @@ testFlags3DRender = null
 testFlags3DPhysics = null
 testFlags3DNavigation = null
 testColorNoAlpha = null
+testTypedArray = null

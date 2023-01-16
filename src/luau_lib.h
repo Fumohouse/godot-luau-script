@@ -73,6 +73,8 @@ struct GDClassDefinition {
     String name;
     String extends = "RefCounted";
 
+    String icon_path;
+
     ThreadPermissions permissions = PERMISSION_BASE;
 
     bool is_tool = false;
