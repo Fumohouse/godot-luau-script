@@ -47,7 +47,7 @@ def snake_to_pascal(snake):
     if (snake.startswith("_")):
         output = "_" + output
 
-    return output
+    return output.replace("2d", "2D").replace("3d", "3D")
 
 
 def snake_to_camel(snake):
