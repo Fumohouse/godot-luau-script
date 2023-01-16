@@ -90,66 +90,6 @@ static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause r
 
 /* GETTING ARGUMENTS */
 
-// From stack
-template <typename T>
-_FORCE_INLINE_ static void get_argument(lua_State *L, int idx, const T &arg, LuauVariant &out) {
-    out.lua_check(L, idx, arg.type);
-}
-
-template <>
-_FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &arg, LuauVariant &out) {
-    const ApiClassType &type = arg.type;
-    out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
-}
-
-// Defaults
-template <typename T>
-struct has_default_value_trait : std::true_type {};
-
-template <>
-struct has_default_value_trait<ApiArgumentNoDefault> : std::false_type {};
-
-template <typename TMethod, typename TArg>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::true_type const &) {
-    for (int i = nargs; i < method.arguments.size(); i++) {
-        const TArg &arg = method.arguments[i];
-
-        if (arg.has_default_value) {
-            // Not using get_opaque_pointer_arg: default arguments shouldn't ever be objects anyway
-            pargs->set(i, arg.default_value.get_opaque_pointer());
-        } else {
-            LuauVariant dummy;
-            get_argument(L, i + 1 + arg_offset, arg, dummy);
-        }
-    }
-}
-
-template <>
-_FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
-        lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const GDMethod &method, std::true_type const &) {
-    int args_allowed = method.arguments.size();
-    int args_default = method.default_arguments.size();
-    int args_required = args_allowed - args_default;
-
-    for (int i = nargs; i < args_allowed; i++) {
-        const GDProperty &arg = method.arguments[i];
-
-        if (i >= args_required) {
-            pargs->set(i, &method.default_arguments[i - args_required]);
-        } else {
-            LuauVariant dummy;
-            get_argument(L, i + 1 + arg_offset, arg, dummy);
-        }
-    }
-}
-
-
-template <typename TMethod, typename>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::false_type const &) {
-    LuauVariant dummy;
-    get_argument(L, nargs + 1 + arg_offset, method.arguments[nargs], dummy);
-}
-
 // Getters for argument types
 template <typename T>
 _FORCE_INLINE_ static GDExtensionVariantType get_arg_type(const T &arg) { return arg.type; }
@@ -181,6 +121,74 @@ _FORCE_INLINE_ static bool is_method_vararg(const T &method) { return method.is_
 
 template <>
 _FORCE_INLINE_ bool is_method_vararg<GDMethod>(const GDMethod &method) { return true; }
+
+// From stack
+template <typename T>
+_FORCE_INLINE_ static void get_argument(lua_State *L, int idx, const T &arg, LuauVariant &out) {
+    out.lua_check(L, idx, arg.type);
+}
+
+template <>
+_FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &arg, LuauVariant &out) {
+    const ApiClassType &type = arg.type;
+    out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
+}
+
+// Defaults
+template <typename T>
+struct has_default_value_trait : std::true_type {};
+
+template <>
+struct has_default_value_trait<ApiArgumentNoDefault> : std::false_type {};
+
+template <typename TMethod, typename TArg>
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::true_type const &) {
+    for (int i = nargs; i < method.arguments.size(); i++) {
+        const TArg &arg = method.arguments[i];
+
+        if (arg.has_default_value) {
+            // Special case: null Object default value
+            if (get_arg_type(arg) == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+                if (*arg.default_value.get_object() != nullptr) {
+                    // Should never happen
+                    ERR_PRINT("could not set non-null object argument default value");
+                }
+
+                pargs->set(i, nullptr);
+            } else {
+                pargs->set(i, arg.default_value.get_opaque_pointer());
+            }
+        } else {
+            LuauVariant dummy;
+            get_argument(L, i + 1 + arg_offset, arg, dummy);
+        }
+    }
+}
+
+template <>
+_FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
+        lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const GDMethod &method, std::true_type const &) {
+    int args_allowed = method.arguments.size();
+    int args_default = method.default_arguments.size();
+    int args_required = args_allowed - args_default;
+
+    for (int i = nargs; i < args_allowed; i++) {
+        const GDProperty &arg = method.arguments[i];
+
+        if (i >= args_required) {
+            pargs->set(i, &method.default_arguments[i - args_required]);
+        } else {
+            LuauVariant dummy;
+            get_argument(L, i + 1 + arg_offset, arg, dummy);
+        }
+    }
+}
+
+template <typename TMethod, typename>
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::false_type const &) {
+    LuauVariant dummy;
+    get_argument(L, nargs + 1 + arg_offset, method.arguments[nargs], dummy);
+}
 
 // this is magic
 template <typename T, typename TArg>
@@ -709,7 +717,11 @@ static int luaGD_class_no_ctor(lua_State *L) {
     int class_idx = lua_tointeger(L, lua_upvalueindex(1));                  \
     Vector<ApiClass> *classes = luaGD_lightudataup<Vector<ApiClass>>(L, 2); \
                                                                             \
-    ApiClass *current_class = &classes->ptrw()[class_idx];
+    ApiClass *current_class = &classes->ptrw()[class_idx];                  \
+                                                                            \
+    Object *self = LuaStackOp<Object *>::check(L, 1);                       \
+    if (self == nullptr)                                                    \
+        luaL_error(L, "Object is null or freed");
 
 #define INHERIT_OR_BREAK                                             \
     if (current_class->parent_idx >= 0)                              \
@@ -719,6 +731,9 @@ static int luaGD_class_no_ctor(lua_State *L) {
 
 static LuauScriptInstance *get_script_instance(lua_State *L) {
     Object *self = LuaStackOp<Object *>::get(L, 1);
+    if (self == nullptr)
+        return nullptr;
+
     Ref<LuauScript> script = self->get_script();
 
     if (script.is_valid() && script->_instance_has(self))
@@ -792,7 +807,7 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
             ret.lua_push(L);
 
             // handle ref returned from Godot
-            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT && *ret.get_object() != nullptr) {
                 Object *obj = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(*ret.get_object()));
                 handle_object_returned(obj);
             }
@@ -942,7 +957,6 @@ static int call_property_setget(lua_State *L, const ApiClass &g_class, const Api
 static int luaGD_class_index(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
-    Object *self = LuaStackOp<Object *>::check(L, 1);
     const char *key = luaL_checkstring(L, 2);
 
     bool attempt_table_get = false;
@@ -1028,7 +1042,6 @@ static int luaGD_class_index(lua_State *L) {
 static int luaGD_class_newindex(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
-    Object *self = LuaStackOp<Object *>::check(L, 1);
     const char *key = luaL_checkstring(L, 2);
 
     bool attempt_table_set = false;

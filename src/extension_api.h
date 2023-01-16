@@ -24,7 +24,7 @@ using namespace godot;
 struct ApiArgument {
     const char *name;
     GDExtensionVariantType type;
-    bool has_default_value;
+    bool has_default_value = false;
     LuauVariant default_value;
 };
 

@@ -22,10 +22,10 @@ using namespace godot;
 // Reading from the bin/inc //
 //////////////////////////////
 
-static void get_variant_const(LuauVariant &out, int32_t idx) {
+static void get_variant_const(GDExtensionVariantType type, LuauVariant &out, int32_t idx) {
     const Variant &value = get_variant_value(idx);
 
-    out.initialize((GDExtensionVariantType)value.get_type());
+    out.initialize(type);
     out.assign_variant(value);
 }
 
@@ -118,7 +118,7 @@ static ApiVariantMethod read_builtin_method(GDExtensionVariantType type, uint64_
         int32_t default_variant_index = read<int32_t>(idx);
         if (default_variant_index != -1) {
             arg.has_default_value = true;
-            get_variant_const(arg.default_value, default_variant_index);
+            get_variant_const(arg.type, arg.default_value, default_variant_index);
         }
     }
 
@@ -150,7 +150,7 @@ static ApiClassArgument read_class_arg(uint64_t &idx) {
 
     if (default_variant_index != -1) {
         arg.has_default_value = true;
-        get_variant_const(arg.default_value, default_variant_index);
+        get_variant_const((GDExtensionVariantType)arg.type.type, arg.default_value, default_variant_index);
     }
 
     return arg;

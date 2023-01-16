@@ -225,8 +225,10 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
             },
             [](LuauVariant &self, lua_State *L, int idx, const String &type_name) {
                 Object *obj = LuaStackOp<Object *>::check(L, idx);
-                if (obj == nullptr)
-                    luaL_error(L, "Object has been freed");
+                if (obj == nullptr) {
+                    self._data._object = nullptr;
+                    return false;
+                }
 
                 if (!type_name.is_empty() && !obj->is_class(type_name))
                     luaL_typeerrorL(L, idx, type_name.utf8().get_data());
@@ -235,6 +237,11 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
                 return false;
             },
             [](const LuauVariant &self, lua_State *L) {
+                if (self._data._object == nullptr) {
+                    LuaStackOp<Object *>::push(L, nullptr);
+                    return;
+                }
+
                 Object *inst = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(self._data._object));
                 LuaStackOp<Object *>::push(L, inst);
             },
@@ -243,7 +250,11 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
                 self._data._object = other._data._object;
             },
             [](LuauVariant &self, const Variant &val) {
-                self._data._object = val;
+                Object *obj = val.operator Object *();
+                if (obj == nullptr)
+                    return;
+
+                self._data._object = obj->_owner;
             } },
     DATA_METHODS(Callable, get_callable),
     DATA_METHODS(Signal, get_signal),

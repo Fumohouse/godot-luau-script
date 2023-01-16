@@ -77,8 +77,11 @@ static void luaGD_object_init(Object *ptr) {
 }
 
 static void luaGD_object_dtor(void *ptr) {
-    Object *instance = ObjectDB::get_instance(
-            *reinterpret_cast<GDObjectInstanceID *>(ptr));
+    GDObjectInstanceID id = *reinterpret_cast<GDObjectInstanceID *>(ptr);
+    if (id == 0)
+        return;
+
+    Object *instance = ObjectDB::get_instance(id);
 
     RefCounted *rc = Object::cast_to<RefCounted>(instance);
     if (rc != nullptr)
@@ -89,11 +92,17 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
     GDObjectInstanceID *udata =
             reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
 
-    luaGD_object_init(value);
+    String metatable_name;
 
-    *udata = value->get_instance_id();
+    if (value != nullptr) {
+        metatable_name = "Godot.Object." + value->get_class();
+        luaGD_object_init(value);
+        *udata = value->get_instance_id();
+    } else {
+        metatable_name = "Godot.Object.Object";
+        *udata = 0;
+    }
 
-    String metatable_name = "Godot.Object." + value->get_class();
     const char *metatable_name_ptr = metatable_name.utf8().get_data();
 
     luaL_getmetatable(L, metatable_name_ptr);
@@ -124,9 +133,10 @@ Object *LuaStackOp<Object *>::get(lua_State *L, int index) {
         return nullptr;
 
     GDObjectInstanceID *udata = reinterpret_cast<GDObjectInstanceID *>(lua_touserdata(L, index));
-    Object *obj_ptr = ObjectDB::get_instance(*udata);
+    if (*udata == 0)
+        return nullptr;
 
-    return obj_ptr;
+    return ObjectDB::get_instance(*udata);
 }
 
 Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
