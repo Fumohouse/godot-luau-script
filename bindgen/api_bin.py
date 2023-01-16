@@ -451,18 +451,21 @@ def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, 
             "unary-": "unm"
         }
 
+        # since Variant is basically a catch-all type, comparison to Variant should always be last
+        # otherwise the output could be unexpected
+        # int is sorted after other types because it may be removed if a float operator exists
         def op_priority(op):
             if "right_type" not in op:
                 return 0
 
             right_type = op["right_type"]
-            if right_type == "Variant":
+            if right_type == "int":
                 return 1
+            if right_type == "Variant":
+                return 2
 
             return 0
 
-        # since Variant is basically a catch-all type, comparison to Variant should always be last
-        # otherwise the output could be unexpected
         operators = sorted(operators_unsorted, key=op_priority)
         operators_map = {}
 
@@ -471,8 +474,21 @@ def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, 
             if name not in variant_op_map:
                 continue
 
-            right_type = get_variant_type(
-                variant_op["right_type"]) if "right_type" in variant_op else 0
+            right_type = None
+            right_type_variant = 0
+            if "right_type" in variant_op:
+                right_type = variant_op["right_type"]
+
+                # basically, if there was a float right_type previously then skip the int one
+                if name in operators_map and \
+                        right_type == "int" and (True in [
+                            "right_type" in op and op["right_type"] == "float"
+                            for op in operators_map[name]
+                        ]):
+                    continue
+
+                right_type_variant = get_variant_type(right_type)
+
             return_type = get_variant_type(variant_op["return_type"])
 
             if name not in operators_map:
@@ -481,6 +497,7 @@ def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, 
             operators_map[name].append({
                 "metatable_name": "__" + variant_op_map[name],
                 "right_type": right_type,
+                "right_type_variant": right_type_variant,
                 "return_type": return_type
             })
 
@@ -492,7 +509,7 @@ def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, 
             write_uint64(io, len(ops))  # uint64_t num_operators
 
             for op in ops:
-                write_uint32(io, op["right_type"])  # Variant::Type right_type
+                write_uint32(io, op["right_type_variant"])  # Variant::Type right_type
                 # Variant::Type return_type
                 write_uint32(io, op["return_type"])
 
