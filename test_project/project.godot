@@ -8,16 +8,6 @@
 
 config_version=5
 
-_global_script_classes=[{
-"base": "Resource",
-"class": &"TestResource",
-"language": &"Luau",
-"path": "res://TestResource.lua"
-}]
-_global_script_class_icons={
-"TestResource": ""
-}
-
 [application]
 
 config/name="Luau Test"
@@ -28,3 +18,7 @@ config/icon="res://icon.png"
 [autoload]
 
 TestAutoLoad="*res://TestAutoLoad.lua"
+
+[editor]
+
+export/convert_text_resources_to_binary=true
