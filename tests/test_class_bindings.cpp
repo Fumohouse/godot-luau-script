@@ -132,31 +132,6 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
         SECTION("set disallowed") {
             ASSERT_EVAL_FAIL(L, "testNode.visibilityChanged = 1234", "exec:1: cannot assign to signal 'visibilityChanged'");
         }
-
-        lua_pushnil(L);
-        lua_setglobal(L, "testNode");
-    }
-
-    SECTION("method callable") {
-        Object obj;
-
-        LuaStackOp<Object *>::push(L, &obj);
-        lua_setglobal(L, "testObject");
-
-        SECTION("get") {
-            ASSERT_EVAL_EQ(L, "return testObject.GetClass", Callable, Callable(&obj, "get_class"));
-        }
-
-        SECTION("get permissions") {
-            ASSERT_EVAL_FAIL(L, "return testObject.Call", "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!");
-        }
-
-        SECTION("set disallowed") {
-            ASSERT_EVAL_FAIL(L, "testObject.GetClass = 1234", "exec:1: cannot assign to method 'GetClass'");
-        }
-
-        lua_pushnil(L);
-        lua_setglobal(L, "testObject");
     }
 
     SECTION("member access"){
@@ -189,9 +164,6 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
             return styleBox.contentMarginBottom
         )ASDF",
                 double, 4.25)
-
-        lua_pushnil(L);
-        lua_setglobal(L, "styleBox");
     }
 }
 
@@ -210,9 +182,6 @@ TEST_CASE_METHOD(LuauFixture, "classes: tostring") {
     SECTION("freed"){
         ASSERT_EVAL_EQ(L, "return tostring(node)", String, "<Freed Object>")
     }
-
-    lua_pushnil(L);
-    lua_setglobal(L, "node");
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: permissions"){
@@ -223,5 +192,5 @@ TEST_CASE_METHOD(LuauFixture, "classes: permissions"){
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: invalid global access") {
-    ASSERT_EVAL_FAIL(L, "return Object.duhduhduh", "exec:1: 'duhduhduh' is not a valid member of 'Object'")
+    ASSERT_EVAL_FAIL(L, "return Object.duhduhduh", "exec:1: 'duhduhduh' is not a valid member of Object")
 }

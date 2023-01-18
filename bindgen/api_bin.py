@@ -320,7 +320,7 @@ def ctor_help_string(class_name, constructors):
         "\n".join(lines)
 
 
-def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, variant_value_map):
+def generate_builtin_class(io, builtin_class, variant_values, variant_value_map):
     # ApiBuiltinClass
 
     class_name = builtin_class["name"]
@@ -365,32 +365,30 @@ def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, 
         write_uint64(io, 0)  # uint64_t num_constants
 
     # constructors
-    constructors = builtin_class["constructors"]
-    write_uint64(io, len(constructors))  # uint64_t num_constructors
+    if class_name != "Callable":  # Special case
+        constructors = builtin_class["constructors"]
+        write_uint64(io, len(constructors))  # uint64_t num_constructors
 
-    # ApiVariantConstructor ctors[num_constructors]
-    for constructor in constructors:
-        # ApiVariantConstructor
+        # ApiVariantConstructor ctors[num_constructors]
+        for constructor in constructors:
+            # ApiVariantConstructor
 
-        if "arguments" in constructor:
-            arguments = constructor["arguments"]
-            write_uint64(io, len(arguments))  # uint64_t num_args
+            if "arguments" in constructor:
+                arguments = constructor["arguments"]
+                write_uint64(io, len(arguments))  # uint64_t num_args
 
-            for argument in arguments:  # ApiArgumentNoDefault args[num_args]
-                generate_argument_no_default(io, argument)
-        else:
-            write_uint64(io, 0)  # uint64_t num_args
+                # ApiArgumentNoDefault args[num_args]
+                for argument in arguments:
+                    generate_argument_no_default(io, argument)
+            else:
+                write_uint64(io, 0)  # uint64_t num_args
 
-    if class_name in ctor_permissions:
-        # ThreadPermissions constructor_permissions
-        write_int32(io, ctor_permissions[class_name])
+        # String constructor_debug_name
+        write_string(io, f"{class_name}.__call")
+        # String constructor_error_string
+        write_string(io, ctor_help_string(class_name, constructors))
     else:
-        # ThreadPermissions constructor_permissions
-        write_int32(io, ThreadPermissions["BASE"])
-
-    write_string(io, f"{class_name}.__call")  # String constructor_debug_name
-    # String constructor_error_string
-    write_string(io, ctor_help_string(class_name, constructors))
+        write_uint64(io, 0)  # uint64_t num_constructors
 
     # members
     if "members" in builtin_class:
@@ -509,7 +507,8 @@ def generate_builtin_class(io, builtin_class, ctor_permissions, variant_values, 
             write_uint64(io, len(ops))  # uint64_t num_operators
 
             for op in ops:
-                write_uint32(io, op["right_type_variant"])  # Variant::Type right_type
+                # Variant::Type right_type
+                write_uint32(io, op["right_type_variant"])
                 # Variant::Type return_type
                 write_uint32(io, op["return_type"])
 
@@ -904,14 +903,9 @@ def generate_api_bin(src_dir, api):
                        if not utils.should_skip_class(bc["name"])]
     write_uint64(api_bin, len(builtin_classes))  # uint64_t num_builtin_classes
 
-    ctor_permissions = {
-        # ! Protect against potentially dangerous Callable access
-        "Callable": ThreadPermissions["INTERNAL"]
-    }
-
     # ApiBuiltinClasses builtin_classes[num_builtin_classes]
     for builtin_class in builtin_classes:
-        generate_builtin_class(api_bin, builtin_class, ctor_permissions,
+        generate_builtin_class(api_bin, builtin_class,
                                variant_values, variant_value_map)
 
     # Classes

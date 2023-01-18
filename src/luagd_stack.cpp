@@ -116,14 +116,10 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
         return false;
 
-    lua_getfield(L, -1, "__isgdobj");
-    if (!lua_isboolean(L, -1)) {
-        lua_pop(L, 2);
-        return false;
-    }
+    lua_getfield(L, -1, "__gdclass");
 
-    bool is_obj = lua_toboolean(L, -1);
-    lua_pop(L, 2);
+    bool is_obj = lua_isnumber(L, -1);
+    lua_pop(L, 2); // value, metatable
 
     return is_obj;
 }

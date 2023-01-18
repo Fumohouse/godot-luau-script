@@ -9,18 +9,18 @@ TEST_CASE_METHOD(LuauFixture, "globals: enums") {
 
     SECTION("invalid access") {
         SECTION("invalid enum") {
-            ASSERT_EVAL_FAIL(L, "return Enum.NonExistentWhat", "exec:1: 'NonExistentWhat' is not a valid member of 'Enum'")
+            ASSERT_EVAL_FAIL(L, "return Enum.NonExistentWhat", "exec:1: 'NonExistentWhat' is not a valid member of Enum")
         }
 
         SECTION("invalid value") {
-            ASSERT_EVAL_FAIL(L, "return Enum.VariantOperator.BLAH_BLAH", "exec:1: 'BLAH_BLAH' is not a valid member of 'VariantOperator'")
+            ASSERT_EVAL_FAIL(L, "return Enum.VariantOperator.BLAH_BLAH", "exec:1: 'BLAH_BLAH' is not a valid member of VariantOperator")
         }
     }
 }
 
 TEST_CASE_METHOD(LuauFixture, "globals: constants") {
     SECTION("invalid access") {
-        ASSERT_EVAL_FAIL(L, "return Constants.WHATEVER", "exec:1: 'WHATEVER' is not a valid member of 'Constants'")
+        ASSERT_EVAL_FAIL(L, "return Constants.WHATEVER", "exec:1: 'WHATEVER' is not a valid member of Constants")
     }
 }
 

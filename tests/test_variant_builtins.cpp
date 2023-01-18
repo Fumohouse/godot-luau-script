@@ -7,22 +7,21 @@
 
 #include "test_utils.h"
 
-TEST_CASE_METHOD(LuauFixture, "builtins: constructor") {
+TEST_CASE_METHOD(LuauFixture, "builtins: constructor"){
     ASSERT_EVAL_EQ(L, "return Vector3(1, 2, 3)", Vector3, Vector3(1, 2, 3))
-    ASSERT_EVAL_EQ(L, "return Vector3(Vector3i(4, 5, 6))", Vector3, Vector3(4, 5, 6))
-    ASSERT_EVAL_FAIL(L, "return Callable()", "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access 'Callable.__call'. needed permissions: 1, got: 0 !!!");
+            ASSERT_EVAL_EQ(L, "return Vector3(Vector3i(4, 5, 6))", Vector3, Vector3(4, 5, 6))
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
-    SECTION("namecall style") {
+    SECTION("namecall style"){
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2):Dot(Vector2(1, 2))", float, 5)
     }
 
-    SECTION("invoked from global table") {
+    SECTION("invoked from global table"){
         ASSERT_EVAL_EQ(L, "return Vector2.Dot(Vector2(3, 4), Vector2(5, 6))", float, 39)
     }
 
-    SECTION("static function") {
+    SECTION("static function"){
         ASSERT_EVAL_EQ(L, "return Vector2.FromAngle(5)", Vector2, Vector2::from_angle(5))
     }
 
@@ -37,9 +36,6 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
 
         ASSERT_EVAL_OK(L, "testCallable:Call(StringName(\"collide_with_areas\"), false)")
         REQUIRE(!params->is_collide_with_areas_enabled());
-
-        lua_pushnil(L);
-        lua_setglobal(L, "testCallable");
     }
 
     SECTION("default arguments") {
@@ -72,15 +68,15 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
-    SECTION("member access") {
+    SECTION("member access"){
         ASSERT_EVAL_EQ(L, "return Vector2(123, 456).y", float, 456)
     }
 
-    SECTION("index access") {
+    SECTION("index access"){
         ASSERT_EVAL_EQ(L, "return Vector2(123, 456)[2]", float, 456)
     }
 
-    SECTION("member set fails") {
+    SECTION("member set fails"){
         ASSERT_EVAL_FAIL(L, "Vector2(123, 456).y = 0", "exec:1: type 'Vector2' is read-only")
     }
 
@@ -106,9 +102,6 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
         lua_setglobal(L, "testDict");
 
         ASSERT_EVAL_EQ(L, "return testDict[Vector2(1, 2)]", String, "hi!")
-
-        lua_pushnil(L);
-        lua_setglobal(L, "testDict");
     }
 
     SECTION("keyed set") {
@@ -126,19 +119,19 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: operators") {
-    SECTION("equality") {
+    SECTION("equality"){
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2) == Vector2(1, 2)", bool, true)
     }
 
-    SECTION("inequality") {
+    SECTION("inequality"){
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2) ~= Vector2(1, 2)", bool, false)
     }
 
-    SECTION("addition") {
+    SECTION("addition"){
         ASSERT_EVAL_EQ(L, "return Vector2(1, 2) + Vector2(3, 4)", Vector2, Vector2(4, 6))
     }
 
-    SECTION("unary -") {
+    SECTION("unary -"){
         ASSERT_EVAL_EQ(L, "return -Vector2(1, 2)", Vector2, Vector2(-1, -2))
     }
 
@@ -158,7 +151,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: operators") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: consts and enums") {
-    SECTION("constants") {
+    SECTION("constants"){
         ASSERT_EVAL_EQ(L, "return Vector2.ONE", Vector2, Vector2(1, 1))
     }
 
@@ -167,12 +160,12 @@ TEST_CASE_METHOD(LuauFixture, "builtins: consts and enums") {
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "builtins: tostring") {
+TEST_CASE_METHOD(LuauFixture, "builtins: tostring"){
     ASSERT_EVAL_EQ(L, "return tostring(Vector3(0, 1, 2))", String, "(0, 1, 2)")
 }
 
-TEST_CASE_METHOD(LuauFixture, "builtins: invalid global access") {
-    ASSERT_EVAL_FAIL(L, "return Vector3.duhduhduh", "exec:1: 'duhduhduh' is not a valid member of 'Vector3'")
+TEST_CASE_METHOD(LuauFixture, "builtins: invalid global access"){
+    ASSERT_EVAL_FAIL(L, "return Vector3.duhduhduh", "exec:1: 'duhduhduh' is not a valid member of Vector3")
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: array __iter special case") {
@@ -195,4 +188,33 @@ TEST_CASE_METHOD(LuauFixture, "builtins: array __iter special case") {
         return copy
     )ASDF",
             PackedStringArray, expected)
+}
+
+TEST_CASE_METHOD(LuauFixture, "builtins: Callable constructor") {
+    Ref<PhysicsRayQueryParameters3D> params;
+    params.instantiate();
+
+    LuaStackOp<Object *>::push(L, params.ptr());
+    lua_setglobal(L, "testParams");
+
+    SECTION("valid method") {
+        ASSERT_EVAL_EQ(L, R"ASDF(
+            return Callable(testParams, "GetClass")
+        )ASDF",
+                Callable, Callable(params.ptr(), "get_class"))
+    }
+
+    SECTION("invalid method") {
+        ASSERT_EVAL_FAIL(L, R"ASDF(
+            return Callable(testParams, "whatwhatwhat")
+        )ASDF",
+                "exec:2: 'whatwhatwhat' is not a valid method of this object")
+    }
+
+    SECTION("no permissions") {
+        ASSERT_EVAL_FAIL(L, R"ASDF(
+            return Callable(testParams, "Call")
+        )ASDF",
+                "exec:2: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!")
+    }
 }

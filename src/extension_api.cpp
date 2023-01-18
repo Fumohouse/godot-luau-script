@@ -340,9 +340,10 @@ ExtensionApi &get_extension_api() {
                     constructor.func = internal::gde_interface->variant_get_ptr_constructor(new_class.type, j);
                 }
 
-                new_class.constructor_permissions = read_enum<ThreadPermissions>(idx);
-                new_class.constructor_debug_name = read_string(idx);
-                new_class.constructor_error_string = read_string(idx);
+                if (num_constructors > 0) {
+                    new_class.constructor_debug_name = read_string(idx);
+                    new_class.constructor_error_string = read_string(idx);
+                }
 
                 // Members
                 uint64_t num_members = read<uint64_t>(idx);

@@ -238,6 +238,80 @@ static int get_arguments(lua_State *L,
     return nargs;
 }
 
+//////////////////////////
+// Builtin/class common //
+//////////////////////////
+
+static int luaGD_variant_tostring(lua_State *L) {
+    // Special case - freed objects
+    if (LuaStackOp<Object *>::is(L, 1) && LuaStackOp<Object *>::get(L, 1) == nullptr)
+        lua_pushstring(L, "<Freed Object>");
+    else {
+        Variant v = LuaStackOp<Variant>::check(L, 1);
+        String str = v.stringify();
+        lua_pushstring(L, str.utf8().get_data());
+    }
+
+    return 1;
+}
+
+void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
+    luaL_newmetatable(L, mt_name); // instance metatable
+    lua_newtable(L); // global table
+    lua_createtable(L, 0, 3); // global metatable - assume 3 fields: __fortype, __call, __index
+
+    lua_pushstring(L, mt_name);
+    lua_setfield(L, -2, "__fortype");
+
+    // global index
+    lua_pushstring(L, global_name);
+    lua_pushcclosure(L, luaGD_global_index, "_G.__index", 1); // TODO: name?
+    lua_setfield(L, -2, "__index");
+
+    // for typeof and type errors
+    lua_pushstring(L, global_name);
+    lua_setfield(L, -4, "__type");
+
+    lua_pushcfunction(L, luaGD_variant_tostring, "Variant.__tostring");
+    lua_setfield(L, -4, "__tostring");
+
+    // set global table's metatable
+    lua_pushvalue(L, -1);
+    lua_setmetatable(L, -3);
+
+    lua_pushvalue(L, -2);
+    lua_setglobal(L, global_name);
+}
+
+void luaGD_poplib(lua_State *L, bool is_obj, int class_idx = -1) {
+    if (is_obj) {
+        lua_pushinteger(L, class_idx);
+        lua_setfield(L, -4, "__gdclass");
+    }
+
+    // global will be set readonly on sandbox
+    lua_setreadonly(L, -3, true); // instance metatable
+    lua_setreadonly(L, -1, true); // global metatable
+
+    lua_pop(L, 3);
+}
+
+static LuauScriptInstance *get_script_instance(Object *self) {
+    if (self == nullptr)
+        return nullptr;
+
+    Ref<LuauScript> script = self->get_script();
+
+    if (script.is_valid() && script->_instance_has(self))
+        return script->instance_get(self);
+
+    return nullptr;
+}
+
+static ThreadPermissions get_method_permissions(const ApiClass &g_class, const ApiClassMethod &method) {
+    return method.permissions != PERMISSION_INHERIT ? method.permissions : g_class.default_permissions;
+}
+
 //////////////
 // Builtins //
 //////////////
@@ -340,8 +414,6 @@ static int luaGD_builtin_ctor(lua_State *L) {
     Vector<const void *> pargs;
     pargs.resize(nargs);
 
-    luaGD_checkpermissions(L, builtin_class->constructor_debug_name, builtin_class->constructor_permissions);
-
     for (const ApiVariantConstructor &ctor : builtin_class->constructors) {
         if (nargs != ctor.arguments.size())
             continue;
@@ -379,6 +451,58 @@ static int luaGD_builtin_ctor(lua_State *L) {
     }
 
     luaL_error(L, "%s", error_string);
+}
+
+static int luaGD_callable_ctor(lua_State *L) {
+    const Vector<ApiClass> *classes = luaGD_lightudataup<Vector<ApiClass>>(L, 1);
+
+    int class_idx = -1;
+
+    // Start index is 2 (first on stack is table)
+
+    {
+        // Get class index.
+        if (lua_getmetatable(L, 2)) {
+            lua_getfield(L, -1, "__gdclass");
+
+            if (lua_isnumber(L, -1)) {
+                class_idx = lua_tointeger(L, -1);
+            }
+
+            lua_pop(L, 2); // value, metatable
+        }
+
+        if (class_idx == -1)
+            luaL_typeerrorL(L, 2, "Object");
+    }
+
+    Object *obj = LuaStackOp<Object *>::get(L, 2);
+    const char *method = luaL_checkstring(L, 3);
+
+    // Check if instance has method.
+    if (LuauScriptInstance *inst = get_script_instance(obj)) {
+        if (inst->has_method(method)) {
+            LuaStackOp<Callable>::push(L, Callable(obj, method));
+            return 1;
+        }
+    }
+
+    // Check if class or its parents have method.
+    while (class_idx != -1) {
+        const ApiClass *g_class = &classes->get(class_idx);
+
+        HashMap<String, ApiClassMethod>::ConstIterator E = g_class->methods.find(method);
+        if (E) {
+            luaGD_checkpermissions(L, E->value.debug_name, get_method_permissions(*g_class, E->value));
+
+            LuaStackOp<Callable>::push(L, Callable(obj, E->value.gd_name));
+            return 1;
+        }
+
+        class_idx = g_class->parent_idx;
+    }
+
+    luaGD_nomethoderror(L, method, "this object");
 }
 
 static int luaGD_builtin_newindex(lua_State *L) {
@@ -603,10 +727,16 @@ void luaGD_openbuiltins(lua_State *L) {
         }
 
         // Constructors (global __call)
-        lua_pushlightuserdata(L, (void *)&builtin_class);
-        lua_pushstring(L, builtin_class.constructor_error_string);
-        lua_pushcclosure(L, luaGD_builtin_ctor, builtin_class.constructor_debug_name, 2);
-        lua_setfield(L, -2, "__call");
+        if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_CALLABLE) { // Special case for Callable security
+            lua_pushlightuserdata(L, (void *)&extension_api.classes);
+            lua_pushcclosure(L, luaGD_callable_ctor, "Callable.__call", 1);
+            lua_setfield(L, -2, "__call");
+        } else {
+            lua_pushlightuserdata(L, (void *)&builtin_class);
+            lua_pushstring(L, builtin_class.constructor_error_string);
+            lua_pushcclosure(L, luaGD_builtin_ctor, builtin_class.constructor_debug_name, 2);
+            lua_setfield(L, -2, "__call");
+        }
 
         // Members (__newindex, __index)
         lua_pushlightuserdata(L, (void *)&builtin_class);
@@ -729,19 +859,6 @@ static int luaGD_class_no_ctor(lua_State *L) {
     else                                                             \
         break;
 
-static LuauScriptInstance *get_script_instance(lua_State *L) {
-    Object *self = LuaStackOp<Object *>::get(L, 1);
-    if (self == nullptr)
-        return nullptr;
-
-    Ref<LuauScript> script = self->get_script();
-
-    if (script.is_valid() && script->_instance_has(self))
-        return script->instance_get(self);
-
-    return nullptr;
-}
-
 static void handle_object_returned(Object *obj) {
     // if Godot returns a RefCounted from a method, it is always in the form of a Ref.
     // as such, the RefCounted we receive will be initialized at a refcount of 1
@@ -751,10 +868,6 @@ static void handle_object_returned(Object *obj) {
 
     if (rc != nullptr)
         rc->unreference();
-}
-
-static ThreadPermissions get_method_permissions(const ApiClass &g_class, const ApiClassMethod &method) {
-    return method.permissions != PERMISSION_INHERIT ? method.permissions : g_class.default_permissions;
 }
 
 static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
@@ -836,7 +949,7 @@ static int luaGD_class_namecall(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
-        if (LuauScriptInstance *inst = get_script_instance(L)) {
+        if (LuauScriptInstance *inst = get_script_instance(self)) {
             GDThreadData *udata = luaGD_getthreaddata(L);
 
             if (inst->get_vm_type() == udata->vm_type) {
@@ -960,7 +1073,7 @@ static int luaGD_class_index(lua_State *L) {
     const char *key = luaL_checkstring(L, 2);
 
     bool attempt_table_get = false;
-    LuauScriptInstance *inst = get_script_instance(L);
+    LuauScriptInstance *inst = get_script_instance(self);
 
     if (inst != nullptr) {
         if (const GDClassProperty *prop = inst->get_property(key)) {
@@ -980,9 +1093,6 @@ static int luaGD_class_index(lua_State *L) {
                 luaL_error(L, "failed to get property '%s': unknown error", key); // due to the checks above, this should hopefully never happen
         } else if (const GDMethod *signal = inst->get_signal(key)) {
             LuaStackOp<Signal>::push(L, Signal(self, key));
-            return 1;
-        } else if (inst->has_method(key)) {
-            LuaStackOp<Callable>::push(L, Callable(self, key));
             return 1;
         } else if (const Variant *constant = inst->get_constant(key)) {
             LuaStackOp<Variant>::push(L, *constant);
@@ -1012,16 +1122,6 @@ static int luaGD_class_index(lua_State *L) {
             return 1;
         }
 
-        HashMap<String, ApiClassMethod>::ConstIterator F = current_class->methods.find(key);
-
-        if (F) {
-            // ! Protect against potentially dangerous Callable access
-            luaGD_checkpermissions(L, F->value.debug_name, get_method_permissions(*current_class, F->value));
-            LuaStackOp<Callable>::push(L, Callable(self, F->value.gd_name));
-
-            return 1;
-        }
-
         INHERIT_OR_BREAK
     }
 
@@ -1037,7 +1137,6 @@ static int luaGD_class_index(lua_State *L) {
 }
 
 #define SIGNAL_ASSIGN_ERROR luaL_error(L, "cannot assign to signal '%s'", key)
-#define METHOD_ASSIGN_ERROR luaL_error(L, "cannot assign to method '%s'", key)
 
 static int luaGD_class_newindex(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
@@ -1045,7 +1144,7 @@ static int luaGD_class_newindex(lua_State *L) {
     const char *key = luaL_checkstring(L, 2);
 
     bool attempt_table_set = false;
-    LuauScriptInstance *inst = get_script_instance(L);
+    LuauScriptInstance *inst = get_script_instance(self);
 
     if (inst != nullptr) {
         if (const GDClassProperty *prop = inst->get_property(key)) {
@@ -1068,8 +1167,6 @@ static int luaGD_class_newindex(lua_State *L) {
                 luaL_error(L, "failed to set property '%s': unknown error", key); // should never happen
         } else if (inst->get_signal(key) != nullptr) {
             SIGNAL_ASSIGN_ERROR;
-        } else if (inst->has_method(key)) {
-            METHOD_ASSIGN_ERROR;
         } else if (inst->get_constant(key) != nullptr) {
             luaL_error(L, "cannot assign to constant '%s'", key);
         } else {
@@ -1092,9 +1189,6 @@ static int luaGD_class_newindex(lua_State *L) {
 
         if (current_class->signals.has(key))
             SIGNAL_ASSIGN_ERROR;
-
-        if (current_class->methods.has(key))
-            METHOD_ASSIGN_ERROR;
 
         INHERIT_OR_BREAK
     }
@@ -1190,7 +1284,7 @@ void luaGD_openclasses(lua_State *L) {
         lua_pushcclosure(L, luaGD_class_singleton_getter, g_class.singleton_getter_debug_name, 1);
         lua_setfield(L, -3, "GetSingleton");
 
-        luaGD_poplib(L, true);
+        luaGD_poplib(L, true, i);
     }
 }
 
@@ -1276,62 +1370,4 @@ void luaGD_openglobals(lua_State *L) {
         lua_pushcclosure(L, luaGD_utility_function, utility_function.debug_name, 1);
         lua_setglobal(L, utility_function.name);
     }
-}
-
-//////////////////////////
-// Builtin/class common //
-//////////////////////////
-
-static int luaGD_variant_tostring(lua_State *L) {
-    // Special case - freed objects
-    if (LuaStackOp<Object *>::is(L, 1) && LuaStackOp<Object *>::get(L, 1) == nullptr)
-        lua_pushstring(L, "<Freed Object>");
-    else {
-        Variant v = LuaStackOp<Variant>::check(L, 1);
-        String str = v.stringify();
-        lua_pushstring(L, str.utf8().get_data());
-    }
-
-    return 1;
-}
-
-void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
-    luaL_newmetatable(L, mt_name); // instance metatable
-    lua_newtable(L); // global table
-    lua_createtable(L, 0, 3); // global metatable - assume 3 fields: __fortype, __call, __index
-
-    lua_pushstring(L, mt_name);
-    lua_setfield(L, -2, "__fortype");
-
-    // global index
-    lua_pushstring(L, global_name);
-    lua_pushcclosure(L, luaGD_global_index, "_G.__index", 1); // TODO: name?
-    lua_setfield(L, -2, "__index");
-
-    // for typeof and type errors
-    lua_pushstring(L, global_name);
-    lua_setfield(L, -4, "__type");
-
-    lua_pushcfunction(L, luaGD_variant_tostring, "Variant.__tostring");
-    lua_setfield(L, -4, "__tostring");
-
-    // set global table's metatable
-    lua_pushvalue(L, -1);
-    lua_setmetatable(L, -3);
-
-    lua_pushvalue(L, -2);
-    lua_setglobal(L, global_name);
-}
-
-void luaGD_poplib(lua_State *L, bool is_obj) {
-    if (is_obj) {
-        lua_pushboolean(L, true);
-        lua_setfield(L, -4, "__isgdobj");
-    }
-
-    // global will be set readonly on sandbox
-    lua_setreadonly(L, -3, true); // instance metatable
-    lua_setreadonly(L, -1, true); // global metatable
-
-    lua_pop(L, 3);
 }

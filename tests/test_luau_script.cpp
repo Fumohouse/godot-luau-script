@@ -238,6 +238,14 @@ TEST_CASE("luau script: instance") {
     REQUIRE(inst->get_owner()->get_instance_id() == obj.get_instance_id());
     REQUIRE(inst->get_script() == script);
 
+    // Global table access
+    lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
+    lua_State *T = lua_newthread(L);
+    luaL_sandboxthread(T);
+
+    LuaStackOp<Object *>::push(T, &obj);
+    lua_setglobal(T, "obj");
+
     SECTION("method methods") {
         REQUIRE(inst->has_method("TestMethod"));
         REQUIRE(inst->has_method("TestMethod2"));
@@ -431,14 +439,12 @@ TEST_CASE("luau script: instance") {
     }
 
     SECTION("notification") {
-        lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
-
         inst->notification(42);
 
-        LuaStackOp<String>::push(L, "_notifHits");
-        inst->table_get(L);
+        LuaStackOp<String>::push(T, "_notifHits");
+        inst->table_get(T);
 
-        REQUIRE(LuaStackOp<int>::check(L, -1) == 1);
+        REQUIRE(LuaStackOp<int>::check(T, -1) == 1);
     }
 
     SECTION("to string") {
@@ -527,13 +533,6 @@ TEST_CASE("luau script: instance") {
     }
 
     SECTION("metatable") {
-        lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
-        lua_State *T = lua_newthread(L);
-        luaL_sandboxthread(T);
-
-        LuaStackOp<Object *>::push(T, &obj);
-        lua_setglobal(T, "obj");
-
         SECTION("namecall") {
             SECTION("from table index") {
                 ASSERT_EVAL_EQ(T, "return obj:PrivateMethod()", String, "hi there");
@@ -555,10 +554,6 @@ TEST_CASE("luau script: instance") {
         SECTION("newindex") {
             SECTION("signal read-only") {
                 ASSERT_EVAL_FAIL(T, "obj.testSignal = 1234", "exec:1: cannot assign to signal 'testSignal'");
-            }
-
-            SECTION("method read-only") {
-                ASSERT_EVAL_FAIL(T, "obj.TestMethod = 1234", "exec:1: cannot assign to method 'TestMethod'");
             }
 
             SECTION("constant read-only") {
@@ -595,10 +590,6 @@ TEST_CASE("luau script: instance") {
                 ASSERT_EVAL_EQ(T, "return obj.testSignal", Signal, Signal(&obj, "testSignal"));
             }
 
-            SECTION("method") {
-                ASSERT_EVAL_EQ(T, "return obj.TestMethod", Callable, Callable(&obj, "TestMethod"));
-            }
-
             SECTION("constant") {
                 ASSERT_EVAL_EQ(T, "return obj.TEST_CONSTANT", Vector2, Vector2(1, 2));
             }
@@ -617,6 +608,22 @@ TEST_CASE("luau script: instance") {
         }
 
         lua_pop(L, 1); // thread
+    }
+
+    SECTION("Callable") {
+        SECTION("instance method"){
+            ASSERT_EVAL_EQ(T, R"ASDF(
+                return Callable(obj, "TestMethod")
+            )ASDF",
+                    Callable, Callable(&obj, "TestMethod"))
+        }
+
+        SECTION("no permissions") {
+            ASSERT_EVAL_FAIL(T, R"ASDF(
+                return Callable(obj, "Call")
+            )ASDF",
+                    "exec:2: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!")
+        }
     }
 }
 
