@@ -6,6 +6,7 @@ from pathlib import Path
 
 from bindgen.stack_ops import generate_stack_ops
 from bindgen.api_bin import generate_api_bin
+from bindgen.typedefs import generate_typedefs
 
 
 def open_api(filepath):
@@ -43,8 +44,12 @@ def scons_generate_bindings(target, source, env):
     include_dir = Path(output_dir) / "gen" / "include"
     include_dir.mkdir(parents=True, exist_ok=True)
 
+    defs_dir = Path(output_dir) / "definitions"
+    defs_dir.mkdir(parents=True, exist_ok=True)
+
     # Codegen
     generate_stack_ops(src_dir, include_dir, api)
     generate_api_bin(src_dir, api)
+    generate_typedefs(defs_dir, api)
 
     return None

@@ -1,4 +1,5 @@
 gen/
+definitions/
 __pycache__/
 *.a
 *.o

@@ -4,7 +4,7 @@
 
 class ApiEnum;
 
-// ! Must update ApiEnum whenever this is changed
+// ! Must update ApiEnum and Luau type definitions whenever this is changed
 enum ThreadPermissions {
     PERMISSION_INHERIT = -1,
     PERMISSION_BASE = 0,

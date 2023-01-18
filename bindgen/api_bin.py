@@ -3,8 +3,6 @@ from . import constants, utils
 from io import BytesIO
 import struct
 
-binding_generator = utils.load_cpp_binding_generator()
-
 
 #########
 # Utils #
@@ -169,30 +167,17 @@ def filter_methods(methods):
 def generate_enum(io, enum):
     # ApiEnum
 
-    special_prefixes = {
-        "PropertyUsageFlags": "PROPERTY_USAGE_",
-        "MethodFlags": "METHOD_FLAG_",
-        "VariantType": "TYPE_",
-        "VariantOperator": "OP_",
-    }
-
-    enum_name = enum["name"].replace(".", "")
+    enum_name = utils.get_enum_name(enum["name"])
     write_string(io, enum_name)  # String name
 
     is_bitfield = enum["is_bitfield"] if "is_bitfield" in enum else False
     write_bool(io, is_bitfield)  # bool is_bitfield
 
-    enum_prefix = binding_generator.camel_to_snake(enum_name).upper() + "_"
-    if enum_name in special_prefixes:
-        enum_prefix = special_prefixes[enum_name]
-
     values = enum["values"]
     write_uint64(io, len(values))  # uint64_t num_values
 
     for value in values:  # VALUES
-        value_name = value["name"]
-        if value_name.startswith(enum_prefix):
-            value_name = value_name[len(enum_prefix):]
+        value_name = utils.get_enum_value_name(enum_name, value["name"])
 
         write_string(io, value_name)  # String name
         write_int32(io, value["value"])  # int32_t value
@@ -217,11 +202,11 @@ def generate_argument_no_default(io, argument):
 # Utility functions #
 #####################
 
-def generate_utility_function(io, utility_function, utils_to_bind):
+def generate_utility_function(io, utility_function):
     # ApiUtilityFunction
 
     name = utility_function["name"]
-    luau_name = utils_to_bind[name] if utils_to_bind[name] else name
+    luau_name = utils.utils_to_bind[name] if utils.utils_to_bind[name] else name
 
     write_string(io, luau_name)  # String luau_name
     write_string(io, name)  # String gd_name
@@ -427,65 +412,22 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
         for method in static_methods:
             generate_builtin_class_method(
                 io, method, class_name, metatable_name, variant_values, variant_value_map)
-
     else:
         write_uint64(io, 0)  # uint64_t num_instance_methods
         write_uint64(io, 0)  # uint64_t num_static_methods
 
     # operators
     if "operators" in builtin_class:
-        operators = builtin_class["operators"]
-        operators_unsorted = builtin_class["operators"]
-
-        variant_op_map = {
-            "==": "eq",
-            "<": "lt",
-            "<=": "le",
-            "+": "add",
-            "-": "sub",
-            "*": "mul",
-            "/": "div",
-            "%": "mod",
-            "unary-": "unm"
-        }
-
-        # since Variant is basically a catch-all type, comparison to Variant should always be last
-        # otherwise the output could be unexpected
-        # int is sorted after other types because it may be removed if a float operator exists
-        def op_priority(op):
-            if "right_type" not in op:
-                return 0
-
-            right_type = op["right_type"]
-            if right_type == "int":
-                return 1
-            if right_type == "Variant":
-                return 2
-
-            return 0
-
-        operators = sorted(operators_unsorted, key=op_priority)
+        operators = utils.get_operators(builtin_class["operators"])
         operators_map = {}
 
         for variant_op in operators:
             name = variant_op["name"]
-            if name not in variant_op_map:
-                continue
 
             right_type = None
-            right_type_variant = 0
+            right_type = 0
             if "right_type" in variant_op:
-                right_type = variant_op["right_type"]
-
-                # basically, if there was a float right_type previously then skip the int one
-                if name in operators_map and \
-                        right_type == "int" and (True in [
-                            "right_type" in op and op["right_type"] == "float"
-                            for op in operators_map[name]
-                        ]):
-                    continue
-
-                right_type_variant = get_variant_type(right_type)
+                right_type = get_variant_type(variant_op["right_type"])
 
             return_type = get_variant_type(variant_op["return_type"])
 
@@ -493,9 +435,8 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
                 operators_map[name] = []
 
             operators_map[name].append({
-                "metatable_name": "__" + variant_op_map[name],
+                "metatable_name": "__" + utils.variant_op_map[name],
                 "right_type": right_type,
-                "right_type_variant": right_type_variant,
                 "return_type": return_type
             })
 
@@ -508,7 +449,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
             for op in ops:
                 # Variant::Type right_type
-                write_uint32(io, op["right_type_variant"])
+                write_uint32(io, op["right_type"])
                 # Variant::Type return_type
                 write_uint32(io, op["return_type"])
 
@@ -532,16 +473,12 @@ def generate_class_type(io, type_string, classes):
     is_bitfield = False
     typed_array_type = get_variant_type("Variant")
 
-    typed_array_prefix = "typedarray::"
-    enum_prefix = "enum::"
-    bitfield_prefix = "bitfield::"
-
     if type_string == "Nil":
         pass
     elif is_object_type(type_string, classes):
         variant_type = get_variant_type("Object")
         type_name = type_string
-    elif type_string.startswith(typed_array_prefix):
+    elif type_string.startswith(constants.typed_array_prefix):
         array_type_name = type_string.split(":")[-1]
 
         variant_type = get_variant_type("Array")
@@ -551,13 +488,13 @@ def generate_class_type(io, type_string, classes):
             typed_array_type = get_variant_type("Object")
         else:
             typed_array_type = get_variant_type(array_type_name)
-    elif type_string.startswith(enum_prefix):
+    elif type_string.startswith(constants.enum_prefix):
         variant_type = get_variant_type("int")
-        type_name = type_string[len(enum_prefix):]
+        type_name = type_string[len(constants.enum_prefix):]
         is_enum = True
-    elif type_string.startswith(bitfield_prefix):
+    elif type_string.startswith(constants.bitfield_prefix):
         variant_type = get_variant_type("int")
-        type_name = type_string[len(bitfield_prefix):]
+        type_name = type_string[len(constants.bitfield_prefix):]
         is_bitfield = True
     else:
         variant_type = get_variant_type(type_string)
@@ -802,7 +739,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
     write_string(io, f"{metatable_name}.__index")
 
     # singleton
-    singleton_matches = [s for s in singletons if s["type"] == class_name]
+    singleton_matches = utils.get_singletons(class_name, singletons)
 
     singleton = ""
     singleton_getter_debug_name = ""
@@ -862,41 +799,14 @@ def generate_api_bin(src_dir, api):
         generate_constant(api_bin, constant)
 
     # Utility functions
-    utils_to_bind = {
-        # math functions not provided by Luau
-        "ease": None,
-        "lerpf": "lerp",
-        "cubic_interpolate": None,
-        "bezier_interpolate": None,
-        "lerp_angle": None,
-        "inverse_lerp": None,
-        "range_lerp": None,
-        "smoothstep": None,
-        "move_toward": None,
-        "linear2db": None,
-        "db2linear": None,
-        "wrapf": "wrap",
-        "pingpong": None,
-
-        # other
-        "print": None,
-        "print_rich": None,
-        "printerr": None,
-        "printraw": None,
-        "print_verbose": None,
-        "push_warning": "warn",
-        "hash": None,
-        "is_instance_valid": None,
-    }
-
     utility_functions = [
-        uf for uf in api["utility_functions"] if uf["name"] in utils_to_bind]
+        uf for uf in api["utility_functions"] if uf["name"] in utils.utils_to_bind]
     # uint64_t num_utility_functions
     write_uint64(api_bin, len(utility_functions))
 
     # ApiUtilityFunction utility_functions[num_utility_functions]
     for utility_function in utility_functions:
-        generate_utility_function(api_bin, utility_function, utils_to_bind)
+        generate_utility_function(api_bin, utility_function)
 
     # Builtin classes
     builtin_classes = [bc for bc in api["builtin_classes"]

@@ -174,13 +174,7 @@ static int luascript_gdclass(lua_State *L) {
     def.name = luaL_optstring(L, 1, "");
     def.extends = luaL_optstring(L, 2, "RefCounted");
 
-    // Create def table in registry.
-    lua_newtable(L);
-    def.table_ref = lua_ref(L, -1);
-    lua_pop(L, 1); // table
-
     LuaStackOp<GDClassDefinition>::push(L, def);
-
     return 1;
 }
 
@@ -217,6 +211,14 @@ static int luascript_gdclass_namecall(lua_State *L) {
 
         if (strcmp(key, "IconPath") == 0) {
             def->icon_path = LuaStackOp<String>::check(L, 2);
+
+            lua_settop(L, 1); // return def;
+            return 1;
+        }
+
+        if (strcmp(key, "RegisterImpl") == 0) {
+            luaL_checktype(L, 2, LUA_TTABLE);
+            def->table_ref = lua_ref(L, 2);
 
             lua_settop(L, 1); // return def;
             return 1;
@@ -320,9 +322,14 @@ static int luascript_gdclass_newindex(lua_State *L) {
 
     const char *key = luaL_checkstring(L, 2);
 
-    ERR_FAIL_COND_V_MSG(def->table_ref < 0, 0, "Failed to set method on class definition: table ref is invalid");
+    if (def->table_ref == -1) {
+        // Create def table in registry.
+        lua_newtable(L);
+        def->table_ref = lua_ref(L, -1);
+    } else {
+        lua_getref(L, def->table_ref);
+    }
 
-    lua_getref(L, def->table_ref);
     lua_insert(L, -3);
     lua_settable(L, -3);
 
@@ -333,7 +340,9 @@ static int luascript_gdclass_index(lua_State *L) {
     GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
     const char *key = luaL_checkstring(L, 2);
 
-    ERR_FAIL_COND_V_MSG(def->table_ref < 0, 0, "Failed to get method on class definition: table ref is invalid");
+    if (def->table_ref == -1) {
+        luaL_error(L, "failed to get method on class definition: table ref is invalid");
+    }
 
     lua_getref(L, def->table_ref);
     lua_getfield(L, -1, key);

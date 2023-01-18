@@ -500,7 +500,13 @@ void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
     ERR_FAIL_COND_MSG(lua_mainthread(L) != lua_mainthread(T), "cannot push definition table to a thread from a different VM than the one being queried");
 
-    lua_getref(T, vm_defs[p_vm_type].table_ref);
+    int table_ref = vm_defs[p_vm_type].table_ref;
+    if (table_ref == -1) {
+        lua_pushnil(T);
+        return;
+    }
+
+    lua_getref(T, table_ref);
     lua_insert(T, -2);
     lua_gettable(T, -2);
     lua_remove(T, -2);

@@ -1,8 +1,5 @@
 from . import constants
-from . import utils
-from .utils import should_skip_class, write_file, append
-
-binding_generator = utils.load_cpp_binding_generator()
+from .utils import should_skip_class, write_file, append, binding_generator
 
 
 def generate_stack_ops(src_dir, include_dir, api):
