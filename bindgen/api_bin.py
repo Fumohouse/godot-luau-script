@@ -418,7 +418,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
     # operators
     if "operators" in builtin_class:
-        operators = utils.get_operators(builtin_class["operators"])
+        operators = utils.get_operators(class_name, builtin_class["operators"])
         operators_map = {}
 
         for variant_op in operators:

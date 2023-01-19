@@ -172,7 +172,7 @@ function __newindex(self, key: number, value: {indexing_type_name})\
 
     # Operators
     if "operators" in builtin_class:
-        operators = utils.get_operators(builtin_class["operators"])
+        operators = utils.get_operators(name, builtin_class["operators"])
 
         for op in operators:
             op_mt_name = "__" + utils.variant_op_map[op["name"]]

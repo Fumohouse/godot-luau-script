@@ -130,7 +130,7 @@ variant_op_map = {
 }
 
 
-def get_operators(operators):
+def get_operators(class_name, operators):
     # since Variant is basically a catch-all type, comparison to Variant should always be last
     # otherwise the output could be unexpected
     # int is sorted after other types because it may be removed if a float operator exists
@@ -160,6 +160,10 @@ def get_operators(operators):
 
         if "right_type" in op:
             right_type = op["right_type"]
+
+            # Luau does not support __eq between objects that aren't the same type
+            if name == "==" and right_type != class_name:
+                continue
 
             # basically, if there was a float right_type previously then skip the int one
             if right_type == "int" and (True in [
