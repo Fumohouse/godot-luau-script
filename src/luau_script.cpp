@@ -145,7 +145,10 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
             return ERR_COMPILATION_FAILED;
         }
 
-        r_def = LuaStackOp<GDClassDefinition>::get(T, -1);
+        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);;
+        def->is_readonly = true;
+
+        r_def = *def;
         r_is_valid = true;
 
         lua_pop(L, 1); // thread

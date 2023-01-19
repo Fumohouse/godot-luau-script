@@ -217,6 +217,9 @@ static int luascript_gdclass_namecall(lua_State *L) {
         }
 
         if (strcmp(key, "RegisterImpl") == 0) {
+            if (def->table_ref != -1)
+                lua_unref(L, def->table_ref);
+
             luaL_checktype(L, 2, LUA_TTABLE);
             def->table_ref = lua_ref(L, 2);
 
