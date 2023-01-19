@@ -528,6 +528,7 @@ declare class GDClassProperty
     function ExpEasing(self): GDClassProperty
     function NoAlpha(self): GDClassProperty
     function TypedArray(self, type: string): GDClassProperty
+    function Resource(self, type: string): GDClassProperty
 end
 
 declare class GDSignal

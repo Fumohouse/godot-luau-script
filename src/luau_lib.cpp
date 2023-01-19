@@ -568,6 +568,14 @@ static int luascript_classprop_namecall(lua_State *L) {
 
             prop->property.hint = PROPERTY_HINT_ARRAY_TYPE;
             prop->property.hint_string = type;
+        } else if (strcmp(key, "Resource") == 0) {
+            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_OBJECT)
+                luaGD_hinterror(L, "resource type", "object");
+
+            const char *type = luaL_checkstring(L, 2);
+
+            prop->property.hint = PROPERTY_HINT_RESOURCE_TYPE;
+            prop->property.hint_string = type;
         } else {
             luaGD_nomethoderror(L, key, "GDClassProperty");
         }
