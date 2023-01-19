@@ -65,6 +65,23 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
                 bool, false)
     }
 
+    SECTION("object free") {
+        SECTION("object") {
+            Object *obj = memnew(Object);
+
+            LuaStackOp<Object *>::push(L, obj);
+            lua_setglobal(L, "testObj");
+
+            ASSERT_EVAL_OK(L, "testObj:Free()")
+
+            REQUIRE(!UtilityFunctions::is_instance_valid(obj));
+        }
+
+        SECTION("refcounted") {
+            ASSERT_EVAL_FAIL(L, "PhysicsRayQueryParameters3D.new():Free()", "exec:1: cannot free a RefCounted object")
+        }
+    }
+
     SECTION("invoked from global table"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D.new()
@@ -179,7 +196,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: tostring") {
 
     memdelete(node);
 
-    SECTION("freed"){
+    SECTION("freed") {
         ASSERT_EVAL_EQ(L, "return tostring(node)", String, "<Freed Object>")
     }
 }

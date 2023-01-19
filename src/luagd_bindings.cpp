@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -939,6 +940,17 @@ static int luaGD_class_namecall(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
+        if (strcmp(name, "Free") == 0) {
+            if (self->is_class("RefCounted"))
+                luaL_error(L, "cannot free a RefCounted object");
+
+            // Zero out the object to prevent segfaults
+            *LuaStackOp<Object *>::get_ptr(L, 1) = 0;
+
+            memdelete(self);
+            return 0;
+        }
+
         if (LuauScriptInstance *inst = get_script_instance(self)) {
             GDThreadData *udata = luaGD_getthreaddata(L);
 

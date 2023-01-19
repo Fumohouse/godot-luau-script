@@ -124,11 +124,15 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     return is_obj;
 }
 
+GDObjectInstanceID *LuaStackOp<Object *>::get_ptr(lua_State *L, int index) {
+    return reinterpret_cast<GDObjectInstanceID *>(lua_touserdata(L, index));
+}
+
 Object *LuaStackOp<Object *>::get(lua_State *L, int index) {
     if (!LuaStackOp<Object *>::is(L, index))
         return nullptr;
 
-    GDObjectInstanceID *udata = reinterpret_cast<GDObjectInstanceID *>(lua_touserdata(L, index));
+    GDObjectInstanceID *udata = LuaStackOp<Object *>::get_ptr(L, index);
     if (*udata == 0)
         return nullptr;
 

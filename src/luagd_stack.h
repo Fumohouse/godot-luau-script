@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/classes/global_constants.hpp>
@@ -57,7 +58,16 @@ STACK_OP_DEF(uint16_t)
 STACK_OP_DEF(uint32_t)
 STACK_OP_DEF(int64_t)
 
-STACK_OP_DEF_BASE(Object *, Object *)
+template <>
+struct LuaStackOp<Object *> {
+    static void push(lua_State *L, Object *value);
+
+    static Object *get(lua_State *L, int index);
+    static bool is(lua_State *L, int index);
+    static Object *check(lua_State *L, int index);
+
+    static GDObjectInstanceID *get_ptr(lua_State *L, int index);
+};
 
 // Defined early to avoid specialization before declaraction.
 // Implementation is generated.

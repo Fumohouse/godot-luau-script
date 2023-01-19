@@ -272,6 +272,10 @@ def generate_class(src, g_class, singletons):
 
             generate_method(src, method)
 
+    # Object Free
+    if name == "Object":
+        append(src, 1, "function Free(self)")
+
     # Signals
     if "signals" in g_class:
         for signal in g_class["signals"]:
@@ -341,7 +345,7 @@ def generate_class(src, g_class, singletons):
     # Singleton
     singleton_matches = utils.get_singletons(name, singletons)
     if len(singleton_matches) > 0:
-        append(src, 1, f"function GetSingleton(self): {name}")
+        append(src, 1, f"GetSingleton: () -> {name}")
 
     # Statics
     if "methods" in g_class:
@@ -384,6 +388,8 @@ def generate_typedefs(defs_dir, api):
 
     for name, type_name, internal_type_name in global_enums:
         append(src, 1, f"{name}: {internal_type_name},")
+
+    append(src, 1, "Permissions: EnumPermissions_INTERNAL")
 
     src.append("}\n")
 
