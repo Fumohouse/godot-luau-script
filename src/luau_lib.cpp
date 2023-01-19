@@ -568,9 +568,22 @@ static int luascript_classprop_namecall(lua_State *L) {
                 luaGD_hinterror(L, "typed array", "array");
 
             const char *type = luaL_checkstring(L, 2);
+            bool is_resource = luaL_optboolean(L, 3, false);
 
             prop->property.hint = PROPERTY_HINT_ARRAY_TYPE;
-            prop->property.hint_string = type;
+
+            if (is_resource) {
+                // see core/object/object.h
+                Array hint_values;
+                hint_values.resize(3);
+                hint_values[0] = Variant::OBJECT;
+                hint_values[1] = PROPERTY_HINT_RESOURCE_TYPE;
+                hint_values[2] = type;
+
+                prop->property.hint_string = String("{0}/{1}:{2}").format(hint_values);
+            } else {
+                prop->property.hint_string = type;
+            }
         } else if (strcmp(key, "Resource") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_OBJECT)
                 luaGD_hinterror(L, "resource type", "object");

@@ -543,7 +543,7 @@ declare class GDClassProperty
     function Flags3DNavigationLayers(self): GDClassProperty
     function ExpEasing(self): GDClassProperty
     function NoAlpha(self): GDClassProperty
-    function TypedArray(self, type: string): GDClassProperty
+    function TypedArray(self, type: string, isResource: boolean?): GDClassProperty
     function Resource(self, type: string): GDClassProperty
 end
 
