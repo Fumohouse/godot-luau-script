@@ -386,7 +386,17 @@ bool LuauScript::has_method(const StringName &p_method, StringName *r_actual_nam
 }
 
 Dictionary LuauScript::_get_method_info(const StringName &p_method) const {
-    return definition.methods.get(p_method);
+    HashMap<StringName, GDMethod>::ConstIterator E = definition.methods.find(p_method);
+
+    if (E)
+        return E->value;
+
+    E = definition.methods.find(to_pascal_case(p_method));
+
+    if (E)
+        return E->value;
+
+    return Dictionary();
 }
 
 TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
