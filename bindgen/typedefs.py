@@ -234,11 +234,11 @@ function __iter(self): any\
 
     # Constructors
     if name == "Callable":
-        append(src, 1, "function __call(self, obj: Object, method: string): Callable")
+        append(src, 1, "new: (obj: Object, method: string) -> Callable")
     else:
         for constructor in builtin_class["constructors"]:
             append(
-                src, 1, f"function __call({generate_args(constructor, is_type=True)}): {name}")
+                src, 1, f"new: ({generate_args(constructor, False, True)}) -> {name}")
 
     # Statics
     if "methods" in builtin_class:
@@ -324,7 +324,7 @@ def generate_class(src, g_class, singletons):
 
     # Constructor
     if g_class["is_instantiable"]:
-        append(src, 1, f"function __call(self): {name}")
+        append(src, 1, f"new: () -> {name}")
 
     # Singleton
     singleton_matches = utils.get_singletons(name, singletons)

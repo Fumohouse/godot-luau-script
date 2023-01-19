@@ -369,7 +369,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
                 write_uint64(io, 0)  # uint64_t num_args
 
         # String constructor_debug_name
-        write_string(io, f"{class_name}.__call")
+        write_string(io, f"{class_name}.new")
         # String constructor_error_string
         write_string(io, ctor_help_string(class_name, constructors))
     else:
@@ -643,7 +643,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
     is_instantiable = g_class["is_instantiable"]
     write_bool(io, is_instantiable)  # bool is_instantiable
     # String constructor_debug_name
-    write_string(io, f"{metatable_name}.__call" if is_instantiable else "")
+    write_string(io, f"{metatable_name}.new" if is_instantiable else "")
 
     # methods
     if "methods" in g_class:

@@ -45,7 +45,7 @@ TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
 
         SECTION("Godot") {
             EVAL_THEN(L, R"ASDF(
-                local arr = PackedStringArray()
+                local arr = PackedStringArray.new()
                 arr:PushBack("1")
                 arr:PushBack("2")
                 arr:PushBack("3")
@@ -72,10 +72,10 @@ TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
 
             SECTION("Godot") {
                 EVAL_THEN(L, R"ASDF(
-                    local arr = Array()
+                    local arr = Array.new()
                     arr:PushBack("1")
                     arr:PushBack(2.5)
-                    arr:PushBack(Vector2(3, 4))
+                    arr:PushBack(Vector2.new(3, 4))
 
                     return arr
                 )ASDF",
@@ -84,7 +84,7 @@ TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
 
             SECTION("coerced") {
                 EVAL_THEN(L, R"ASDF(
-                    return { "1", 2.5, Vector2(3, 4) }
+                    return { "1", 2.5, Vector2.new(3, 4) }
                 )ASDF",
                         CHECK_ARR(Array));
             }

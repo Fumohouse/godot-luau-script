@@ -184,7 +184,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
                 channel = 4
             })
 
-            TestClass:RegisterConstant("TEST_CONSTANT", Vector2(1, 2))
+            TestClass:RegisterConstant("TEST_CONSTANT", Vector2.new(1, 2))
 
             return TestClass
         )ASDF",

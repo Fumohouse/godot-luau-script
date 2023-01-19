@@ -8,17 +8,17 @@
 #include "test_utils.h"
 
 TEST_CASE_METHOD(LuauFixture, "builtins: constructor"){
-    ASSERT_EVAL_EQ(L, "return Vector3(1, 2, 3)", Vector3, Vector3(1, 2, 3))
-            ASSERT_EVAL_EQ(L, "return Vector3(Vector3i(4, 5, 6))", Vector3, Vector3(4, 5, 6))
+    ASSERT_EVAL_EQ(L, "return Vector3.new(1, 2, 3)", Vector3, Vector3(1, 2, 3))
+    ASSERT_EVAL_EQ(L, "return Vector3.new(Vector3i.new(4, 5, 6))", Vector3, Vector3(4, 5, 6))
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
     SECTION("namecall style"){
-        ASSERT_EVAL_EQ(L, "return Vector2(1, 2):Dot(Vector2(1, 2))", float, 5)
+        ASSERT_EVAL_EQ(L, "return Vector2.new(1, 2):Dot(Vector2.new(1, 2))", float, 5)
     }
 
     SECTION("invoked from global table"){
-        ASSERT_EVAL_EQ(L, "return Vector2.Dot(Vector2(3, 4), Vector2(5, 6))", float, 39)
+        ASSERT_EVAL_EQ(L, "return Vector2.Dot(Vector2.new(3, 4), Vector2.new(5, 6))", float, 39)
     }
 
     SECTION("static function"){
@@ -34,7 +34,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
         LuaStackOp<Callable>::push(L, Callable(params.ptr(), "set"));
         lua_setglobal(L, "testCallable");
 
-        ASSERT_EVAL_OK(L, "testCallable:Call(StringName(\"collide_with_areas\"), false)")
+        ASSERT_EVAL_OK(L, "testCallable:Call(StringName.new(\"collide_with_areas\"), false)")
         REQUIRE(!params->is_collide_with_areas_enabled());
     }
 
@@ -54,7 +54,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
             expected.push_back("hi");
 
             ASSERT_EVAL_EQ(L, R"ASDF(
-                local array = PackedStringArray()
+                local array = PackedStringArray.new()
                 array:PushBack("hello")
                 array:PushBack("hi")
 
@@ -69,15 +69,15 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
 
 TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
     SECTION("member access"){
-        ASSERT_EVAL_EQ(L, "return Vector2(123, 456).y", float, 456)
+        ASSERT_EVAL_EQ(L, "return Vector2.new(123, 456).y", float, 456)
     }
 
     SECTION("index access"){
-        ASSERT_EVAL_EQ(L, "return Vector2(123, 456)[2]", float, 456)
+        ASSERT_EVAL_EQ(L, "return Vector2.new(123, 456)[2]", float, 456)
     }
 
     SECTION("member set fails"){
-        ASSERT_EVAL_FAIL(L, "Vector2(123, 456).y = 0", "exec:1: type 'Vector2' is read-only")
+        ASSERT_EVAL_FAIL(L, "Vector2.new(123, 456).y = 0", "exec:1: type 'Vector2' is read-only")
     }
 
     SECTION("array index set") {
@@ -85,7 +85,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
         expected.push_back("hello");
 
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local array = PackedStringArray()
+            local array = PackedStringArray.new()
             array:PushBack("hi there")
             array[1] = "hello"
 
@@ -101,7 +101,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
         LuaStackOp<Dictionary>::push(L, input);
         lua_setglobal(L, "testDict");
 
-        ASSERT_EVAL_EQ(L, "return testDict[Vector2(1, 2)]", String, "hi!")
+        ASSERT_EVAL_EQ(L, "return testDict[Vector2.new(1, 2)]", String, "hi!")
     }
 
     SECTION("keyed set") {
@@ -109,7 +109,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
         expected["one"] = 12.5;
 
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local dictionary = Dictionary()
+            local dictionary = Dictionary.new()
             dictionary["one"] = 12.5
 
             return dictionary
@@ -120,24 +120,24 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
 
 TEST_CASE_METHOD(LuauFixture, "builtins: operators") {
     SECTION("equality"){
-        ASSERT_EVAL_EQ(L, "return Vector2(1, 2) == Vector2(1, 2)", bool, true)
+        ASSERT_EVAL_EQ(L, "return Vector2.new(1, 2) == Vector2.new(1, 2)", bool, true)
     }
 
     SECTION("inequality"){
-        ASSERT_EVAL_EQ(L, "return Vector2(1, 2) ~= Vector2(1, 2)", bool, false)
+        ASSERT_EVAL_EQ(L, "return Vector2.new(1, 2) ~= Vector2.new(1, 2)", bool, false)
     }
 
     SECTION("addition"){
-        ASSERT_EVAL_EQ(L, "return Vector2(1, 2) + Vector2(3, 4)", Vector2, Vector2(4, 6))
+        ASSERT_EVAL_EQ(L, "return Vector2.new(1, 2) + Vector2.new(3, 4)", Vector2, Vector2(4, 6))
     }
 
     SECTION("unary -"){
-        ASSERT_EVAL_EQ(L, "return -Vector2(1, 2)", Vector2, Vector2(-1, -2))
+        ASSERT_EVAL_EQ(L, "return -Vector2.new(1, 2)", Vector2, Vector2(-1, -2))
     }
 
     SECTION("special case: length") {
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local arr = PackedStringArray()
+            local arr = PackedStringArray.new()
             arr:PushBack("a")
             arr:PushBack("b")
             arr:PushBack("c")
@@ -161,7 +161,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: consts and enums") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: tostring"){
-    ASSERT_EVAL_EQ(L, "return tostring(Vector3(0, 1, 2))", String, "(0, 1, 2)")
+    ASSERT_EVAL_EQ(L, "return tostring(Vector3.new(0, 1, 2))", String, "(0, 1, 2)")
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: invalid global access"){
@@ -175,12 +175,12 @@ TEST_CASE_METHOD(LuauFixture, "builtins: array __iter special case") {
     expected.push_back("3!");
 
     ASSERT_EVAL_EQ(L, R"ASDF(
-        local array = PackedStringArray()
+        local array = PackedStringArray.new()
         array:PushBack("1!")
         array:PushBack("2!")
         array:PushBack("3!")
 
-        local copy = PackedStringArray()
+        local copy = PackedStringArray.new()
         for i, v in array do
             copy:PushBack(v)
         end
@@ -199,21 +199,21 @@ TEST_CASE_METHOD(LuauFixture, "builtins: Callable constructor") {
 
     SECTION("valid method") {
         ASSERT_EVAL_EQ(L, R"ASDF(
-            return Callable(testParams, "GetClass")
+            return Callable.new(testParams, "GetClass")
         )ASDF",
                 Callable, Callable(params.ptr(), "get_class"))
     }
 
     SECTION("invalid method") {
         ASSERT_EVAL_FAIL(L, R"ASDF(
-            return Callable(testParams, "whatwhatwhat")
+            return Callable.new(testParams, "whatwhatwhat")
         )ASDF",
                 "exec:2: 'whatwhatwhat' is not a valid method of this object")
     }
 
     SECTION("no permissions") {
         ASSERT_EVAL_FAIL(L, R"ASDF(
-            return Callable(testParams, "Call")
+            return Callable.new(testParams, "Call")
         )ASDF",
                 "exec:2: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!")
     }

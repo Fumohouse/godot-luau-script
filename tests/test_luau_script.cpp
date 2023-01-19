@@ -119,7 +119,7 @@ TEST_CASE("luau script: instance") {
                 { name = "arg1", type = Enum.VariantType.FLOAT }
             )
 
-        TestClass:RegisterConstant("TEST_CONSTANT", Vector2(1, 2))
+        TestClass:RegisterConstant("TEST_CONSTANT", Vector2.new(1, 2))
 
         local testClassIndex = {}
 
@@ -613,14 +613,14 @@ TEST_CASE("luau script: instance") {
     SECTION("Callable") {
         SECTION("instance method"){
             ASSERT_EVAL_EQ(T, R"ASDF(
-                return Callable(obj, "TestMethod")
+                return Callable.new(obj, "TestMethod")
             )ASDF",
                     Callable, Callable(&obj, "TestMethod"))
         }
 
         SECTION("no permissions") {
             ASSERT_EVAL_FAIL(T, R"ASDF(
-                return Callable(obj, "Call")
+                return Callable.new(obj, "Call")
             )ASDF",
                     "exec:2: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!")
         }
@@ -821,7 +821,7 @@ TEST_CASE("luau script: placeholders") {
             SECTION("script change") {
                 String new_src = script->_get_source_code().replace("--@1", R"ASDF(
                     Script:RegisterProperty("testProperty2", Enum.VariantType.VECTOR3)
-                        :Default(Vector3(1, 2, 3))
+                        :Default(Vector3.new(1, 2, 3))
                 )ASDF");
                 script->_set_source_code(new_src);
                 script->_update_exports();

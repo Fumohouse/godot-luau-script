@@ -36,7 +36,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: reference counting") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: constructor"){
-    ASSERT_EVAL_EQ(L, "return PhysicsRayQueryParameters3D():GetClass()", String, "PhysicsRayQueryParameters3D")
+    ASSERT_EVAL_EQ(L, "return PhysicsRayQueryParameters3D.new():GetClass()", String, "PhysicsRayQueryParameters3D")
 }
 
 TEST_CASE_METHOD(LuauFixture, "classes: singleton getter"){
@@ -59,24 +59,24 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
 
     SECTION("namecall style"){
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local params = PhysicsRayQueryParameters3D()
-            return params:Get(StringName("collide_with_areas"))
+            local params = PhysicsRayQueryParameters3D.new()
+            return params:Get(StringName.new("collide_with_areas"))
         )ASDF",
                 bool, false)
     }
 
     SECTION("invoked from global table"){
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local params = PhysicsRayQueryParameters3D()
-            return Object.Get(params, StringName("collide_with_areas"))
+            local params = PhysicsRayQueryParameters3D.new()
+            return Object.Get(params, StringName.new("collide_with_areas"))
         )ASDF",
                 bool, false)
     }
 
     SECTION("varargs"){
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local params = PhysicsRayQueryParameters3D()
-            params:Call(StringName("set"), StringName("collide_with_areas"), true)
+            local params = PhysicsRayQueryParameters3D.new()
+            params:Call(StringName.new("set"), StringName.new("collide_with_areas"), true)
 
             return params.collideWithAreas
         )ASDF",
@@ -85,7 +85,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
 
     SECTION("default args"){
         EVAL_THEN(L, R"ASDF(
-            return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6))
+            return PhysicsRayQueryParameters3D.Create(Vector3.new(1, 2, 3), Vector3.new(4, 5, 6))
         )ASDF",
                 {
                     Ref<PhysicsRayQueryParameters3D> params = Object::cast_to<PhysicsRayQueryParameters3D>(
@@ -101,7 +101,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
 
     SECTION("ref return"){
         EVAL_THEN(L, R"ASDF(
-            return PhysicsRayQueryParameters3D.Create(Vector3(1, 2, 3), Vector3(4, 5, 6), 1, Array())
+            return PhysicsRayQueryParameters3D.Create(Vector3.new(1, 2, 3), Vector3.new(4, 5, 6), 1, Array.new())
         )ASDF",
                 {
                     RefCounted *rc = Object::cast_to<RefCounted>(LuaStackOp<Object *>::check(L, -1));
@@ -136,7 +136,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
 
     SECTION("member access"){
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local node = PhysicsRayQueryParameters3D()
+            local node = PhysicsRayQueryParameters3D.new()
             return node.collideWithAreas
         )ASDF",
                 bool, false)
@@ -144,7 +144,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
 
     SECTION("member set"){
         ASSERT_EVAL_EQ(L, R"ASDF(
-            local node = PhysicsRayQueryParameters3D()
+            local node = PhysicsRayQueryParameters3D.new()
             node.collideWithAreas = true
             return node.collideWithAreas
         )ASDF",

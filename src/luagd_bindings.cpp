@@ -258,7 +258,7 @@ static int luaGD_variant_tostring(lua_State *L) {
 void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
     luaL_newmetatable(L, mt_name); // instance metatable
     lua_newtable(L); // global table
-    lua_createtable(L, 0, 3); // global metatable - assume 3 fields: __fortype, __call, __index
+    lua_createtable(L, 0, 2); // global metatable - assume 2 fields: __fortype, __index
 
     lua_pushstring(L, mt_name);
     lua_setfield(L, -2, "__fortype");
@@ -403,9 +403,6 @@ static int luaGD_builtin_ctor(lua_State *L) {
     const ApiBuiltinClass *builtin_class = luaGD_lightudataup<ApiBuiltinClass>(L, 1);
     const char *error_string = lua_tostring(L, lua_upvalueindex(2));
 
-    // remove first argument to __call (global table)
-    lua_remove(L, 1);
-
     int nargs = lua_gettop(L);
 
     Vector<LuauVariant> args;
@@ -458,11 +455,9 @@ static int luaGD_callable_ctor(lua_State *L) {
 
     int class_idx = -1;
 
-    // Start index is 2 (first on stack is table)
-
     {
         // Get class index.
-        if (lua_getmetatable(L, 2)) {
+        if (lua_getmetatable(L, 1)) {
             lua_getfield(L, -1, "__gdclass");
 
             if (lua_isnumber(L, -1)) {
@@ -473,11 +468,11 @@ static int luaGD_callable_ctor(lua_State *L) {
         }
 
         if (class_idx == -1)
-            luaL_typeerrorL(L, 2, "Object");
+            luaL_typeerrorL(L, 1, "Object");
     }
 
-    Object *obj = LuaStackOp<Object *>::get(L, 2);
-    const char *method = luaL_checkstring(L, 3);
+    Object *obj = LuaStackOp<Object *>::get(L, 1);
+    const char *method = luaL_checkstring(L, 2);
 
     // Check if instance has method.
     if (LuauScriptInstance *inst = get_script_instance(obj)) {
@@ -726,16 +721,16 @@ void luaGD_openbuiltins(lua_State *L) {
             lua_setfield(L, -3, constant.name);
         }
 
-        // Constructors (global __call)
+        // Constructors (global .new)
         if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_CALLABLE) { // Special case for Callable security
             lua_pushlightuserdata(L, (void *)&extension_api.classes);
-            lua_pushcclosure(L, luaGD_callable_ctor, "Callable.__call", 1);
-            lua_setfield(L, -2, "__call");
+            lua_pushcclosure(L, luaGD_callable_ctor, "Callable.new", 1);
+            lua_setfield(L, -3, "new");
         } else {
             lua_pushlightuserdata(L, (void *)&builtin_class);
             lua_pushstring(L, builtin_class.constructor_error_string);
             lua_pushcclosure(L, luaGD_builtin_ctor, builtin_class.constructor_debug_name, 2);
-            lua_setfield(L, -2, "__call");
+            lua_setfield(L, -3, "new");
         }
 
         // Members (__newindex, __index)
@@ -836,11 +831,6 @@ static int luaGD_class_ctor(lua_State *L) {
     LuaStackOp<Object *>::push(L, obj);
 
     return 1;
-}
-
-static int luaGD_class_no_ctor(lua_State *L) {
-    const char *class_name = lua_tostring(L, lua_upvalueindex(1));
-    luaL_error(L, "class %s is not instantiable", class_name);
 }
 
 #define LUAGD_CLASS_METAMETHOD                                              \
@@ -1240,14 +1230,12 @@ void luaGD_openclasses(lua_State *L) {
             lua_setfield(L, -3, constant.name);
         }
 
-        // Constructor (global __call)
-        lua_pushstring(L, g_class.name);
-        lua_pushcclosure(L,
-                g_class.is_instantiable
-                        ? luaGD_class_ctor
-                        : luaGD_class_no_ctor,
-                g_class.constructor_debug_name, 1);
-        lua_setfield(L, -2, "__call");
+        // Constructor (global .new)
+        if (g_class.is_instantiable) {
+            lua_pushstring(L, g_class.name);
+            lua_pushcclosure(L, luaGD_class_ctor, g_class.constructor_debug_name, 1);
+            lua_setfield(L, -3, "new");
+        }
 
         // Methods (__namecall)
         if (g_class.methods.size() > 0) {
