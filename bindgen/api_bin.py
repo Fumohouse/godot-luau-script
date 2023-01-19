@@ -3,6 +3,15 @@ from . import constants, utils
 from io import BytesIO
 import struct
 
+import platform
+
+major, minor, patch = platform.python_version_tuple()
+
+if int(major) > 3 or (int(major) == 3 and int(minor) >= 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 
 #########
 # Utils #
@@ -559,7 +568,7 @@ def generate_class_method(io, class_name, metatable_name, classes, permissions, 
     # permissions
     permission = ThreadPermissions["INHERIT"]
     if "methods" in permissions and method_name_luau in permissions["methods"]:
-        permission = permissions["methods"][method_name_luau]
+        permission = ThreadPermissions[permissions["methods"][method_name_luau]]
     write_int32(io, permission)  # ThreadPermissions permissions
 
     # more properties
@@ -613,7 +622,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
         permissions = class_permissions[class_name]
 
         # ThreadPermissions default_permissions
-        write_int32(io, permissions["default"])
+        write_int32(io, ThreadPermissions[permissions["default_permissions"]])
     else:
         # ThreadPermissions default_permissions
         write_int32(io, ThreadPermissions["INTERNAL"])
@@ -756,11 +765,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
 # Main #
 ########
 
-def find_by(items, name, key="name"):
-    return [c for c in items if c[key] == name][0]
-
-
-def generate_api_bin(src_dir, api):
+def generate_api_bin(src_dir, api, perms_path):
     ###################
     # Generate binary #
     ###################
@@ -822,47 +827,9 @@ def generate_api_bin(src_dir, api):
     classes = api["classes"]
     singletons = api["singletons"]
 
-    class_permissions = {
-        # Special permissions
-        "OS": {"default": ThreadPermissions["OS"]},
-
-        "FileAccess": {"default": ThreadPermissions["FILE"]},
-        "DirAccess": {"default": ThreadPermissions["FILE"]},
-
-        "HTTPClient": {"default": ThreadPermissions["HTTP"]},
-        "HTTPRequest": {"default": ThreadPermissions["HTTP"]},
-
-        "Object": {
-            "default": ThreadPermissions["INTERNAL"],
-            "methods": {
-                "GetClass": ThreadPermissions["BASE"]
-            }
-        }
-    }
-
-    child_defaults = {
-        "Node": ThreadPermissions["BASE"]
-    }
-
-    for g_class in classes:
-        class_name = g_class["name"]
-
-        if class_name in class_permissions:
-            continue
-
-        check_class = g_class
-        while "inherits" in check_class:
-            check_name = check_class["name"]
-            if check_name in child_defaults:
-                class_permissions[class_name] = {
-                    "default": child_defaults[check_name]}
-                break
-            elif check_name == "RefCounted":
-                if len([s for s in singletons if s["type"] == class_name]) == 0:
-                    class_permissions[class_name] = {
-                        "default": ThreadPermissions["BASE"]}
-
-            check_class = find_by(classes, check_class["inherits"])
+    class_permissions = {}
+    with open(perms_path, "rb") as f:
+        class_permissions = tomllib.load(f)
 
     write_uint64(api_bin, len(classes))  # uint64_t num_classes
 

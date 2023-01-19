@@ -16,6 +16,8 @@ luau_bindings = env_gen.GenerateLuauBindings(
         os.path.join(
             os.getcwd(), "extern/godot-cpp/gdextension/extension_api.json"),
         os.path.join(
+            os.getcwd(), "bindgen/class_permissions.toml"),
+        os.path.join(
             os.getcwd(), "extern/godot-cpp/gdextension/gdextension_interface.h")
     ]
 )
