@@ -502,12 +502,12 @@ end
 declare EnumPermissions: EnumPermissions_INTERNAL
 
 export type GDProperty = {
-    type: EnumVariantType,
-    name: string,
-    hint: EnumPropertyHint,
-    hintString: string,
-    usage: EnumPropertyUsageFlags,
-    className: string,
+    type: EnumVariantType?,
+    name: string?,
+    hint: EnumPropertyHint?,
+    hintString: string?,
+    usage: EnumPropertyUsageFlags?,
+    className: string?,
 }
 
 declare class GDMethod
