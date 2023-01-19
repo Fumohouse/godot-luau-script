@@ -592,6 +592,14 @@ static int luascript_classprop_namecall(lua_State *L) {
 
             prop->property.hint = PROPERTY_HINT_RESOURCE_TYPE;
             prop->property.hint_string = type;
+        } else if (strcmp(key, "NodePath") == 0) {
+            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_NODE_PATH)
+                luaGD_hinterror(L, "node path valid types", "node path");
+
+            String hint_string = luascript_stringhintlist(L, 2);
+
+            prop->property.hint = PROPERTY_HINT_NODE_PATH_VALID_TYPES;
+            prop->property.hint_string = hint_string;
         } else {
             luaGD_nomethoderror(L, key, "GDClassProperty");
         }

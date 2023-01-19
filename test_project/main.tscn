@@ -14,3 +14,5 @@ testFlags3DPhysics = null
 testFlags3DNavigation = null
 testColorNoAlpha = null
 testTypedArray = null
+testResource = null
+testNodePath = null

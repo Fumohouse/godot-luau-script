@@ -545,6 +545,7 @@ declare class GDClassProperty
     function NoAlpha(self): GDClassProperty
     function TypedArray(self, type: string, isResource: boolean?): GDClassProperty
     function Resource(self, type: string): GDClassProperty
+    function NodePath(self, ...: string): GDClassProperty
 end
 
 declare class GDSignal
