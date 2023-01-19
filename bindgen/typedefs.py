@@ -282,9 +282,25 @@ def generate_class(src, g_class, singletons):
         for prop in g_class["properties"]:
             prop_name = utils.snake_to_camel(prop["name"])
 
-            # BaseMaterial/ShaderMaterial
+            prop_type = prop["type"]
+
+            # Enum properties are registered as integers, so reference their setter/getter to find real type
+            if "methods" in g_class:
+                prop_method_ref = prop["getter"] if "getter" in prop else prop["setter"]
+                prop_method = [m for m in g_class["methods"] if m["name"] == prop_method_ref]
+
+                if len(prop_method) == 1:
+                    prop_method = prop_method[0]
+
+                    if "return_value" in prop_method:
+                        prop_type = prop_method["return_value"]["type"]
+                    else:
+                        arg_idx = 0 if "index" not in prop else 1
+                        prop_type = prop_method["arguments"][arg_idx]["type"]
+
+            # BaseMaterial/ShaderMaterial multiple types
             prop_type = " | ".join([get_luau_type(t)
-                                   for t in prop["type"].split(",")])
+                                   for t in prop_type.split(",")])
 
             append(src, 1, f"[\"{prop_name}\"]: {prop_type}")
 
