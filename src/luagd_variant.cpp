@@ -73,6 +73,7 @@ static void no_op(LuauVariant &self) {}
     }
 
 #define DATA_INIT(type) [](LuauVariant &self) { memnew_placement(self._data._data, type); }
+#define DATA_IS(type) [](lua_State *L, int idx, const String &) { return LuaStackOp<type>::is(L, idx); }
 #define DATA_PUSH(type) [](const LuauVariant &self, lua_State *L) { LuaStackOp<type>::push(L, *((type *)self._data._data)); }
 #define DATA_DTOR(type) [](LuauVariant &self) { ((type *)self._data._data)->~type(); }
 #define DATA_COPY(p_type)                                                   \
@@ -96,9 +97,7 @@ static void no_op(LuauVariant &self) {}
                 GETTER(get),                                                   \
                 GETTER_CONST(get),                                             \
                 DATA_INIT(type),                                               \
-                [](lua_State *L, int idx, const String &) {                    \
-                    return LuaStackOp<type>::is(L, idx);                       \
-                },                                                             \
+                DATA_IS(type),                                                 \
                 [](LuauVariant &self, lua_State *L, int idx, const String &) { \
                     self._data._ptr = LuaStackOp<type>::check_ptr(L, idx);     \
                     return true;                                               \
@@ -202,7 +201,24 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
     PTR_METHODS(Projection, get_projection, _projection),
 
     DATA_METHODS(Color, get_color),
-    DATA_METHODS(StringName, get_string_name),
+    { false,
+            GETTER(get_string_name),
+            GETTER_CONST(get_string_name),
+            DATA_INIT(StringName),
+            DATA_IS(StringName),
+            [](LuauVariant &self, lua_State *L, int idx, const String &) {
+                if (StringName *ptr = LuaStackOp<StringName>::get_ptr(L, idx)) {
+                    self._data._ptr = ptr;
+                    return true;
+                }
+
+                *(StringName *)self._data._data = LuaStackOp<StringName>::check(L, idx);
+                return false;
+            },
+            DATA_PUSH(StringName),
+            DATA_DTOR(StringName),
+            DATA_COPY(StringName),
+            DATA_ASSIGN(StringName) },
     DATA_METHODS(NodePath, get_node_path),
     DATA_METHODS(RID, get_rid),
     { false,
@@ -279,7 +295,6 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
             DATA_DTOR(Array),
             DATA_COPY(Array),
             DATA_ASSIGN(Array) },
-
     DATA_METHODS(PackedByteArray, get_byte_array),
     DATA_METHODS(PackedInt32Array, get_int32_array),
     DATA_METHODS(PackedInt64Array, get_int64_array),

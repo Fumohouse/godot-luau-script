@@ -23,10 +23,16 @@ using namespace godot;
 
 TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
     // Semicolons please the formatter
-    TEST_STACK_OP(bool, true);
-    TEST_STACK_OP(int, 12);
-    TEST_STACK_OP(String, "hello there! おはようございます");
-    TEST_STACK_OP(Transform3D, Transform3D().rotated(Vector3(1, 1, 1).normalized(), 2));
+    SECTION("simple operations") {
+        TEST_STACK_OP(bool, true);
+        TEST_STACK_OP(int, 12);
+        TEST_STACK_OP(String, "hello there! おはようございます");
+        TEST_STACK_OP(Transform3D, Transform3D().rotated(Vector3(1, 1, 1).normalized(), 2));
+    }
+
+    SECTION("StringName coercion") {
+        ASSERT_EVAL_EQ(L, "return 'hey'", StringName, StringName("hey"))
+    }
 }
 
 #define CHECK_ARR(type)                                          \

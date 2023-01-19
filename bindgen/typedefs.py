@@ -6,7 +6,8 @@ gd_luau_type_map = {
     "bool": "boolean",
     "int": "number",
     "float": "number",
-    "String": "string"
+    "String": "string",
+    "StringName": "string | StringName",
 }
 
 

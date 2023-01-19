@@ -63,6 +63,7 @@ STACK_OP_DEF_BASE(Object *, Object *)
 // Implementation is generated.
 STACK_OP_DEF(Variant)
 
+STACK_OP_PTR_DEF(StringName)
 STACK_OP_PTR_DEF(Array)
 
 /* USERDATA */

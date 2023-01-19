@@ -142,6 +142,38 @@ Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
     return LuaStackOp<Object *>::get(L, index);
 }
 
+/* STRINGNAME */
+
+#define STRINGNAME_METATABLE_NAME "Godot.Builtin.StringName"
+
+UDATA_ALLOC(StringName, STRINGNAME_METATABLE_NAME, DTOR(StringName))
+UDATA_PUSH(StringName)
+
+bool LuaStackOp<StringName>::is(lua_State *L, int index) {
+    return lua_isstring(L, index) || luaGD_metatables_match(L, index, STRINGNAME_METATABLE_NAME);
+}
+
+UDATA_GET_PTR(StringName, STRINGNAME_METATABLE_NAME)
+
+StringName LuaStackOp<StringName>::get(lua_State *L, int index) {
+    if (luaGD_metatables_match(L, index, STRINGNAME_METATABLE_NAME))
+        return *LuaStackOp<StringName>::get_ptr(L, index);
+
+    return StringName(lua_tostring(L, index));
+}
+
+UDATA_CHECK_PTR(StringName, STRINGNAME_METATABLE_NAME)
+
+StringName LuaStackOp<StringName>::check(lua_State *L, int index) {
+    if (lua_isstring(L, index))
+        return StringName(lua_tostring(L, index));
+
+    if (luaGD_metatables_match(L, index, STRINGNAME_METATABLE_NAME))
+        return *LuaStackOp<StringName>::get_ptr(L, index);
+
+    luaL_typeerrorL(L, index, "StringName or string");
+}
+
 /* ARRAY */
 
 bool luaGD_isarray(lua_State *L, int index, const char *metatable_name, Variant::Type type, const String &class_name) {
