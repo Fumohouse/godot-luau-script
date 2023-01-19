@@ -112,11 +112,6 @@ def generate_enum(src, enum, class_name=""):
     # Item classes
     src.append(f"declare class {type_name} end")
 
-    for value in values:
-        value_name = utils.get_enum_value_name(name, value["name"])
-        src.append(
-            f"declare class {type_name}_{value_name} extends {type_name} end")
-
     src.append("")
 
     # Enum type
@@ -125,7 +120,7 @@ def generate_enum(src, enum, class_name=""):
 
     for value in values:
         value_name = utils.get_enum_value_name(name, value["name"])
-        append(src, 1, f"{value_name}: {type_name}_{value_name}")
+        append(src, 1, f"{value_name}: {type_name}")
 
     src.append("end")
 
@@ -485,18 +480,13 @@ def generate_typedefs(defs_dir, api):
 --------------------
 
 declare class EnumPermissions end
-declare class EnumPermissions_BASE extends EnumPermissions end
-declare class EnumPermissions_INTERNAL extends EnumPermissions end
-declare class EnumPermissions_OS extends EnumPermissions end
-declare class EnumPermissions_FILE extends EnumPermissions end
-declare class EnumPermissions_HTTP extends EnumPermissions end
 
 declare class EnumPermissions_INTERNAL
-    BASE: EnumPermissions_BASE
-    INTERNAL: EnumPermissions_INTERNAL
-    OS: EnumPermissions_OS
-    FILE: EnumPermissions_FILE
-    HTTP: EnumPermissions_FILE
+    BASE: EnumPermissions
+    INTERNAL: EnumPermissions
+    OS: EnumPermissions
+    FILE: EnumPermissions
+    HTTP: EnumPermissions
 end
 
 declare EnumPermissions: EnumPermissions_INTERNAL
