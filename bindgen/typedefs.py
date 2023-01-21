@@ -587,6 +587,9 @@ end
 
 declare function gdclass(name: string?, extends: string?): GDClassDefinition
 
+-- TODO: constrain to Resource type?
+declare function load<T>(path: string): T
+
 declare function wait(duration: number): number
 """)
 

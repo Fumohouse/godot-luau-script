@@ -13,6 +13,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
+#include "godot_cpp/classes/resource_loader.hpp"
 #include "luagd.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
@@ -118,6 +119,19 @@ int GDLuau::gdluau_require(lua_State *L) {
     return finishrequire(L);
 }
 
+static int gdluau_load(lua_State *L) {
+    String path = LuaStackOp<String>::check(L, 1);
+    GDThreadData *udata = luaGD_getthreaddata(L);
+
+    if (!path.begins_with("res://") && !path.begins_with("user://")) {
+        path = udata->script->get_path().get_base_dir().path_join(path);
+    }
+
+    Ref<Resource> res = ResourceLoader::get_singleton()->load(path);
+    LuaStackOp<Object *>::push(L, res.ptr());
+    return 1;
+}
+
 static int gdluau_wait(lua_State *L) {
     double duration = LuaStackOp<double>::check(L, 1);
 
@@ -130,6 +144,7 @@ static int gdluau_wait(lua_State *L) {
 const luaL_Reg GDLuau::global_funcs[] = {
     { "require", gdluau_require },
     { "wait", gdluau_wait },
+    { "load", gdluau_load },
     { nullptr, nullptr }
 };
 
