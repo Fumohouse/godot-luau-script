@@ -7,12 +7,13 @@ gd_luau_type_map = {
     "int": "number",
     "float": "number",
     "String": "string",
-    "StringName": "string | StringName",
-    "NodePath": "string | NodePath",
 }
 
 
-def get_luau_type(type_string):
+def get_luau_type(type_string, is_ret=False):
+    if type_string in ["StringName", "NodePath"]:
+        return "string" if is_ret else f"string | {type_string}"
+
     if type_string in gd_luau_type_map:
         return gd_luau_type_map[type_string]
 
@@ -92,9 +93,9 @@ def generate_method(src, class_name, method, is_def_static=False):
     method_ret_str = ""
 
     if "return_type" in method:
-        method_ret_str = get_luau_type(method["return_type"])
+        method_ret_str = get_luau_type(method["return_type"], True)
     elif "return_value" in method:
-        method_ret_str = get_luau_type(method["return_value"]["type"])
+        method_ret_str = get_luau_type(method["return_value"]["type"], True)
 
     if is_def_static:
         is_method_static = "is_static" in method and method["is_static"]
@@ -160,19 +161,18 @@ function __newindex(self, key: Variant, value: Variant)\
 
     # Indexing
     if "indexing_return_type" in builtin_class:
-        indexing_type_name = get_luau_type(
-            builtin_class["indexing_return_type"])
+        indexing_type_name = builtin_class["indexing_return_type"]
 
         append(src, 1, f"""\
-function __index(self, key: number): {indexing_type_name}
-function __newindex(self, key: number, value: {indexing_type_name})\
+function __index(self, key: number): {get_luau_type(indexing_type_name, True)}
+function __newindex(self, key: number, value: {get_luau_type(indexing_type_name)})\
 """)
 
     # Members
     if "members" in builtin_class:
         for member in builtin_class["members"]:
             member_name = member["name"]
-            member_type = get_luau_type(member["type"])
+            member_type = get_luau_type(member["type"], True)
 
             append(src, 1, f"[\"{member_name}\"]: {member_type}")
 
@@ -190,7 +190,7 @@ function __newindex(self, key: number, value: {indexing_type_name})\
 
         for op in operators:
             op_mt_name = "__" + utils.variant_op_map[op["name"]]
-            op_return_type = get_luau_type(op["return_type"])
+            op_return_type = get_luau_type(op["return_type"], True)
 
             if "right_type" in op:
                 op_right_type = get_luau_type(op["right_type"])
@@ -237,7 +237,7 @@ function __iter(self): any\
     if "constants" in builtin_class:
         for constant in builtin_class["constants"]:
             constant_name = constant["name"]
-            constant_type = get_luau_type(constant["type"])
+            constant_type = get_luau_type(constant["type"], True)
 
             append(src, 1, f"{constant_name}: {constant_type}")
 
@@ -314,7 +314,7 @@ def generate_class(src, g_class, singletons):
                         prop_type = prop_method["arguments"][arg_idx]["type"]
 
             # BaseMaterial/ShaderMaterial multiple types
-            prop_type = " | ".join([get_luau_type(t)
+            prop_type = " | ".join([get_luau_type(t, True)
                                    for t in prop_type.split(",")])
 
             append(src, 1, f"[\"{prop_name}\"]: {prop_type}")
@@ -432,7 +432,7 @@ def generate_typedefs(defs_dir, api):
 
         func_name = utils.utils_to_bind[func_name] if utils.utils_to_bind[func_name] else func_name
         func_ret_str = ": " + \
-            get_luau_type(func["return_type"]) if "return_type" in func else ""
+            get_luau_type(func["return_type"], True) if "return_type" in func else ""
 
         src.append(
             f"declare function {func_name}({generate_args(func, False)}){func_ret_str}")
@@ -450,6 +450,9 @@ def generate_typedefs(defs_dir, api):
 
     for builtin_class in builtin_classes:
         if utils.should_skip_class(builtin_class["name"]):
+            continue
+
+        if builtin_class["name"] in ["StringName", "NodePath"]:
             continue
 
         generate_builtin_class(src, builtin_class)
@@ -505,6 +508,10 @@ def generate_typedefs(defs_dir, api):
 
     # TODO: better way?
     src.append("export type TypedArray<T> = Array")
+    src.append("""\
+declare class StringName end
+declare class NodePath end\
+""")
 
     # luau_lib types
     src.append("""
@@ -600,6 +607,9 @@ declare function gdclass(name: string?, extends: string?): GDClassDefinition
 declare function load<T>(path: string): T
 
 declare function wait(duration: number): number
+
+declare function SN(str: string): StringName
+declare function NP(str: string): NodePath
 """)
 
     # Save

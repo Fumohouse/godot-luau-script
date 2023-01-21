@@ -8,6 +8,7 @@
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/char_string.hpp>
+#include <godot_cpp/variant/node_path.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -141,10 +142,19 @@ static int gdluau_wait(lua_State *L) {
     return lua_yield(L, 0);
 }
 
+#define GDLUAU_STR_CTOR(type)                         \
+    [](lua_State *L) {                                \
+        String str = LuaStackOp<String>::check(L, 1); \
+        LuaStackOp<type>::push(L, str, true);         \
+        return 1;                                     \
+    }
+
 const luaL_Reg GDLuau::global_funcs[] = {
     { "require", gdluau_require },
     { "wait", gdluau_wait },
     { "load", gdluau_load },
+    { "SN", GDLUAU_STR_CTOR(StringName) },
+    { "NP", GDLUAU_STR_CTOR(NodePath) },
     { nullptr, nullptr }
 };
 

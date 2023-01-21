@@ -568,7 +568,8 @@ def generate_class_method(io, class_name, metatable_name, classes, permissions, 
     # permissions
     permission = ThreadPermissions["INHERIT"]
     if "methods" in permissions and method_name_luau in permissions["methods"]:
-        permission = ThreadPermissions[permissions["methods"][method_name_luau]]
+        permission = ThreadPermissions[permissions["methods"]
+                                       [method_name_luau]]
     write_int32(io, permission)  # ThreadPermissions permissions
 
     # more properties
@@ -815,7 +816,7 @@ def generate_api_bin(src_dir, api, perms_path):
 
     # Builtin classes
     builtin_classes = [bc for bc in api["builtin_classes"]
-                       if not utils.should_skip_class(bc["name"])]
+                       if not utils.should_skip_class(bc["name"]) and not bc["name"] in ["StringName", "NodePath"]]
     write_uint64(api_bin, len(builtin_classes))  # uint64_t num_builtin_classes
 
     # ApiBuiltinClasses builtin_classes[num_builtin_classes]

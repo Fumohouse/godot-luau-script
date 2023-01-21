@@ -24,6 +24,7 @@ typedef bool (*LuauVariantLuaCheck)(LuauVariant &self, lua_State *L, int idx, co
 typedef void (*LuauVariantLuaPush)(const LuauVariant &self, lua_State *L);
 typedef void (*LuauVariantCopy)(LuauVariant &self, const LuauVariant &other);
 typedef void (*LuauVariantAssign)(LuauVariant &self, const Variant &val);
+typedef Variant (*LuauToVariant)(const LuauVariant &self);
 
 // for sanity reasons, methods defined for this struct
 // should never, ever, ever, ever, set the variant's type or whether it was from Luau.
@@ -40,6 +41,7 @@ struct VariantTypeMethods {
     LuauVariantNoRet destroy;
     LuauVariantCopy copy;
     LuauVariantAssign assign;
+    LuauToVariant to_variant;
 };
 
 static void no_op(LuauVariant &self) {}
@@ -69,6 +71,9 @@ static void no_op(LuauVariant &self) {}
                 },                                                             \
                 [](LuauVariant &self, const Variant &val) {                    \
                     self._data.union_name = val;                               \
+                },                                                             \
+                [](const LuauVariant &self) -> Variant {                       \
+                    return self._data.union_name;                              \
                 }                                                              \
     }
 
@@ -76,19 +81,26 @@ static void no_op(LuauVariant &self) {}
 #define DATA_IS(type) [](lua_State *L, int idx, const String &) { return LuaStackOp<type>::is(L, idx); }
 #define DATA_PUSH(type) [](const LuauVariant &self, lua_State *L) { LuaStackOp<type>::push(L, *((type *)self._data._data)); }
 #define DATA_DTOR(type) [](LuauVariant &self) { ((type *)self._data._data)->~type(); }
-#define DATA_COPY(p_type)                                                   \
-    [](LuauVariant &self, const LuauVariant &other) {                       \
-        if (other.is_from_luau())                                           \
-            self._data._ptr = other._data._ptr;                             \
-        else                                                                \
-            *((p_type *)self._data._data) = *((p_type *)other._data._data); \
+#define DATA_COPY(p_type)                                               \
+    [](LuauVariant &self, const LuauVariant &other) {                   \
+        if (other.is_from_luau())                                       \
+            self._data._ptr = other._data._ptr;                         \
+        else                                                            \
+            *(p_type *)self._data._data = *(p_type *)other._data._data; \
     }
 #define DATA_ASSIGN(type)                       \
     [](LuauVariant &self, const Variant &val) { \
         if (self.is_from_luau())                \
-            *((type *)self._data._ptr) = val;   \
+            *(type *)self._data._ptr = val;     \
         else                                    \
-            *((type *)self._data._data) = val;  \
+            *(type *)self._data._data = val;    \
+    }
+#define DATA_TO_VARIANT(type)                 \
+    [](const LuauVariant &self) -> Variant {  \
+        if (self.is_from_luau())              \
+            return *(type *)self._data._ptr;  \
+        else                                  \
+            return *(type *)self._data._data; \
     }
 
 #define DATA_METHODS(type, get)                                                \
@@ -105,7 +117,8 @@ static void no_op(LuauVariant &self) {}
                 DATA_PUSH(type),                                               \
                 DATA_DTOR(type),                                               \
                 DATA_COPY(type),                                               \
-                DATA_ASSIGN(type)                                              \
+                DATA_ASSIGN(type),                                             \
+                DATA_TO_VARIANT(type)                                          \
     }
 
 #define PTR_INIT(type, union_name) [](LuauVariant &self) { self._data.union_name = memnew(type); }
@@ -125,6 +138,13 @@ static void no_op(LuauVariant &self) {}
         else                                    \
             *self._data.union_name = val;       \
     }
+#define PTR_TO_VARIANT(type, union_name)     \
+    [](const LuauVariant &self) -> Variant { \
+        if (self.is_from_luau())             \
+            return *(type *)self._data._ptr; \
+        else                                 \
+            return *self._data.union_name;   \
+    }
 
 #define PTR_METHODS(type, get, union_name)                                     \
     {                                                                          \
@@ -142,12 +162,37 @@ static void no_op(LuauVariant &self) {}
                 PTR_PUSH(type, union_name),                                    \
                 PTR_DTOR(type, union_name),                                    \
                 PTR_COPY(union_name),                                          \
-                PTR_ASSIGN(type, union_name)                                   \
+                PTR_ASSIGN(type, union_name),                                  \
+                PTR_TO_VARIANT(type, union_name)                               \
+    }
+
+#define COERCED_METHODS(type, get)                                               \
+    {                                                                            \
+        false,                                                                   \
+                GETTER(get),                                                     \
+                GETTER_CONST(get),                                               \
+                DATA_INIT(type),                                                 \
+                DATA_IS(type),                                                   \
+                [](LuauVariant &self, lua_State *L, int idx, const String &) {   \
+                    if (type *ptr = LuaStackOp<type>::get_ptr(L, idx)) {         \
+                        self._data._ptr = ptr;                                   \
+                        return true;                                             \
+                    }                                                            \
+                                                                                 \
+                    *(type *)self._data._data = LuaStackOp<type>::check(L, idx); \
+                    return false;                                                \
+                },                                                               \
+                DATA_PUSH(type),                                                 \
+                DATA_DTOR(type),                                                 \
+                DATA_COPY(type),                                                 \
+                DATA_ASSIGN(type),                                               \
+                DATA_TO_VARIANT(type)                                            \
     }
 
 static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
     // Variant has no check_ptr
-    { false,
+    {
+            false,
             GETTER(get_variant),
             GETTER_CONST(get_variant),
             PTR_INIT(Variant, _variant),
@@ -161,14 +206,16 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
             PTR_PUSH(Variant, _variant),
             PTR_DTOR(Variant, _variant),
             PTR_COPY(_variant),
-            PTR_ASSIGN(Variant, _variant) },
+            PTR_ASSIGN(Variant, _variant),
+            PTR_TO_VARIANT(Variant, _variant) },
 
     SIMPLE_METHODS(bool, get_bool, _bool),
     SIMPLE_METHODS(int64_t, get_int, _int),
     SIMPLE_METHODS(double, get_float, _float),
 
     // String is not bound to Godot
-    { false,
+    {
+            false,
             GETTER(get_string),
             GETTER_CONST(get_string),
             DATA_INIT(String),
@@ -182,7 +229,8 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
             DATA_PUSH(String),
             DATA_DTOR(String),
             DATA_COPY(String),
-            DATA_ASSIGN(String) },
+            DATA_ASSIGN(String),
+            DATA_TO_VARIANT(String) },
 
     DATA_METHODS(Vector2, get_vector2),
     DATA_METHODS(Vector2i, get_vector2),
@@ -201,25 +249,8 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
     PTR_METHODS(Projection, get_projection, _projection),
 
     DATA_METHODS(Color, get_color),
-    { false,
-            GETTER(get_string_name),
-            GETTER_CONST(get_string_name),
-            DATA_INIT(StringName),
-            DATA_IS(StringName),
-            [](LuauVariant &self, lua_State *L, int idx, const String &) {
-                if (StringName *ptr = LuaStackOp<StringName>::get_ptr(L, idx)) {
-                    self._data._ptr = ptr;
-                    return true;
-                }
-
-                *(StringName *)self._data._data = LuaStackOp<StringName>::check(L, idx);
-                return false;
-            },
-            DATA_PUSH(StringName),
-            DATA_DTOR(StringName),
-            DATA_COPY(StringName),
-            DATA_ASSIGN(StringName) },
-    DATA_METHODS(NodePath, get_node_path),
+    COERCED_METHODS(StringName, get_string_name),
+    COERCED_METHODS(NodePath, get_node_path),
     DATA_METHODS(RID, get_rid),
     { false,
             [](LuauVariant &self, bool is_arg) -> void * {
@@ -271,30 +302,18 @@ static VariantTypeMethods type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = {
                     return;
 
                 self._data._object = obj->_owner;
+            },
+            [](const LuauVariant &self) -> Variant {
+                if (self._data._object == nullptr)
+                    return nullptr;
+
+                return ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(self._data._object));
             } },
     DATA_METHODS(Callable, get_callable),
     DATA_METHODS(Signal, get_signal),
     DATA_METHODS(Dictionary, get_dictionary),
-    { true,
-            GETTER(get_array),
-            GETTER_CONST(get_array),
-            DATA_INIT(Array),
-            [](lua_State *L, int idx, const String &) {
-                return LuaStackOp<Array>::is(L, idx);
-            },
-            [](LuauVariant &self, lua_State *L, int idx, const String &) {
-                if (Array *ptr = LuaStackOp<Array>::get_ptr(L, idx)) {
-                    self._data._ptr = ptr;
-                    return true;
-                }
+    COERCED_METHODS(Array, get_array),
 
-                *(Array *)self._data._data = LuaStackOp<Array>::check(L, idx);
-                return false;
-            },
-            DATA_PUSH(Array),
-            DATA_DTOR(Array),
-            DATA_COPY(Array),
-            DATA_ASSIGN(Array) },
     DATA_METHODS(PackedByteArray, get_byte_array),
     DATA_METHODS(PackedInt32Array, get_int32_array),
     DATA_METHODS(PackedInt64Array, get_int64_array),
@@ -350,6 +369,13 @@ void LuauVariant::assign_variant(const Variant &val) {
         return;
 
     type_methods[type].assign(*this, val);
+}
+
+Variant LuauVariant::to_variant() const {
+    if (type == -1)
+        return Variant();
+
+    return type_methods[type].to_variant(*this);
 }
 
 void LuauVariant::clear() {

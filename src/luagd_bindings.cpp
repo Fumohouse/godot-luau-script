@@ -40,18 +40,6 @@ static bool variant_types_compatible(Variant::Type t1, Variant::Type t2) {
             (t1 == Variant::INT && t2 == Variant::FLOAT);
 }
 
-static void check_variant(lua_State *L, int idx, const Variant &val, GDExtensionVariantType p_expected_type, const String &type_name = "") {
-    Variant::Type expected_type = (Variant::Type)p_expected_type;
-
-    if (expected_type != Variant::NIL && !variant_types_compatible(val.get_type(), expected_type))
-        luaL_typeerrorL(L, idx, Variant::get_type_name(expected_type).utf8().get_data());
-    else if (expected_type == Variant::OBJECT) {
-        Object *obj = val;
-        if (!obj->is_class(type_name))
-            luaL_typeerrorL(L, idx, type_name.utf8().get_data());
-    }
-}
-
 static int luaGD_global_index(lua_State *L) {
     const char *name = lua_tostring(L, lua_upvalueindex(1));
 
@@ -211,12 +199,16 @@ static int get_arguments(lua_State *L,
     if (is_method_vararg(method)) {
         varargs->resize(nargs);
 
-        for (int i = 0; i < nargs; i++) {
-            Variant arg = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
-            if (i < method.arguments.size())
-                check_variant(L, i + 1 + arg_offset, arg, get_arg_type(method.arguments[i]), get_arg_type_name(method.arguments[i]));
+        LuauVariant arg;
 
-            varargs->set(i, arg);
+        for (int i = 0; i < nargs; i++) {
+            if (i < method.arguments.size()) {
+                get_argument(L, i + 1 + arg_offset, method.arguments[i], arg);
+                varargs->set(i, arg.to_variant());
+            } else {
+                varargs->set(i, LuaStackOp<Variant>::get(L, i + 1 + arg_offset));
+            }
+
             pargs->set(i, &varargs->operator[](i));
         }
     } else {
@@ -243,11 +235,13 @@ static int get_arguments(lua_State *L,
 // Builtin/class common //
 //////////////////////////
 
+#define VARIANT_TOSTRING_DEBUG_NAME "Variant.__tostring"
+
 static int luaGD_variant_tostring(lua_State *L) {
     // Special case - freed objects
-    if (LuaStackOp<Object *>::is(L, 1) && LuaStackOp<Object *>::get(L, 1) == nullptr)
+    if (LuaStackOp<Object *>::is(L, 1) && LuaStackOp<Object *>::get(L, 1) == nullptr) {
         lua_pushstring(L, "<Freed Object>");
-    else {
+    } else {
         Variant v = LuaStackOp<Variant>::check(L, 1);
         String str = v.stringify();
         lua_pushstring(L, str.utf8().get_data());
@@ -273,7 +267,7 @@ void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
     lua_pushstring(L, global_name);
     lua_setfield(L, -4, "__type");
 
-    lua_pushcfunction(L, luaGD_variant_tostring, "Variant.__tostring");
+    lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
     lua_setfield(L, -4, "__tostring");
 
     // set global table's metatable
@@ -360,12 +354,11 @@ struct ArrayTypeInfo {
     lua_CFunction iter_next;
 };
 
-#define BUILTIN_MT_PREFIX "Godot.Builtin."
 #define ARRAY_INFO(type, elem_type)         \
     static const ArrayTypeInfo type##_info{ \
-        BUILTIN_MT_PREFIX #type ".__len",   \
+        BUILTIN_MT_NAME(type) ".__len",     \
         luaGD_array_len<type>,              \
-        BUILTIN_MT_PREFIX #type ".next",    \
+        BUILTIN_MT_NAME(type) ".next",      \
         luaGD_array_next<type, elem_type>   \
     };                                      \
                                             \
@@ -702,6 +695,19 @@ static int luaGD_builtin_operator(lua_State *L) {
     luaL_error(L, "no operator matched");
 }
 
+static void luaGD_builtin_unbound(lua_State *L, const char *type_name, const char *metatable_name) {
+    luaL_newmetatable(L, metatable_name);
+
+    lua_pushstring(L, type_name);
+    lua_setfield(L, -2, "__type");
+
+    lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
+    lua_setfield(L, -2, "__tostring");
+
+    lua_setreadonly(L, -1, true);
+    lua_pop(L, 1); // metatable
+}
+
 void luaGD_openbuiltins(lua_State *L) {
     LUAGD_LOAD_GUARD(L, "_gdBuiltinsLoaded");
 
@@ -816,6 +822,10 @@ void luaGD_openbuiltins(lua_State *L) {
 
         luaGD_poplib(L, false);
     }
+
+    // Special cases
+    luaGD_builtin_unbound(L, "StringName", BUILTIN_MT_NAME(StringName));
+    luaGD_builtin_unbound(L, "NodePath", BUILTIN_MT_NAME(NodePath));
 }
 
 /////////////

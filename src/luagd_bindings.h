@@ -2,6 +2,9 @@
 
 #include <lua.h>
 
+#define BUILTIN_MT_PREFIX "Godot.Builtin."
+#define BUILTIN_MT_NAME(type) BUILTIN_MT_PREFIX #type
+
 #define LUAGD_LOAD_GUARD(L, key)             \
     lua_getfield(L, LUA_REGISTRYINDEX, key); \
                                              \

@@ -60,7 +60,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
     SECTION("namecall style"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D.new()
-            return params:Get(StringName.new("collide_with_areas"))
+            return params:Get("collide_with_areas")
         )ASDF",
                 bool, false)
     }
@@ -85,7 +85,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
     SECTION("invoked from global table"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D.new()
-            return Object.Get(params, StringName.new("collide_with_areas"))
+            return Object.Get(params, "collide_with_areas")
         )ASDF",
                 bool, false)
     }
@@ -93,7 +93,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
     SECTION("varargs"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D.new()
-            params:Call(StringName.new("set"), StringName.new("collide_with_areas"), true)
+            params:Call("set", "collide_with_areas", true)
 
             return params.collideWithAreas
         )ASDF",

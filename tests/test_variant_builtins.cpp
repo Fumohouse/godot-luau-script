@@ -34,7 +34,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: methods/functions") {
         LuaStackOp<Callable>::push(L, Callable(params.ptr(), "set"));
         lua_setglobal(L, "testCallable");
 
-        ASSERT_EVAL_OK(L, "testCallable:Call(StringName.new(\"collide_with_areas\"), false)")
+        ASSERT_EVAL_OK(L, "testCallable:Call(\"collide_with_areas\", false)")
         REQUIRE(!params->is_collide_with_areas_enabled());
     }
 

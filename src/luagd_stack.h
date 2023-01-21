@@ -45,6 +45,22 @@ struct LuaStackOp {};
         static type *check_ptr(lua_State *L, int index);   \
     };
 
+#define STACK_OP_STR_DEF(type)                                                      \
+    template <>                                                                     \
+    struct LuaStackOp<type> {                                                       \
+        static void push(lua_State *L, const type &value, bool force_type = false); \
+                                                                                    \
+        static type get(lua_State *L, int index);                                   \
+        static bool is(lua_State *L, int index);                                    \
+        static type check(lua_State *L, int index);                                 \
+                                                                                    \
+        /* USERDATA */                                                              \
+                                                                                    \
+        static type *alloc(lua_State *L);                                           \
+        static type *get_ptr(lua_State *L, int index);                              \
+        static type *check_ptr(lua_State *L, int index);                            \
+    };
+
 STACK_OP_DEF(bool)
 STACK_OP_DEF(int)
 STACK_OP_DEF(float)
@@ -73,8 +89,9 @@ struct LuaStackOp<Object *> {
 // Implementation is generated.
 STACK_OP_DEF(Variant)
 
-STACK_OP_PTR_DEF(StringName)
-STACK_OP_PTR_DEF(NodePath)
+STACK_OP_STR_DEF(StringName)
+STACK_OP_STR_DEF(NodePath)
+
 STACK_OP_PTR_DEF(Array)
 
 /* USERDATA */

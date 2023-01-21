@@ -173,8 +173,9 @@ public:
             const String &type_name = "");
     void lua_push(lua_State *L) const;
 
-    /* Assignment */
+    /* To/from Variant */
     void assign_variant(const Variant &val);
+    Variant to_variant() const;
 
     /* Constructor */
     _FORCE_INLINE_ LuauVariant() :
