@@ -4019,7 +4019,7 @@ UpdateFile = "INHERIT" #
 
 [EditorFileSystemDirectory]
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE" #
 
 [EditorFileSystemDirectory.methods]
 FindDirIndex = "INHERIT" #
@@ -4144,7 +4144,7 @@ GetMaterial = "INHERIT" #
 
 [EditorPaths]
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE" #
 
 [EditorPaths.methods]
 GetCacheDir = "INHERIT" #
@@ -4308,8 +4308,9 @@ SetScriptOwner = "INHERIT" #
 #############################
 
 [EditorSelection]
+#* SAFE: 4.0-beta14
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE" #
 
 [EditorSelection.methods]
 AddNode = "INHERIT" #
@@ -4364,7 +4365,7 @@ SetSuffix = "INHERIT" #
 
 [EditorUndoRedoManager]
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE" #
 
 [EditorUndoRedoManager.methods]
 AddDoMethod = "INHERIT" #
@@ -4383,7 +4384,7 @@ IsCommittingAction = "INHERIT" #
 
 [EditorVCSInterface]
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE" #
 
 [EditorVCSInterface.methods]
 AddDiffHunksIntoDiffFile = "INHERIT" #
@@ -11623,7 +11624,7 @@ TakeOverPath = "INHERIT" #
 #############################
 
 [ResourceLoader]
-#* CORRECT: 4.0-beta13
+# TODO: Reading arbitrary resources in the user directory is potentially insecure
 inherits = "Object"
 default_permissions = "INTERNAL" #
 
@@ -11658,6 +11659,7 @@ RenameResource = "INHERIT" #
 #############################
 
 [ResourceSaver]
+# TODO: Writing arbitrary resources in the user directory is potentially insecure
 inherits = "Object"
 default_permissions = "INTERNAL" #
 
@@ -11665,7 +11667,7 @@ default_permissions = "INTERNAL" #
 AddResourceFormatSaver = "INHERIT" #
 GetRecognizedExtensions = "INHERIT" #
 RemoveResourceFormatSaver = "INHERIT" #
-Save = "INHERIT" #
+Save = "BASE"
 
 #############################
 

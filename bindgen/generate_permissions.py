@@ -49,6 +49,10 @@ for g_class in classes:
             elif check_name == "RefCounted":
                 default_permissions = "BASE"
                 break
+            elif check_name.startswith("Editor"):
+                # Don't really care what happens in the editor
+                default_permissions = "BASE"
+                break
 
             check_class = find_by(classes, check_class["inherits"])
 
