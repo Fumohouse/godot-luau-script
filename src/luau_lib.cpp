@@ -7,7 +7,10 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -15,6 +18,7 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd.h"
+#include "luagd_bindings.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luagd_variant.h"
@@ -325,6 +329,9 @@ static int luascript_gdclass_newindex(lua_State *L) {
 
     const char *key = luaL_checkstring(L, 2);
 
+    if (strcmp(key, "new") == 0)
+        luaL_error(L, "cannot set constructor 'new' on GDClassDefinition");
+
     if (def->table_ref == -1) {
         // Create def table in registry.
         lua_newtable(L);
@@ -339,9 +346,35 @@ static int luascript_gdclass_newindex(lua_State *L) {
     return 0;
 }
 
+static int luascript_gdclass_new(lua_State *L) {
+    GDClassDefinition *def = luaGD_lightudataup<GDClassDefinition>(L, 1);
+
+    if (def->script == nullptr)
+        luaL_error(L, "cannot instantiate: script is unknown");
+
+    if (def->script->is_reloading())
+        luaL_error(L, "cannot instantiate: script is loading");
+
+    StringName class_name = def->script->_get_instance_base_type();
+
+    GDExtensionObjectPtr ptr = internal::gde_interface->classdb_construct_object(&class_name);
+    GDObjectInstanceID id = internal::gde_interface->object_get_instance_id(ptr);
+    Object *obj = ObjectDB::get_instance(id);
+    obj->set_script(Ref<LuauScript>(def->script));
+
+    LuaStackOp<Object *>::push(L, obj);
+    return 1;
+}
+
 static int luascript_gdclass_index(lua_State *L) {
     GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
     const char *key = luaL_checkstring(L, 2);
+
+    if (strcmp(key, "new") == 0) {
+        lua_pushlightuserdata(L, def);
+        lua_pushcclosure(L, luascript_gdclass_new, "GDClassDefinition.new", 1);
+        return 1;
+    }
 
     if (def->table_ref == -1) {
         luaL_error(L, "failed to get method on class definition: table ref is invalid");

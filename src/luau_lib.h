@@ -67,7 +67,10 @@ struct GDRpc {
     operator Variant() const;
 };
 
+class LuauScript;
+
 struct GDClassDefinition {
+    LuauScript *script = nullptr;
     int table_ref = -1;
 
     String name;

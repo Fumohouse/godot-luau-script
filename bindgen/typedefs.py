@@ -567,6 +567,8 @@ export type GDRpcConfig = {
 }
 
 declare class GDClassDefinition
+    new: () -> Object
+
     function Tool(self, isTool: boolean): GDClassDefinition
     function Permissions(self, permissions: EnumPermissions): GDClassDefinition
     function IconPath(self, path: string): GDClassDefinition

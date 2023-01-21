@@ -625,6 +625,19 @@ TEST_CASE("luau script: instance") {
                     "exec:2: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!")
         }
     }
+
+    SECTION("instantiation") {
+        LuaStackOp<GDClassDefinition>::push(T, script->get_definition());
+        lua_setglobal(T, "classDef");
+
+        EVAL_THEN(T, "return classDef.new()", {
+            REQUIRE(LuaStackOp<Object *>::is(T, -1));
+
+            Object *obj = LuaStackOp<Object *>::get(T, -1);
+            REQUIRE(obj->get_script() == script);
+            REQUIRE(obj->get_class() == "RefCounted");
+        });
+    }
 }
 
 TEST_CASE("luau script: inheritance") {
