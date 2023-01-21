@@ -41,13 +41,16 @@ def get_luau_type(type_string):
     return type_string
 
 
-def generate_args(method, with_self=True, is_type=False):
+def generate_args(method, with_self=True, is_type=False, self_annot=""):
     is_vararg = method["is_vararg"] if "is_vararg" in method else False
 
     out = ""
 
     if with_self:
         out += "self"
+
+        if self_annot != "":
+            out += ": " + self_annot
 
     if "arguments" in method:
         arguments = method["arguments"]
@@ -77,8 +80,15 @@ def generate_args(method, with_self=True, is_type=False):
     return out
 
 
-def generate_method(src, method):
+def generate_method(src, class_name, method, is_def_static=False):
     method_name = utils.snake_to_pascal(method["name"])
+
+    # Special cases
+    if class_name == "Resource" and method_name == "Duplicate":
+        append(src, 1, "Duplicate: <T>(self: T) -> T")
+        return
+
+    # Other
     method_ret_str = ""
 
     if "return_type" in method:
@@ -86,12 +96,14 @@ def generate_method(src, method):
     elif "return_value" in method:
         method_ret_str = get_luau_type(method["return_value"]["type"])
 
-    if "is_static" in method and method["is_static"]:
+    if is_def_static:
+        is_method_static = "is_static" in method and method["is_static"]
+
         if method_ret_str == "":
             method_ret_str = "()"
 
         append(
-            src, 1, f"{method_name}: ({generate_args(method, False, True)}) -> {method_ret_str}")
+            src, 1, f"{method_name}: ({generate_args(method, not is_method_static, True, class_name)}) -> {method_ret_str}")
     else:
         if method_ret_str != "":
             method_ret_str = ": " + method_ret_str
@@ -170,7 +182,7 @@ function __newindex(self, key: number, value: {indexing_type_name})\
             if method["is_static"]:
                 continue
 
-            generate_method(src, method)
+            generate_method(src, name, method)
 
     # Operators
     if "operators" in builtin_class:
@@ -240,10 +252,7 @@ function __iter(self): any\
     # Statics
     if "methods" in builtin_class:
         for method in builtin_class["methods"]:
-            if not method["is_static"]:
-                continue
-
-            generate_method(src, method)
+            generate_method(src, name, method, True)
 
     src.append(f"""\
 end
@@ -268,10 +277,10 @@ def generate_class(src, g_class, singletons):
     # Methods
     if "methods" in g_class:
         for method in g_class["methods"]:
-            if method["is_static"] or method["is_virtual"]:
+            if method["is_virtual"]:
                 continue
 
-            generate_method(src, method)
+            generate_method(src, name, method)
 
     # Object Free
     if name == "Object":
@@ -351,10 +360,10 @@ def generate_class(src, g_class, singletons):
     # Statics
     if "methods" in g_class:
         for method in g_class["methods"]:
-            if not method["is_static"]:
+            if method["is_virtual"]:
                 continue
 
-            generate_method(src, method)
+            generate_method(src, name, method, True)
 
     src.append(f"""\
 end
