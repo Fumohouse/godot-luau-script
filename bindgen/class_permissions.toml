@@ -479,6 +479,7 @@ GetCurrentNode = "INHERIT" #
 GetCurrentPlayPosition = "INHERIT" #
 GetTravelPath = "INHERIT" #
 IsPlaying = "INHERIT" #
+Next = "INHERIT" #
 Start = "INHERIT" #
 Stop = "INHERIT" #
 Travel = "INHERIT" #
@@ -497,10 +498,12 @@ GetPriority = "INHERIT" #
 GetSwitchMode = "INHERIT" #
 GetXfadeCurve = "INHERIT" #
 GetXfadeTime = "INHERIT" #
+IsReset = "INHERIT" #
 SetAdvanceCondition = "INHERIT" #
 SetAdvanceExpression = "INHERIT" #
 SetAdvanceMode = "INHERIT" #
 SetPriority = "INHERIT" #
+SetReset = "INHERIT" #
 SetSwitchMode = "INHERIT" #
 SetXfadeCurve = "INHERIT" #
 SetXfadeTime = "INHERIT" #
@@ -522,16 +525,17 @@ inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeTransition.methods]
+FindInputCaption = "INHERIT" #
 GetEnabledInputs = "INHERIT" #
 GetInputCaption = "INHERIT" #
 GetXfadeCurve = "INHERIT" #
 GetXfadeTime = "INHERIT" #
-IsFromStart = "INHERIT" #
 IsInputSetAsAutoAdvance = "INHERIT" #
+IsReset = "INHERIT" #
 SetEnabledInputs = "INHERIT" #
-SetFromStart = "INHERIT" #
 SetInputAsAutoAdvance = "INHERIT" #
 SetInputCaption = "INHERIT" #
+SetReset = "INHERIT" #
 SetXfadeCurve = "INHERIT" #
 SetXfadeTime = "INHERIT" #
 
@@ -2757,7 +2761,6 @@ ClearExecutingLines = "INHERIT" #
 ClearStringDelimiters = "INHERIT" #
 ConfirmCodeCompletion = "INHERIT" #
 DoIndent = "INHERIT" #
-DoUnindent = "INHERIT" #
 FoldAllLines = "INHERIT" #
 FoldLine = "INHERIT" #
 GetAutoBraceCompletionCloseKey = "INHERIT" #
@@ -4011,7 +4014,6 @@ ReimportFiles = "INHERIT" #
 Scan = "INHERIT" #
 ScanSources = "INHERIT" #
 UpdateFile = "INHERIT" #
-UpdateScriptClasses = "INHERIT" #
 
 #############################
 
@@ -4169,6 +4171,7 @@ AddExportPlugin = "INHERIT" #
 AddImportPlugin = "INHERIT" #
 AddInspectorPlugin = "INHERIT" #
 AddNode3DGizmoPlugin = "INHERIT" #
+AddResourceConversionPlugin = "INHERIT" #
 AddSceneFormatImporterPlugin = "INHERIT" #
 AddScenePostImportPlugin = "INHERIT" #
 AddToolMenuItem = "INHERIT" #
@@ -4192,6 +4195,7 @@ RemoveExportPlugin = "INHERIT" #
 RemoveImportPlugin = "INHERIT" #
 RemoveInspectorPlugin = "INHERIT" #
 RemoveNode3DGizmoPlugin = "INHERIT" #
+RemoveResourceConversionPlugin = "INHERIT" #
 RemoveSceneFormatImporterPlugin = "INHERIT" #
 RemoveScenePostImportPlugin = "INHERIT" #
 RemoveToolMenuItem = "INHERIT" #
@@ -8617,6 +8621,7 @@ SetRestartOnExit = "INHERIT" #
 SetThreadName = "INHERIT" #
 SetUseFileAccessSaveAndSwap = "INHERIT" #
 ShellOpen = "INHERIT" #
+UnsetEnvironment = "INHERIT" #
 
 #############################
 
@@ -14411,6 +14416,7 @@ GetQuadrantSize = "INHERIT" #
 GetSurroundingCells = "INHERIT" #
 GetTileset = "INHERIT" #
 GetUsedCells = "INHERIT" #
+GetUsedCellsById = "INHERIT" #
 GetUsedRect = "INHERIT" #
 IsCollisionAnimatable = "INHERIT" #
 IsLayerEnabled = "INHERIT" #
@@ -15931,10 +15937,12 @@ default_permissions = "BASE" #
 GetColorDefault = "INHERIT" #
 GetTextureFilter = "INHERIT" #
 GetTextureRepeat = "INHERIT" #
+GetTextureSource = "INHERIT" #
 GetTextureType = "INHERIT" #
 SetColorDefault = "INHERIT" #
 SetTextureFilter = "INHERIT" #
 SetTextureRepeat = "INHERIT" #
+SetTextureSource = "INHERIT" #
 SetTextureType = "INHERIT" #
 
 #############################
