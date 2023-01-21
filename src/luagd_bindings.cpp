@@ -393,6 +393,53 @@ static const ArrayTypeInfo *get_array_type_info(GDExtensionVariantType type) {
     }
 }
 
+/* DICTIONARY ITERATION */
+
+static int luaGD_dict_next(lua_State *L) {
+    Dictionary *dict = LuaStackOp<Dictionary>::check_ptr(L, 1);
+    Variant key = LuaStackOp<Variant>::check(L, 2);
+
+    Array keys = dict->keys();
+    int sz = keys.size();
+    int new_idx = -1;
+
+    if (key == Variant()) {
+        // Begin iteration.
+        new_idx = 0;
+    } else {
+        for (int i = 0; i < sz; i++) {
+            if (keys[i] == key) {
+                new_idx = i + 1;
+                break;
+            }
+        }
+    }
+
+    if (new_idx == sz) {
+        // Iteration finished.
+        lua_pushnil(L);
+        return 1;
+    }
+
+    if (new_idx >= 0) {
+        const Variant &new_key = keys[new_idx];
+
+        LuaStackOp<Variant>::push(L, new_key);
+        LuaStackOp<Variant>::push(L, dict->operator[](new_key)); // new value
+        return 2;
+    }
+
+    luaL_error(L, "could not find previous key in dictionary: did you erase its value during iteration?");
+}
+
+static int luaGD_dict_iter(lua_State *L) {
+    lua_pushvalue(L, lua_upvalueindex(1)); // next
+    lua_pushvalue(L, 1); // dict
+    lua_pushnil(L); // initial key
+
+    return 3;
+}
+
 static int luaGD_builtin_ctor(lua_State *L) {
     const ApiBuiltinClass *builtin_class = luaGD_lightudataup<ApiBuiltinClass>(L, 1);
     const char *error_string = lua_tostring(L, lua_upvalueindex(2));
@@ -816,7 +863,14 @@ void luaGD_openbuiltins(lua_State *L) {
 
             // __iter
             lua_pushcfunction(L, arr_type_info->iter_next, arr_type_info->iter_next_debug_name);
-            lua_pushcclosure(L, luaGD_array_iter, BUILTIN_MT_PREFIX "Array.__iter", 1);
+            lua_pushcclosure(L, luaGD_array_iter, BUILTIN_MT_NAME(Array) ".__iter", 1);
+            lua_setfield(L, -4, "__iter");
+        }
+
+        // Dictionary iteration
+        if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
+            lua_pushcfunction(L, luaGD_dict_next, BUILTIN_MT_NAME(Dictionary) ".next");
+            lua_pushcclosure(L, luaGD_dict_iter, BUILTIN_MT_NAME(Dictionary) ".__iter", 1);
             lua_setfield(L, -4, "__iter");
         }
 

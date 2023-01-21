@@ -201,12 +201,14 @@ function __newindex(self, key: number, value: {get_luau_type(indexing_type_name)
                 append(
                     src, 1, f"function {op_mt_name}(self): {op_return_type}")
 
-        # Special case: array operators
+        # Special cases
         if name.endswith("Array"):
             append(src, 1, """\
 function __len(self): number
 function __iter(self): any\
 """)
+        elif name == "Dictionary":
+            append(src, 1, "function __iter(self): any")
 
     src.append("end\n")
 

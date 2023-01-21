@@ -190,6 +190,28 @@ TEST_CASE_METHOD(LuauFixture, "builtins: array __iter special case") {
             PackedStringArray, expected)
 }
 
+TEST_CASE_METHOD(LuauFixture, "builtins: dictionary __iter") {
+    Dictionary expected;
+    expected["a"] = "A";
+    expected["b"] = "B";
+    expected["c"] = "C";
+
+    ASSERT_EVAL_EQ(L, R"ASDF(
+        local dict = Dictionary.new()
+        dict["a"] = "A";
+        dict["b"] = "B";
+        dict["c"] = "C";
+
+        local copy = Dictionary.new()
+        for k, v in dict do
+            copy[k] = v
+        end
+
+        return copy
+    )ASDF",
+            Dictionary, expected)
+}
+
 TEST_CASE_METHOD(LuauFixture, "builtins: Callable constructor") {
     Ref<PhysicsRayQueryParameters3D> params;
     params.instantiate();
