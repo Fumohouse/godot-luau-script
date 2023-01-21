@@ -1139,9 +1139,7 @@ static int luaGD_class_index(lua_State *L) {
 
     if (attempt_table_get) {
         // the key is already on the top of the stack
-        bool is_valid = inst->table_get(L);
-
-        if (is_valid)
+        if (inst->table_get(L))
             return 1;
     }
 
@@ -1207,8 +1205,7 @@ static int luaGD_class_newindex(lua_State *L) {
 
     if (attempt_table_set) {
         // key and value are already on the top of the stack
-        bool is_valid = inst->table_set(L);
-        if (is_valid)
+        if (inst->table_set(L))
             return 0;
     }
 
@@ -1260,12 +1257,10 @@ void luaGD_openclasses(lua_State *L) {
         }
 
         // Methods (__namecall)
-        if (g_class.methods.size() > 0) {
-            lua_pushinteger(L, i);
-            lua_pushlightuserdata(L, &extension_api.classes);
-            lua_pushcclosure(L, luaGD_class_namecall, g_class.namecall_debug_name, 2);
-            lua_setfield(L, -4, "__namecall");
-        }
+        lua_pushinteger(L, i);
+        lua_pushlightuserdata(L, &extension_api.classes);
+        lua_pushcclosure(L, luaGD_class_namecall, g_class.namecall_debug_name, 2);
+        lua_setfield(L, -4, "__namecall");
 
         // All methods (global table)
         for (KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
