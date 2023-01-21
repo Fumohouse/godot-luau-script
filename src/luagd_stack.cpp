@@ -146,37 +146,39 @@ Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
     return LuaStackOp<Object *>::get(L, index);
 }
 
-/* STRINGNAME */
+/* STRING COERCION */
 
-#define STRINGNAME_METATABLE_NAME "Godot.Builtin.StringName"
+#define STRING_COERCE_STACK_OP_IMPL(type, metatable_name)                                  \
+    UDATA_ALLOC(type, metatable_name, DTOR(type))                                          \
+    UDATA_PUSH(type)                                                                       \
+                                                                                           \
+    bool LuaStackOp<type>::is(lua_State *L, int index) {                                   \
+        return lua_isstring(L, index) || luaGD_metatables_match(L, index, metatable_name); \
+    }                                                                                      \
+                                                                                           \
+    UDATA_GET_PTR(type, metatable_name)                                                    \
+                                                                                           \
+    type LuaStackOp<type>::get(lua_State *L, int index) {                                  \
+        if (luaGD_metatables_match(L, index, metatable_name))                              \
+            return *LuaStackOp<type>::get_ptr(L, index);                                   \
+                                                                                           \
+        return type(lua_tostring(L, index));                                               \
+    }                                                                                      \
+                                                                                           \
+    UDATA_CHECK_PTR(type, metatable_name)                                                  \
+                                                                                           \
+    type LuaStackOp<type>::check(lua_State *L, int index) {                                \
+        if (lua_isstring(L, index))                                                        \
+            return type(lua_tostring(L, index));                                           \
+                                                                                           \
+        if (luaGD_metatables_match(L, index, metatable_name))                              \
+            return *LuaStackOp<type>::get_ptr(L, index);                                   \
+                                                                                           \
+        luaL_typeerrorL(L, index, #type " or string");                                     \
+    }
 
-UDATA_ALLOC(StringName, STRINGNAME_METATABLE_NAME, DTOR(StringName))
-UDATA_PUSH(StringName)
-
-bool LuaStackOp<StringName>::is(lua_State *L, int index) {
-    return lua_isstring(L, index) || luaGD_metatables_match(L, index, STRINGNAME_METATABLE_NAME);
-}
-
-UDATA_GET_PTR(StringName, STRINGNAME_METATABLE_NAME)
-
-StringName LuaStackOp<StringName>::get(lua_State *L, int index) {
-    if (luaGD_metatables_match(L, index, STRINGNAME_METATABLE_NAME))
-        return *LuaStackOp<StringName>::get_ptr(L, index);
-
-    return StringName(lua_tostring(L, index));
-}
-
-UDATA_CHECK_PTR(StringName, STRINGNAME_METATABLE_NAME)
-
-StringName LuaStackOp<StringName>::check(lua_State *L, int index) {
-    if (lua_isstring(L, index))
-        return StringName(lua_tostring(L, index));
-
-    if (luaGD_metatables_match(L, index, STRINGNAME_METATABLE_NAME))
-        return *LuaStackOp<StringName>::get_ptr(L, index);
-
-    luaL_typeerrorL(L, index, "StringName or string");
-}
+STRING_COERCE_STACK_OP_IMPL(StringName, "Godot.Builtin.StringName")
+STRING_COERCE_STACK_OP_IMPL(NodePath, "Godot.Builtin.NodePath")
 
 /* ARRAY */
 

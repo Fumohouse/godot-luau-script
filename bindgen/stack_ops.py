@@ -36,7 +36,7 @@ using namespace godot;
         class_name = b_class["name"]
         metatable_name = constants.builtin_metatable_prefix + class_name
 
-        if class_name in ["Array", "StringName"]:
+        if class_name in ["Array", "StringName", "NodePath"]:
             # Special cases
             continue
         elif class_name.endswith("Array"):

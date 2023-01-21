@@ -74,6 +74,7 @@ struct LuaStackOp<Object *> {
 STACK_OP_DEF(Variant)
 
 STACK_OP_PTR_DEF(StringName)
+STACK_OP_PTR_DEF(NodePath)
 STACK_OP_PTR_DEF(Array)
 
 /* USERDATA */

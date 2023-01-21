@@ -8,6 +8,7 @@ gd_luau_type_map = {
     "float": "number",
     "String": "string",
     "StringName": "string | StringName",
+    "NodePath": "string | NodePath",
 }
 
 

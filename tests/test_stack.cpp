@@ -30,8 +30,14 @@ TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
         TEST_STACK_OP(Transform3D, Transform3D().rotated(Vector3(1, 1, 1).normalized(), 2));
     }
 
-    SECTION("StringName coercion") {
-        ASSERT_EVAL_EQ(L, "return 'hey'", StringName, StringName("hey"))
+    SECTION("string coercion") {
+        SECTION("StringName") {
+            ASSERT_EVAL_EQ(L, "return 'hey'", StringName, StringName("hey"))
+        }
+
+        SECTION("NodePath") {
+            ASSERT_EVAL_EQ(L, "return '../Node'", NodePath, NodePath("../Node"))
+        }
     }
 }
 
