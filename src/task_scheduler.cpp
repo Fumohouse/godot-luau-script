@@ -2,10 +2,14 @@
 
 #include <lua.h>
 #include <godot_cpp/classes/time.hpp>
+#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "gd_luau.h"
+#include "luagd.h"
+#include "luau_script.h"
+#include "luagd_stack.h"
 
 using namespace godot;
 
@@ -58,13 +62,23 @@ void TaskScheduler::frame(double delta) {
         Pair<lua_State *, ScheduledTask *> &pair = task->get();
         pair.second->update(delta);
 
+        lua_State *L = pair.first;
+
         if (pair.second->is_complete()) {
             TaskList::Element *to_remove = task;
 
             int results = pair.second->push_results(pair.first);
-            lua_resume(pair.first, nullptr, results);
+            int status = lua_resume(L, nullptr, results);
 
-            lua_unref(pair.first, pair.second->get_thread_ref());
+            if (status != LUA_OK && status != LUA_YIELD) {
+                GDThreadData *udata = luaGD_getthreaddata(L);
+                Ref<LuauScript> script = udata->script;
+                LUAU_ERR("TaskScheduler::frame", script, 1, LuaStackOp<String>::get(L, -1));
+
+                lua_pop(L, 1); // error
+            }
+
+            lua_unref(L, pair.second->get_thread_ref());
 
             // Remove task
             memdelete(pair.second);

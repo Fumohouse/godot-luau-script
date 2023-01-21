@@ -76,24 +76,24 @@ Error LuauScript::load_source_code(const String &p_path) {
     return OK;
 }
 
-#define LUAU_LOAD_ERR(script, line, msg) _err_print_error("LuauScript::_reload", script->get_path().is_empty() ? "built-in" : script->get_path().utf8().get_data(), line, msg);
-#define LUAU_LOAD_YIELD_MSG "Luau Error: Script yielded when loading definition."
-#define LUAU_LOAD_NO_DEF_MSG "Luau Error: Script did not return a valid class definition."
+#define LUAU_LOAD_ERR(script, line, msg) LUAU_ERR("LuauScript::_reload", script, line, msg)
+#define LUAU_LOAD_YIELD_MSG String("Script yielded when loading definition.")
+#define LUAU_LOAD_NO_DEF_MSG String("Script did not return a valid class definition.")
 
-#define LUAU_LOAD_RESUME(script, TL, L)                 \
-    int status = lua_resume(L, nullptr, 0);             \
-                                                        \
-    if (status == LUA_YIELD) {                          \
-        LUAU_LOAD_ERR(script, 1, LUAU_LOAD_YIELD_MSG);  \
-                                                        \
-        lua_pop(TL, 1); /* thread */                    \
-        return ERR_COMPILATION_FAILED;                  \
-    } else if (status != LUA_OK) {                      \
-        String err = LuaStackOp<String>::get(L, -1);    \
-        LUAU_LOAD_ERR(script, 1, "Luau Error: " + err); \
-                                                        \
-        lua_pop(TL, 1); /* thread */                    \
-        return ERR_COMPILATION_FAILED;                  \
+#define LUAU_LOAD_RESUME(script, TL, L)                \
+    int status = lua_resume(L, nullptr, 0);            \
+                                                       \
+    if (status == LUA_YIELD) {                         \
+        LUAU_LOAD_ERR(script, 1, LUAU_LOAD_YIELD_MSG); \
+                                                       \
+        lua_pop(TL, 1); /* thread */                   \
+        return ERR_COMPILATION_FAILED;                 \
+    } else if (status != LUA_OK) {                     \
+        String err = LuaStackOp<String>::get(L, -1);   \
+        LUAU_LOAD_ERR(script, 1, err);                 \
+                                                       \
+        lua_pop(TL, 1); /* thread */                   \
+        return ERR_COMPILATION_FAILED;                 \
     }
 
 static Error try_load(const LuauScript *script, lua_State *L, String *r_err = nullptr) {
@@ -106,7 +106,7 @@ static Error try_load(const LuauScript *script, lua_State *L, String *r_err = nu
 
     if (ret != OK) {
         String err = LuaStackOp<String>::get(L, -1);
-        LUAU_LOAD_ERR(script, 1, "Luau Error: " + err);
+        LUAU_LOAD_ERR(script, 1, err);
 
         if (r_err != nullptr)
             *r_err = err;
@@ -145,7 +145,8 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
             return ERR_COMPILATION_FAILED;
         }
 
-        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);;
+        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
+        ;
         def->script = p_script.ptr();
         def->is_readonly = true;
 

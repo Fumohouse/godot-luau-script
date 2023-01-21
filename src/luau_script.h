@@ -9,6 +9,7 @@
 #include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
+#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/list.hpp>
@@ -29,9 +30,11 @@ class Object;
 class ScriptLanguage;
 } //namespace godot
 
-class PlaceHolderScriptInstance;
-
 using namespace godot;
+
+#define LUAU_ERR(method, script, line, msg) _err_print_error(method, script->get_path().is_empty() ? "built-in" : script->get_path().utf8().get_data(), line, "Luau Error: " + msg)
+
+class PlaceHolderScriptInstance;
 
 typedef HashMap<uint64_t, List<Pair<StringName, Variant>>> ScriptInstanceState;
 
