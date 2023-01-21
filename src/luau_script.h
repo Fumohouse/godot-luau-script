@@ -125,8 +125,9 @@ public:
     TypedArray<Dictionary> _get_script_signal_list() const override;
 
     Variant _get_rpc_config() const override;
-
     Dictionary _get_constants() const override;
+
+    bool _editor_can_reload_from_file() override { return true; }
 
     /* INSTANCE */
     void *_instance_create(Object *p_for_object) const override;
