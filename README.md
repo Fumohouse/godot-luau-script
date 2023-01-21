@@ -7,8 +7,7 @@ a variant of Lua 5.1, to Godot as a scripting language.
 
 ## Disclaimer
 
-* This is a work in progress.
-* Most things are not functional yet.
+* Some editor functionality is still not implemented (mostly analysis/autocomplete support) and won't be for some time.
 * Security is not guaranteed.
 * (Potentially major) breaking changes will happen often and whenever necessary.
 
@@ -18,9 +17,20 @@ This particular implementation has a few specific aims and goals:
 
 * Allow for (relatively) safe loading of user-generated content including scripts
   * Sandbox "core" and "user" scripts from each other (separate Lua VMs)
-  * Determine thread permission levels for restricted APIs (like networking or filesystem access)
+  * Enforce permission levels for restricted APIs (like networking or filesystem access)
+  * Limit breakage of the game by user scripts
 * Provide bindings for every Godot API exposed through GDExtension
 * Support typechecking of source files
+
+## Typechecking
+
+Type checking is supported with a type definition file generated at `definitions/luauScriptTypes.gen.d.lua` during compile.
+
+Notes:
+
+* It may be necessary to set the following Luau FFlags:
+  * `LuauRecursionLimit`: Since the file is large, Luau may error before it is finished parsing.
+* Some things may not work properly yet (e.g. keyed and indexed getters produce analysis errors)
 
 ## License
 
@@ -82,8 +92,8 @@ SOFTWARE.
 ### Godot Engine
 
 ```
-Copyright (c) 2007-2022 Juan Linietsky, Ariel Manzur.
-Copyright (c) 2014-2022 Godot Engine contributors (cf. AUTHORS.md).
+Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md).
+Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -109,7 +119,7 @@ SOFTWARE.
 ```
 MIT License
 
-Copyright (c) 2017-2022 Godot Engine contributors.
+Copyright (c) 2017-present Godot Engine contributors.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
