@@ -10,6 +10,7 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include "luagd_variant.h"
 #include "luau_script.h"
 
 #ifdef TESTS_ENABLED
@@ -33,6 +34,8 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
         return;
 
     UtilityFunctions::print_verbose("luau script: initializing...");
+
+    LuauVariant::_register_types();
 
     ClassDB::register_class<LuauScript>();
     ClassDB::register_class<LuauLanguage>();

@@ -138,7 +138,7 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
         if (arg.has_default_value) {
             // Special case: null Object default value
             if (get_arg_type(arg) == GDEXTENSION_VARIANT_TYPE_OBJECT) {
-                if (*arg.default_value.get_object() != nullptr) {
+                if (*arg.default_value.template get_ptr<GDExtensionObjectPtr>() != nullptr) {
                     // Should never happen
                     ERR_PRINT("could not set non-null object argument default value");
                 }
@@ -940,7 +940,7 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
         LuauVariant self_var;
         self_var.lua_check(L, 1, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name);
 
-        self = *self_var.get_object();
+        self = *self_var.get_ptr<GDExtensionObjectPtr>();
     }
 
     GDExtensionMethodBindPtr method_bind = method.try_get_method_bind();
@@ -975,8 +975,8 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
             ret.lua_push(L);
 
             // handle ref returned from Godot
-            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT && *ret.get_object() != nullptr) {
-                Object *obj = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(*ret.get_object()));
+            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT && *ret.get_ptr<GDExtensionObjectPtr>() != nullptr) {
+                Object *obj = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(*ret.get_ptr<GDExtensionObjectPtr>()));
                 handle_object_returned(obj);
             }
 
