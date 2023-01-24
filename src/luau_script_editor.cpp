@@ -84,6 +84,7 @@ bool LuauScript::update_exports_internal(bool *r_err, PlaceHolderScriptInstance 
 
         GDClassDefinition def;
         bool is_valid;
+        compile(); // Always recompile.
         Error err = get_class_definition(this, nullptr, def, is_valid);
 
         if (err == OK) {
@@ -184,6 +185,8 @@ struct LuauScriptDepSort {
 };
 
 void LuauScript::unload_module() {
+    luau_data.bytecode.clear(); // Forces recompile on next load.
+
     for (int i = 0; i < GDLuau::VM_MAX; i++) {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
 

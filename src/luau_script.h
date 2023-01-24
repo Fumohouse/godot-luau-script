@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Luau/Lexer.h>
+#include <Luau/ParseResult.h>
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/mutex.hpp>
@@ -20,6 +22,7 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/variant.hpp>
+#include <string>
 
 #include "gd_luau.h"
 #include "luau_lib.h"
@@ -41,6 +44,12 @@ typedef HashMap<uint64_t, List<Pair<StringName, Variant>>> ScriptInstanceState;
 class LuauCache;
 class LuauScriptInstance;
 
+struct LuauData {
+    Luau::Allocator allocator;
+    Luau::ParseResult parse_result;
+    std::string bytecode;
+};
+
 class LuauScript : public ScriptExtension {
     GDCLASS(LuauScript, ScriptExtension);
 
@@ -60,6 +69,7 @@ private:
 
     String base_dir;
     String source;
+    LuauData luau_data;
     bool source_changed_cache;
 
     HashMap<uint64_t, LuauScriptInstance *> instances;
@@ -72,6 +82,9 @@ private:
 
     bool placeholder_fallback_enabled;
     Ref<LuauScript> cyclic_base;
+
+    void compile();
+    Error try_load(lua_State *L, String *r_err = nullptr);
 
     Error load_methods(GDLuau::VMType p_vm_type, bool p_force = false);
 
@@ -148,6 +161,7 @@ public:
     TypedArray<Dictionary> _get_documentation() const override { return TypedArray<Dictionary>(); }
 
     /* MISC (NON OVERRIDE) */
+    const LuauData &get_luau_data() const { return luau_data; }
     Ref<LuauScript> get_base() const { return base; }
 
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
@@ -158,7 +172,7 @@ public:
     bool is_module() const { return _is_module; }
     bool has_dependent(const String &p_path) const;
 
-    Error load_module(lua_State *L) const;
+    Error load_module(lua_State *L);
     void unload_module();
 
     LuauScript();

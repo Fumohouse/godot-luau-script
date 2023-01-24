@@ -1,6 +1,11 @@
 #include "luau_script.h"
 
+#include <Luau/BytecodeBuilder.h>
 #include <Luau/Compiler.h>
+#include <Luau/Lexer.h>
+#include <Luau/ParseResult.h>
+#include <Luau/Parser.h>
+#include <Luau/StringUtils.h>
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <string.h>
@@ -28,6 +33,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <string>
+#include <utility>
 
 #include "gd_luau.h"
 #include "luagd.h"
@@ -96,17 +102,53 @@ Error LuauScript::load_source_code(const String &p_path) {
         return ERR_COMPILATION_FAILED;                 \
     }
 
-static Error try_load(const LuauScript *script, lua_State *L, String *r_err = nullptr) {
-    Luau::CompileOptions opts;
-    std::string bytecode = Luau::compile(script->_get_source_code().utf8().get_data(), opts);
+void LuauScript::compile() {
+    // See Luau Compiler.cpp
+    CharString src = source.utf8();
 
-    String chunkname = "=" + script->get_path().get_file();
+    Luau::Allocator allocator;
+    Luau::AstNameTable names(allocator);
+    Luau::ParseResult parse_result = Luau::Parser::parse(src.get_data(), src.length() + 1, names, allocator);
+    std::string bytecode;
+
+    if (parse_result.errors.empty()) {
+        try {
+            Luau::CompileOptions opts;
+
+            Luau::BytecodeBuilder bcb;
+            Luau::compileOrThrow(bcb, parse_result, names, opts);
+
+            bytecode = bcb.getBytecode();
+        } catch (Luau::CompileError &err) {
+            std::string error = Luau::format(":%d: %s", err.getLocation().begin.line + 1, err.what());
+            bytecode = Luau::BytecodeBuilder::getError(error);
+        }
+    } else {
+        const Luau::ParseError &err = parse_result.errors.front();
+        std::string error = Luau::format(":%d: %s", err.getLocation().begin.line + 1, err.what());
+        bytecode = Luau::BytecodeBuilder::getError(error);
+    }
+
+    // tf?
+    luau_data.allocator.~Allocator();
+    new(&luau_data.allocator) Luau::Allocator(std::move(allocator));
+    luau_data.parse_result = parse_result;
+    luau_data.bytecode = bytecode;
+}
+
+Error LuauScript::try_load(lua_State *L, String *r_err) {
+    String chunkname = "=" + get_path().get_file();
+
+    if (get_luau_data().bytecode.empty())
+        compile();
+
+    const std::string &bytecode = get_luau_data().bytecode;
 
     Error ret = luau_load(L, chunkname.utf8().get_data(), bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
 
     if (ret != OK) {
         String err = LuaStackOp<String>::get(L, -1);
-        LUAU_LOAD_ERR(script, 1, err);
+        LUAU_LOAD_ERR(this, 1, err);
 
         if (r_err != nullptr)
             *r_err = err;
@@ -135,7 +177,7 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
     GDThreadData *udata = luaGD_getthreaddata(T);
     udata->script = p_script;
 
-    if (try_load(p_script.ptr(), T) == OK) {
+    if (p_script->try_load(T) == OK) {
         LUAU_LOAD_RESUME(p_script, L, T)
 
         if (lua_isnil(T, 1) || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
@@ -146,7 +188,6 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
         }
 
         GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
-        ;
         def->script = p_script.ptr();
         def->is_readonly = true;
 
@@ -235,6 +276,7 @@ Error LuauScript::_reload(bool p_keep_state) {
 
     base_dir = get_path().get_base_dir();
 
+    compile(); // Always recompile on reload.
     Error err = get_class_definition(this, nullptr, definition, valid);
 
     if (err != OK) {
@@ -273,7 +315,7 @@ Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool p_force) {
     GDThreadData *udata = luaGD_getthreaddata(T);
     udata->script = Ref<LuauScript>(this);
 
-    if (try_load(this, T) == OK) {
+    if (try_load(T) == OK) {
         LUAU_LOAD_RESUME(this, L, T)
 
         if (lua_gettop(T) < 1 || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
@@ -531,13 +573,13 @@ bool LuauScript::has_dependent(const String &p_path) const {
 }
 
 // Based on Luau Repl implementation.
-Error LuauScript::load_module(lua_State *L) const {
+Error LuauScript::load_module(lua_State *L) {
     // Use main thread to avoid inheriting L's environment.
     lua_State *GL = lua_mainthread(L);
     lua_State *ML = lua_newthread(GL);
 
     GDThreadData *udata = luaGD_getthreaddata(ML);
-    udata->script = this;
+    udata->script = Ref<LuauScript>(this);
 
     lua_xmove(GL, L, 1); // thread
 
@@ -545,7 +587,7 @@ Error LuauScript::load_module(lua_State *L) const {
 
     String err;
 
-    if (try_load(this, ML, &err) == OK) {
+    if (try_load(ML, &err) == OK) {
         LUAU_LOAD_RESUME(this, L, ML)
 
         if (lua_gettop(ML) == 0) {
