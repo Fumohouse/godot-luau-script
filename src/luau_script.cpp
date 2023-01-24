@@ -903,7 +903,7 @@ static GDExtensionScriptInstanceInfo init_script_instance_info() {
 const GDExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
 int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret) {
-    LuauScript *s = script.ptr();
+    const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
         LuaStackOp<String>::push(ET, p_method);
@@ -921,14 +921,13 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
             int status = lua_resume(ET, nullptr, nargs + 1);
 
             if (status != LUA_OK && status != LUA_YIELD) {
-                ERR_PRINT("Lua Error: " + LuaStackOp<String>::get(ET, -1));
+                LUAU_ERR("LuauScriptInstance::call_internal", s, 1, LuaStackOp<String>::get(ET, -1));
+
                 lua_pop(ET, 1);
                 return status;
             }
 
-            for (int i = lua_gettop(ET); i < nret; i++)
-                lua_pushnil(ET);
-
+            lua_settop(ET, nret);
             return status;
         } else {
             lua_pop(ET, 1);
@@ -970,7 +969,7 @@ int LuauScriptInstance::protected_table_get(lua_State *L, const Variant &p_key) 
 }
 
 bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err) {
-    LuauScript *s = script.ptr();
+    const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
         HashMap<StringName, uint64_t>::ConstIterator E = s->definition.property_indices.find(p_name);
@@ -1041,7 +1040,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 }
 
 bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err) {
-    LuauScript *s = script.ptr();
+    const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
         HashMap<StringName, uint64_t>::ConstIterator E = s->definition.property_indices.find(p_name);
@@ -1187,7 +1186,7 @@ void LuauScriptInstance::call(
         const StringName &p_method,
         const Variant *const *p_args, const GDExtensionInt p_argument_count,
         Variant *r_return, GDExtensionCallError *r_error) {
-    LuauScript *s = script.ptr();
+    const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
         StringName actual_name = p_method;
@@ -1264,7 +1263,7 @@ void LuauScriptInstance::call(
 }
 
 void LuauScriptInstance::notification(int32_t p_what) {
-    LuauScript *s = script.ptr();
+    const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
         // TODO: cache whether user created _Notification in class definition to avoid having to make a thread, etc. to check
@@ -1281,7 +1280,7 @@ void LuauScriptInstance::notification(int32_t p_what) {
 }
 
 void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out) {
-    LuauScript *s = script.ptr();
+    const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
         // TODO: cache whether user created _ToString in class definition to avoid having to make a thread, etc. to check
