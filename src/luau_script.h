@@ -53,6 +53,8 @@ class LuauScript : public ScriptExtension {
 private:
     SelfList<LuauScript> script_list;
 
+    Ref<LuauScript> base;
+
     bool _is_module = false;
     HashSet<String> dependents;
 
@@ -83,8 +85,6 @@ private:
 #ifdef TESTS_ENABLED
 public:
 #endif // TESTS_ENABLED
-    Ref<LuauScript> base;
-
     ScriptInstanceState pending_reload_state;
 
 protected:

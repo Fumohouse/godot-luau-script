@@ -1,14 +1,13 @@
 #include <catch_amalgamated.hpp>
 
 #include <gdextension_interface.h>
+#include <lua.h>
+#include <lualib.h>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
-
-#include <lua.h>
-#include <lualib.h>
 
 #include "gd_luau.h"
 #include "luagd_stack.h"
@@ -18,49 +17,25 @@
 
 #include "test_utils.h"
 
+#define LOAD_SCRIPT_FILE_BASE(name, path, expr)                          \
+    Ref<LuauScript> name;                                                \
+    {                                                                    \
+        Error error;                                                     \
+        name = luau_cache.get_script("res://test_scripts/" path, error); \
+        REQUIRE(error == OK);                                            \
+        expr                                                             \
+    }
+
+#define LOAD_SCRIPT_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, { REQUIRE(name->_is_valid()); })
+#define LOAD_SCRIPT_MOD_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, {})
+
 TEST_CASE("luau script: script load") {
     // singleton is not available during test runs.
     // this will construct the singleton then destroy it at the end of the scope.
     GDLuau gd_luau;
+    LuauCache luau_cache;
 
-    Ref<LuauScript> script;
-    script.instantiate();
-
-    script->set_source_code(R"ASDF(
-        local TestClass = gdclass("TestClass")
-            :Tool(true)
-
-        TestClass:RegisterSignal("testSignal")
-            :Args(
-                { name = "arg1", type = Enum.VariantType.FLOAT }
-            )
-
-        TestClass:RegisterRpc("TestRpc", {
-            rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,
-            transferMode = MultiplayerPeer.TransferMode.RELIABLE,
-            callLocal = true,
-            channel = 4
-        })
-
-        function TestClass:TestMethod()
-        end
-
-        TestClass:RegisterMethod("TestMethod")
-
-        function TestClass:__WeirdMethodName()
-        end
-
-        TestClass:RegisterMethod("__WeirdMethodName")
-
-        TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
-            :Default(5.5)
-
-        return TestClass
-    )ASDF");
-
-    script->reload();
-
-    REQUIRE(script->_is_valid());
+    LOAD_SCRIPT_FILE(script, "script_load/Script.lua")
 
     SECTION("method methods") {
         REQUIRE(script->is_tool());
@@ -69,19 +44,15 @@ TEST_CASE("luau script: script load") {
         REQUIRE(script->_get_method_info("TestMethod") == GDMethod({ "TestMethod" }).operator Dictionary());
 
         SECTION("method name conversion") {
-            SECTION("normal") {
-                StringName actual_name;
-                bool has_method = script->has_method("test_method", &actual_name);
+            StringName actual_name;
 
-                REQUIRE(has_method);
+            SECTION("normal") {
+                REQUIRE(script->has_method("test_method", &actual_name));
                 REQUIRE(actual_name == StringName("TestMethod"));
             }
 
             SECTION("leading underscores") {
-                StringName actual_name;
-                bool has_method = script->has_method("__weird_method_name", &actual_name);
-
-                REQUIRE(has_method);
+                REQUIRE(script->has_method("__weird_method_name", &actual_name));
                 REQUIRE(actual_name == StringName("__WeirdMethodName"));
             }
         }
@@ -107,128 +78,9 @@ TEST_CASE("luau script: script load") {
 
 TEST_CASE("luau script: instance") {
     GDLuau gd_luau;
+    LuauCache luau_cache;
 
-    Ref<LuauScript> script;
-    script.instantiate();
-
-    script->set_source_code(R"ASDF(
-        local TestClass = gdclass("TestClass")
-
-        TestClass:RegisterSignal("testSignal")
-            :Args(
-                { name = "arg1", type = Enum.VariantType.FLOAT }
-            )
-
-        TestClass:RegisterConstant("TEST_CONSTANT", Vector2.new(1, 2))
-
-        local testClassIndex = {}
-
-        function testClassIndex:PrivateMethod()
-            return "hi there"
-        end
-
-        function TestClass:NonRegisteredMethod()
-            return "what's up"
-        end
-
-        function TestClass._Init(obj, tbl)
-            setmetatable(tbl, { __index = testClassIndex })
-
-            tbl._notifHits = 0
-            tbl.testField = 1
-            tbl._testProperty = 3.25
-        end
-
-        function TestClass:_Ready()
-        end
-
-        TestClass:RegisterMethod("_Ready")
-
-        function TestClass:_Notification(what)
-            if what == 42 then
-                self._notifHits += 1
-            end
-        end
-
-        TestClass:RegisterMethod("_Notification")
-
-        function TestClass:_ToString()
-            return "my awesome class"
-        end
-
-        TestClass:RegisterMethod("_ToString")
-
-        function TestClass:TestMethod(arg1, arg2)
-            return string.format("%.1f, %s", arg1, arg2)
-        end
-
-        TestClass:RegisterMethod("TestMethod")
-            :Args(
-                {
-                    name = "arg1",
-                    type = Enum.VariantType.FLOAT
-                },
-                {
-                    name = "arg2",
-                    type = Enum.VariantType.STRING
-                }
-            )
-            :DefaultArgs("hi")
-            :ReturnVal({ type = Enum.VariantType.STRING })
-
-        function TestClass:TestMethod2(arg1, arg2)
-            return 3.14
-        end
-
-        TestClass:RegisterMethod("TestMethod2")
-            :Args(
-                {
-                    name = "arg1",
-                    type = Enum.VariantType.STRING
-                },
-                {
-                    name = "arg2",
-                    type = Enum.VariantType.INT
-                }
-            )
-            :DefaultArgs("godot", 1)
-            :ReturnVal({ type = Enum.VariantType.FLOAT })
-
-        function TestClass:GetTestProperty()
-            return 2 * self._testProperty
-        end
-
-        function TestClass:SetTestProperty(val)
-            self._testProperty = val
-        end
-
-        TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
-            :SetGet("SetTestProperty", "GetTestProperty")
-            :Default(5.5)
-
-        function TestClass:GetTestProperty2()
-            return "hello"
-        end
-
-        TestClass:RegisterProperty("testProperty2", Enum.VariantType.STRING)
-            :SetGet(nil, "GetTestProperty2")
-            :Default("hey")
-
-        function TestClass:SetTestProperty3(val)
-        end
-
-        TestClass:RegisterProperty("testProperty3", Enum.VariantType.STRING)
-            :SetGet("SetTestProperty3")
-            :Default("hey")
-
-        TestClass:RegisterProperty("testProperty4", Enum.VariantType.STRING)
-            :Default("hey")
-
-        return TestClass
-    )ASDF");
-
-    script->reload();
-    REQUIRE(script->_is_valid());
+    LOAD_SCRIPT_FILE(script, "instance/Script.lua")
 
     Object obj;
     obj.set_script(script);
@@ -261,9 +113,9 @@ TEST_CASE("luau script: instance") {
         for (int i = 0; i < count; i++) {
             StringName *name = (StringName *)methods[i].name;
 
-            if (*name == StringName("TestMethod"))
+            if (*name == StringName("TestMethod")) {
                 m1_found = true;
-            else if (*name == StringName("TestMethod2")) {
+            } else if (*name == StringName("TestMethod2")) {
                 m2_found = true;
 
                 REQUIRE(methods[i].return_value.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
@@ -642,76 +494,16 @@ TEST_CASE("luau script: instance") {
 
 TEST_CASE("luau script: inheritance") {
     GDLuau gd_luau;
+    LuauCache luau_cache;
 
-    // 1
-    Ref<LuauScript> script1;
-    script1.instantiate();
-
-    script1->set_source_code(R"ASDF(
-        local Script1 = gdclass("Script1", "Object")
-
-        function Script1._Init(obj, tbl)
-            tbl.property1 = "hey"
-            tbl.property2 = "hi"
-        end
-
-        Script1:RegisterProperty("property1", Enum.VariantType.STRING)
-            :Default("hey")
-
-        Script1:RegisterProperty("property2", Enum.VariantType.STRING)
-            :Default("hi")
-
-        function Script1:Method1()
-            return "there"
-        end
-
-        Script1:RegisterMethod("Method1")
-            :ReturnVal({ type = Enum.VariantType.STRING })
-
-        function Script1:Method2()
-            return "world"
-        end
-
-        Script1:RegisterMethod("Method2")
-            :ReturnVal({ type = Enum.VariantType.STRING })
-
-        return Script1
-    )ASDF");
-
-    script1->reload();
-    REQUIRE(script1->_is_valid());
-
-    // 2
-    Ref<LuauScript> script2;
-    script2.instantiate();
-    script2->base = script1;
-
-    script2->set_source_code(R"ASDF(
-        local Script2 = gdclass("Script2", "Script1")
-
-        function Script2:GetProperty2()
-            return "hihi"
-        end
-
-        Script2:RegisterProperty("property2", Enum.VariantType.STRING)
-            :SetGet(nil, "GetProperty2")
-            :Default("hi")
-
-        function Script2:Method2()
-            return "guy"
-        end
-
-        return Script2
-    )ASDF");
-
-    script2->reload();
-    REQUIRE(script2->_is_valid());
+    LOAD_SCRIPT_FILE(base, "inheritance/Base.lua")
+    LOAD_SCRIPT_FILE(script, "inheritance/Script.lua")
 
     // Instance
     Object obj;
-    obj.set_script(script2);
+    obj.set_script(script);
 
-    LuauScriptInstance *inst = script2->instance_get(&obj);
+    LuauScriptInstance *inst = script->instance_get(&obj);
 
     lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
     lua_State *T = lua_newthread(L);
@@ -747,17 +539,11 @@ TEST_CASE("luau script: base script loading") {
     GDLuau gd_luau;
     LuauCache luau_cache;
 
-    Error err;
-    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/base_script/Base.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script_base->_is_valid());
-
-    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/base_script/Script.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script->_is_valid());
+    LOAD_SCRIPT_FILE(script_base, "base_script/Base.lua")
+    LOAD_SCRIPT_FILE(script, "base_script/Script.lua")
 
     SECTION("base loading") {
-        REQUIRE(script->base == script_base);
+        REQUIRE(script->get_base() == script_base);
     }
 
     SECTION("base invalid") {
@@ -787,18 +573,9 @@ TEST_CASE("luau script: placeholders") {
     GDLuau gd_luau;
     LuauCache luau_cache;
 
-    Error err;
-    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/placeholder/Base.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script_base->_is_valid());
-
-    Ref<LuauScript> script_base2 = luau_cache.get_script("res://test_scripts/placeholder/Base2.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script_base2->_is_valid());
-
-    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/placeholder/Script.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script->_is_valid());
+    LOAD_SCRIPT_FILE(script_base, "placeholder/Base.lua")
+    LOAD_SCRIPT_FILE(script_base2, "placeholder/Base2.lua")
+    LOAD_SCRIPT_FILE(script, "placeholder/Script.lua")
 
     Object obj;
 
@@ -887,20 +664,10 @@ TEST_CASE("luau script: require") {
     GDLuau gd_luau;
     LuauCache luau_cache;
 
-    Error err;
-    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/require/Base.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script_base->_is_valid());
-
-    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/require/Script.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script->_is_valid());
-
-    Ref<LuauScript> module = luau_cache.get_script("res://test_scripts/require/Module.mod.lua", err);
-    REQUIRE(err == OK);
-
-    Ref<LuauScript> module2 = luau_cache.get_script("res://test_scripts/require/Module2.mod.lua", err);
-    REQUIRE(err == OK);
+    LOAD_SCRIPT_FILE(script_base, "require/Base.lua")
+    LOAD_SCRIPT_FILE(script, "require/Script.lua")
+    LOAD_SCRIPT_MOD_FILE(module, "require/Module.mod.lua")
+    LOAD_SCRIPT_MOD_FILE(module2, "require/Module2.mod.lua")
 
     SECTION("requiring a class") {
         REQUIRE(script->get_property("baseMsg").default_value == Variant("what's up"));
@@ -942,17 +709,9 @@ TEST_CASE("luau script: reloading at runtime") {
     GDLuau gd_luau;
     LuauCache luau_cache;
 
-    Error err;
-    Ref<LuauScript> script_base = luau_cache.get_script("res://test_scripts/reload/Base.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script_base->_is_valid());
-
-    Ref<LuauScript> script = luau_cache.get_script("res://test_scripts/reload/Script.lua", err);
-    REQUIRE(err == OK);
-    REQUIRE(script->_is_valid());
-
-    Ref<LuauScript> module = luau_cache.get_script("res://test_scripts/reload/Module.mod.lua", err);
-    REQUIRE(err == OK);
+    LOAD_SCRIPT_FILE(script_base, "reload/Base.lua")
+    LOAD_SCRIPT_FILE(script, "reload/Script.lua")
+    LOAD_SCRIPT_MOD_FILE(module, "reload/Module.mod.lua")
 
     Object base_obj;
     base_obj.set_script(script_base);

@@ -777,7 +777,7 @@ GDExtensionMethodInfo *ScriptInstance::get_method_list(uint32_t *r_count) const 
             methods.push_back(dst);
         }
 
-        s = s->base.ptr();
+        s = s->get_base().ptr();
     }
 
     int size = methods.size();
