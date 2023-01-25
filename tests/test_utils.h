@@ -2,6 +2,7 @@
 
 #include <catch_amalgamated.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/variant/string.hpp>
 
 // Used in macros
@@ -56,3 +57,15 @@ ExecOutput luaGD_exec(lua_State *L, const char *src);
         INFO(out.error.utf8().get_data());   \
         REQUIRE(out.error == err);           \
     }
+
+#define LOAD_SCRIPT_FILE_BASE(name, path, expr)                          \
+    Ref<LuauScript> name;                                                \
+    {                                                                    \
+        Error error;                                                     \
+        name = luau_cache.get_script("res://test_scripts/" path, error); \
+        REQUIRE(error == OK);                                            \
+        expr                                                             \
+    }
+
+#define LOAD_SCRIPT_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, { REQUIRE(name->_is_valid()); })
+#define LOAD_SCRIPT_MOD_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, {})

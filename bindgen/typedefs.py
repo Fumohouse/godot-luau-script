@@ -509,8 +509,10 @@ def generate_typedefs(defs_dir, api):
     src.append(var_def)
 
     # TODO: better way?
-    src.append("export type TypedArray<T> = Array")
     src.append("""\
+export type TypedArray<T> = Array
+export type integer = number
+
 declare class StringName end
 declare class NodePath end\
 """)
@@ -594,6 +596,7 @@ declare class GDClassDefinition
     RegisterImpl: <T>(self: GDClassDefinition, table: T) -> GDClassDefinition & T
 
     function RegisterMethod(self, name: string): GDMethod
+    function RegisterMethodAST(self, name: string): GDMethod
     function RegisterProperty(self, name: string, propertyOrType: EnumVariantType | GDProperty): GDClassProperty
     function RegisterSignal(self, name: string): GDSignal
     function RegisterRpc(self, rpcConfig: GDRpcConfig)

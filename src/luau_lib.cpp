@@ -22,7 +22,9 @@
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luagd_variant.h"
+#include "luau_analysis.h"
 #include "luau_script.h"
+#include "utils.h"
 
 using namespace godot;
 
@@ -190,6 +192,8 @@ static int luascript_gdclass_namecall(lua_State *L) {
         if (def->is_readonly)
             luascript_gdclass_readonly_error(L);
 
+        GDThreadData *udata = luaGD_getthreaddata(L);
+
         // Chaining functions
         if (strcmp(key, "Tool") == 0) {
             def->is_tool = LuaStackOp<bool>::check(L, 2);
@@ -200,8 +204,6 @@ static int luascript_gdclass_namecall(lua_State *L) {
 
         if (strcmp(key, "Permissions") == 0) {
             int32_t permissions = LuaStackOp<int32_t>::check(L, 2);
-
-            GDThreadData *udata = luaGD_getthreaddata(L);
 
             String path = udata->script->get_path();
             if (path.is_empty() || LuauLanguage::get_singleton() == nullptr || !LuauLanguage::get_singleton()->is_core_script(path))
@@ -216,7 +218,7 @@ static int luascript_gdclass_namecall(lua_State *L) {
         if (strcmp(key, "IconPath") == 0) {
             def->icon_path = LuaStackOp<String>::check(L, 2);
 
-            lua_settop(L, 1); // return def;
+            lua_settop(L, 1); // return def
             return 1;
         }
 
@@ -227,13 +229,13 @@ static int luascript_gdclass_namecall(lua_State *L) {
             luaL_checktype(L, 2, LUA_TTABLE);
             def->table_ref = lua_ref(L, 2);
 
-            lua_settop(L, 1); // return def;
+            lua_settop(L, 1); // return def
             return 1;
         }
 
         // "Raw" functions
         if (strcmp(key, "RegisterMethod") == 0) {
-            String name = LuaStackOp<String>::check(L, 2);
+            StringName name = LuaStackOp<StringName>::check(L, 2);
 
             GDMethod method;
             method.name = name;
@@ -243,8 +245,22 @@ static int luascript_gdclass_namecall(lua_State *L) {
             return 1;
         }
 
+        if (strcmp(key, "RegisterMethodAST") == 0) {
+            StringName name = LuaStackOp<StringName>::check(L, 2);
+
+            GDMethod method;
+            if (!luascript_ast_method(udata->script->get_luau_data().analysis_result, name, method)) {
+                luaL_error(L, "failed to register method with AST - check that you have met necessary conventions");
+            }
+
+            def->methods[name] = method;
+
+            LuaStackOp<GDMethod *>::push(L, &def->methods[name]);
+            return 1;
+        }
+
         if (strcmp(key, "RegisterProperty") == 0) {
-            String name = LuaStackOp<String>::check(L, 2);
+            StringName name = LuaStackOp<StringName>::check(L, 2);
 
             GDClassProperty class_prop;
 
@@ -264,7 +280,7 @@ static int luascript_gdclass_namecall(lua_State *L) {
         }
 
         if (strcmp(key, "RegisterSignal") == 0) {
-            String name = LuaStackOp<String>::check(L, 2);
+            StringName name = LuaStackOp<StringName>::check(L, 2);
 
             // Signals are stored as methods with only name and arguments
             GDMethod signal;
@@ -278,7 +294,7 @@ static int luascript_gdclass_namecall(lua_State *L) {
         }
 
         if (strcmp(key, "RegisterRpc") == 0) {
-            String name = LuaStackOp<String>::check(L, 2);
+            StringName name = LuaStackOp<StringName>::check(L, 2);
             luaL_checktype(L, 3, LUA_TTABLE);
 
             GDRpc rpc = luascript_read_rpc(L, 3);
@@ -290,7 +306,7 @@ static int luascript_gdclass_namecall(lua_State *L) {
         }
 
         if (strcmp(key, "RegisterConstant") == 0) {
-            String name = LuaStackOp<String>::check(L, 2);
+            StringName name = LuaStackOp<StringName>::check(L, 2);
             Variant value = LuaStackOp<Variant>::check(L, 3);
 
             def->constants[name] = value;
@@ -606,14 +622,7 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint = PROPERTY_HINT_ARRAY_TYPE;
 
             if (is_resource) {
-                // see core/object/object.h
-                Array hint_values;
-                hint_values.resize(3);
-                hint_values[0] = Variant::OBJECT;
-                hint_values[1] = PROPERTY_HINT_RESOURCE_TYPE;
-                hint_values[2] = type;
-
-                prop->property.hint_string = String("{0}/{1}:{2}").format(hint_values);
+                prop->property.hint_string = Utils::resource_type_hint(type);
             } else {
                 prop->property.hint_string = type;
             }

@@ -25,6 +25,7 @@
 #include <string>
 
 #include "gd_luau.h"
+#include "luau_analysis.h"
 #include "luau_lib.h"
 #include "task_scheduler.h"
 
@@ -48,6 +49,7 @@ struct LuauData {
     Luau::Allocator allocator;
     Luau::ParseResult parse_result;
     std::string bytecode;
+    LuauScriptAnalysisResult analysis_result;
 };
 
 class LuauScript : public ScriptExtension {

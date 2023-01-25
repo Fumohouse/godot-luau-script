@@ -4,7 +4,6 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/classes/object.hpp>
-#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -16,18 +15,6 @@
 #include "luau_script.h"
 
 #include "test_utils.h"
-
-#define LOAD_SCRIPT_FILE_BASE(name, path, expr)                          \
-    Ref<LuauScript> name;                                                \
-    {                                                                    \
-        Error error;                                                     \
-        name = luau_cache.get_script("res://test_scripts/" path, error); \
-        REQUIRE(error == OK);                                            \
-        expr                                                             \
-    }
-
-#define LOAD_SCRIPT_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, { REQUIRE(name->_is_valid()); })
-#define LOAD_SCRIPT_MOD_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, {})
 
 TEST_CASE("luau script: script load") {
     // singleton is not available during test runs.

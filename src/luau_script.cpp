@@ -39,8 +39,10 @@
 #include "luagd.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
+#include "luau_analysis.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
+#include "utils.h"
 
 namespace godot {
 class Object;
@@ -111,6 +113,9 @@ void LuauScript::compile() {
     Luau::ParseResult parse_result = Luau::Parser::parse(src.get_data(), src.length() + 1, names, allocator);
     std::string bytecode;
 
+    LuauScriptAnalysisResult analysis_result;
+    bool analysis_valid;
+
     if (parse_result.errors.empty()) {
         try {
             Luau::CompileOptions opts;
@@ -119,6 +124,7 @@ void LuauScript::compile() {
             Luau::compileOrThrow(bcb, parse_result, names, opts);
 
             bytecode = bcb.getBytecode();
+            analysis_valid = luascript_analyze(parse_result, analysis_result);
         } catch (Luau::CompileError &err) {
             std::string error = Luau::format(":%d: %s", err.getLocation().begin.line + 1, err.what());
             bytecode = Luau::BytecodeBuilder::getError(error);
@@ -134,6 +140,11 @@ void LuauScript::compile() {
     new(&luau_data.allocator) Luau::Allocator(std::move(allocator));
     luau_data.parse_result = parse_result;
     luau_data.bytecode = bytecode;
+
+    if (analysis_valid)
+        luau_data.analysis_result = analysis_result;
+    else
+        luau_data.analysis_result = LuauScriptAnalysisResult();
 }
 
 Error LuauScript::try_load(lua_State *L, String *r_err) {
@@ -155,12 +166,6 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
     }
 
     return ret;
-}
-
-static bool class_exists(const StringName &class_name) {
-    // TODO: the real ClassDB is not available in godot-cpp yet. this is what we get.
-    static Object *class_db = Engine::get_singleton()->get_singleton("ClassDB");
-    return class_db->call("class_exists", class_name).operator bool();
 }
 
 Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid) {
@@ -208,7 +213,7 @@ void LuauScript::update_base_script(Error &r_error, bool p_recursive) {
     if (get_path().is_empty())
         return;
 
-    if (!definition.extends.is_empty() && !class_exists(definition.extends)) {
+    if (!definition.extends.is_empty() && !Utils::class_exists(definition.extends)) {
         String base_script_path;
 
         if (definition.extends.begins_with("res://"))
@@ -358,7 +363,7 @@ bool LuauScript::_is_tool() const {
 StringName LuauScript::_get_instance_base_type() const {
     StringName extends = StringName(definition.extends);
 
-    if (extends != StringName() && class_exists(extends)) {
+    if (extends != StringName() && Utils::class_exists(extends)) {
         return extends;
     }
 
@@ -402,21 +407,11 @@ bool LuauScript::_has_method(const StringName &p_method) const {
     return has_method(p_method);
 }
 
-static String to_pascal_case(const String &input) {
-    String out = input.to_pascal_case();
-
-    // to_pascal_case strips leading/trailing underscores. leading is most common and this handles that
-    for (int i = 0; i < input.length() && input[i] == '_'; i++)
-        out = "_" + out;
-
-    return out;
-}
-
 bool LuauScript::has_method(const StringName &p_method, StringName *r_actual_name) const {
     if (definition.methods.has(p_method))
         return true;
 
-    StringName pascal_name = to_pascal_case(p_method);
+    StringName pascal_name = Utils::to_pascal_case(p_method);
 
     if (definition.methods.has(pascal_name)) {
         if (r_actual_name != nullptr)
@@ -434,7 +429,7 @@ Dictionary LuauScript::_get_method_info(const StringName &p_method) const {
     if (E)
         return E->value;
 
-    E = definition.methods.find(to_pascal_case(p_method));
+    E = definition.methods.find(Utils::to_pascal_case(p_method));
 
     if (E)
         return E->value;
