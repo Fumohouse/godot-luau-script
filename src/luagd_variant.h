@@ -51,8 +51,11 @@ public:
     _FORCE_INLINE_ int32_t get_type() const { return type; }
     _FORCE_INLINE_ bool is_from_luau() const { return from_luau; }
 
-    /* Initialization */
+    /* (De)Initialization */
     void initialize(GDExtensionVariantType init_type);
+    void clear();
+
+    /* Stack */
     static bool lua_is(
             lua_State *L, int idx,
             GDExtensionVariantType required_type,
@@ -75,6 +78,5 @@ public:
     ~LuauVariant();
 
 private:
-    void clear();
     static void copy_variant(LuauVariant &to, const LuauVariant &from);
 };

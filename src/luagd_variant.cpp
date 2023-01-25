@@ -63,6 +63,7 @@ struct VariantAssignMethods : public VariantMethodsBase<T> {
     }
 
     virtual void copy(LuauVariant &self, const LuauVariant &other) const override {
+        initialize(self);
         memcpy(self._data._opaque, other._data._opaque, sizeof(T));
     }
 };
@@ -99,10 +100,12 @@ struct VariantUserdataMethods : public VariantAssignMethods<T> {
     }
 
     virtual void copy(LuauVariant &self, const LuauVariant &other) const override {
-        if (self.is_from_luau())
+        if (other.is_from_luau()) {
             self._data._ptr = other._data._ptr;
-        else
+        } else {
+            this->initialize(self);
             *(T *)self._data._opaque = *(T *)other._data._opaque;
+        }
     }
 };
 
@@ -141,7 +144,12 @@ struct VariantPtrMethodsBase : public VariantMethodsBase<T> {
     }
 
     virtual void copy(LuauVariant &self, const LuauVariant &other) const override {
-        *(T *)self._data._ptr = *(T *)other._data._ptr;
+        if (other.is_from_luau()) {
+            self._data._ptr = other._data._ptr;
+        } else {
+            initialize(self);
+            *(T *)self._data._ptr = *(T *)other._data._ptr;
+        }
     }
 };
 
@@ -313,11 +321,26 @@ void LuauVariant::initialize(GDExtensionVariantType init_type) {
     type = init_type;
 }
 
+void LuauVariant::clear() {
+    if (type == -1)
+        return;
+
+    if (!from_luau)
+        type_methods[type]->destroy(*this);
+
+    type = -1;
+}
+
 bool LuauVariant::lua_is(lua_State *L, int idx, GDExtensionVariantType required_type, const String &type_name) {
     return type_methods[required_type]->is(L, idx, type_name);
 }
 
 void LuauVariant::lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, const String &type_name) {
+    // This means that the type will get reinitialized every time `check` is run, even if this variant
+    // is already initialized to the same type. This, for now, is probably a non-issue as lua_check
+    // is rarely run on an already-initialized object where the type is the same.
+    clear();
+
     from_luau = type_methods[required_type]->check(*this, L, idx, type_name);
     type = required_type;
 }
@@ -354,21 +377,8 @@ Variant LuauVariant::to_variant() {
     return ret;
 }
 
-void LuauVariant::clear() {
-    if (type == -1)
-        return;
-
-    if (!from_luau)
-        type_methods[type]->destroy(*this);
-
-    type = -1;
-}
-
 void LuauVariant::copy_variant(LuauVariant &to, const LuauVariant &from) {
     if (from.type != -1) {
-        if (!from.from_luau)
-            to.initialize((GDExtensionVariantType)from.type);
-
         type_methods[from.type]->copy(to, from);
     }
 
@@ -376,7 +386,10 @@ void LuauVariant::copy_variant(LuauVariant &to, const LuauVariant &from) {
     to.from_luau = from.from_luau;
 }
 
-LuauVariant::LuauVariant(const LuauVariant &from) {
+// Inherit from the original constructor to initialize type and from_luau.
+// Safeguards against unintended behavior if these values are uninitialized (i.e. random).
+LuauVariant::LuauVariant(const LuauVariant &from) :
+        LuauVariant() {
     copy_variant(*this, from);
 }
 
