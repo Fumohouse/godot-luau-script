@@ -65,7 +65,7 @@ public:
 
     /* To/from Variant */
     void assign_variant(const Variant &val);
-    Variant to_variant() const;
+    Variant to_variant();
 
     /* Constructor */
     _FORCE_INLINE_ LuauVariant() :

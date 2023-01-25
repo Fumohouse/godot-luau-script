@@ -25,8 +25,6 @@ struct VariantMethods {
     virtual void push(const LuauVariant &self, lua_State *L) const = 0;
 
     virtual void copy(LuauVariant &self, const LuauVariant &other) const = 0;
-    virtual void assign(LuauVariant &self, const Variant &val) const = 0;
-    virtual Variant to_variant(const LuauVariant &self) const = 0;
 };
 
 template <typename T>
@@ -37,14 +35,6 @@ struct VariantMethodsBase : public VariantMethods {
 
     virtual void push(const LuauVariant &self, lua_State *L) const override {
         LuaStackOp<T>::push(L, *(const T *)get(self));
-    }
-
-    virtual Variant to_variant(const LuauVariant &self) const override {
-        return *(const T *)get(self);
-    }
-
-    virtual void assign(LuauVariant &self, const Variant &val) const override {
-        *(T *)get(self) = val;
     }
 };
 
@@ -238,27 +228,21 @@ struct VariantObjectMethods : public VariantMethods {
     void copy(LuauVariant &self, const LuauVariant &other) const override {
         self._data._ptr = other._data._ptr;
     }
-
-    void assign(LuauVariant &self, const Variant &val) const override {
-        Object *obj = val.operator Object *();
-        self._data._ptr = obj == nullptr ? nullptr : obj->_owner;
-    }
-
-    Variant to_variant(const LuauVariant &self) const override {
-        GDExtensionObjectPtr obj = (GDExtensionObjectPtr)self._data._ptr;
-        if (obj == nullptr)
-            return nullptr;
-
-        return ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(obj));
-    }
 };
 
+static GDExtensionVariantFromTypeConstructorFunc to_variant_ctors[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = { nullptr };
+static GDExtensionTypeFromVariantConstructorFunc from_variant_ctors[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = { nullptr };
 static VariantMethods *type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = { nullptr };
 
 template <typename T>
 void register_type(GDExtensionVariantType type) {
     static T methods;
     type_methods[type] = &methods;
+
+    if (type != GDEXTENSION_VARIANT_TYPE_NIL) {
+        to_variant_ctors[type] = internal::gde_interface->get_variant_from_type_constructor(type);
+        from_variant_ctors[type] = internal::gde_interface->get_variant_to_type_constructor(type);
+    }
 }
 
 void LuauVariant::_register_types() {
@@ -347,14 +331,27 @@ void LuauVariant::assign_variant(const Variant &val) {
     if (type == -1)
         return;
 
-    type_methods[type]->assign(*this, val);
+    // A NIL constructor doesn't exist
+    if (type == GDEXTENSION_VARIANT_TYPE_NIL) {
+        *get_ptr<Variant>() = val;
+        return;
+    }
+
+    // Godot will not modify the value, so getting rid of const should be ok.
+    from_variant_ctors[type](get_opaque_pointer(), (Variant *)&val);
 }
 
-Variant LuauVariant::to_variant() const {
+Variant LuauVariant::to_variant() {
     if (type == -1)
         return Variant();
 
-    return type_methods[type]->to_variant(*this);
+    if (type == GDEXTENSION_VARIANT_TYPE_NIL)
+        return *get_ptr<Variant>();
+
+    Variant ret;
+    to_variant_ctors[type](&ret, get_opaque_pointer_arg());
+
+    return ret;
 }
 
 void LuauVariant::clear() {
