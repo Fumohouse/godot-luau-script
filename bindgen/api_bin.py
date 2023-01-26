@@ -156,6 +156,10 @@ def get_variant_op(op_name):
 
 
 def get_variant_idx(value, variant_values, variant_value_map):
+    if value.isdigit():
+        # For MSVC (will use unsigned long if not)
+        value = f"(uint64_t){value}"
+
     if value in variant_value_map:
         return variant_value_map[value]
 

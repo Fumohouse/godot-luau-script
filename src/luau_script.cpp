@@ -638,6 +638,24 @@ LuauScript::~LuauScript() {
 #define COMMON_SELF ((ScriptInstance *)self)
 
 void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceInfo &p_info) {
+    // Must initialize potentially unused struct fields to nullptr
+    // (if not, causes segfault on MSVC).
+	p_info.property_can_revert_func = nullptr;
+	p_info.property_get_revert_func = nullptr;
+
+	p_info.call_func = nullptr;
+	p_info.notification_func = nullptr;
+
+	p_info.to_string_func = nullptr;
+
+	p_info.refcount_incremented_func = nullptr;
+	p_info.refcount_decremented_func = nullptr;
+
+	p_info.is_placeholder_func = nullptr;
+
+	p_info.set_fallback_func = nullptr;
+	p_info.get_fallback_func = nullptr;
+
     p_info.set_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) -> GDExtensionBool {
         return COMMON_SELF->set(*(const StringName *)p_name, *(const Variant *)p_value);
     };

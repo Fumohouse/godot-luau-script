@@ -165,11 +165,10 @@ TEST_CASE("luau script: instance") {
         }
 
         SECTION("virtual method name conversion") {
-            const Variant *pargs[] = {};
             Variant ret;
             GDExtensionCallError err;
 
-            inst->call("_ready", pargs, 0, &ret, &err);
+            inst->call("_ready", nullptr, 0, &ret, &err);
 
             REQUIRE(err.error == GDEXTENSION_CALL_OK);
         }
@@ -189,11 +188,10 @@ TEST_CASE("luau script: instance") {
 
         SECTION("invalid arguments") {
             SECTION("too few") {
-                const Variant *pargs[] = {};
                 Variant ret;
                 GDExtensionCallError err;
 
-                inst->call("TestMethod", pargs, 0, &ret, &err);
+                inst->call("TestMethod", nullptr, 0, &ret, &err);
 
                 REQUIRE(err.error == GDEXTENSION_CALL_ERROR_TOO_FEW_ARGUMENTS);
                 REQUIRE(err.argument == 1);

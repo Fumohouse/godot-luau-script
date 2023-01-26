@@ -73,11 +73,12 @@ using namespace godot;
 
     # push
     src.append("""\
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wswitch"
-
 void LuaStackOp<Variant>::push(lua_State *L, const Variant &value) {
     switch (value.get_type()) {
+        case Variant::VARIANT_MAX:
+            // Should never happen
+            return;
+
         case Variant::NIL:
             lua_pushnil(L);
             return;
@@ -129,8 +130,6 @@ case Variant::{class_snake}:
     src.append("""\
     }
 }
-
-#pragma GCC diagnostic pop
 """)
 
     # get

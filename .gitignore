@@ -6,6 +6,11 @@ __pycache__/
 *.os
 .sconsign.dblite
 
+# MSVC
+*.obj
+*.lib
+*.pdb
+
 # clangd
 .cache/
 compile_commands.json

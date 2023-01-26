@@ -69,20 +69,19 @@ static ApiEnum read_api_enum(uint64_t &idx) {
     Pair<String, int32_t> *values = e.values.ptrw();
 
     for (int j = 0; j < num_values; j++) {
-        values[j] = {
-            read_string(idx), // name
-            read<int32_t>(idx) // value
-        };
+        values[j].first = read_string(idx); // name
+        values[j].second = read<int32_t>(idx); // value
     }
 
     return e;
 }
 
 static ApiConstant read_api_constant(uint64_t &idx) {
-    return {
-        read_string(idx), // name
-        read<int64_t>(idx) // value
-    };
+    ApiConstant constant;
+    constant.name = read_string(idx);
+    constant.value = read<int64_t>(idx);
+
+    return constant;
 }
 
 static ApiArgumentNoDefault read_arg_no_default(uint64_t &idx) {

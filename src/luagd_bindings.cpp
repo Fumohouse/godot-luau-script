@@ -354,15 +354,17 @@ struct ArrayTypeInfo {
     lua_CFunction iter_next;
 };
 
-#define ARRAY_INFO(type, elem_type)         \
-    static const ArrayTypeInfo type##_info{ \
-        BUILTIN_MT_NAME(type) ".__len",     \
-        luaGD_array_len<type>,              \
-        BUILTIN_MT_NAME(type) ".next",      \
-        luaGD_array_next<type, elem_type>   \
-    };                                      \
-                                            \
-    return &type##_info;
+#define ARRAY_INFO(type, elem_type)             \
+    {                                           \
+        static const ArrayTypeInfo type##_info{ \
+            BUILTIN_MT_NAME(type) ".__len",     \
+            luaGD_array_len<type>,              \
+            BUILTIN_MT_NAME(type) ".next",      \
+            luaGD_array_next<type, elem_type>   \
+        };                                      \
+                                                \
+        return &type##_info;                    \
+    }
 
 // ! sync with any new arrays
 static const ArrayTypeInfo *get_array_type_info(GDExtensionVariantType type) {

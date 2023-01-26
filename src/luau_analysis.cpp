@@ -249,7 +249,7 @@ bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const String
         ret.flags = ret.flags | METHOD_FLAG_VARARG;
 
     bool has_self = func->self != nullptr;
-    bool arg_offset = has_self ? 0 : 1;
+    int arg_offset = has_self ? 0 : 1;
 
     int i = 0;
     ret.arguments.resize(has_self ? func->args.size : func->args.size - 1);
