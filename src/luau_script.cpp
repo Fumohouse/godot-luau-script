@@ -1477,6 +1477,11 @@ LuauLanguage::~LuauLanguage() {
 }
 
 void LuauLanguage::discover_core_scripts(const String &path) {
+    // Will be scanned on Windows
+    if (path == "res://.godot") {
+        return;
+    }
+
     UtilityFunctions::print_verbose("Searching for core scripts in ", path, "...");
 
     Ref<DirAccess> dir = DirAccess::open(path);
