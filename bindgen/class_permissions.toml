@@ -477,6 +477,7 @@ default_permissions = "BASE" #
 GetCurrentLength = "INHERIT" #
 GetCurrentNode = "INHERIT" #
 GetCurrentPlayPosition = "INHERIT" #
+GetFadingFromNode = "INHERIT" #
 GetTravelPath = "INHERIT" #
 IsPlaying = "INHERIT" #
 Next = "INHERIT" #
@@ -1244,6 +1245,19 @@ SetPacketSequence = "INHERIT" #
 
 #############################
 
+[AudioStreamPlaybackPolyphonic]
+inherits = "AudioStreamPlayback"
+default_permissions = "BASE" #
+
+[AudioStreamPlaybackPolyphonic.methods]
+IsStreamPlaying = "INHERIT" #
+PlayStream = "INHERIT" #
+SetStreamPitchScale = "INHERIT" #
+SetStreamVolume = "INHERIT" #
+StopStream = "INHERIT" #
+
+#############################
+
 [AudioStreamPlaybackResampled]
 inherits = "AudioStreamPlayback"
 default_permissions = "BASE" #
@@ -1368,6 +1382,16 @@ SetStreamPaused = "INHERIT" #
 SetUnitSize = "INHERIT" #
 SetVolumeDb = "INHERIT" #
 Stop = "INHERIT" #
+
+#############################
+
+[AudioStreamPolyphonic]
+inherits = "AudioStream"
+default_permissions = "BASE" #
+
+[AudioStreamPolyphonic.methods]
+GetPolyphony = "INHERIT" #
+SetPolyphony = "INHERIT" #
 
 #############################
 
@@ -3384,6 +3408,24 @@ SaveToString = "INHERIT" #
 
 #############################
 
+[Cubemap]
+inherits = "ImageTextureLayered"
+default_permissions = "BASE" #
+
+[Cubemap.methods]
+CreatePlaceholder = "INHERIT" #
+
+#############################
+
+[CubemapArray]
+inherits = "ImageTextureLayered"
+default_permissions = "BASE" #
+
+[CubemapArray.methods]
+CreatePlaceholder = "INHERIT" #
+
+#############################
+
 [Curve]
 inherits = "Resource"
 default_permissions = "BASE" #
@@ -5057,7 +5099,6 @@ inherits = "Script"
 default_permissions = "BASE" #
 
 [GDScript.methods]
-GetAsByteCode = "INHERIT" #
 New = "INHERIT" #
 
 #############################
@@ -6337,6 +6378,7 @@ IsActionPressed = "INHERIT" #
 IsAnythingPressed = "INHERIT" #
 IsJoyButtonPressed = "INHERIT" #
 IsJoyKnown = "INHERIT" #
+IsKeyLabelPressed = "INHERIT" #
 IsKeyPressed = "INHERIT" #
 IsMouseButtonPressed = "INHERIT" #
 IsPhysicalKeyPressed = "INHERIT" #
@@ -6442,12 +6484,18 @@ inherits = "InputEventWithModifiers"
 default_permissions = "BASE" #
 
 [InputEventKey.methods]
+AsTextKeyLabel = "INHERIT" #
+AsTextKeycode = "INHERIT" #
+AsTextPhysicalKeycode = "INHERIT" #
+GetKeyLabel = "INHERIT" #
+GetKeyLabelWithModifiers = "INHERIT" #
 GetKeycode = "INHERIT" #
 GetKeycodeWithModifiers = "INHERIT" #
 GetPhysicalKeycode = "INHERIT" #
 GetPhysicalKeycodeWithModifiers = "INHERIT" #
 GetUnicode = "INHERIT" #
 SetEcho = "INHERIT" #
+SetKeyLabel = "INHERIT" #
 SetKeycode = "INHERIT" #
 SetPhysicalKeycode = "INHERIT" #
 SetPressed = "INHERIT" #
@@ -6598,6 +6646,7 @@ inherits = "InputEventFromWindow"
 default_permissions = "BASE" #
 
 [InputEventWithModifiers.methods]
+GetModifiersMask = "INHERIT" #
 IsAltPressed = "INHERIT" #
 IsCommandOrControlAutoremap = "INHERIT" #
 IsCommandOrControlPressed = "INHERIT" #
@@ -6722,13 +6771,14 @@ SortItemsByText = "INHERIT" #
 #############################
 
 [JSON]
-inherits = "RefCounted"
+inherits = "Resource"
 default_permissions = "BASE" #
 
 [JSON.methods]
 GetData = "INHERIT" #
 GetErrorLine = "INHERIT" #
 GetErrorMessage = "INHERIT" #
+GetParsedText = "INHERIT" #
 Parse = "INHERIT" #
 ParseString = "INHERIT" #
 SetData = "INHERIT" #
@@ -7306,6 +7356,7 @@ inherits = "Resource"
 default_permissions = "BASE" #
 
 [Material.methods]
+CreatePlaceholder = "INHERIT" #
 GetNextPass = "INHERIT" #
 GetRenderPriority = "INHERIT" #
 InspectNativeShaderCode = "INHERIT" #
@@ -7368,6 +7419,7 @@ default_permissions = "BASE" #
 [Mesh.methods]
 CreateConvexShape = "INHERIT" #
 CreateOutline = "INHERIT" #
+CreatePlaceholder = "INHERIT" #
 CreateTrimeshShape = "INHERIT" #
 GenerateTriangleMesh = "INHERIT" #
 GetAabb = "INHERIT" #
@@ -12250,7 +12302,7 @@ default_permissions = "BASE" #
 GetCode = "INHERIT" #
 GetDefaultTextureParameter = "INHERIT" #
 GetMode = "INHERIT" #
-HasParameter = "INHERIT" #
+GetShaderUniformList = "INHERIT" #
 SetCode = "INHERIT" #
 SetDefaultTextureParameter = "INHERIT" #
 
@@ -13210,14 +13262,13 @@ default_permissions = "BASE" #
 
 [StyleBox.methods]
 Draw = "INHERIT" #
-GetCenterSize = "INHERIT" #
+GetContentMargin = "INHERIT" #
 GetCurrentItemDrawn = "INHERIT" #
-GetDefaultMargin = "INHERIT" #
 GetMargin = "INHERIT" #
 GetMinimumSize = "INHERIT" #
 GetOffset = "INHERIT" #
-SetDefaultMargin = "INHERIT" #
-SetDefaultMarginAll = "INHERIT" #
+SetContentMargin = "INHERIT" #
+SetContentMarginAll = "INHERIT" #
 TestMask = "INHERIT" #
 
 #############################
@@ -13285,23 +13336,23 @@ inherits = "StyleBox"
 default_permissions = "BASE" #
 
 [StyleBoxTexture.methods]
-GetExpandMarginSize = "INHERIT" #
+GetExpandMargin = "INHERIT" #
 GetHAxisStretchMode = "INHERIT" #
-GetMarginSize = "INHERIT" #
 GetModulate = "INHERIT" #
 GetRegionRect = "INHERIT" #
 GetTexture = "INHERIT" #
+GetTextureMargin = "INHERIT" #
 GetVAxisStretchMode = "INHERIT" #
 IsDrawCenterEnabled = "INHERIT" #
 SetDrawCenter = "INHERIT" #
+SetExpandMargin = "INHERIT" #
 SetExpandMarginAll = "INHERIT" #
-SetExpandMarginSize = "INHERIT" #
 SetHAxisStretchMode = "INHERIT" #
-SetMarginSize = "INHERIT" #
-SetMarginSizeAll = "INHERIT" #
 SetModulate = "INHERIT" #
 SetRegionRect = "INHERIT" #
 SetTexture = "INHERIT" #
+SetTextureMargin = "INHERIT" #
+SetTextureMarginAll = "INHERIT" #
 SetVAxisStretchMode = "INHERIT" #
 
 #############################
@@ -14105,6 +14156,7 @@ inherits = "Texture"
 default_permissions = "BASE" #
 
 [Texture2D.methods]
+CreatePlaceholder = "INHERIT" #
 Draw = "INHERIT" #
 DrawRect = "INHERIT" #
 DrawRectRegion = "INHERIT" #
@@ -14116,11 +14168,21 @@ HasAlpha = "INHERIT" #
 
 #############################
 
+[Texture2DArray]
+inherits = "ImageTextureLayered"
+default_permissions = "BASE" #
+
+[Texture2DArray.methods]
+CreatePlaceholder = "INHERIT" #
+
+#############################
+
 [Texture3D]
 inherits = "Texture"
 default_permissions = "BASE" #
 
 [Texture3D.methods]
+CreatePlaceholder = "INHERIT" #
 GetData = "INHERIT" #
 GetDepth = "INHERIT" #
 GetFormat = "INHERIT" #
@@ -16597,9 +16659,10 @@ inherits = "XRNode3D"
 default_permissions = "BASE" #
 
 [XRController3D.methods]
-GetAxis = "INHERIT" #
+GetFloat = "INHERIT" #
+GetInput = "INHERIT" #
 GetTrackerHand = "INHERIT" #
-GetValue = "INHERIT" #
+GetVector2 = "INHERIT" #
 IsButtonPressed = "INHERIT" #
 
 #############################

@@ -172,7 +172,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: setget") {
         Ref<StyleBox> style_box;
         style_box.instantiate();
 
-        style_box->set_default_margin(Side::SIDE_BOTTOM, 4.25);
+        style_box->set_content_margin(Side::SIDE_BOTTOM, 4.25);
 
         LuaStackOp<Object *>::push(L, style_box.ptr());
         lua_setglobal(L, "styleBox");
