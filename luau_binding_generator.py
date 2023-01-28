@@ -45,11 +45,10 @@ def scons_generate_bindings(target, source, env):
     include_dir.mkdir(parents=True, exist_ok=True)
 
     defs_dir = Path(output_dir) / "definitions"
-    defs_dir.mkdir(parents=True, exist_ok=True)
 
     # Codegen
     generate_stack_ops(src_dir, include_dir, api)
     generate_api_bin(src_dir, api, str(source[1]))
-    generate_typedefs(defs_dir, api)
+    generate_typedefs(defs_dir, api, str(source[2]))
 
     return None
