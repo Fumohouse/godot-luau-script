@@ -3,5 +3,12 @@
         ".sconsign.dblite": true,
         "**/*.o": true,
         "**/*.os": true
+    },
+    "luau-lsp.types.roblox": false,
+    "luau-lsp.types.definitionFiles": [
+        "definitions/luauScriptTypes.gen.d.lua"
+    ],
+    "luau-lsp.fflags.override": {
+        "LuauRecursionLimit": "5000"
     }
 }

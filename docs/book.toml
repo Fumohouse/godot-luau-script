@@ -1,0 +1,10 @@
+[book]
+authors = ["voidedWarranties"]
+language = "en"
+multilingual = false
+create-missing = false
+src = "src"
+title = "godot-luau-script Documentation"
+
+[output.html.fold]
+enable = true

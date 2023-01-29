@@ -1,5 +1,5 @@
 gen/
-definitions/
+definitions/*.gen.d.lua
 __pycache__/
 *.a
 *.o

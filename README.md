@@ -5,32 +5,7 @@
 GDExtension for Godot 4 adding support for [Luau](https://github.com/Roblox/luau),
 a variant of Lua 5.1, to Godot as a scripting language.
 
-## Disclaimer
-
-* Some editor functionality is still not implemented (mostly analysis/autocomplete support) and won't be for some time.
-* Security is not guaranteed.
-* (Potentially major) breaking changes will happen often and whenever necessary.
-
-## Priorities
-
-This particular implementation has a few specific aims and goals:
-
-* Allow for (relatively) safe loading of user-generated content including scripts
-  * Sandbox "core" and "user" scripts from each other (separate Lua VMs)
-  * Enforce permission levels for restricted APIs (like networking or filesystem access)
-  * Limit breakage of the game by user scripts
-* Provide bindings for every Godot API exposed through GDExtension
-* Support typechecking of source files
-
-## Typechecking
-
-Type checking is supported with a type definition file generated at `definitions/luauScriptTypes.gen.d.lua` during compile.
-
-Notes:
-
-* It may be necessary to set the following Luau FFlags:
-  * `LuauRecursionLimit`: Since the file is large, Luau may error before it is finished parsing.
-* Some things may not work properly yet (e.g. keyed and indexed getters produce analysis errors)
+[Documentation](https://fumohouse.github.io/gls-docs/)
 
 ## License
 

@@ -604,8 +604,14 @@ static int luascript_classprop_namecall(lua_State *L) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_FLOAT)
                 luaGD_hinterror(L, "exp easing", "float");
 
+            const char *hint_string = luaL_optstring(L, 2, "");
+            if (strcmp(hint_string, "") != 0 &&
+                    strcmp(hint_string, "attenuation") != 0 &&
+                    strcmp(hint_string, "positive_only") != 0)
+                luaL_error(L, "ExpEasing expects a hint value of either \"attenuation\" or \"positive_only\"");
+
             prop->property.hint = PROPERTY_HINT_EXP_EASING;
-            prop->property.hint_string = String();
+            prop->property.hint_string = hint_string;
         } else if (strcmp(key, "NoAlpha") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_COLOR)
                 luaGD_hinterror(L, "no alpha", "color");
