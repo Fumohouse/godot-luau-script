@@ -57,7 +57,6 @@ class LuauScript : public ScriptExtension {
 
     friend class LuauLanguage;
     friend class LuauCache;
-    friend class GDLuau;
     friend class LuauScriptInstance;
     friend class PlaceHolderScriptInstance;
 
@@ -94,8 +93,6 @@ private:
 
     void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
     bool update_exports_internal(bool *r_err, PlaceHolderScriptInstance *p_instance_to_update);
-
-    static Error get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid);
 
 #ifdef TESTS_ENABLED
 public:
@@ -163,6 +160,8 @@ public:
     TypedArray<Dictionary> _get_documentation() const override { return TypedArray<Dictionary>(); }
 
     /* MISC (NON OVERRIDE) */
+    static Error get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid);
+
     const LuauData &get_luau_data() const { return luau_data; }
     Ref<LuauScript> get_base() const { return base; }
 

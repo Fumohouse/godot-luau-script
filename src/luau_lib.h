@@ -17,6 +17,8 @@
 
 using namespace godot;
 
+#define LUASCRIPT_MODULE_TABLE "_MODULES"
+
 struct lua_State;
 
 struct GDProperty {

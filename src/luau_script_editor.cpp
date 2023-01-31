@@ -1,4 +1,3 @@
-#include "luau_lib.h"
 #include "luau_script.h"
 
 #include <gdextension_interface.h>
@@ -22,6 +21,7 @@
 
 #include "gd_luau.h"
 #include "luau_cache.h"
+#include "luau_lib.h"
 
 namespace godot {
 class Object;
@@ -190,7 +190,7 @@ void LuauScript::unload_module() {
     for (int i = 0; i < GDLuau::VM_MAX; i++) {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
 
-        luaL_findtable(L, LUA_REGISTRYINDEX, GDLuau::MODULE_TABLE, 1);
+        luaL_findtable(L, LUA_REGISTRYINDEX, LUASCRIPT_MODULE_TABLE, 1);
         lua_pushnil(L);
         lua_setfield(L, -2, get_path().utf8().get_data());
 

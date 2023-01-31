@@ -27,13 +27,7 @@ private:
     lua_State *vms[VM_MAX];
     void init_vm(VMType p_type);
 
-    static const luaL_Reg global_funcs[];
-    static int gdluau_require(lua_State *L);
-
 public:
-
-    static const char *MODULE_TABLE;
-
     static GDLuau *get_singleton() { return singleton; }
 
     lua_State *get_vm(VMType p_type);
