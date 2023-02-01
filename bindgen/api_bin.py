@@ -219,12 +219,14 @@ def generate_utility_function(io, utility_function):
     # ApiUtilityFunction
 
     name = utility_function["name"]
-    luau_name = utils.utils_to_bind[name] if utils.utils_to_bind[name] else name
+    luau_name, is_print_func = utils.utils_to_bind[name]
+    luau_name = luau_name if luau_name else name
 
     write_string(io, luau_name)  # String luau_name
     write_string(io, name)  # String gd_name
     write_string(io, f"Godot.UtilityFunctions.{name}")  # String debug_name
     write_bool(io, utility_function["is_vararg"])  # bool is_vararg
+    write_bool(io, is_print_func)  # bool is_print_func
 
     write_uint32(io, utility_function["hash"])  # uint32_t hash
 

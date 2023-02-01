@@ -240,6 +240,7 @@ ExtensionApi &get_extension_api() {
                 StringName gd_name = read_string(idx);
                 func.debug_name = read_string(idx);
                 func.is_vararg = read<uint8_t>(idx);
+                func.is_print_func = read<uint8_t>(idx);
 
                 uint32_t hash = read<uint32_t>(idx);
                 func.func = internal::gde_interface->variant_get_ptr_utility_function(&gd_name, hash);

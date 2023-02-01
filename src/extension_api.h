@@ -53,6 +53,7 @@ struct ApiUtilityFunction {
     const char *debug_name;
 
     bool is_vararg;
+    bool is_print_func;
 
     GDExtensionPtrUtilityFunction func;
     Vector<ApiArgumentNoDefault> arguments;

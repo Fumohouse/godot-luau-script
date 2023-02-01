@@ -17,6 +17,7 @@
 
 #include "extension_api.h"
 #include "gd_luau.h"
+#include "godot_cpp/variant/utility_functions.hpp"
 #include "luagd.h"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_permissions.h"
@@ -1384,6 +1385,31 @@ static int luaGD_utility_function(lua_State *L) {
     }
 }
 
+static int luaGD_print_function(lua_State *L) {
+    GDExtensionPtrUtilityFunction func = (GDExtensionPtrUtilityFunction)lua_tolightuserdata(L, lua_upvalueindex(1));
+
+    int nargs = lua_gettop(L);
+
+    Vector<Variant> varargs;
+    Vector<const void *> pargs;
+
+    varargs.resize(nargs);
+    pargs.resize(nargs);
+
+    for (int i = 0; i < nargs; i++) {
+        if (LuaStackOp<Variant>::is(L, i + 1)) {
+            varargs.set(i, LuaStackOp<Variant>::get(L, i + 1));
+        } else {
+            varargs.set(i, luaL_tolstring(L, i + 1, nullptr));
+        }
+
+        pargs.set(i, &varargs[i]);
+    }
+
+    func(nullptr, pargs.ptr(), pargs.size());
+    return 0;
+}
+
 void luaGD_openglobals(lua_State *L) {
     LUAGD_LOAD_GUARD(L, "_gdGlobalsLoaded")
 
@@ -1435,8 +1461,14 @@ void luaGD_openglobals(lua_State *L) {
 
     // Utility functions
     for (const ApiUtilityFunction &utility_function : api.utility_functions) {
-        lua_pushlightuserdata(L, (void *)&utility_function);
-        lua_pushcclosure(L, luaGD_utility_function, utility_function.debug_name, 1);
+        if (utility_function.is_print_func) {
+            lua_pushlightuserdata(L, (void *)utility_function.func);
+            lua_pushcclosure(L, luaGD_print_function, utility_function.debug_name, 1);
+        } else {
+            lua_pushlightuserdata(L, (void *)&utility_function);
+            lua_pushcclosure(L, luaGD_utility_function, utility_function.debug_name, 1);
+        }
+
         lua_setglobal(L, utility_function.name);
     }
 }

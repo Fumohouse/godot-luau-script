@@ -92,29 +92,32 @@ def get_enum_value_name(enum_name, value_name):
 
 utils_to_bind = {
     # math functions not provided by Luau
-    "ease": None,
-    "lerpf": "lerp",
-    "cubic_interpolate": None,
-    "bezier_interpolate": None,
-    "lerp_angle": None,
-    "inverse_lerp": None,
-    "range_lerp": None,
-    "smoothstep": None,
-    "move_toward": None,
-    "linear2db": None,
-    "db2linear": None,
-    "wrapf": "wrap",
-    "pingpong": None,
+    "ease": (None, False),
+    "lerpf": ("lerp", False),
+    "cubic_interpolate": (None, False),
+    "bezier_interpolate": (None, False),
+    "lerp_angle": (None, False),
+    "inverse_lerp": (None, False),
+    "range_lerp": (None, False),
+    "smoothstep": (None, False),
+    "move_toward": (None, False),
+    "linear2db": (None, False),
+    "db2linear": (None, False),
+    "wrapf": ("wrap", False),
+    "pingpong": (None, False),
+
+    # print
+    "print": (None, True),
+    "printraw": (None, True),
+    "printerr": (None, True),
+    "print_verbose": (None, True),
+    "print_rich": (None, True),
+    "push_error": (None, True),
+    "push_warning": (None, True),
 
     # other
-    "print": None,
-    "print_rich": None,
-    "printerr": None,
-    "printraw": None,
-    "print_verbose": None,
-    "push_warning": "warn",
-    "hash": None,
-    "is_instance_valid": None,
+    "hash": (None, False),
+    "is_instance_valid": (None, False),
 }
 
 variant_op_map = {

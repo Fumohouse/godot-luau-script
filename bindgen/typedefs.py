@@ -432,12 +432,17 @@ def generate_typedefs(defs_dir, api, lib_types):
         if func_name not in utils.utils_to_bind:
             continue
 
-        func_name = utils.utils_to_bind[func_name] if utils.utils_to_bind[func_name] else func_name
-        func_ret_str = ": " + \
-            get_luau_type(func["return_type"], True) if "return_type" in func else ""
+        func_name_luau, is_print_func = utils.utils_to_bind[func_name]
+        func_name = func_name_luau if func_name_luau else func_name
 
-        src.append(
-            f"declare function {func_name}({generate_args(func, False)}){func_ret_str}")
+        if is_print_func:
+            src.append(f"declare function {func_name}(...: any)")
+        else:
+            func_ret_str = ": " + \
+                get_luau_type(func["return_type"], True) if "return_type" in func else ""
+
+            src.append(
+                f"declare function {func_name}({generate_args(func, False)}){func_ret_str}")
 
     src.append("")
 
