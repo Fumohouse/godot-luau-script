@@ -49,7 +49,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: consts and enums") {
     }
 
     SECTION("enums") {
-        ASSERT_EVAL_EQ(L, "return Object.ConnectFlags.CONNECT_ONE_SHOT", int, 4)
+        ASSERT_EVAL_EQ(L, "return Object.ConnectFlags.ONE_SHOT", int, 4)
     }
 }
 

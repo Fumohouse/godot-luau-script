@@ -190,7 +190,7 @@ def generate_enum(io, enum):
     write_uint64(io, len(values))  # uint64_t num_values
 
     for value in values:  # VALUES
-        value_name = utils.get_enum_value_name(enum_name, value["name"])
+        value_name = utils.get_enum_value_name(enum, value["name"])
 
         write_string(io, value_name)  # String name
         write_int32(io, value["value"])  # int32_t value

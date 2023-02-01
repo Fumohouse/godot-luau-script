@@ -134,7 +134,7 @@ def generate_enum(src, enum, class_name=""):
     src.append(f"declare class {internal_type_name}")
 
     for value in values:
-        value_name = utils.get_enum_value_name(name, value["name"])
+        value_name = utils.get_enum_value_name(enum, value["name"])
         append(src, 1, f"{value_name}: {type_name}")
 
     src.append("end")

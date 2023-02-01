@@ -65,26 +65,43 @@ def get_enum_name(enum_name):
     return enum_name.replace(".", "")
 
 
-def get_enum_value_name(enum_name, value_name):
-    special_prefixes = {
-        "PropertyUsageFlags": "PROPERTY_USAGE_",
-        "MethodFlags": "METHOD_FLAG_",
-        "VariantType": "TYPE_",
-        "VariantOperator": "OP_",
+def get_enum_value_name(enum, value_name):
+    # Find prefix (defined as common preceding letters with underscore at end)
+    enum_prefix = ""
 
-        # Class
-        "PrimitiveType": "PRIMITIVE_"
-    }
+    enum_values = enum["values"]
+    first_val_name = enum_values[0]["name"]
 
-    enum_prefix = binding_generator.camel_to_snake(enum_name).upper() + "_"
-    if enum_name in special_prefixes:
-        enum_prefix = special_prefixes[enum_name]
+    i = 0
+    while True:
+        if i >= len(first_val_name):
+            break
 
+        candidate_letter = first_val_name[i]
+        invalid_count = 0
+        for value in enum_values:
+            val_name = value["name"]
+
+            if i >= len(val_name) or val_name[i] != candidate_letter:
+                invalid_count += 1
+
+        # e.g. METHOD_FLAG_, METHOD_FLAGS_DEFAULT
+        if invalid_count > 1:
+            break
+
+        enum_prefix += candidate_letter
+        i += 1
+
+    # Necessary because e.g. TRANSFER_MODE_UNRELIABLE, TRANSFER_MODE_UNRELIABLE_ORDERED common U
+    while len(enum_prefix) > 0 and not enum_prefix.endswith("_"):
+        enum_prefix = enum_prefix[:-1]
+
+    # Find value
     if value_name.startswith(enum_prefix):
         value_name = value_name[len(enum_prefix):]
 
-    # Key codes
     if value_name[0].isdigit():
+        # Key codes, etc.
         value_name = "N" + value_name
 
     return value_name
