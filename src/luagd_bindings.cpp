@@ -206,7 +206,7 @@ static int get_arguments(lua_State *L,
                 get_argument(L, i + 1 + arg_offset, method.arguments[i], arg);
                 varargs->set(i, arg.to_variant());
             } else {
-                varargs->set(i, LuaStackOp<Variant>::get(L, i + 1 + arg_offset));
+                varargs->set(i, LuaStackOp<Variant>::check(L, i + 1 + arg_offset));
             }
 
             pargs->set(i, &varargs->operator[](i));
@@ -250,7 +250,10 @@ static int luaGD_variant_tostring(lua_State *L) {
     return 1;
 }
 
-void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
+static void luaGD_newlib(lua_State *L,
+        GDExtensionVariantType variant_type,
+        const char *global_name, const char *mt_name,
+        int class_idx = -1) {
     luaL_newmetatable(L, mt_name); // instance metatable
     lua_newtable(L); // global table
     lua_createtable(L, 0, 2); // global metatable - assume 2 fields: __fortype, __index
@@ -270,6 +273,16 @@ void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
     lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
     lua_setfield(L, -4, "__tostring");
 
+    // Variant type ID
+    lua_pushinteger(L, variant_type);
+    lua_setfield(L, -4, MT_VARIANT_TYPE);
+
+    // Object type ID
+    if (class_idx >= 0) {
+        lua_pushinteger(L, class_idx);
+        lua_setfield(L, -4, MT_CLASS_TYPE);
+    }
+
     // set global table's metatable
     lua_pushvalue(L, -1);
     lua_setmetatable(L, -3);
@@ -278,12 +291,7 @@ void luaGD_newlib(lua_State *L, const char *global_name, const char *mt_name) {
     lua_setglobal(L, global_name);
 }
 
-void luaGD_poplib(lua_State *L, bool is_obj, int class_idx = -1) {
-    if (is_obj) {
-        lua_pushinteger(L, class_idx);
-        lua_setfield(L, -4, "__gdclass");
-    }
-
+static void luaGD_poplib(lua_State *L) {
     // global will be set readonly on sandbox
     lua_setreadonly(L, -3, true); // instance metatable
     lua_setreadonly(L, -1, true); // global metatable
@@ -466,7 +474,7 @@ static int luaGD_builtin_ctor(lua_State *L) {
             GDExtensionVariantType type = ctor.arguments[i].type;
 
             if (!LuaStackOp<Variant>::is(L, i + 1) ||
-                    !variant_types_compatible(LuaStackOp<Variant>::get(L, i + 1).get_type(), (Variant::Type)type)) {
+                    !variant_types_compatible(LuaStackOp<Variant>::check(L, i + 1).get_type(), (Variant::Type)type)) {
                 valid = false;
                 break;
             }
@@ -724,7 +732,7 @@ static int luaGD_builtin_operator(lua_State *L) {
     for (const ApiVariantOperator &op : builtin_class->operators.get(var_op)) {
         if (op.right_type == GDEXTENSION_VARIANT_TYPE_NIL) {
             right_ptr = nullptr;
-        } else if (LuaStackOp<Variant>::is(L, 2) && variant_types_compatible(LuaStackOp<Variant>::get(L, 2).get_type(), (Variant::Type)op.right_type)) {
+        } else if (LuaStackOp<Variant>::is(L, 2) && variant_types_compatible(LuaStackOp<Variant>::check(L, 2).get_type(), (Variant::Type)op.right_type)) {
             right.lua_check(L, 2, op.right_type);
             right_ptr = right.get_opaque_pointer();
         } else {
@@ -763,7 +771,7 @@ void luaGD_openbuiltins(lua_State *L) {
     const ExtensionApi &extension_api = get_extension_api();
 
     for (const ApiBuiltinClass &builtin_class : extension_api.builtin_classes) {
-        luaGD_newlib(L, builtin_class.name, builtin_class.metatable_name);
+        luaGD_newlib(L, builtin_class.type, builtin_class.name, builtin_class.metatable_name);
 
         // Enums
         for (const ApiEnum &class_enum : builtin_class.enums) {
@@ -876,7 +884,7 @@ void luaGD_openbuiltins(lua_State *L) {
             lua_setfield(L, -4, "__iter");
         }
 
-        luaGD_poplib(L, false);
+        luaGD_poplib(L);
     }
 
     // Special cases
@@ -1291,7 +1299,7 @@ void luaGD_openclasses(lua_State *L) {
     for (int i = 0; i < extension_api.classes.size(); i++) {
         ApiClass &g_class = classes[i];
 
-        luaGD_newlib(L, g_class.name, g_class.metatable_name);
+        luaGD_newlib(L, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name, g_class.metatable_name, i);
 
         // Enums
         for (const ApiEnum &class_enum : g_class.enums) {
@@ -1345,7 +1353,7 @@ void luaGD_openclasses(lua_State *L) {
         lua_pushcclosure(L, luaGD_class_singleton_getter, g_class.singleton_getter_debug_name, 1);
         lua_setfield(L, -3, "GetSingleton");
 
-        luaGD_poplib(L, true, i);
+        luaGD_poplib(L);
     }
 }
 

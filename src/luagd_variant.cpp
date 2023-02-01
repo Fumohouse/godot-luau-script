@@ -164,11 +164,29 @@ struct VariantPtrMethods : public VariantPtrMethodsBase<T> {
 };
 
 // Never pulls pointer from Luau.
+// Special case of NIL type must be handled: LuauVariant and LuaStackOp<Variant> depend on each other
+// and NIL will result in an infinite loop if not handled.
 struct VariantVariantMethods : public VariantPtrMethodsBase<Variant> {
     bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
         initialize(self);
-        *(Variant *)self._data._ptr = LuaStackOp<Variant>::check(L, idx);
+
+        if (lua_isnil(L, idx)) {
+            *(Variant *)self._data._ptr = Variant();
+        } else {
+            *(Variant *)self._data._ptr = LuaStackOp<Variant>::check(L, idx);
+        }
+
         return false;
+    }
+
+    virtual void push(const LuauVariant &self, lua_State *L) const override {
+        const Variant &val = *(const Variant *)self._data._ptr;
+
+        if (val.get_type() == Variant::NIL) {
+            lua_pushnil(L);
+        } else {
+            LuaStackOp<Variant>::push(L, val);
+        }
     }
 };
 
@@ -187,6 +205,7 @@ struct VariantObjectMethods : public VariantMethods {
         // - Use _arg for all arguments
         // - _arg is never needed for return values or builtin/class `self`
         // - _arg is never needed for values which will never be Object
+        // - Use _arg for Variant constructors (why?!)
 
         // This is a mess. Hopefully it gets fixed at some point.
         if (is_arg)
@@ -341,8 +360,8 @@ void LuauVariant::lua_check(lua_State *L, int idx, GDExtensionVariantType requir
     // is rarely run on an already-initialized object where the type is the same.
     clear();
 
-    from_luau = type_methods[required_type]->check(*this, L, idx, type_name);
     type = required_type;
+    from_luau = type_methods[required_type]->check(*this, L, idx, type_name);
 }
 
 void LuauVariant::lua_push(lua_State *L) const {
@@ -372,7 +391,7 @@ Variant LuauVariant::to_variant() {
         return *get_ptr<Variant>();
 
     Variant ret;
-    to_variant_ctors[type](&ret, get_opaque_pointer_arg());
+    to_variant_ctors[type](&ret, get_opaque_pointer());
 
     return ret;
 }

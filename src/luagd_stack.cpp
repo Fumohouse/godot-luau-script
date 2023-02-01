@@ -4,11 +4,13 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
+#include <cmath>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_bindings.h"
 
@@ -146,6 +148,86 @@ Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
         luaL_typeerrorL(L, index, "Object");
 
     return LuaStackOp<Object *>::get(L, index);
+}
+
+/* VARIANT */
+
+void LuaStackOp<Variant>::push(lua_State *L, const Variant &value) {
+    LuauVariant lv;
+
+    lv.initialize(GDExtensionVariantType(value.get_type()));
+    lv.assign_variant(value);
+    lv.lua_push(L);
+}
+
+Variant LuaStackOp<Variant>::get(lua_State *L, int index) {
+    int type = LuaStackOp<Variant>::get_type(L, index);
+    if (type == -1)
+        return Variant();
+
+    LuauVariant lv;
+    lv.lua_check(L, index, GDExtensionVariantType(type));
+
+    return lv.to_variant();
+}
+
+bool LuaStackOp<Variant>::is(lua_State *L, int index) {
+    return LuaStackOp<Variant>::get_type(L, index) != -1;
+}
+
+int LuaStackOp<Variant>::get_type(lua_State *L, int index) {
+    switch (lua_type(L, index)) {
+        case LUA_TNIL:
+            return GDEXTENSION_VARIANT_TYPE_NIL;
+
+        case LUA_TBOOLEAN:
+            return GDEXTENSION_VARIANT_TYPE_BOOL;
+
+        case LUA_TNUMBER: {
+            // Somewhat frail...
+            double value = lua_tonumber(L, index);
+            double int_part;
+
+            if (std::modf(value, &int_part) == 0.0)
+                return GDEXTENSION_VARIANT_TYPE_INT;
+            else
+                return GDEXTENSION_VARIANT_TYPE_FLOAT;
+        }
+
+        case LUA_TSTRING:
+            return GDEXTENSION_VARIANT_TYPE_STRING;
+
+        case LUA_TUSERDATA:
+            // Pass through to below with metatable on stack
+            if (!lua_getmetatable(L, index))
+                return -1;
+
+            break;
+
+        default:
+            return -1;
+    }
+
+    lua_getfield(L, -1, MT_VARIANT_TYPE);
+
+    if (lua_isnil(L, -1))
+        return -1;
+
+    int type = lua_tonumber(L, -1);
+    lua_pop(L, 2); // value, metatable
+
+    return type;
+}
+
+Variant LuaStackOp<Variant>::check(lua_State *L, int index) {
+    int type = LuaStackOp<Variant>::get_type(L, index);
+    if (type == -1)
+        luaL_typeerrorL(L, index, "Variant");
+
+    LuauVariant lv;
+    lv.lua_check(L, index, GDExtensionVariantType(type));
+
+    return lv.to_variant();
 }
 
 /* STRING COERCION */

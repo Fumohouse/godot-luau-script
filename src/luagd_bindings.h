@@ -5,6 +5,9 @@
 #define BUILTIN_MT_PREFIX "Godot.Builtin."
 #define BUILTIN_MT_NAME(type) BUILTIN_MT_PREFIX #type
 
+#define MT_VARIANT_TYPE "__gdvariant"
+#define MT_CLASS_TYPE "__gdclass"
+
 #define LUAGD_LOAD_GUARD(L, key)             \
     lua_getfield(L, LUA_REGISTRYINDEX, key); \
                                              \

@@ -85,9 +85,15 @@ struct LuaStackOp<Object *> {
     static GDObjectInstanceID *get_ptr(lua_State *L, int index);
 };
 
-// Defined early to avoid specialization before declaraction.
-// Implementation is generated.
-STACK_OP_DEF(Variant)
+template <>
+struct LuaStackOp<Variant> {
+    static void push(lua_State *L, const Variant &value);
+
+    static Variant get(lua_State *L, int index);
+    static bool is(lua_State *L, int index);
+    static int get_type(lua_State *L, int index);
+    static Variant check(lua_State *L, int index);
+};
 
 STACK_OP_STR_DEF(StringName)
 STACK_OP_STR_DEF(NodePath)

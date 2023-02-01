@@ -53,6 +53,10 @@ static void variant_test(lua_State *L, GDExtensionVariantType type, const T &val
                 REQUIRE(copy.get_type() == type);
                 REQUIRE(cmp_eq(variant, value));
             }
+
+            SECTION("to variant") {
+                REQUIRE(variant.to_variant() == Variant(value));
+            }
         }
 
         SECTION("stack") {
