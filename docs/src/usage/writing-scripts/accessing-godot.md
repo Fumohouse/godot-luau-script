@@ -53,6 +53,7 @@ Additionally, if an enum name begins with a number after renaming (e.g. `KEY_9` 
 | Array iteration               | `for item in <Array>:`      | `for index, item in <Array> do` ***     |
 | Dictionary iteration          | `for key in <Dictionary>:`  | `for key, value in <Dictionary> do` *** |
 | Variant type operators        | `<A> <Op> <B>`/`<Unary><A>` | *unchanged* \*\*\*\*                    | `v1 == v2`              | *unchanged*                |
+| Variant/Object to string      | `str(<Instance>)`           | `tostring(<Instance>)`                  |
 
 *: In contrast to traditional Lua OOP, `v1.Dot(v1, v2)` is not valid. \
 \*\*: Variant type properties (e.g. `Vector2.x`) **cannot be set** because Luau does not support copy on assign (as C++ and GDScript do). You must construct a new object instead. \
