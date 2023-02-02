@@ -1711,7 +1711,7 @@ String ResourceFormatLoaderLuauScript::_get_resource_type(const String &p_path) 
     return get_resource_type(p_path);
 }
 
-Variant ResourceFormatLoaderLuauScript::_load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int64_t p_cache_mode) const {
+Variant ResourceFormatLoaderLuauScript::_load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int32_t p_cache_mode) const {
     Error err;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(p_path, err, p_cache_mode == CACHE_MODE_IGNORE);
 
@@ -1735,7 +1735,7 @@ bool ResourceFormatSaverLuauScript::_recognize(const Ref<Resource> &p_resource) 
     return ref.is_valid();
 }
 
-int64_t ResourceFormatSaverLuauScript::_save(const Ref<Resource> &p_resource, const String &p_path, int64_t p_flags) {
+Error ResourceFormatSaverLuauScript::_save(const Ref<Resource> &p_resource, const String &p_path, uint32_t p_flags) {
     Ref<LuauScript> script = p_resource;
     ERR_FAIL_COND_V(script.is_null(), ERR_INVALID_PARAMETER);
 

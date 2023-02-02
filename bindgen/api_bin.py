@@ -486,7 +486,6 @@ def generate_class_type(io, type_string, classes):
     type_name = ""
     is_enum = False
     is_bitfield = False
-    typed_array_type = get_variant_type("Variant")
 
     if type_string == "Nil":
         pass
@@ -494,15 +493,8 @@ def generate_class_type(io, type_string, classes):
         variant_type = get_variant_type("Object")
         type_name = type_string
     elif type_string.startswith(constants.typed_array_prefix):
-        array_type_name = type_string.split(":")[-1]
-
         variant_type = get_variant_type("Array")
-
-        if is_object_type(array_type_name, classes):
-            type_name = array_type_name
-            typed_array_type = get_variant_type("Object")
-        else:
-            typed_array_type = get_variant_type(array_type_name)
+        type_name = type_string.split(":")[-1]
     elif type_string.startswith(constants.enum_prefix):
         variant_type = get_variant_type("int")
         type_name = type_string[len(constants.enum_prefix):]
@@ -519,7 +511,6 @@ def generate_class_type(io, type_string, classes):
     write_string(io, type_name)  # String type_name
     write_bool(io, is_enum)  # bool is_enum
     write_bool(io, is_bitfield)  # bool is_bitfield
-    write_uint32(io, typed_array_type)  # Variant::Type typed_array_type
 
     return variant_type, type_name
 
@@ -542,8 +533,9 @@ def generate_class_argument(io, argument, classes, variant_values, variant_value
                 default_value = "nullptr"
         elif default_value == "" and variant_type != get_variant_type("Variant") and variant_type != get_variant_type("Object"):
             default_value = f"{type_name}()"
-        elif default_value == "[]" and variant_type == get_variant_type("Array"):
-            default_value = f"Array()"
+        elif variant_type == get_variant_type("Array"):
+            if default_value == "[]" or (type_name != "" and default_value.endswith("([])")):
+                default_value = f"Array()"
         elif default_value == "{}" and variant_type == get_variant_type("Dictionary"):
             default_value = f"Dictionary()"
         elif default_value == "&\"\"" and variant_type == get_variant_type("StringName"):
@@ -858,8 +850,8 @@ def generate_api_bin(src_dir, api, perms_path):
 
 #include <cstdint>
 #include <gdextension_interface.h>
-#include <godot_cpp/variant/variant.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 using namespace godot;
 

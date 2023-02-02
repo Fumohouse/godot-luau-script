@@ -248,9 +248,11 @@ AudioTrackGetKeyEndOffset = "INHERIT" #
 AudioTrackGetKeyStartOffset = "INHERIT" #
 AudioTrackGetKeyStream = "INHERIT" #
 AudioTrackInsertKey = "INHERIT" #
+AudioTrackIsUseBlend = "INHERIT" #
 AudioTrackSetKeyEndOffset = "INHERIT" #
 AudioTrackSetKeyStartOffset = "INHERIT" #
 AudioTrackSetKeyStream = "INHERIT" #
+AudioTrackSetUseBlend = "INHERIT" #
 BezierTrackGetKeyInHandle = "INHERIT" #
 BezierTrackGetKeyOutHandle = "INHERIT" #
 BezierTrackGetKeyValue = "INHERIT" #
@@ -333,6 +335,7 @@ AddInput = "INHERIT" #
 BlendAnimation = "INHERIT" #
 BlendInput = "INHERIT" #
 BlendNode = "INHERIT" #
+FindInput = "INHERIT" #
 GetInputCount = "INHERIT" #
 GetInputName = "INHERIT" #
 GetParameter = "INHERIT" #
@@ -341,6 +344,7 @@ IsPathFiltered = "INHERIT" #
 RemoveInput = "INHERIT" #
 SetFilterEnabled = "INHERIT" #
 SetFilterPath = "INHERIT" #
+SetInputName = "INHERIT" #
 SetParameter = "INHERIT" #
 
 #############################
@@ -363,6 +367,7 @@ default_permissions = "BASE" #
 
 [AnimationNodeBlendSpace1D.methods]
 AddBlendPoint = "INHERIT" #
+GetBlendMode = "INHERIT" #
 GetBlendPointCount = "INHERIT" #
 GetBlendPointNode = "INHERIT" #
 GetBlendPointPosition = "INHERIT" #
@@ -372,6 +377,7 @@ GetSnap = "INHERIT" #
 GetValueLabel = "INHERIT" #
 IsUsingSync = "INHERIT" #
 RemoveBlendPoint = "INHERIT" #
+SetBlendMode = "INHERIT" #
 SetBlendPointNode = "INHERIT" #
 SetBlendPointPosition = "INHERIT" #
 SetMaxSpace = "INHERIT" #
@@ -473,11 +479,13 @@ GetTransitionFrom = "INHERIT" #
 GetTransitionTo = "INHERIT" #
 HasNode = "INHERIT" #
 HasTransition = "INHERIT" #
+IsAllowTransitionToSelf = "INHERIT" #
 RemoveNode = "INHERIT" #
 RemoveTransition = "INHERIT" #
 RemoveTransitionByIndex = "INHERIT" #
 RenameNode = "INHERIT" #
 ReplaceNode = "INHERIT" #
+SetAllowTransitionToSelf = "INHERIT" #
 SetGraphOffset = "INHERIT" #
 SetNodePosition = "INHERIT" #
 
@@ -540,17 +548,15 @@ inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeTransition.methods]
-FindInputCaption = "INHERIT" #
-GetEnabledInputs = "INHERIT" #
-GetInputCaption = "INHERIT" #
 GetXfadeCurve = "INHERIT" #
 GetXfadeTime = "INHERIT" #
+IsAllowTransitionToSelf = "INHERIT" #
+IsInputReset = "INHERIT" #
 IsInputSetAsAutoAdvance = "INHERIT" #
-IsReset = "INHERIT" #
-SetEnabledInputs = "INHERIT" #
+SetAllowTransitionToSelf = "INHERIT" #
 SetInputAsAutoAdvance = "INHERIT" #
-SetInputCaption = "INHERIT" #
-SetReset = "INHERIT" #
+SetInputCount = "INHERIT" #
+SetInputReset = "INHERIT" #
 SetXfadeCurve = "INHERIT" #
 SetXfadeTime = "INHERIT" #
 
@@ -574,6 +580,7 @@ GetAnimationLibrary = "INHERIT" #
 GetAnimationLibraryList = "INHERIT" #
 GetAnimationList = "INHERIT" #
 GetAssignedAnimation = "INHERIT" #
+GetAudioMaxPolyphony = "INHERIT" #
 GetAutoplay = "INHERIT" #
 GetBlendTime = "INHERIT" #
 GetCurrentAnimation = "INHERIT" #
@@ -601,6 +608,7 @@ RenameAnimationLibrary = "INHERIT" #
 Seek = "INHERIT" #
 SetActive = "INHERIT" #
 SetAssignedAnimation = "INHERIT" #
+SetAudioMaxPolyphony = "INHERIT" #
 SetAutoplay = "INHERIT" #
 SetBlendTime = "INHERIT" #
 SetCurrentAnimation = "INHERIT" #
@@ -623,6 +631,7 @@ default_permissions = "BASE" #
 Advance = "INHERIT" #
 GetAdvanceExpressionBaseNode = "INHERIT" #
 GetAnimationPlayer = "INHERIT" #
+GetAudioMaxPolyphony = "INHERIT" #
 GetProcessCallback = "INHERIT" #
 GetRootMotionPosition = "INHERIT" #
 GetRootMotionRotation = "INHERIT" #
@@ -634,6 +643,7 @@ RenameParameter = "INHERIT" #
 SetActive = "INHERIT" #
 SetAdvanceExpressionBaseNode = "INHERIT" #
 SetAnimationPlayer = "INHERIT" #
+SetAudioMaxPolyphony = "INHERIT" #
 SetProcessCallback = "INHERIT" #
 SetRootMotionTrack = "INHERIT" #
 SetTreeRoot = "INHERIT" #
@@ -651,7 +661,7 @@ GetAudioBusName = "INHERIT" #
 GetGravity = "INHERIT" #
 GetGravityDirection = "INHERIT" #
 GetGravityPointCenter = "INHERIT" #
-GetGravityPointDistanceScale = "INHERIT" #
+GetGravityPointUnitDistance = "INHERIT" #
 GetGravitySpaceOverrideMode = "INHERIT" #
 GetLinearDamp = "INHERIT" #
 GetLinearDampSpaceOverrideMode = "INHERIT" #
@@ -674,7 +684,7 @@ SetGravity = "INHERIT" #
 SetGravityDirection = "INHERIT" #
 SetGravityIsPoint = "INHERIT" #
 SetGravityPointCenter = "INHERIT" #
-SetGravityPointDistanceScale = "INHERIT" #
+SetGravityPointUnitDistance = "INHERIT" #
 SetGravitySpaceOverrideMode = "INHERIT" #
 SetLinearDamp = "INHERIT" #
 SetLinearDampSpaceOverrideMode = "INHERIT" #
@@ -695,7 +705,7 @@ GetAudioBusName = "INHERIT" #
 GetGravity = "INHERIT" #
 GetGravityDirection = "INHERIT" #
 GetGravityPointCenter = "INHERIT" #
-GetGravityPointDistanceScale = "INHERIT" #
+GetGravityPointUnitDistance = "INHERIT" #
 GetGravitySpaceOverrideMode = "INHERIT" #
 GetLinearDamp = "INHERIT" #
 GetLinearDampSpaceOverrideMode = "INHERIT" #
@@ -725,7 +735,7 @@ SetGravity = "INHERIT" #
 SetGravityDirection = "INHERIT" #
 SetGravityIsPoint = "INHERIT" #
 SetGravityPointCenter = "INHERIT" #
-SetGravityPointDistanceScale = "INHERIT" #
+SetGravityPointUnitDistance = "INHERIT" #
 SetGravitySpaceOverrideMode = "INHERIT" #
 SetLinearDamp = "INHERIT" #
 SetLinearDampSpaceOverrideMode = "INHERIT" #
@@ -1134,9 +1144,6 @@ default_permissions = "INTERNAL" #
 [AudioServer.methods]
 AddBus = "INHERIT" #
 AddBusEffect = "INHERIT" #
-CaptureGetDevice = "INHERIT" #
-CaptureGetDeviceList = "INHERIT" #
-CaptureSetDevice = "INHERIT" #
 GenerateBusLayout = "INHERIT" #
 GetBusChannels = "INHERIT" #
 GetBusCount = "INHERIT" #
@@ -1149,9 +1156,11 @@ GetBusPeakVolumeLeftDb = "INHERIT" #
 GetBusPeakVolumeRightDb = "INHERIT" #
 GetBusSend = "INHERIT" #
 GetBusVolumeDb = "INHERIT" #
-GetDevice = "INHERIT" #
-GetDeviceList = "INHERIT" #
+GetInputDevice = "INHERIT" #
+GetInputDeviceList = "INHERIT" #
 GetMixRate = "INHERIT" #
+GetOutputDevice = "INHERIT" #
+GetOutputDeviceList = "INHERIT" #
 GetOutputLatency = "INHERIT" #
 GetPlaybackSpeedScale = "INHERIT" #
 GetSpeakerMode = "INHERIT" #
@@ -1174,8 +1183,9 @@ SetBusName = "INHERIT" #
 SetBusSend = "INHERIT" #
 SetBusSolo = "INHERIT" #
 SetBusVolumeDb = "INHERIT" #
-SetDevice = "INHERIT" #
 SetEnableTaggingUsedAudioStreams = "INHERIT" #
+SetInputDevice = "INHERIT" #
+SetOutputDevice = "INHERIT" #
 SetPlaybackSpeedScale = "INHERIT" #
 SwapBusEffects = "INHERIT" #
 Unlock = "INHERIT" #
@@ -1295,6 +1305,7 @@ GetStream = "INHERIT" #
 GetStreamPaused = "INHERIT" #
 GetStreamPlayback = "INHERIT" #
 GetVolumeDb = "INHERIT" #
+HasStreamPlayback = "INHERIT" #
 IsAutoplayEnabled = "INHERIT" #
 IsPlaying = "INHERIT" #
 Play = "INHERIT" #
@@ -1328,6 +1339,7 @@ GetStream = "INHERIT" #
 GetStreamPaused = "INHERIT" #
 GetStreamPlayback = "INHERIT" #
 GetVolumeDb = "INHERIT" #
+HasStreamPlayback = "INHERIT" #
 IsAutoplayEnabled = "INHERIT" #
 IsPlaying = "INHERIT" #
 Play = "INHERIT" #
@@ -1371,6 +1383,7 @@ GetStreamPaused = "INHERIT" #
 GetStreamPlayback = "INHERIT" #
 GetUnitSize = "INHERIT" #
 GetVolumeDb = "INHERIT" #
+HasStreamPlayback = "INHERIT" #
 IsAutoplayEnabled = "INHERIT" #
 IsEmissionAngleEnabled = "INHERIT" #
 IsPlaying = "INHERIT" #
@@ -2159,6 +2172,7 @@ GetZoom = "INHERIT" #
 IsCurrent = "INHERIT" #
 IsDragHorizontalEnabled = "INHERIT" #
 IsDragVerticalEnabled = "INHERIT" #
+IsEnabled = "INHERIT" #
 IsIgnoringRotation = "INHERIT" #
 IsLimitDrawingEnabled = "INHERIT" #
 IsLimitSmoothingEnabled = "INHERIT" #
@@ -2166,15 +2180,16 @@ IsMarginDrawingEnabled = "INHERIT" #
 IsPositionSmoothingEnabled = "INHERIT" #
 IsRotationSmoothingEnabled = "INHERIT" #
 IsScreenDrawingEnabled = "INHERIT" #
+MakeCurrent = "INHERIT" #
 ResetSmoothing = "INHERIT" #
 SetAnchorMode = "INHERIT" #
-SetCurrent = "INHERIT" #
 SetCustomViewport = "INHERIT" #
 SetDragHorizontalEnabled = "INHERIT" #
 SetDragHorizontalOffset = "INHERIT" #
 SetDragMargin = "INHERIT" #
 SetDragVerticalEnabled = "INHERIT" #
 SetDragVerticalOffset = "INHERIT" #
+SetEnabled = "INHERIT" #
 SetIgnoreRotation = "INHERIT" #
 SetLimit = "INHERIT" #
 SetLimitDrawingEnabled = "INHERIT" #
@@ -3641,10 +3656,10 @@ GetCullMask = "INHERIT" #
 GetDistanceFadeBegin = "INHERIT" #
 GetDistanceFadeLength = "INHERIT" #
 GetEmissionEnergy = "INHERIT" #
-GetExtents = "INHERIT" #
 GetLowerFade = "INHERIT" #
 GetModulate = "INHERIT" #
 GetNormalFade = "INHERIT" #
+GetSize = "INHERIT" #
 GetTexture = "INHERIT" #
 GetUpperFade = "INHERIT" #
 IsDistanceFadeEnabled = "INHERIT" #
@@ -3654,10 +3669,10 @@ SetDistanceFadeBegin = "INHERIT" #
 SetDistanceFadeLength = "INHERIT" #
 SetEmissionEnergy = "INHERIT" #
 SetEnableDistanceFade = "INHERIT" #
-SetExtents = "INHERIT" #
 SetLowerFade = "INHERIT" #
 SetModulate = "INHERIT" #
 SetNormalFade = "INHERIT" #
+SetSize = "INHERIT" #
 SetTexture = "INHERIT" #
 SetUpperFade = "INHERIT" #
 
@@ -4474,11 +4489,11 @@ GetAuthorInfo = "INHERIT" #
 GetCopyrightInfo = "INHERIT" #
 GetDonorInfo = "INHERIT" #
 GetFramesDrawn = "INHERIT" #
-GetFramesPerSecond = "BASE"
+GetFramesPerSecond = "INHERIT" #
 GetLicenseInfo = "INHERIT" #
 GetLicenseText = "INHERIT" #
 GetMainLoop = "INHERIT" #
-GetMaxFps = "BASE"
+GetMaxFps = "INHERIT" #
 GetMaxPhysicsStepsPerFrame = "INHERIT" #
 GetPhysicsFrames = "INHERIT" #
 GetPhysicsInterpolationFraction = "INHERIT" #
@@ -4489,11 +4504,11 @@ GetScriptLanguage = "INHERIT" #
 GetScriptLanguageCount = "INHERIT" #
 GetSingleton = "INHERIT" #
 GetSingletonList = "INHERIT" #
-GetTimeScale = "BASE"
+GetTimeScale = "INHERIT" #
 GetVersionInfo = "INHERIT" #
 GetWriteMoviePath = "INHERIT" #
 HasSingleton = "INHERIT" #
-IsEditorHint = "BASE"
+IsEditorHint = "INHERIT" #
 IsInPhysicsFrame = "INHERIT" #
 IsPrintingErrorMessages = "INHERIT" #
 RegisterScriptLanguage = "INHERIT" #
@@ -4910,12 +4925,12 @@ inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [FogVolume.methods]
-GetExtents = "INHERIT" #
 GetMaterial = "INHERIT" #
 GetShape = "INHERIT" #
-SetExtents = "INHERIT" #
+GetSize = "INHERIT" #
 SetMaterial = "INHERIT" #
 SetShape = "INHERIT" #
+SetSize = "INHERIT" #
 
 #############################
 
@@ -5596,8 +5611,8 @@ inherits = "GPUParticlesAttractor3D"
 default_permissions = "BASE" #
 
 [GPUParticlesAttractorBox3D.methods]
-GetExtents = "INHERIT" #
-SetExtents = "INHERIT" #
+GetSize = "INHERIT" #
+SetSize = "INHERIT" #
 
 #############################
 
@@ -5616,9 +5631,9 @@ inherits = "GPUParticlesAttractor3D"
 default_permissions = "BASE" #
 
 [GPUParticlesAttractorVectorField3D.methods]
-GetExtents = "INHERIT" #
+GetSize = "INHERIT" #
 GetTexture = "INHERIT" #
-SetExtents = "INHERIT" #
+SetSize = "INHERIT" #
 SetTexture = "INHERIT" #
 
 #############################
@@ -5638,8 +5653,8 @@ inherits = "GPUParticlesCollision3D"
 default_permissions = "BASE" #
 
 [GPUParticlesCollisionBox3D.methods]
-GetExtents = "INHERIT" #
-SetExtents = "INHERIT" #
+GetSize = "INHERIT" #
+SetSize = "INHERIT" #
 
 #############################
 
@@ -5648,13 +5663,13 @@ inherits = "GPUParticlesCollision3D"
 default_permissions = "BASE" #
 
 [GPUParticlesCollisionHeightField3D.methods]
-GetExtents = "INHERIT" #
 GetResolution = "INHERIT" #
+GetSize = "INHERIT" #
 GetUpdateMode = "INHERIT" #
 IsFollowCameraEnabled = "INHERIT" #
-SetExtents = "INHERIT" #
 SetFollowCameraEnabled = "INHERIT" #
 SetResolution = "INHERIT" #
+SetSize = "INHERIT" #
 SetUpdateMode = "INHERIT" #
 
 #############################
@@ -5666,14 +5681,14 @@ default_permissions = "BASE" #
 [GPUParticlesCollisionSDF3D.methods]
 GetBakeMask = "INHERIT" #
 GetBakeMaskValue = "INHERIT" #
-GetExtents = "INHERIT" #
 GetResolution = "INHERIT" #
+GetSize = "INHERIT" #
 GetTexture = "INHERIT" #
 GetThickness = "INHERIT" #
 SetBakeMask = "INHERIT" #
 SetBakeMaskValue = "INHERIT" #
-SetExtents = "INHERIT" #
 SetResolution = "INHERIT" #
+SetSize = "INHERIT" #
 SetTexture = "INHERIT" #
 SetThickness = "INHERIT" #
 
@@ -6123,6 +6138,7 @@ SetHttpProxy = "INHERIT" #
 SetHttpsProxy = "INHERIT" #
 SetMaxRedirects = "INHERIT" #
 SetTimeout = "INHERIT" #
+SetTlsOptions = "INHERIT" #
 SetUseThreads = "INHERIT" #
 
 #############################
@@ -6969,7 +6985,10 @@ default_permissions = "BASE" #
 
 [Label3D.methods]
 GenerateTriangleMesh = "INHERIT" #
+GetAlphaAntialiasing = "INHERIT" #
+GetAlphaAntialiasingEdge = "INHERIT" #
 GetAlphaCutMode = "INHERIT" #
+GetAlphaHashScale = "INHERIT" #
 GetAlphaScissorThreshold = "INHERIT" #
 GetAutowrapMode = "INHERIT" #
 GetBillboardMode = "INHERIT" #
@@ -6994,7 +7013,10 @@ GetTextureFilter = "INHERIT" #
 GetVerticalAlignment = "INHERIT" #
 GetWidth = "INHERIT" #
 IsUppercase = "INHERIT" #
+SetAlphaAntialiasing = "INHERIT" #
+SetAlphaAntialiasingEdge = "INHERIT" #
 SetAlphaCutMode = "INHERIT" #
+SetAlphaHashScale = "INHERIT" #
 SetAlphaScissorThreshold = "INHERIT" #
 SetAutowrapMode = "INHERIT" #
 SetBillboardMode = "INHERIT" #
@@ -7807,6 +7829,11 @@ GetAvoidanceEnabled = "INHERIT" #
 GetCurrentNavigationPath = "INHERIT" #
 GetCurrentNavigationPathIndex = "INHERIT" #
 GetCurrentNavigationResult = "INHERIT" #
+GetDebugEnabled = "INHERIT" #
+GetDebugPathCustomColor = "INHERIT" #
+GetDebugPathCustomLineWidth = "INHERIT" #
+GetDebugPathCustomPointSize = "INHERIT" #
+GetDebugUseCustom = "INHERIT" #
 GetFinalPosition = "INHERIT" #
 GetMaxNeighbors = "INHERIT" #
 GetMaxSpeed = "INHERIT" #
@@ -7827,6 +7854,11 @@ IsNavigationFinished = "INHERIT" #
 IsTargetReachable = "INHERIT" #
 IsTargetReached = "INHERIT" #
 SetAvoidanceEnabled = "INHERIT" #
+SetDebugEnabled = "INHERIT" #
+SetDebugPathCustomColor = "INHERIT" #
+SetDebugPathCustomLineWidth = "INHERIT" #
+SetDebugPathCustomPointSize = "INHERIT" #
+SetDebugUseCustom = "INHERIT" #
 SetMaxNeighbors = "INHERIT" #
 SetMaxSpeed = "INHERIT" #
 SetNavigationLayerValue = "INHERIT" #
@@ -7855,6 +7887,10 @@ GetAvoidanceEnabled = "INHERIT" #
 GetCurrentNavigationPath = "INHERIT" #
 GetCurrentNavigationPathIndex = "INHERIT" #
 GetCurrentNavigationResult = "INHERIT" #
+GetDebugEnabled = "INHERIT" #
+GetDebugPathCustomColor = "INHERIT" #
+GetDebugPathCustomPointSize = "INHERIT" #
+GetDebugUseCustom = "INHERIT" #
 GetFinalPosition = "INHERIT" #
 GetIgnoreY = "INHERIT" #
 GetMaxNeighbors = "INHERIT" #
@@ -7877,6 +7913,10 @@ IsTargetReachable = "INHERIT" #
 IsTargetReached = "INHERIT" #
 SetAgentHeightOffset = "INHERIT" #
 SetAvoidanceEnabled = "INHERIT" #
+SetDebugEnabled = "INHERIT" #
+SetDebugPathCustomColor = "INHERIT" #
+SetDebugPathCustomPointSize = "INHERIT" #
+SetDebugUseCustom = "INHERIT" #
 SetIgnoreY = "INHERIT" #
 SetMaxNeighbors = "INHERIT" #
 SetMaxSpeed = "INHERIT" #
@@ -8607,6 +8647,7 @@ GetSeamlessBlendSkirt = "INHERIT" #
 IsGeneratingMipmaps = "INHERIT" #
 IsIn3DSpace = "INHERIT" #
 IsNormalMap = "INHERIT" #
+IsNormalized = "INHERIT" #
 SetAsNormalMap = "INHERIT" #
 SetBumpStrength = "INHERIT" #
 SetColorRamp = "INHERIT" #
@@ -8615,6 +8656,7 @@ SetHeight = "INHERIT" #
 SetIn3DSpace = "INHERIT" #
 SetInvert = "INHERIT" #
 SetNoise = "INHERIT" #
+SetNormalize = "INHERIT" #
 SetSeamless = "INHERIT" #
 SetSeamlessBlendSkirt = "INHERIT" #
 SetWidth = "INHERIT" #
@@ -8913,8 +8955,11 @@ inherits = "XRInterface"
 default_permissions = "BASE" #
 
 [OpenXRInterface.methods]
+GetActionSets = "INHERIT" #
 GetAvailableDisplayRefreshRates = "INHERIT" #
 GetDisplayRefreshRate = "INHERIT" #
+IsActionSetActive = "INHERIT" #
+SetActionSetActive = "INHERIT" #
 SetDisplayRefreshRate = "INHERIT" #
 
 #############################
@@ -11012,11 +11057,11 @@ GetAmbientColor = "INHERIT" #
 GetAmbientColorEnergy = "INHERIT" #
 GetAmbientMode = "INHERIT" #
 GetCullMask = "INHERIT" #
-GetExtents = "INHERIT" #
 GetIntensity = "INHERIT" #
 GetMaxDistance = "INHERIT" #
 GetMeshLodThreshold = "INHERIT" #
 GetOriginOffset = "INHERIT" #
+GetSize = "INHERIT" #
 GetUpdateMode = "INHERIT" #
 IsBoxProjectionEnabled = "INHERIT" #
 IsSetAsInterior = "INHERIT" #
@@ -11027,11 +11072,11 @@ SetAsInterior = "INHERIT" #
 SetCullMask = "INHERIT" #
 SetEnableBoxProjection = "INHERIT" #
 SetEnableShadows = "INHERIT" #
-SetExtents = "INHERIT" #
 SetIntensity = "INHERIT" #
 SetMaxDistance = "INHERIT" #
 SetMeshLodThreshold = "INHERIT" #
 SetOriginOffset = "INHERIT" #
+SetSize = "INHERIT" #
 SetUpdateMode = "INHERIT" #
 
 #############################
@@ -11314,10 +11359,10 @@ DecalSetAlbedoMix = "INHERIT" #
 DecalSetCullMask = "INHERIT" #
 DecalSetDistanceFade = "INHERIT" #
 DecalSetEmissionEnergy = "INHERIT" #
-DecalSetExtents = "INHERIT" #
 DecalSetFade = "INHERIT" #
 DecalSetModulate = "INHERIT" #
 DecalSetNormalFade = "INHERIT" #
+DecalSetSize = "INHERIT" #
 DecalSetTexture = "INHERIT" #
 DecalsSetFilter = "INHERIT" #
 DirectionalLightCreate = "INHERIT" #
@@ -11351,9 +11396,9 @@ EnvironmentSetVolumetricFog = "INHERIT" #
 EnvironmentSetVolumetricFogFilterActive = "INHERIT" #
 EnvironmentSetVolumetricFogVolumeSize = "INHERIT" #
 FogVolumeCreate = "INHERIT" #
-FogVolumeSetExtents = "INHERIT" #
 FogVolumeSetMaterial = "INHERIT" #
 FogVolumeSetShape = "INHERIT" #
+FogVolumeSetSize = "INHERIT" #
 ForceDraw = "INHERIT" #
 ForceSync = "INHERIT" #
 FreeRid = "INHERIT" #
@@ -11541,12 +11586,12 @@ ReflectionProbeSetAsInterior = "INHERIT" #
 ReflectionProbeSetCullMask = "INHERIT" #
 ReflectionProbeSetEnableBoxProjection = "INHERIT" #
 ReflectionProbeSetEnableShadows = "INHERIT" #
-ReflectionProbeSetExtents = "INHERIT" #
 ReflectionProbeSetIntensity = "INHERIT" #
 ReflectionProbeSetMaxDistance = "INHERIT" #
 ReflectionProbeSetMeshLodThreshold = "INHERIT" #
 ReflectionProbeSetOriginOffset = "INHERIT" #
 ReflectionProbeSetResolution = "INHERIT" #
+ReflectionProbeSetSize = "INHERIT" #
 ReflectionProbeSetUpdateMode = "INHERIT" #
 RequestFrameDrawnCallback = "INHERIT" #
 ScenarioCreate = "INHERIT" #
@@ -11619,7 +11664,7 @@ ViewportSetDefaultCanvasItemTextureFilter = "INHERIT" #
 ViewportSetDefaultCanvasItemTextureRepeat = "INHERIT" #
 ViewportSetDisable2D = "INHERIT" #
 ViewportSetDisable3D = "INHERIT" #
-ViewportSetDisableEnvironment = "INHERIT" #
+ViewportSetEnvironmentMode = "INHERIT" #
 ViewportSetFsrSharpness = "INHERIT" #
 ViewportSetGlobalCanvasTransform = "INHERIT" #
 ViewportSetMeasureRenderTime = "INHERIT" #
@@ -13090,7 +13135,11 @@ default_permissions = "BASE" #
 
 [SpriteBase3D.methods]
 GenerateTriangleMesh = "INHERIT" #
+GetAlphaAntialiasing = "INHERIT" #
+GetAlphaAntialiasingEdge = "INHERIT" #
 GetAlphaCutMode = "INHERIT" #
+GetAlphaHashScale = "INHERIT" #
+GetAlphaScissorThreshold = "INHERIT" #
 GetAxis = "INHERIT" #
 GetBillboardMode = "INHERIT" #
 GetDrawFlag = "INHERIT" #
@@ -13103,7 +13152,11 @@ GetTextureFilter = "INHERIT" #
 IsCentered = "INHERIT" #
 IsFlippedH = "INHERIT" #
 IsFlippedV = "INHERIT" #
+SetAlphaAntialiasing = "INHERIT" #
+SetAlphaAntialiasingEdge = "INHERIT" #
 SetAlphaCutMode = "INHERIT" #
+SetAlphaHashScale = "INHERIT" #
+SetAlphaScissorThreshold = "INHERIT" #
 SetAxis = "INHERIT" #
 SetBillboardMode = "INHERIT" #
 SetCentered = "INHERIT" #
@@ -13267,9 +13320,7 @@ ConnectToStream = "INHERIT" #
 DisconnectFromStream = "INHERIT" #
 GetStatus = "INHERIT" #
 GetStream = "INHERIT" #
-IsBlockingHandshakeEnabled = "INHERIT" #
 Poll = "INHERIT" #
-SetBlockingHandshakeEnabled = "INHERIT" #
 
 #############################
 
@@ -13502,6 +13553,17 @@ IsListening = "INHERIT" #
 Listen = "INHERIT" #
 Stop = "INHERIT" #
 TakeConnection = "INHERIT" #
+
+#############################
+
+[TLSOptions]
+inherits = "RefCounted"
+default_permissions = "BASE" #
+
+[TLSOptions.methods]
+Client = "INHERIT" #
+ClientUnsafe = "INHERIT" #
+Server = "INHERIT" #
 
 #############################
 
@@ -14441,7 +14503,7 @@ GetProbability = "INHERIT" #
 GetTerrain = "INHERIT" #
 GetTerrainPeeringBit = "INHERIT" #
 GetTerrainSet = "INHERIT" #
-GetTextureOffset = "INHERIT" #
+GetTextureOrigin = "INHERIT" #
 GetTranspose = "INHERIT" #
 GetYSortOrigin = "INHERIT" #
 GetZIndex = "INHERIT" #
@@ -14465,7 +14527,7 @@ SetProbability = "INHERIT" #
 SetTerrain = "INHERIT" #
 SetTerrainPeeringBit = "INHERIT" #
 SetTerrainSet = "INHERIT" #
-SetTextureOffset = "INHERIT" #
+SetTextureOrigin = "INHERIT" #
 SetTranspose = "INHERIT" #
 SetYSortOrigin = "INHERIT" #
 SetZIndex = "INHERIT" #
@@ -14568,6 +14630,7 @@ GetCustomDataLayerByName = "INHERIT" #
 GetCustomDataLayerName = "INHERIT" #
 GetCustomDataLayerType = "INHERIT" #
 GetCustomDataLayersCount = "INHERIT" #
+GetNavigationLayerLayerValue = "INHERIT" #
 GetNavigationLayerLayers = "INHERIT" #
 GetNavigationLayersCount = "INHERIT" #
 GetNextSourceId = "INHERIT" #
@@ -14620,6 +14683,7 @@ SetAlternativeLevelTileProxy = "INHERIT" #
 SetCoordsLevelTileProxy = "INHERIT" #
 SetCustomDataLayerName = "INHERIT" #
 SetCustomDataLayerType = "INHERIT" #
+SetNavigationLayerLayerValue = "INHERIT" #
 SetNavigationLayerLayers = "INHERIT" #
 SetOcclusionLayerLightMask = "INHERIT" #
 SetOcclusionLayerSdfCollision = "INHERIT" #
@@ -15234,6 +15298,25 @@ SetUseAsTraction = "INHERIT" #
 
 #############################
 
+[VideoStream]
+inherits = "Resource"
+default_permissions = "BASE" #
+
+[VideoStream.methods]
+GetFile = "INHERIT" #
+SetFile = "INHERIT" #
+
+#############################
+
+[VideoStreamPlayback]
+inherits = "Resource"
+default_permissions = "BASE" #
+
+[VideoStreamPlayback.methods]
+MixAudio = "INHERIT" #
+
+#############################
+
 [VideoStreamPlayer]
 inherits = "Control"
 default_permissions = "BASE" #
@@ -15264,16 +15347,6 @@ SetStreamPosition = "INHERIT" #
 SetVolume = "INHERIT" #
 SetVolumeDb = "INHERIT" #
 Stop = "INHERIT" #
-
-#############################
-
-[VideoStreamTheora]
-inherits = "VideoStream"
-default_permissions = "BASE" #
-
-[VideoStreamTheora.methods]
-GetFile = "INHERIT" #
-SetFile = "INHERIT" #
 
 #############################
 
@@ -16254,12 +16327,12 @@ default_permissions = "BASE" #
 Bake = "INHERIT" #
 DebugBake = "INHERIT" #
 GetCameraAttributes = "INHERIT" #
-GetExtents = "INHERIT" #
 GetProbeData = "INHERIT" #
+GetSize = "INHERIT" #
 GetSubdiv = "INHERIT" #
 SetCameraAttributes = "INHERIT" #
-SetExtents = "INHERIT" #
 SetProbeData = "INHERIT" #
+SetSize = "INHERIT" #
 SetSubdiv = "INHERIT" #
 
 #############################

@@ -156,7 +156,7 @@ public:
     PlaceHolderScriptInstance *placeholder_get(Object *p_object);
 
     /* TO IMPLEMENT */
-    int64_t _get_member_line(const StringName &p_member) const override { return -1; }
+    int32_t _get_member_line(const StringName &p_member) const override { return -1; }
     TypedArray<Dictionary> _get_documentation() const override { return TypedArray<Dictionary>(); }
 
     /* MISC (NON OVERRIDE) */
@@ -421,9 +421,9 @@ public:
 
     Dictionary _complete_code(const String &p_code, const String &p_path, Object *p_owner) const override { return Dictionary(); }
     Dictionary _lookup_code(const String &p_code, const String &p_symbol, const String &p_path, Object *p_owner) const override { return Dictionary(); }
-    String _auto_indent_code(const String &p_code, int64_t p_from_line, int64_t p_to_line) const override { return p_code; }
+    String _auto_indent_code(const String &p_code, int32_t p_from_line, int32_t p_to_line) const override { return p_code; }
 
-    int64_t _find_function(const String &p_class_name, const String &p_function_name) const override { return -1; }
+    int32_t _find_function(const String &p_class_name, const String &p_function_name) const override { return -1; }
     String _make_function(const String &p_class_name, const String &p_function_name, const PackedStringArray &p_function_args) const override { return String(); }
 
     bool _supports_documentation() const override { return false; }
@@ -478,7 +478,7 @@ public:
     bool _handles_type(const StringName &p_type) const override;
     static String get_resource_type(const String &p_path);
     String _get_resource_type(const String &p_path) const override;
-    Variant _load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int64_t p_cache_mode) const override;
+    Variant _load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int32_t p_cache_mode) const override;
 };
 
 class ResourceFormatSaverLuauScript : public ResourceFormatSaver {
@@ -490,5 +490,5 @@ protected:
 public:
     PackedStringArray _get_recognized_extensions(const Ref<Resource> &p_resource) const override;
     bool _recognize(const Ref<Resource> &p_resource) const override;
-    int64_t _save(const Ref<Resource> &p_resource, const String &p_path, int64_t p_flags) override;
+    Error _save(const Ref<Resource> &p_resource, const String &p_path, uint32_t p_flags) override;
 };
