@@ -5,6 +5,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "luagd.h"
+#include "luagd_lib.h"
 #include "luagd_permissions.h"
 #include "luau_lib.h"
 
@@ -14,6 +15,7 @@ GDLuau *GDLuau::singleton = nullptr;
 
 void GDLuau::init_vm(VMType p_type) {
     lua_State *L = luaGD_newstate(p_type, PERMISSION_BASE);
+    luaGD_openlibs(L);
     luascript_openlibs(L);
 
     // Seal main global state

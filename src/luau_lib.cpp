@@ -9,7 +9,6 @@
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/object.hpp>
@@ -763,35 +762,11 @@ static int luascript_wait(lua_State *L) {
     return lua_yield(L, 0);
 }
 
-static int luascript_load(lua_State *L) {
-    String path = LuaStackOp<String>::check(L, 1);
-    GDThreadData *udata = luaGD_getthreaddata(L);
-
-    if (!path.begins_with("res://") && !path.begins_with("user://")) {
-        path = udata->script->get_path().get_base_dir().path_join(path);
-    }
-
-    Ref<Resource> res = ResourceLoader::get_singleton()->load(path);
-    LuaStackOp<Object *>::push(L, res.ptr());
-    return 1;
-}
-
-template <typename T>
-static int luascript_str_ctor(lua_State *L) {
-    String str = LuaStackOp<String>::check(L, 1);
-    LuaStackOp<T>::push(L, str, true);
-    return 1;
-}
-
 static const luaL_Reg global_funcs[] = {
     { "gdclass", luascript_gdclass },
 
     { "require", luascript_require },
     { "wait", luascript_wait },
-    { "load", luascript_load },
-
-    { "SN", luascript_str_ctor<StringName> },
-    { "NP", luascript_str_ctor<NodePath> },
 
     { nullptr, nullptr }
 };

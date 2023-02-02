@@ -1,3 +1,46 @@
+---------------------
+-- LUAGD_LIB TYPES --
+---------------------
+
+--[[--
+    Extension to Luau's default string library which includes some commonly used methods
+    which are not implemented in Luau.
+]]
+declare strext: {
+    --[[--
+        Finds whether a string starts with another string.
+        @param self The string being queried.
+        @param str The start string.
+    ]]
+    startswith: (self: string, str: string) -> boolean,
+
+    --[[--
+        Finds whether a string ends with another string.
+        @param self The string being queried.
+        @param str The end string.
+    ]]
+    endswith: (self: string, str: string) -> boolean,
+}
+
+--[[--
+    Constructs a new `StringName`.
+    @param str The string to use.
+]]
+declare function SN(str: string): StringName
+
+--[[--
+    Constructs a new `NodePath`.
+    @param str The string to use.
+]]
+declare function NP(str: string): NodePath
+
+-- TODO: constrain to Resource type?
+--[[--
+    Loads a resource. Mostly an alias for `ResourceLoader.GetSingleton():Load()`.
+    @param path The **relative** path to the resource from this script.
+]]
+declare function load<T>(path: string): T
+
 --------------------
 -- LUAU_LIB TYPES --
 --------------------
@@ -313,27 +356,8 @@ end
 ]]
 declare function gdclass(name: string?, extends: string?): GDClassDefinition
 
--- TODO: constrain to Resource type?
---[[--
-    Loads a resource. Mostly an alias for `ResourceLoader.GetSingleton():Load()`.
-    @param path The **relative** path to the resource from this script.
-]]
-declare function load<T>(path: string): T
-
 --[[--
     Yields the current thread and waits before resuming.
     @param duration The duration to wait. If the engine is affected by a time factor, this duration will be affected by it.
 ]]
 declare function wait(duration: number): number
-
---[[--
-    Constructs a new `StringName`.
-    @param str The string to use.
-]]
-declare function SN(str: string): StringName
-
---[[--
-    Constructs a new `NodePath`.
-    @param str The string to use.
-]]
-declare function NP(str: string): NodePath
