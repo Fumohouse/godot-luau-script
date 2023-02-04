@@ -60,7 +60,9 @@ TEST_CASE("luau analysis: method registration") {
 
     SECTION("with self; basic definition") {
         const GDMethod &method = def.methods["WithSelf"];
+
         REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_STRING);
+
         REQUIRE(method.arguments.size() == 1);
         REQUIRE(method.arguments[0].name == "arg1");
         REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
@@ -68,6 +70,7 @@ TEST_CASE("luau analysis: method registration") {
 
     SECTION("without self") {
         const GDMethod &method = def.methods["WithoutSelf"];
+
         REQUIRE(method.arguments.size() == 1);
         REQUIRE(method.arguments[0].name == "arg1");
         REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
@@ -75,7 +78,8 @@ TEST_CASE("luau analysis: method registration") {
 
     SECTION("special arguments") {
         const GDMethod &method = def.methods["SpecialArg"];
-        REQUIRE(method.arguments.size() == 3);
+
+        REQUIRE(method.arguments.size() == 4);
 
         REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_OBJECT);
         REQUIRE(method.arguments[0].class_name == StringName("Node3D"));
@@ -87,6 +91,19 @@ TEST_CASE("luau analysis: method registration") {
         REQUIRE(method.arguments[2].type == GDEXTENSION_VARIANT_TYPE_ARRAY);
         REQUIRE(method.arguments[2].hint == PROPERTY_HINT_ARRAY_TYPE);
         REQUIRE(method.arguments[2].hint_string == Utils::resource_type_hint("Texture2D"));
+
+        REQUIRE(method.arguments[3].type == GDEXTENSION_VARIANT_TYPE_COLOR);
+    }
+
+    SECTION("variant handling") {
+        const GDMethod &method = def.methods["Variant"];
+
+        REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_NIL);
+        REQUIRE(method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
+
+        REQUIRE(method.arguments.size() == 1);
+        REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_NIL);
+        REQUIRE(method.arguments[0].usage & PROPERTY_USAGE_NIL_IS_VARIANT);
     }
 
     SECTION("vararg") {

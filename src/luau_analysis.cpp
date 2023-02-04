@@ -144,7 +144,6 @@ static bool get_type(const char *type_name, GDProperty &prop) {
     if (!did_init) {
         // Special cases
         variant_types.insert("nil", GDEXTENSION_VARIANT_TYPE_NIL);
-        variant_types.insert("Variant", GDEXTENSION_VARIANT_TYPE_NIL);
         variant_types.insert("boolean", GDEXTENSION_VARIANT_TYPE_BOOL);
         variant_types.insert("integer", GDEXTENSION_VARIANT_TYPE_INT);
         variant_types.insert("number", GDEXTENSION_VARIANT_TYPE_FLOAT);
@@ -157,10 +156,18 @@ static bool get_type(const char *type_name, GDProperty &prop) {
         did_init = true;
     }
 
+    // Special case
+    if (strcmp(type_name, "Variant") == 0) {
+        prop.type = GDEXTENSION_VARIANT_TYPE_NIL;
+        prop.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT;
+
+        return true;
+    }
+
     HashMap<String, GDExtensionVariantType>::ConstIterator E = variant_types.find(type_name);
 
     if (E) {
-        // Variant
+        // Variant type
         prop.type = E->value;
     } else if (Utils::class_exists(type_name)) {
         prop.type = GDEXTENSION_VARIANT_TYPE_OBJECT;
@@ -218,6 +225,41 @@ static bool get_prop(Luau::AstTypeReference *type, GDProperty &prop) {
     return false;
 }
 
+static Luau::AstTypeReference *get_type_reference(Luau::AstType *type, bool *was_conditional = nullptr) {
+    if (Luau::AstTypeReference *ref = type->as<Luau::AstTypeReference>()) {
+        return ref;
+    }
+
+    // Union with nil -> T?
+    if (Luau::AstTypeUnion *uni = type->as<Luau::AstTypeUnion>()) {
+        if (uni->types.size != 2)
+            return nullptr;
+
+        bool nil_found = false;
+        Luau::AstTypeReference *first_non_nil_ref = nullptr;
+
+        for (Luau::AstType *uni_type : uni->types) {
+            if (Luau::AstTypeReference *ref = uni_type->as<Luau::AstTypeReference>()) {
+                if (ref->name == "nil")
+                    nil_found = true;
+                else if (first_non_nil_ref == nullptr)
+                    first_non_nil_ref = ref;
+
+                if (nil_found && first_non_nil_ref != nullptr) {
+                    if (was_conditional != nullptr)
+                        *was_conditional = true;
+
+                    return first_non_nil_ref;
+                }
+            } else {
+                return nullptr;
+            }
+        }
+    }
+
+    return nullptr;
+}
+
 bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const StringName &method, GDMethod &ret) {
     HashMap<StringName, Luau::AstStatFunction *>::ConstIterator E = analysis.methods.find(method);
 
@@ -234,13 +276,20 @@ bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const String
         if (types.size > 1)
             return false;
 
-        Luau::AstTypeReference *ref = (*types.begin())->as<Luau::AstTypeReference>();
+        bool ret_conditional = false;
+        Luau::AstTypeReference *ref = get_type_reference(*types.begin(), &ret_conditional);
         if (ref == nullptr)
             return false;
 
         GDProperty return_val;
-        if (!get_prop(ref, return_val))
+
+        if (ret_conditional) {
+            // Assume Variant if method can return nil
+            return_val.type = GDEXTENSION_VARIANT_TYPE_NIL;
+            return_val.usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT;
+        } else if (!get_prop(ref, return_val)) {
             return false;
+        }
 
         ret.return_val = return_val;
     }
@@ -267,7 +316,7 @@ bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const String
         if (arg->annotation == nullptr)
             return false;
 
-        Luau::AstTypeReference *arg_type = arg->annotation->as<Luau::AstTypeReference>();
+        Luau::AstTypeReference *arg_type = get_type_reference(arg->annotation);
         if (arg_type == nullptr || !get_prop(arg_type, arg_prop))
             return false;
 

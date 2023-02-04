@@ -14,7 +14,7 @@ end
 
 TestClass:RegisterMethodAST("WithoutSelf")
 
-function TestClassImpl:SpecialArg(testObj: Node3D, testRes: Texture2D, testArray: TypedArray<Texture2D>)
+function TestClassImpl:SpecialArg(testObj: Node3D, testRes: Texture2D, testArray: TypedArray<Texture2D>, testConditional: Color?)
 end
 
 TestClass:RegisterMethodAST("SpecialArg")
@@ -23,5 +23,11 @@ function TestClassImpl:Vararg(testArg: number, ...: Variant)
 end
 
 TestClass:RegisterMethodAST("Vararg")
+
+function TestClassImpl:Variant(variantArg: Variant): Vector3?
+    return nil
+end
+
+TestClass:RegisterMethodAST("Variant")
 
 return TestClass
