@@ -25,6 +25,10 @@ bool Utils::is_parent_class(const StringName &class_name, const StringName &inhe
     return get_class_db()->call("is_parent_class", class_name, inherits);
 }
 
+StringName Utils::get_parent_class(const StringName &class_name) {
+    return get_class_db()->call("get_parent_class", class_name);
+}
+
 String Utils::to_pascal_case(const String &input) {
     String out = input.to_pascal_case();
 

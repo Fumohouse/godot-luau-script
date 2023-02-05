@@ -13,6 +13,7 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_bindings.h"
+#include "utils.h"
 
 using namespace godot;
 
@@ -96,22 +97,37 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
     GDObjectInstanceID *udata =
             reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
 
-    String metatable_name;
-
     if (value != nullptr) {
-        metatable_name = "Godot.Object." + value->get_class();
+        // Must search parent classes because some classes used in Godot are not registered,
+        // e.g. GodotPhysicsDirectSpaceState3D -> PhysicsDirectSpaceState3D
+
+        bool mt_found = false;
+        StringName curr_class = value->get_class();
+
+        while (!curr_class.is_empty()) {
+            String metatable_name = "Godot.Object." + curr_class;
+
+            luaL_getmetatable(L, metatable_name.utf8().get_data());
+            if (!lua_isnil(L, -1)) {
+                mt_found = true;
+                break;
+            }
+
+            lua_pop(L, 1); // nil
+
+            curr_class = Utils::get_parent_class(curr_class);
+        }
+
         luaGD_object_init(value);
         *udata = value->get_instance_id();
     } else {
-        metatable_name = "Godot.Object.Object";
+        luaL_getmetatable(L, "Godot.Object.Object");
         *udata = 0;
     }
 
-    const char *metatable_name_ptr = metatable_name.utf8().get_data();
-
-    luaL_getmetatable(L, metatable_name_ptr);
-    if (lua_isnil(L, -1))
-        luaL_error(L, "Metatable not found: %s", metatable_name_ptr);
+    // Shouldn't be possible
+    if (!lua_istable(L, -1))
+        luaL_error(L, "Metatable not found for class %s", value->get_class().utf8().get_data());
 
     lua_setmetatable(L, -2);
 }

@@ -17,7 +17,6 @@
 
 #include "extension_api.h"
 #include "gd_luau.h"
-#include "godot_cpp/variant/utility_functions.hpp"
 #include "luagd.h"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_permissions.h"

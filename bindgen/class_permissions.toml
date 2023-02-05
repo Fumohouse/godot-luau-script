@@ -6378,8 +6378,9 @@ SetSkin = "INHERIT" #
 #############################
 
 [Input]
+#* SAFE: 4.0-beta17
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE"
 
 [Input.methods]
 ActionPress = "INHERIT" #
@@ -9559,8 +9560,9 @@ SetTransform = "INHERIT" #
 #############################
 
 [PhysicsDirectSpaceState2D]
+#* SAFE: 4.0-beta17
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE"
 
 [PhysicsDirectSpaceState2D.methods]
 CastMotion = "INHERIT" #
@@ -9582,8 +9584,9 @@ IsBodyExcludedFromQuery = "INHERIT" #
 #############################
 
 [PhysicsDirectSpaceState3D]
+#* SAFE: 4.0-beta17
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE"
 
 [PhysicsDirectSpaceState3D.methods]
 CastMotion = "INHERIT" #
