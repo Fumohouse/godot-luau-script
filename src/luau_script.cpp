@@ -991,7 +991,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             const GDClassProperty &prop = s->definition.properties[E->value];
 
             // Check type
-            if ((GDExtensionVariantType)p_value.get_type() != prop.property.type) {
+            if (!Utils::variant_types_compatible(p_value.get_type(), Variant::Type(prop.property.type))) {
                 if (r_err != nullptr)
                     *r_err = PROP_WRONG_TYPE;
 

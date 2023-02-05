@@ -25,6 +25,7 @@
 #include "luagd_variant.h"
 #include "luau_lib.h"
 #include "luau_script.h"
+#include "utils.h"
 
 namespace godot {
 class Object;
@@ -33,12 +34,6 @@ class Object;
 /////////////
 // Generic //
 /////////////
-
-static bool variant_types_compatible(Variant::Type t1, Variant::Type t2) {
-    return t1 == t2 ||
-            (t1 == Variant::FLOAT && t2 == Variant::INT) ||
-            (t1 == Variant::INT && t2 == Variant::FLOAT);
-}
 
 static int luaGD_global_index(lua_State *L) {
     const char *name = lua_tostring(L, lua_upvalueindex(1));
@@ -474,7 +469,7 @@ static int luaGD_builtin_ctor(lua_State *L) {
             GDExtensionVariantType type = ctor.arguments[i].type;
 
             if (!LuaStackOp<Variant>::is(L, i + 1) ||
-                    !variant_types_compatible(LuaStackOp<Variant>::check(L, i + 1).get_type(), (Variant::Type)type)) {
+                    !Utils::variant_types_compatible(LuaStackOp<Variant>::check(L, i + 1).get_type(), (Variant::Type)type)) {
                 valid = false;
                 break;
             }
@@ -732,7 +727,7 @@ static int luaGD_builtin_operator(lua_State *L) {
     for (const ApiVariantOperator &op : builtin_class->operators.get(var_op)) {
         if (op.right_type == GDEXTENSION_VARIANT_TYPE_NIL) {
             right_ptr = nullptr;
-        } else if (LuaStackOp<Variant>::is(L, 2) && variant_types_compatible(LuaStackOp<Variant>::check(L, 2).get_type(), (Variant::Type)op.right_type)) {
+        } else if (LuaStackOp<Variant>::is(L, 2) && Utils::variant_types_compatible(LuaStackOp<Variant>::check(L, 2).get_type(), (Variant::Type)op.right_type)) {
             right.lua_check(L, 2, op.right_type);
             right_ptr = right.get_opaque_pointer();
         } else {
