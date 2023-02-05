@@ -10,7 +10,7 @@ gd_luau_type_map = {
 }
 
 
-def get_luau_type(type_string, is_ret=False):
+def get_luau_type(type_string, api, is_ret=False):
     if type_string in ["StringName", "NodePath"]:
         return "string" if is_ret else f"string | {type_string}"
 
@@ -19,7 +19,7 @@ def get_luau_type(type_string, is_ret=False):
 
     if type_string.startswith(constants.typed_array_prefix):
         array_type_name = type_string.split(":")[-1]
-        return f"TypedArray<{get_luau_type(array_type_name)}>"
+        return f"TypedArray<{get_luau_type(array_type_name, api)}>"
 
     enum_name = None
 
@@ -39,10 +39,13 @@ def get_luau_type(type_string, is_ret=False):
         enum_segments = enum_name.split(".")
         return f"ClassEnum{enum_segments[0]}_{enum_segments[1]}"
 
+    if type_string in [c["name"] for c in api["classes"]]:
+        type_string = type_string + "?"
+
     return type_string
 
 
-def generate_args(method, with_self=True, is_type=False, self_annot=""):
+def generate_args(method, api, with_self=True, is_type=False, self_annot=""):
     is_vararg = method["is_vararg"] if "is_vararg" in method else False
 
     out = ""
@@ -63,7 +66,7 @@ def generate_args(method, with_self=True, is_type=False, self_annot=""):
             # The p helps to escape collisions with Luau reserved keywords (e.g. "end")
             # .strip(): one argument name has a leadinng space for some reason
             arg_name = "p" + utils.snake_to_pascal(arg["name"].strip())
-            arg_type = get_luau_type(arg["type"])
+            arg_type = get_luau_type(arg["type"], api)
 
             out += f"{arg_name}: {arg_type}"
 
@@ -81,7 +84,7 @@ def generate_args(method, with_self=True, is_type=False, self_annot=""):
     return out
 
 
-def generate_method(src, class_name, method, is_def_static=False):
+def generate_method(src, class_name, method, api, is_def_static=False):
     method_name = utils.snake_to_pascal(method["name"])
 
     # Special cases
@@ -93,9 +96,9 @@ def generate_method(src, class_name, method, is_def_static=False):
     method_ret_str = ""
 
     if "return_type" in method:
-        method_ret_str = get_luau_type(method["return_type"], True)
+        method_ret_str = get_luau_type(method["return_type"], api, True)
     elif "return_value" in method:
-        method_ret_str = get_luau_type(method["return_value"]["type"], True)
+        method_ret_str = get_luau_type(method["return_value"]["type"], api, True)
 
     if is_def_static:
         is_method_static = "is_static" in method and method["is_static"]
@@ -104,13 +107,13 @@ def generate_method(src, class_name, method, is_def_static=False):
             method_ret_str = "()"
 
         append(
-            src, 1, f"{method_name}: ({generate_args(method, not is_method_static, True, class_name)}) -> {method_ret_str}")
+            src, 1, f"{method_name}: ({generate_args(method, api, not is_method_static, True, class_name)}) -> {method_ret_str}")
     else:
         if method_ret_str != "":
             method_ret_str = ": " + method_ret_str
 
         append(
-            src, 1, f"function {method_name}({generate_args(method)}){method_ret_str}")
+            src, 1, f"function {method_name}({generate_args(method, api)}){method_ret_str}")
 
 
 def generate_enum(src, enum, class_name=""):
@@ -142,7 +145,7 @@ def generate_enum(src, enum, class_name=""):
     return name, type_name, internal_type_name
 
 
-def generate_builtin_class(src, builtin_class):
+def generate_builtin_class(src, builtin_class, api):
     name = builtin_class["name"]
     src.append(f"-- {name}")
 
@@ -164,15 +167,15 @@ function __newindex(self, key: Variant, value: Variant)\
         indexing_type_name = builtin_class["indexing_return_type"]
 
         append(src, 1, f"""\
-function __index(self, key: number): {get_luau_type(indexing_type_name, True)}
-function __newindex(self, key: number, value: {get_luau_type(indexing_type_name)})\
+function __index(self, key: number): {get_luau_type(indexing_type_name, api, True)}
+function __newindex(self, key: number, value: {get_luau_type(indexing_type_name, api)})\
 """)
 
     # Members
     if "members" in builtin_class:
         for member in builtin_class["members"]:
             member_name = member["name"]
-            member_type = get_luau_type(member["type"], True)
+            member_type = get_luau_type(member["type"], api, True)
 
             append(src, 1, f"[\"{member_name}\"]: {member_type}")
 
@@ -182,7 +185,7 @@ function __newindex(self, key: number, value: {get_luau_type(indexing_type_name)
             if method["is_static"]:
                 continue
 
-            generate_method(src, name, method)
+            generate_method(src, name, method, api)
 
     # Operators
     if "operators" in builtin_class:
@@ -190,10 +193,10 @@ function __newindex(self, key: number, value: {get_luau_type(indexing_type_name)
 
         for op in operators:
             op_mt_name = "__" + utils.variant_op_map[op["name"]]
-            op_return_type = get_luau_type(op["return_type"], True)
+            op_return_type = get_luau_type(op["return_type"], api, True)
 
             if "right_type" in op:
-                op_right_type = get_luau_type(op["right_type"])
+                op_right_type = get_luau_type(op["right_type"], api)
 
                 append(
                     src, 1, f"function {op_mt_name}(self, other: {op_right_type}): {op_return_type}")
@@ -239,7 +242,7 @@ function __iter(self): any\
     if "constants" in builtin_class:
         for constant in builtin_class["constants"]:
             constant_name = constant["name"]
-            constant_type = get_luau_type(constant["type"], True)
+            constant_type = get_luau_type(constant["type"], api, True)
 
             append(src, 1, f"{constant_name}: {constant_type}")
 
@@ -249,12 +252,12 @@ function __iter(self): any\
     else:
         for constructor in builtin_class["constructors"]:
             append(
-                src, 1, f"new: ({generate_args(constructor, False, True)}) -> {name}")
+                src, 1, f"new: ({generate_args(constructor, api, False, True)}) -> {name}")
 
     # Statics
     if "methods" in builtin_class:
         for method in builtin_class["methods"]:
-            generate_method(src, name, method, True)
+            generate_method(src, name, method, api, True)
 
     src.append(f"""\
 end
@@ -263,7 +266,7 @@ declare {name}: {name}_GLOBAL
 """)
 
 
-def generate_class(src, g_class, singletons):
+def generate_class(src, g_class, api):
     name = g_class["name"]
     src.append(f"-- {name}")
 
@@ -282,7 +285,7 @@ def generate_class(src, g_class, singletons):
             if method["is_virtual"]:
                 continue
 
-            generate_method(src, name, method)
+            generate_method(src, name, method, api)
 
     # Custom Object methods
     if name == "Object":
@@ -319,7 +322,7 @@ function Free(self)\
                         prop_type = prop_method["arguments"][arg_idx]["type"]
 
             # BaseMaterial/ShaderMaterial multiple types
-            prop_type = " | ".join([get_luau_type(t, True)
+            prop_type = " | ".join([get_luau_type(t, api, True)
                                    for t in prop_type.split(",")])
 
             append(src, 1, f"[\"{prop_name}\"]: {prop_type}")
@@ -358,7 +361,7 @@ function Free(self)\
         append(src, 1, f"new: () -> {name}")
 
     # Singleton
-    singleton_matches = utils.get_singletons(name, singletons)
+    singleton_matches = utils.get_singletons(name, api["singletons"])
     if len(singleton_matches) > 0:
         append(src, 1, f"GetSingleton: () -> {name}")
 
@@ -368,7 +371,7 @@ function Free(self)\
             if method["is_virtual"]:
                 continue
 
-            generate_method(src, name, method, True)
+            generate_method(src, name, method, api, True)
 
     src.append(f"""\
 end
@@ -442,10 +445,10 @@ def generate_typedefs(defs_dir, api, lib_types):
             src.append(f"declare function {func_name}(...: any)")
         else:
             func_ret_str = ": " + \
-                get_luau_type(func["return_type"], True) if "return_type" in func else ""
+                get_luau_type(func["return_type"], api, True) if "return_type" in func else ""
 
             src.append(
-                f"declare function {func_name}({generate_args(func, False)}){func_ret_str}")
+                f"declare function {func_name}({generate_args(func, api, False)}){func_ret_str}")
 
     src.append("")
 
@@ -465,7 +468,7 @@ def generate_typedefs(defs_dir, api, lib_types):
         if builtin_class["name"] in ["StringName", "NodePath"]:
             continue
 
-        generate_builtin_class(src, builtin_class)
+        generate_builtin_class(src, builtin_class, api)
 
     # Classes
     src.append("""\
@@ -494,7 +497,7 @@ def generate_typedefs(defs_dir, api, lib_types):
     classes = sorted(classes, key=sort_classes(classes))
 
     for g_class in classes:
-        generate_class(src, g_class, api["singletons"])
+        generate_class(src, g_class, api)
 
     # Special types
     src.append("""\

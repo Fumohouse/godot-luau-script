@@ -911,7 +911,7 @@ static int luaGD_class_ctor(lua_State *L) {
                                                                             \
     Object *self = LuaStackOp<Object *>::check(L, 1);                       \
     if (self == nullptr)                                                    \
-        luaL_error(L, "Object is null or freed");
+        luaL_error(L, "Object has been freed");
 
 #define INHERIT_OR_BREAK                                             \
     if (current_class->parent_idx >= 0)                              \

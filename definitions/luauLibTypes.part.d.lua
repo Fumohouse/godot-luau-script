@@ -39,7 +39,7 @@ declare function NP(str: string): NodePath
     Loads a resource. Mostly an alias for `ResourceLoader.GetSingleton():Load()`.
     @param path The **relative** path to the resource from this script.
 ]]
-declare function load<T>(path: string): T
+declare function load<T>(path: string): T?
 
 --------------------
 -- LUAU_LIB TYPES --

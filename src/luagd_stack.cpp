@@ -94,10 +94,10 @@ static void luaGD_object_dtor(void *ptr) {
 }
 
 void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
-    GDObjectInstanceID *udata =
-            reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
-
     if (value != nullptr) {
+        GDObjectInstanceID *udata =
+                reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
+
         // Must search parent classes because some classes used in Godot are not registered,
         // e.g. GodotPhysicsDirectSpaceState3D -> PhysicsDirectSpaceState3D
 
@@ -120,19 +120,21 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
 
         luaGD_object_init(value);
         *udata = value->get_instance_id();
+
+        // Shouldn't be possible
+        if (!lua_istable(L, -1))
+            luaL_error(L, "Metatable not found for class %s", value->get_class().utf8().get_data());
+
+        lua_setmetatable(L, -2);
     } else {
-        luaL_getmetatable(L, "Godot.Object.Object");
-        *udata = 0;
+        lua_pushnil(L);
     }
-
-    // Shouldn't be possible
-    if (!lua_istable(L, -1))
-        luaL_error(L, "Metatable not found for class %s", value->get_class().utf8().get_data());
-
-    lua_setmetatable(L, -2);
 }
 
 bool LuaStackOp<Object *>::is(lua_State *L, int index) {
+    if (lua_isnil(L, index))
+        return true;
+
     if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
         return false;
 
