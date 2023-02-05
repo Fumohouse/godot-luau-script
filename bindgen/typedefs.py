@@ -284,9 +284,12 @@ def generate_class(src, g_class, singletons):
 
             generate_method(src, name, method)
 
-    # Object Free
+    # Custom Object methods
     if name == "Object":
-        append(src, 1, "function Free(self)")
+        append(src, 1, """\
+function IsScript(self, def: GDClassDefinition): boolean
+function Free(self)\
+""")
 
     # Signals
     if "signals" in g_class:

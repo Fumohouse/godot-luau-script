@@ -1018,6 +1018,24 @@ static int luaGD_class_namecall(lua_State *L) {
 
             memdelete(self);
             return 0;
+        } else if (strcmp(name, "IsScript") == 0) {
+            GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 2);
+
+            if (def->script != nullptr) {
+                Ref<LuauScript> s = self->get_script();
+
+                while (s.is_valid()) {
+                    if (s == def->script) {
+                        lua_pushboolean(L, true);
+                        return 1;
+                    }
+
+                    s = s->get_base();
+                }
+            }
+
+            lua_pushboolean(L, false);
+            return 1;
         }
 
         if (LuauScriptInstance *inst = get_script_instance(self)) {
