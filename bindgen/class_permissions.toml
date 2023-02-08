@@ -639,7 +639,6 @@ GetRootMotionScale = "INHERIT" #
 GetRootMotionTrack = "INHERIT" #
 GetTreeRoot = "INHERIT" #
 IsActive = "INHERIT" #
-RenameParameter = "INHERIT" #
 SetActive = "INHERIT" #
 SetAdvanceExpressionBaseNode = "INHERIT" #
 SetAnimationPlayer = "INHERIT" #
@@ -4107,6 +4106,15 @@ GetParent = "INHERIT" #
 GetPath = "INHERIT" #
 GetSubdir = "INHERIT" #
 GetSubdirCount = "INHERIT" #
+
+#############################
+
+[EditorImportPlugin]
+inherits = "ResourceImporter"
+default_permissions = "BASE" #
+
+[EditorImportPlugin.methods]
+AppendImportExternalResource = "INHERIT" #
 
 #############################
 
@@ -10504,6 +10512,7 @@ default_permissions = "INTERNAL" #
 [ProjectSettings.methods]
 AddPropertyInfo = "INHERIT" #
 Clear = "INHERIT" #
+GetGlobalClassList = "INHERIT" #
 GetOrder = "INHERIT" #
 GetSetting = "INHERIT" #
 GetSettingWithOverride = "INHERIT" #
@@ -11327,6 +11336,7 @@ CanvasLightOccluderSetEnabled = "INHERIT" #
 CanvasLightOccluderSetLightMask = "INHERIT" #
 CanvasLightOccluderSetPolygon = "INHERIT" #
 CanvasLightOccluderSetTransform = "INHERIT" #
+CanvasLightSetBlendMode = "INHERIT" #
 CanvasLightSetColor = "INHERIT" #
 CanvasLightSetEnabled = "INHERIT" #
 CanvasLightSetEnergy = "INHERIT" #
@@ -11876,6 +11886,7 @@ IsSelectionEnabled = "INHERIT" #
 IsShortcutKeysEnabled = "INHERIT" #
 IsThreaded = "INHERIT" #
 IsUsingBbcode = "INHERIT" #
+MenuOption = "INHERIT" #
 Newline = "INHERIT" #
 ParseBbcode = "INHERIT" #
 ParseExpressionsForValues = "INHERIT" #
@@ -15376,6 +15387,7 @@ GetMousePosition = "INHERIT" #
 GetMsaa2D = "INHERIT" #
 GetMsaa3D = "INHERIT" #
 GetPhysicsObjectPicking = "INHERIT" #
+GetPhysicsObjectPickingSort = "INHERIT" #
 GetPositionalShadowAtlas16Bits = "INHERIT" #
 GetPositionalShadowAtlasQuadrantSubdiv = "INHERIT" #
 GetPositionalShadowAtlasSize = "INHERIT" #
@@ -15437,6 +15449,7 @@ SetMeshLodThreshold = "INHERIT" #
 SetMsaa2D = "INHERIT" #
 SetMsaa3D = "INHERIT" #
 SetPhysicsObjectPicking = "INHERIT" #
+SetPhysicsObjectPickingSort = "INHERIT" #
 SetPositionalShadowAtlas16Bits = "INHERIT" #
 SetPositionalShadowAtlasQuadrantSubdiv = "INHERIT" #
 SetPositionalShadowAtlasSize = "INHERIT" #
@@ -16779,6 +16792,7 @@ GetPlayArea = "INHERIT" #
 GetPlayAreaMode = "INHERIT" #
 GetProjectionForView = "INHERIT" #
 GetRenderTargetSize = "INHERIT" #
+GetSupportedEnvironmentBlendModes = "INHERIT" #
 GetTrackingStatus = "INHERIT" #
 GetTransformForView = "INHERIT" #
 GetViewCount = "INHERIT" #
@@ -16788,6 +16802,7 @@ IsPassthroughEnabled = "INHERIT" #
 IsPassthroughSupported = "INHERIT" #
 IsPrimary = "INHERIT" #
 SetAnchorDetectionIsEnabled = "INHERIT" #
+SetEnvironmentBlendMode = "INHERIT" #
 SetPlayAreaMode = "INHERIT" #
 SetPrimary = "INHERIT" #
 StartPassthrough = "INHERIT" #
