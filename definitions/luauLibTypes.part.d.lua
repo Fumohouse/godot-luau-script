@@ -41,6 +41,12 @@ declare function NP(str: string): NodePath
 ]]
 declare function load<T>(path: string): T?
 
+--[[--
+    Determines the Godot Variant type of a value, or `nil` if the value is not Variant-compatible.
+    @param value The value.
+]]
+declare function gdtypeof(value: any): EnumVariantType?
+
 --------------------
 -- LUAU_LIB TYPES --
 --------------------

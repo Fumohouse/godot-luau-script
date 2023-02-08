@@ -9,6 +9,7 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
+#include "godot_cpp/variant/variant.hpp"
 #include "luagd.h"
 #include "luagd_stack.h"
 
@@ -71,11 +72,26 @@ static int luaGD_load(lua_State *L) {
     return 1;
 }
 
+static int luaGD_gdtypeof(lua_State *L) {
+    luaL_checkany(L, 1);
+
+    int type = LuaStackOp<Variant>::get_type(L, 1);
+    if (type == -1) {
+        lua_pushnil(L);
+    } else {
+        lua_pushinteger(L, type);
+    }
+
+    return 1;
+}
+
 static const luaL_Reg global_funcs[] = {
     { "SN", luaGD_str_ctor<StringName> },
     { "NP", luaGD_str_ctor<NodePath> },
 
     { "load", luaGD_load },
+
+    { "gdtypeof", luaGD_gdtypeof },
 
     { nullptr, nullptr }
 };
