@@ -80,6 +80,7 @@ private:
     bool valid;
     GDClassDefinition definition;
     HashMap<GDLuau::VMType, GDClassDefinition> vm_defs;
+    HashSet<String> methods;
 
     bool placeholder_fallback_enabled;
     Ref<LuauScript> cyclic_base;
@@ -93,6 +94,8 @@ private:
 
     void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
     bool update_exports_internal(bool *r_err, PlaceHolderScriptInstance *p_instance_to_update);
+
+    void unref_table_refs();
 
 #ifdef TESTS_ENABLED
 public:

@@ -137,7 +137,7 @@ void LuauScript::compile() {
 
     // tf?
     luau_data.allocator.~Allocator();
-    new(&luau_data.allocator) Luau::Allocator(std::move(allocator));
+    new (&luau_data.allocator) Luau::Allocator(std::move(allocator));
     luau_data.parse_result = parse_result;
     luau_data.bytecode = bytecode;
 
@@ -281,14 +281,19 @@ Error LuauScript::_reload(bool p_keep_state) {
 
     base_dir = get_path().get_base_dir();
 
+    // Load script.
+    unref_table_refs();
     compile(); // Always recompile on reload.
-    Error err = get_class_definition(this, nullptr, definition, valid);
+    lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
+
+    Error err = get_class_definition(this, L, definition, valid);
 
     if (err != OK) {
         _is_reloading = false;
         return err;
     }
 
+    // Load base script.
     update_base_script(err, true);
     if (err != OK || (base.is_valid() && !base->_is_valid())) {
         valid = false;
@@ -296,6 +301,23 @@ Error LuauScript::_reload(bool p_keep_state) {
         return err;
     }
 
+    // Build method cache.
+    methods.clear();
+
+    if (definition.table_ref != -1) {
+        lua_getref(L, definition.table_ref);
+
+        lua_pushnil(L);
+        while (lua_next(L, -2) != 0) {
+            if (lua_type(L, -2) == LUA_TSTRING && lua_isfunction(L, -1)) {
+                methods.insert(lua_tostring(L, -2));
+            }
+
+            lua_pop(L, 1); // value
+        }
+    }
+
+    // Reload methods.
     for (const KeyValue<GDLuau::VMType, GDClassDefinition> &pair : vm_defs) {
         if (load_methods(pair.key, true) == OK)
             continue;
@@ -327,9 +349,6 @@ Error LuauScript::load_methods(GDLuau::VMType p_vm_type, bool p_force) {
             LUAU_LOAD_ERR(this, 1, LUAU_LOAD_NO_DEF_MSG);
             return ERR_COMPILATION_FAILED;
         }
-
-        if (vm_defs.has(p_vm_type))
-            lua_unref(L, vm_defs[p_vm_type].table_ref);
 
         vm_defs[p_vm_type] = LuaStackOp<GDClassDefinition>::get(T, 1);
         lua_pop(L, 1); // thread
@@ -615,6 +634,21 @@ LuauScript::LuauScript() :
     }
 }
 
+void LuauScript::unref_table_refs() {
+    if (definition.table_ref != -1) {
+        lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
+        lua_unref(L, definition.table_ref);
+    }
+
+    for (const KeyValue<GDLuau::VMType, GDClassDefinition> &pair : vm_defs) {
+        if (pair.value.table_ref == -1)
+            continue;
+
+        lua_State *L = GDLuau::get_singleton()->get_vm(pair.key);
+        lua_unref(L, pair.value.table_ref);
+    }
+}
+
 LuauScript::~LuauScript() {
     {
         MutexLock lock(LuauLanguage::get_singleton()->lock);
@@ -622,10 +656,7 @@ LuauScript::~LuauScript() {
     }
 
     if (GDLuau::get_singleton() != nullptr) {
-        for (const KeyValue<GDLuau::VMType, GDClassDefinition> &pair : vm_defs) {
-            lua_State *L = GDLuau::get_singleton()->get_vm(pair.key);
-            lua_unref(L, pair.value.table_ref);
-        }
+        unref_table_refs();
     }
 
     vm_defs.clear();
@@ -640,21 +671,21 @@ LuauScript::~LuauScript() {
 void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceInfo &p_info) {
     // Must initialize potentially unused struct fields to nullptr
     // (if not, causes segfault on MSVC).
-	p_info.property_can_revert_func = nullptr;
-	p_info.property_get_revert_func = nullptr;
+    p_info.property_can_revert_func = nullptr;
+    p_info.property_get_revert_func = nullptr;
 
-	p_info.call_func = nullptr;
-	p_info.notification_func = nullptr;
+    p_info.call_func = nullptr;
+    p_info.notification_func = nullptr;
 
-	p_info.to_string_func = nullptr;
+    p_info.to_string_func = nullptr;
 
-	p_info.refcount_incremented_func = nullptr;
-	p_info.refcount_decremented_func = nullptr;
+    p_info.refcount_incremented_func = nullptr;
+    p_info.refcount_decremented_func = nullptr;
 
-	p_info.is_placeholder_func = nullptr;
+    p_info.is_placeholder_func = nullptr;
 
-	p_info.set_fallback_func = nullptr;
-	p_info.get_fallback_func = nullptr;
+    p_info.set_fallback_func = nullptr;
+    p_info.get_fallback_func = nullptr;
 
     p_info.set_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) -> GDExtensionBool {
         return COMMON_SELF->set(*(const StringName *)p_name, *(const Variant *)p_value);
@@ -1006,11 +1037,10 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                 return false;
             }
 
-            // Prepare for set
+            // Set
             lua_State *ET = lua_newthread(T);
             int status;
 
-            // Set
             if (prop.setter != StringName()) {
                 LuaStackOp<Variant>::push(ET, p_value);
                 status = call_internal(prop.setter, ET, 1, 0);
@@ -1069,11 +1099,10 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
                 return false;
             }
 
-            // Prepare for get
+            // Get
             lua_State *ET = lua_newthread(T);
             int status;
 
-            // Get
             if (prop.getter != StringName()) {
                 status = call_internal(prop.getter, ET, 0, 1);
             } else {
@@ -1276,43 +1305,44 @@ void LuauScriptInstance::call(
 }
 
 void LuauScriptInstance::notification(int32_t p_what) {
+#define NOTIF_NAME "_Notification"
+
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
-        // TODO: cache whether user created _Notification in class definition to avoid having to make a thread, etc. to check
+        if (s->methods.has(NOTIF_NAME)) {
+            lua_State *ET = lua_newthread(T);
 
-        lua_State *ET = lua_newthread(T);
+            LuaStackOp<int32_t>::push(ET, p_what);
+            call_internal(NOTIF_NAME, ET, 1, 0);
 
-        LuaStackOp<int32_t>::push(ET, p_what);
-        call_internal("_Notification", ET, 1, 0);
-
-        lua_pop(T, 1); // thread
+            lua_pop(T, 1); // thread
+        }
 
         s = s->base.ptr();
     }
 }
 
 void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out) {
+#define TO_STRING_NAME "_ToString"
+
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
-        // TODO: cache whether user created _ToString in class definition to avoid having to make a thread, etc. to check
+        if (s->methods.has(TO_STRING_NAME)) {
+            lua_State *ET = lua_newthread(T);
 
-        lua_State *ET = lua_newthread(T);
+            int status = call_internal(TO_STRING_NAME, ET, 0, 1);
 
-        int status = call_internal("_ToString", ET, 0, 1);
-
-        if (status != -1) {
             if (status == LUA_OK)
                 *r_out = LuaStackOp<String>::get(ET, -1);
 
             if (r_is_valid != nullptr)
                 *r_is_valid = status == LUA_OK;
 
+            lua_pop(T, 1); // thread
             return;
         }
-
-        lua_pop(T, 1); // thread
 
         s = s->base.ptr();
     }
