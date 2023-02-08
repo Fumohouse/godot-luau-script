@@ -1,5 +1,6 @@
 #include "register_types.h"
 
+#include <Luau/Common.h>
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/ref.hpp>
@@ -36,6 +37,13 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
     UtilityFunctions::print_verbose("luau script: initializing...");
 
     LuauVariant::_register_types();
+
+#ifdef DEBUG_ENABLED
+    Luau::assertHandler() = [](const char *expr, const char *file, int line, const char *function) -> int {
+        UtilityFunctions::print("LUAU ASSERT FAILED: ", expr, " in file ", file, " at line ", line);
+        return 1;
+    };
+#endif // DEBUG_ENABLED
 
     ClassDB::register_class<LuauScript>();
     ClassDB::register_class<LuauLanguage>();

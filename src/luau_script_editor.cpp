@@ -493,7 +493,7 @@ bool PlaceHolderScriptInstance::get(const StringName &p_name, Variant &r_ret, Pr
     return false;
 }
 
-GDExtensionPropertyInfo *PlaceHolderScriptInstance::get_property_list(uint32_t *r_count) const {
+GDExtensionPropertyInfo *PlaceHolderScriptInstance::get_property_list(uint32_t *r_count) {
     Vector<GDExtensionPropertyInfo> props;
 
     int size = properties.size();

@@ -120,7 +120,8 @@ int GDClassDefinition::set_prop(const String &name, const GDClassProperty &prop)
 /* PROPERTY */
 
 GDProperty luascript_read_property(lua_State *L, int idx) {
-    luaL_checktype(L, idx, LUA_TTABLE);
+    if (!lua_istable(L, idx))
+        luaL_error(L, "expected table type for GDProperty value");
 
     GDProperty property;
 

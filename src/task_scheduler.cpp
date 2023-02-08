@@ -8,8 +8,8 @@
 
 #include "gd_luau.h"
 #include "luagd.h"
-#include "luau_script.h"
 #include "luagd_stack.h"
+#include "luau_script.h"
 
 using namespace godot;
 

@@ -118,36 +118,42 @@ TEST_CASE("luau script: instance") {
     }
 
     SECTION("property methods") {
-        bool is_valid;
-        Variant::Type type = inst->get_property_type("testProperty", &is_valid);
+        SECTION("get_property_type") {
+            bool is_valid;
+            Variant::Type type = inst->get_property_type("testProperty", &is_valid);
 
-        REQUIRE(is_valid);
-        REQUIRE(type == Variant::FLOAT);
-
-        uint32_t count;
-        GDExtensionPropertyInfo *properties = inst->get_property_list(&count);
-
-        REQUIRE(count == 4);
-
-        bool p1_found = false;
-        bool p2_found = false;
-
-        for (int i = 0; i < count; i++) {
-            StringName *name = (StringName *)properties[i].name;
-
-            if (*name == StringName("testProperty")) {
-                p1_found = true;
-                REQUIRE(properties[i].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
-            } else if (*name == StringName("testProperty2")) {
-                p2_found = true;
-                REQUIRE(properties[i].type == GDEXTENSION_VARIANT_TYPE_STRING);
-            }
+            REQUIRE(is_valid);
+            REQUIRE(type == Variant::FLOAT);
         }
 
-        REQUIRE(p1_found);
-        REQUIRE(p2_found);
+        SECTION("get_property_list") {
+            uint32_t count;
+            GDExtensionPropertyInfo *properties = inst->get_property_list(&count);
 
-        inst->free_property_list(properties);
+            REQUIRE(count == 5);
+
+            REQUIRE(*(StringName *)properties[0].name == StringName("testProperty"));
+            REQUIRE(properties[0].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
+
+            REQUIRE(*(StringName *)properties[1].name == StringName("testProperty2"));
+            REQUIRE(properties[1].type == GDEXTENSION_VARIANT_TYPE_STRING);
+
+            REQUIRE(*(StringName *)properties[4].name == StringName("custom/testProperty"));
+            REQUIRE(properties[4].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
+
+            inst->free_property_list(properties);
+        }
+
+        SECTION("property_can_revert") {
+            REQUIRE(!inst->property_can_revert("testProperty"));
+            REQUIRE(inst->property_can_revert("custom/testProperty"));
+        }
+
+        SECTION("property_get_revert") {
+            Variant val;
+            REQUIRE(inst->property_get_revert("custom/testProperty", &val));
+            REQUIRE(val == Variant(1.25));
+        }
     }
 
     SECTION("call") {
@@ -297,17 +303,13 @@ TEST_CASE("luau script: instance") {
         SECTION("set") {
             SECTION("with wrong type") {
                 LuauScriptInstance::PropertySetGetError err;
-                bool is_valid = inst->set("testProperty", "asdf", &err);
-
-                REQUIRE(!is_valid);
+                REQUIRE(!inst->set("testProperty", "asdf", &err));
                 REQUIRE(err == LuauScriptInstance::PROP_WRONG_TYPE);
             }
 
             SECTION("read-only") {
                 LuauScriptInstance::PropertySetGetError err;
-                bool is_valid = inst->set("testProperty2", "hey there", &err);
-
-                REQUIRE(!is_valid);
+                REQUIRE(!inst->set("testProperty2", "hey there", &err));
                 REQUIRE(err == LuauScriptInstance::PROP_READ_ONLY);
             }
         }
@@ -316,41 +318,39 @@ TEST_CASE("luau script: instance") {
             SECTION("write-only") {
                 LuauScriptInstance::PropertySetGetError err;
                 Variant val;
-                bool is_valid = inst->get("testProperty3", val, &err);
-
-                REQUIRE(!is_valid);
+                REQUIRE(!inst->get("testProperty3", val, &err));
                 REQUIRE(err == LuauScriptInstance::PROP_WRITE_ONLY);
             }
 
             SECTION("default value") {
                 Variant val;
-                bool get_is_valid = inst->get("testProperty4", val);
-
-                REQUIRE(get_is_valid);
+                REQUIRE(inst->get("testProperty4", val));
                 REQUIRE(val == "hey");
             }
         }
 
         SECTION("with getter and setter") {
-            bool set_is_valid = inst->set("testProperty", 3.5);
-            REQUIRE(set_is_valid);
+            REQUIRE(inst->set("testProperty", 3.5));
 
             Variant val;
-            bool get_is_valid = inst->get("testProperty", val);
-
-            REQUIRE(get_is_valid);
+            REQUIRE(inst->get("testProperty", val));
             REQUIRE(val == Variant(7));
         }
 
         SECTION("with no getter or setter") {
-            bool set_is_valid = inst->set("testProperty4", "asdf");
-            REQUIRE(set_is_valid);
+            REQUIRE(inst->set("testProperty4", "asdf"));
 
             Variant new_val;
-            bool get_is_valid = inst->get("testProperty4", new_val);
-
-            REQUIRE(get_is_valid);
+            REQUIRE(inst->get("testProperty4", new_val));
             REQUIRE(new_val == "asdf");
+        }
+
+        SECTION("custom") {
+            REQUIRE(inst->set("custom/testProperty", 2.25));
+
+            Variant new_val;
+            REQUIRE(inst->get("custom/testProperty", new_val));
+            REQUIRE(new_val == Variant(2.25));
         }
 
         SECTION("property state") {
@@ -362,10 +362,11 @@ TEST_CASE("luau script: instance") {
 
             inst->get_property_state(add, &state);
 
-            REQUIRE(state.size() == 3);
+            REQUIRE(state.size() == 4);
             REQUIRE(state["testProperty"] == Variant(6.5));
             REQUIRE(state["testProperty2"] == "hello");
             REQUIRE(state["testProperty4"] == "hey");
+            REQUIRE(state["custom/testProperty"] == Variant(1.25));
         }
     }
 

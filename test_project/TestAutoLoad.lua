@@ -1,4 +1,5 @@
 local TestAutoLoad = gdclass(nil, "Node")
+	:Tool(true)
 
 function TestAutoLoad:_Ready()
 	print("TestAutoLoad: Ready!")

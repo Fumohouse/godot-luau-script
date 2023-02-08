@@ -10,6 +10,7 @@
   - [Godot Class Reference]()
   - [`godot-luau-script` API Reference](./usage/writing-scripts/luau-script-api.md)
   - [The "Idiomatic" Class](./usage/writing-scripts/idiomatic-class.md)
+  - [Virtual Methods](./usage/writing-scripts/virtual-methods.md)
   - ["Core Scripts", VMs, and Permissions](./usage/writing-scripts/core-scripts-vms-permissions.md)
   - [Modules](./usage/writing-scripts/modules.md)
   - [The Task Scheduler](./usage/writing-scripts/task-scheduler.md)

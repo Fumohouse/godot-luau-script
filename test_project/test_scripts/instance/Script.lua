@@ -23,6 +23,7 @@ function TestClass._Init(obj, tbl)
     tbl._notifHits = 0
     tbl.testField = 1
     tbl._testProperty = 3.25
+    tbl.customTestPropertyValue = 1.25
 end
 
 function TestClass:_Ready()
@@ -109,5 +110,47 @@ TestClass:RegisterProperty("testProperty3", Enum.VariantType.STRING)
 
 TestClass:RegisterProperty("testProperty4", Enum.VariantType.STRING)
     :Default("hey")
+
+function TestClass:_GetPropertyList()
+    return {
+        {
+            name = "custom/testProperty",
+            type = Enum.VariantType.FLOAT
+        }
+    }
+end
+
+function TestClass:_PropertyCanRevert(property)
+    if property == "custom/testProperty" then
+        return true
+    end
+
+    return false
+end
+
+function TestClass:_PropertyGetRevert(property)
+    if property == "custom/testProperty" then
+        return 1.25
+    end
+
+    return nil
+end
+
+function TestClass:_Set(property, value)
+    if property == "custom/testProperty" then
+        self.customTestPropertyValue = value
+        return true
+    end
+
+    return false
+end
+
+function TestClass:_Get(property)
+    if property == "custom/testProperty" then
+        return self.customTestPropertyValue
+    end
+
+    return nil
+end
 
 return TestClass

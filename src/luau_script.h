@@ -221,7 +221,7 @@ public:
     void get_property_state(GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata);
     void get_property_state(List<Pair<StringName, Variant>> &p_list);
 
-    virtual GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) const = 0;
+    virtual GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) = 0;
     void free_property_list(const GDExtensionPropertyInfo *p_list) const;
 
     virtual Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const = 0;
@@ -259,12 +259,12 @@ public:
     bool set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err = nullptr) override;
     bool get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err = nullptr) override;
 
-    GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) const override;
+    GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) override;
 
     Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const override;
 
-    bool property_can_revert(const StringName &p_name) const;
-    bool property_get_revert(const StringName &p_name, Variant *r_ret) const;
+    bool property_can_revert(const StringName &p_name);
+    bool property_get_revert(const StringName &p_name, Variant *r_ret);
 
     bool has_method(const StringName &p_name) const override;
 
@@ -308,7 +308,7 @@ public:
     bool set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err = nullptr) override;
     bool get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err = nullptr) override;
 
-    GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) const override;
+    GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) override;
 
     Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const override;
 

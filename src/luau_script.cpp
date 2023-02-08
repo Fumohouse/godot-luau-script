@@ -1013,6 +1013,8 @@ int LuauScriptInstance::protected_table_get(lua_State *L, const Variant &p_key) 
 }
 
 bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err) {
+#define SET_NAME "_Set"
+
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
@@ -1073,6 +1075,40 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             }
         }
 
+        if (s->methods.has(SET_NAME)) {
+            lua_State *ET = lua_newthread(T);
+
+            LuaStackOp<String>::push(ET, p_name);
+            LuaStackOp<Variant>::push(ET, p_value);
+            int status = call_internal(SET_NAME, ET, 2, 1);
+
+            if (status == OK) {
+                if (lua_type(ET, -1) != LUA_TBOOLEAN) {
+                    if (r_err != nullptr) {
+                        *r_err = PROP_SET_FAILED;
+                    }
+
+                    LUAU_ERR("LuauScriptInstance::set", script, 1, String("expected " SET_NAME " to return a boolean"));
+                } else {
+                    bool valid = lua_toboolean(ET, -1);
+
+                    if (valid) {
+                        if (r_err != nullptr) {
+                            *r_err = PROP_OK;
+                        }
+
+                        lua_pop(T, 1); // thread
+                        return true;
+                    }
+                }
+            } else if (status != -1) {
+                lua_pop(T, 1); // thread
+                return false;
+            }
+
+            lua_pop(T, 1); // thread
+        }
+
         s = s->base.ptr();
     }
 
@@ -1083,6 +1119,8 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 }
 
 bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err) {
+#define GET_NAME "_Get"
+
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
@@ -1132,6 +1170,40 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
             return false;
         }
 
+        if (s->methods.has(GET_NAME)) {
+            lua_State *ET = lua_newthread(T);
+
+            LuaStackOp<String>::push(ET, p_name);
+            int status = call_internal(GET_NAME, ET, 1, 1);
+
+            if (status == OK) {
+                if (!LuaStackOp<Variant>::is(ET, -1)) {
+                    if (r_err != nullptr) {
+                        *r_err = PROP_GET_FAILED;
+                    }
+
+                    LUAU_ERR("LuauScriptInstance::get", script, 1, String("expected " GET_NAME " to return a Variant"));
+                } else {
+                    Variant ret = LuaStackOp<Variant>::get(ET, -1);
+
+                    if (ret != Variant()) {
+                        if (r_err != nullptr) {
+                            *r_err = PROP_OK;
+                        }
+
+                        r_ret = ret;
+                        lua_pop(T, 1); // thread
+                        return true;
+                    }
+                }
+            } else if (status != -1) {
+                lua_pop(T, 1); // thread
+                return false;
+            }
+
+            lua_pop(T, 1); // thread
+        }
+
         s = s->base.ptr();
     }
 
@@ -1141,8 +1213,12 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
     return false;
 }
 
-GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) const {
+GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count) {
+#define GET_PROPERTY_LIST_NAME "_GetPropertyList"
+#define GET_PROPERTY_ERR(err) LUAU_ERR("LuauScriptInstance::get_property_list", script, 1, String("failed to get custom property list: ") + err)
+
     Vector<GDExtensionPropertyInfo> properties;
+    Vector<GDExtensionPropertyInfo> custom_properties;
     HashSet<StringName> defined;
 
     const LuauScript *s = script.ptr();
@@ -1165,10 +1241,74 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
             properties.push_back(dst);
         }
 
+        if (s->methods.has(GET_PROPERTY_LIST_NAME)) {
+            lua_State *ET = lua_newthread(T);
+            int status = call_internal(GET_PROPERTY_LIST_NAME, ET, 0, 1);
+
+            if (status != LUA_OK) {
+                goto next;
+            }
+
+            if (!lua_istable(ET, -1)) {
+                GET_PROPERTY_ERR("expected " GET_PROPERTY_LIST_NAME " to return a table");
+                goto next;
+            }
+
+            {
+                // Process method return value
+                // Must be protected to handle errors, which is why this is jank
+                lua_pushcfunction(
+                        ET, [](lua_State *FL) {
+                            int sz = lua_objlen(FL, 1);
+                            for (int i = 1; i <= sz; i++) {
+                                lua_rawgeti(FL, 1, i);
+
+                                GDProperty *ret = reinterpret_cast<GDProperty *>(lua_newuserdatadtor(FL, sizeof(GDProperty), [](void *ptr) {
+                                    ((GDProperty *)ptr)->~GDProperty();
+                                }));
+
+                                new (ret) GDProperty();
+                                *ret = luascript_read_property(FL, -2);
+
+                                lua_remove(FL, -2); // value
+                            }
+
+                            return sz;
+                        },
+                        "get_property_list");
+
+                lua_insert(ET, 1);
+
+                int get_status = lua_pcall(ET, 1, LUA_MULTRET, 0);
+                if (get_status != LUA_OK) {
+                    GET_PROPERTY_ERR(LuaStackOp<String>::get(ET, -1));
+                    goto next;
+                }
+
+                // The entire stack of ET is now the list of GDProperty values.
+                for (int i = lua_gettop(ET); i >= 1; i--) {
+                    GDProperty *property = reinterpret_cast<GDProperty *>(lua_touserdata(ET, i));
+
+                    GDExtensionPropertyInfo dst;
+                    copy_prop(*property, dst);
+
+                    custom_properties.push_back(dst);
+                }
+            }
+
+        next:
+            lua_pop(T, 1); // thread
+        }
+
         s = s->base.ptr();
     }
 
     properties.reverse();
+
+    // Custom properties are last.
+    for (int i = custom_properties.size() - 1; i >= 0; i--) {
+        properties.push_back(custom_properties[i]);
+    }
 
     int size = properties.size();
     *r_count = size;
@@ -1201,13 +1341,71 @@ Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bo
     return Variant::NIL;
 }
 
-// TODO: these two methods are for custom properties via virtual _property_can_revert, _property_get_revert, _get, _set
-// functionality for _get and _set should be part of ScriptInstance::get/set
-bool LuauScriptInstance::property_can_revert(const StringName &p_name) const {
+bool LuauScriptInstance::property_can_revert(const StringName &p_name) {
+#define PROPERTY_CAN_REVERT_NAME "_PropertyCanRevert"
+
+    const LuauScript *s = script.ptr();
+
+    while (s != nullptr) {
+        if (s->methods.has(PROPERTY_CAN_REVERT_NAME)) {
+            lua_State *ET = lua_newthread(T);
+
+            LuaStackOp<String>::push(ET, p_name);
+            int status = call_internal(PROPERTY_CAN_REVERT_NAME, ET, 1, 1);
+
+            if (status != OK) {
+                lua_pop(T, 1); // thread
+                return false;
+            }
+
+            if (lua_type(ET, -1) != LUA_TBOOLEAN) {
+                LUAU_ERR("LuauScriptInstance::property_can_revert", script, 1, String("expected " PROPERTY_CAN_REVERT_NAME " to return a boolean"));
+                lua_pop(T, 1); // thread
+                return false;
+            }
+
+            bool ret = lua_toboolean(ET, -1);
+            lua_pop(T, 1); // thread
+            return ret;
+        }
+
+        s = s->base.ptr();
+    }
+
     return false;
 }
 
-bool LuauScriptInstance::property_get_revert(const StringName &p_name, Variant *r_ret) const {
+bool LuauScriptInstance::property_get_revert(const StringName &p_name, Variant *r_ret) {
+#define PROPERTY_GET_REVERT_NAME "_PropertyGetRevert"
+
+    const LuauScript *s = script.ptr();
+
+    while (s != nullptr) {
+        if (s->methods.has(PROPERTY_GET_REVERT_NAME)) {
+            lua_State *ET = lua_newthread(T);
+
+            LuaStackOp<String>::push(ET, p_name);
+            int status = call_internal(PROPERTY_GET_REVERT_NAME, ET, 1, 1);
+
+            if (status != OK) {
+                lua_pop(T, 1); // thread
+                return false;
+            }
+
+            if (!LuaStackOp<Variant>::is(ET, -1)) {
+                LUAU_ERR("LuauScriptInstance::property_get_revert", script, 1, String("expected " PROPERTY_GET_REVERT_NAME " to return a Variant"));
+                lua_pop(T, 1); // thread
+                return false;
+            }
+
+            *r_ret = LuaStackOp<Variant>::get(ET, -1);
+            lua_pop(T, 1); // thread
+            return true;
+        }
+
+        s = s->base.ptr();
+    }
+
     return false;
 }
 
