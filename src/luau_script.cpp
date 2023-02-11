@@ -1632,11 +1632,19 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     table_ref = lua_ref(T, -1);
     lua_pop(T, 1); // table
 
+    Vector<LuauScript *> base_scripts;
     LuauScript *s = p_script.ptr();
 
     while (s != nullptr) {
+        base_scripts.push_back(s);
+        s = s->base.ptr();
+    }
+
+    base_scripts.reverse();
+
+    for (LuauScript *&scr : base_scripts) {
         // Initialize default values
-        for (const GDClassProperty &prop : s->definition.properties) {
+        for (const GDClassProperty &prop : scr->definition.properties) {
             if (prop.getter == StringName() && prop.setter == StringName()) {
                 int status = protected_table_set(T, String(prop.property.name), prop.default_value);
                 ERR_FAIL_COND_MSG(status != LUA_OK, "Failed to set default value");
@@ -1644,11 +1652,11 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         }
 
         // Run _Init for each script
-        Error method_err = s->load_methods(p_vm_type);
+        Error method_err = scr->load_methods(p_vm_type);
 
         if (method_err == OK || method_err == ERR_SKIP) {
             LuaStackOp<String>::push(T, "_Init");
-            s->def_table_get(vm_type, T);
+            scr->def_table_get(vm_type, T);
 
             if (!lua_isnil(T, -1)) {
                 if (lua_type(T, -1) != LUA_TFUNCTION)
@@ -1660,19 +1668,17 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
                 int status = lua_pcall(T, 2, 0, 0);
 
                 if (status == LUA_YIELD) {
-                    ERR_PRINT(p_script->get_path() + ":_Init yielded unexpectedly");
+                    ERR_PRINT(scr->get_path() + ":_Init yielded unexpectedly");
                 } else if (status != LUA_OK) {
-                    ERR_PRINT(p_script->get_path() + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
+                    ERR_PRINT(scr->get_path() + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
                     lua_pop(T, 1);
                 }
             } else {
                 lua_pop(T, 1);
             }
         } else {
-            ERR_PRINT("Couldn't load script methods for " + p_script->get_path());
+            ERR_PRINT("Couldn't load script methods for " + scr->get_path());
         }
-
-        s = s->base.ptr();
     }
 }
 
