@@ -119,20 +119,30 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "builtins: operators") {
-    SECTION("equality"){
+    SECTION("equality") {
         ASSERT_EVAL_EQ(L, "return Vector2.new(1, 2) == Vector2.new(1, 2)", bool, true)
     }
 
-    SECTION("inequality"){
+    SECTION("inequality") {
         ASSERT_EVAL_EQ(L, "return Vector2.new(1, 2) ~= Vector2.new(1, 2)", bool, false)
     }
 
-    SECTION("addition"){
+    SECTION("addition") {
         ASSERT_EVAL_EQ(L, "return Vector2.new(1, 2) + Vector2.new(3, 4)", Vector2, Vector2(4, 6))
     }
 
-    SECTION("unary -"){
+    SECTION("unary -") {
         ASSERT_EVAL_EQ(L, "return -Vector2.new(1, 2)", Vector2, Vector2(-1, -2))
+    }
+
+    SECTION("multiply") {
+        SECTION("forward") {
+            ASSERT_EVAL_EQ(L, "return Vector3.ONE * 3", Vector3, Vector3(3, 3, 3))
+        }
+
+        SECTION("reverse") {
+            ASSERT_EVAL_EQ(L, "return 3 * Vector3.ONE", Vector3, Vector3(3, 3, 3))
+        }
     }
 
     SECTION("special case: length") {

@@ -715,20 +715,29 @@ static int luaGD_builtin_namecall(lua_State *L) {
 }
 
 static int luaGD_builtin_operator(lua_State *L) {
-    const ApiBuiltinClass *builtin_class = luaGD_lightudataup<ApiBuiltinClass>(L, 1);
-    GDExtensionVariantOperator var_op = (GDExtensionVariantOperator)lua_tointeger(L, lua_upvalueindex(2));
+    GDExtensionVariantType type = GDExtensionVariantType(lua_tointeger(L, lua_upvalueindex(1)));
+    const Vector<ApiVariantOperator> *operators = luaGD_lightudataup<Vector<ApiVariantOperator>>(L, 2);
 
     LuauVariant self;
-    self.lua_check(L, 1, builtin_class->type);
+    int right_idx = 2;
+
+    if (LuauVariant::lua_is(L, 1, type)) {
+        self.lua_check(L, 1, type);
+    } else {
+        // Need to handle reverse calls of this method to ensure, for example,
+        // operators with numbers (which do not have any metamethods) are handled correctly.
+        right_idx = 1;
+        self.lua_check(L, 2, type);
+    }
 
     LuauVariant right;
     void *right_ptr;
 
-    for (const ApiVariantOperator &op : builtin_class->operators.get(var_op)) {
+    for (const ApiVariantOperator &op : *operators) {
         if (op.right_type == GDEXTENSION_VARIANT_TYPE_NIL) {
             right_ptr = nullptr;
-        } else if (LuaStackOp<Variant>::is(L, 2) && Utils::variant_types_compatible(LuaStackOp<Variant>::check(L, 2).get_type(), (Variant::Type)op.right_type)) {
-            right.lua_check(L, 2, op.right_type);
+        } else if (LuaStackOp<Variant>::is(L, right_idx) && Utils::variant_types_compatible(LuaStackOp<Variant>::check(L, right_idx).get_type(), (Variant::Type)op.right_type)) {
+            right.lua_check(L, right_idx, op.right_type);
             right_ptr = right.get_opaque_pointer();
         } else {
             continue;
@@ -819,8 +828,8 @@ void luaGD_openbuiltins(lua_State *L) {
 
         // Operators (misc metatable)
         for (const KeyValue<GDExtensionVariantOperator, Vector<ApiVariantOperator>> &pair : builtin_class.operators) {
-            lua_pushlightuserdata(L, (void *)&builtin_class);
-            lua_pushinteger(L, pair.key);
+            lua_pushinteger(L, builtin_class.type);
+            lua_pushlightuserdata(L, (void *)&pair.value);
             lua_pushcclosure(L, luaGD_builtin_operator, builtin_class.operator_debug_names[pair.key], 2);
 
             const char *op_mt_name;
