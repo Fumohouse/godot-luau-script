@@ -9465,7 +9465,7 @@ TestMove = "INHERIT" #
 
 [PhysicsDirectBodyState2D]
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE"
 
 [PhysicsDirectBodyState2D.methods]
 AddConstantCentralForce = "INHERIT" #
@@ -9516,7 +9516,7 @@ SetTransform = "INHERIT" #
 
 [PhysicsDirectBodyState3D]
 inherits = "Object"
-default_permissions = "INTERNAL" #
+default_permissions = "BASE"
 
 [PhysicsDirectBodyState3D.methods]
 AddConstantCentralForce = "INHERIT" #
