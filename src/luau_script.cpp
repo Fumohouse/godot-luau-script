@@ -315,6 +315,8 @@ Error LuauScript::_reload(bool p_keep_state) {
 
             lua_pop(L, 1); // value
         }
+
+        lua_pop(L, 1); // table
     }
 
     // Reload methods.
