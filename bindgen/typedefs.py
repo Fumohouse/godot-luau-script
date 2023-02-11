@@ -281,15 +281,14 @@ def generate_class(src, g_class, api):
 
     # Methods
     if "methods" in g_class:
-        for method in g_class["methods"]:
-            if method["is_virtual"]:
-                continue
-
+        for method in utils.get_class_methods(g_class):
             generate_method(src, name, method, api)
 
     # Custom Object methods
     if name == "Object":
         append(src, 1, """\
+function Set(self, key: string | StringName, value: Variant)
+function Get(self, key: string | StringName): Variant
 function IsScript(self, def: GDClassDefinition): boolean
 function Free(self)\
 """)
@@ -367,10 +366,7 @@ function Free(self)\
 
     # Statics
     if "methods" in g_class:
-        for method in g_class["methods"]:
-            if method["is_virtual"]:
-                continue
-
+        for method in utils.get_class_methods(g_class):
             generate_method(src, name, method, api, True)
 
     src.append(f"""\

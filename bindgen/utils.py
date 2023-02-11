@@ -122,6 +122,7 @@ utils_to_bind = {
     "db2linear": (None, False),
     "wrapf": ("wrap", False),
     "pingpong": (None, False),
+    "is_equal_approx": (None, False),
 
     # print
     "print": (None, True),
@@ -199,3 +200,19 @@ def get_operators(class_name, operators):
 
 def get_singletons(class_name, singletons):
     return [s for s in singletons if s["type"] == class_name]
+
+
+def get_class_methods(g_class):
+    def should_skip(method):
+        # doesn't make sense to support virtuals
+        # (can't call them, and Luau script instances will receive calls to these methods for free if implemented)
+        if method["is_virtual"]:
+            return True
+
+        # Handled as special case
+        if g_class["name"] == "Object" and method["name"] in ["get", "set"]:
+            return True
+
+        return False
+
+    return [m for m in g_class["methods"] if not should_skip(m)]

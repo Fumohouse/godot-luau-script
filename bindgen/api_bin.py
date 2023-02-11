@@ -655,10 +655,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
 
     # methods
     if "methods" in g_class:
-        # doesn't make sense to support virtuals
-        # (can't call them, and Luau script instances will receive calls to these methods for free if implemented)
-        methods = [method for method in g_class["methods"]
-                   if not method["is_virtual"]]
+        methods = utils.get_class_methods(g_class)
         inst_methods, static_methods = filter_methods(methods)
 
         # instance methods

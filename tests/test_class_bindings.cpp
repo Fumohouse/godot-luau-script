@@ -85,7 +85,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
     SECTION("invoked from global table"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D.new()
-            return Object.Get(params, "collide_with_areas")
+            return PhysicsRayQueryParameters3D.IsCollideWithAreasEnabled(params)
         )ASDF",
                 bool, false)
     }

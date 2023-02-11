@@ -1005,39 +1005,39 @@ static void push_class_method(lua_State *L, const ApiClass &g_class, ApiClassMet
     lua_pushcclosure(L, luaGD_class_method, method.debug_name, 2);
 }
 
+#define SET_DBG_NAME "Godot.Object.Object.Set"
+static int luaGD_class_set(lua_State *L) {
+    Object *self = LuaStackOp<Object *>::check(L, 1);
+    StringName property = LuaStackOp<StringName>::check(L, 2);
+    Variant value = LuaStackOp<Variant>::check(L, 3);
+
+    // Properties with a / are generally per-instance (e.g. for AnimationTree)
+    // and for now it's probably safe to assume these can be set with BASE permissions.
+    if (!property.contains("/")) {
+        luaGD_checkpermissions(L, SET_DBG_NAME, PERMISSION_INTERNAL);
+    }
+
+    self->set(property, value);
+    return 0;
+}
+
+#define GET_DBG_NAME "Godot.Object.Object.Get"
+static int luaGD_class_get(lua_State *L) {
+    Object *self = LuaStackOp<Object *>::check(L, 1);
+    StringName property = LuaStackOp<StringName>::check(L, 2);
+
+    if (!property.contains("/")) {
+        luaGD_checkpermissions(L, GET_DBG_NAME, PERMISSION_INTERNAL);
+    }
+
+    LuaStackOp<Variant>::push(L, self->get(property));
+    return 1;
+}
+
 static int luaGD_class_namecall(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
-        if (strcmp(name, "Free") == 0) {
-            if (self->is_class("RefCounted"))
-                luaL_error(L, "cannot free a RefCounted object");
-
-            // Zero out the object to prevent segfaults
-            *LuaStackOp<Object *>::get_ptr(L, 1) = 0;
-
-            memdelete(self);
-            return 0;
-        } else if (strcmp(name, "IsScript") == 0) {
-            GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 2);
-
-            if (def->script != nullptr) {
-                Ref<LuauScript> s = self->get_script();
-
-                while (s.is_valid()) {
-                    if (s == def->script) {
-                        lua_pushboolean(L, true);
-                        return 1;
-                    }
-
-                    s = s->get_base();
-                }
-            }
-
-            lua_pushboolean(L, false);
-            return 1;
-        }
-
         if (LuauScriptInstance *inst = get_script_instance(self)) {
             GDThreadData *udata = luaGD_getthreaddata(L);
 
@@ -1132,6 +1132,39 @@ static int luaGD_class_namecall(lua_State *L) {
                     lua_pop(L, 1); // value
                 }
             }
+        }
+
+        if (strcmp(name, "Free") == 0) {
+            if (self->is_class("RefCounted"))
+                luaL_error(L, "cannot free a RefCounted object");
+
+            // Zero out the object to prevent segfaults
+            *LuaStackOp<Object *>::get_ptr(L, 1) = 0;
+
+            memdelete(self);
+            return 0;
+        } else if (strcmp(name, "IsScript") == 0) {
+            GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 2);
+
+            if (def->script != nullptr) {
+                Ref<LuauScript> s = self->get_script();
+
+                while (s.is_valid()) {
+                    if (s == def->script) {
+                        lua_pushboolean(L, true);
+                        return 1;
+                    }
+
+                    s = s->get_base();
+                }
+            }
+
+            lua_pushboolean(L, false);
+            return 1;
+        } else if (strcmp(name, "Set") == 0) {
+            return luaGD_class_set(L);
+        } else if (strcmp(name, "Get") == 0) {
+            return luaGD_class_get(L);
         }
 
         while (true) {
@@ -1348,6 +1381,15 @@ void luaGD_openclasses(lua_State *L) {
         for (ApiClassMethod &static_method : g_class.static_methods) {
             push_class_method(L, g_class, static_method);
             lua_setfield(L, -3, static_method.name);
+        }
+
+        {
+            // Overridden Object methods
+            lua_pushcfunction(L, luaGD_class_set, SET_DBG_NAME);
+            lua_setfield(L, -3, "Set");
+
+            lua_pushcfunction(L, luaGD_class_get, GET_DBG_NAME);
+            lua_setfield(L, -3, "Get");
         }
 
         // Properties (__newindex, __index)
