@@ -9,6 +9,10 @@ using namespace godot;
 
 LuauCache *LuauCache::singleton = nullptr;
 
+bool LuauCache::is_loading(const String &p_path) const {
+    return cache.has(p_path) && cache[p_path]->is_loading();
+}
+
 Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache, const String &p_dependent) {
     String path = p_path.simplify_path();
 
@@ -17,11 +21,6 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
 
     if (cache.has(path)) {
         script = cache[path];
-
-        if (script->is_reloading()) {
-            r_error = ERR_CYCLIC_LINK;
-            ERR_FAIL_V_MSG(script, "cyclic dependency detected in " + path + ". script requested from cache while it was loading.");
-        }
 
         if (!p_ignore_cache) {
             if (!p_dependent.is_empty()) {

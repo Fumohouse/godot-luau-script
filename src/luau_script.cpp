@@ -170,8 +170,10 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
 
 Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid) {
     // TODO: error line numbers?
-
     r_is_valid = false;
+
+    ERR_FAIL_COND_V_MSG(p_script->_is_loading, ERR_CYCLIC_LINK, "cyclic dependency detected. requested script load when it was already loading.");
+    p_script->_is_loading = true;
 
     if (L == nullptr)
         L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
@@ -189,6 +191,7 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
             lua_pop(L, 1); // thread
             LUAU_LOAD_ERR(p_script, 1, LUAU_LOAD_NO_DEF_MSG);
 
+            p_script->_is_loading = false;
             return ERR_COMPILATION_FAILED;
         }
 
@@ -200,10 +203,12 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
         r_is_valid = true;
 
         lua_pop(L, 1); // thread
+        p_script->_is_loading = false;
         return OK;
     }
 
     lua_pop(L, 1); // thread
+    p_script->_is_loading = false;
     return ERR_COMPILATION_FAILED;
 }
 
@@ -264,10 +269,6 @@ Error LuauScript::_reload(bool p_keep_state) {
     if (_is_module)
         return OK;
 
-    ERR_FAIL_COND_V_MSG(_is_reloading, ERR_CYCLIC_LINK, "cyclic dependency detected. requested script load when it was already loading.");
-
-    _is_reloading = true;
-
     dependents.clear();
 
     bool has_instances;
@@ -289,7 +290,6 @@ Error LuauScript::_reload(bool p_keep_state) {
     Error err = get_class_definition(this, L, definition, valid);
 
     if (err != OK) {
-        _is_reloading = false;
         return err;
     }
 
@@ -297,7 +297,6 @@ Error LuauScript::_reload(bool p_keep_state) {
     update_base_script(err, true);
     if (err != OK || (base.is_valid() && !base->_is_valid())) {
         valid = false;
-        _is_reloading = false;
         return err;
     }
 
@@ -325,11 +324,9 @@ Error LuauScript::_reload(bool p_keep_state) {
             continue;
 
         valid = false;
-        _is_reloading = false;
         return ERR_COMPILATION_FAILED;
     }
 
-    _is_reloading = false;
     return OK;
 }
 
@@ -591,6 +588,8 @@ bool LuauScript::has_dependent(const String &p_path) const {
 // Based on Luau Repl implementation.
 Error LuauScript::load_module(lua_State *L) {
     // Use main thread to avoid inheriting L's environment.
+    _is_loading = true;
+
     lua_State *GL = lua_mainthread(L);
     lua_State *ML = lua_newthread(GL);
 
@@ -610,6 +609,7 @@ Error LuauScript::load_module(lua_State *L) {
 #define NO_RET_ERR "module must return a value"
 
             lua_pushstring(L, NO_RET_ERR);
+            _is_loading = false;
             ERR_FAIL_V_MSG(ERR_COMPILATION_FAILED, NO_RET_ERR);
         }
 
@@ -617,14 +617,17 @@ Error LuauScript::load_module(lua_State *L) {
 #define RET_ERR "module must return a function or table"
 
             lua_pushstring(L, RET_ERR);
+            _is_loading = false;
             ERR_FAIL_V_MSG(ERR_COMPILATION_FAILED, RET_ERR);
         }
 
         lua_xmove(ML, L, 1);
+        _is_loading = false;
         return OK;
     }
 
     LuaStackOp<String>::push(L, err);
+    _is_loading = false;
     return ERR_COMPILATION_FAILED;
 }
 

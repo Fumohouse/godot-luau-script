@@ -369,7 +369,7 @@ static int luascript_gdclass_new(lua_State *L) {
     if (def->script == nullptr)
         luaL_error(L, "cannot instantiate: script is unknown");
 
-    if (def->script->is_reloading())
+    if (def->script->is_loading())
         luaL_error(L, "cannot instantiate: script is loading");
 
     StringName class_name = def->script->_get_instance_base_type();
@@ -709,7 +709,7 @@ static int luascript_require(lua_State *L) {
     if (udata->script->get_path() == full_path)
         luaL_error(L, "cannot require current script");
 
-    if (udata->script->has_dependent(full_path)) {
+    if (LuauCache::get_singleton()->is_loading(full_path)) {
         luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
                 udata->script->get_path().utf8().get_data(),
                 full_path_utf8.get_data());

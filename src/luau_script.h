@@ -76,7 +76,7 @@ private:
     HashMap<uint64_t, LuauScriptInstance *> instances;
     HashMap<uint64_t, PlaceHolderScriptInstance *> placeholders;
 
-    bool _is_reloading = false;
+    bool _is_loading = false;
     bool valid;
     GDClassDefinition definition;
     HashMap<GDLuau::VMType, GDClassDefinition> vm_defs;
@@ -171,7 +171,7 @@ public:
     void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
     const GDClassDefinition &get_definition() const { return definition; }
 
-    bool is_reloading() const { return _is_reloading; }
+    bool is_loading() const { return _is_loading; }
 
     bool is_module() const { return _is_module; }
     bool has_dependent(const String &p_path) const;
