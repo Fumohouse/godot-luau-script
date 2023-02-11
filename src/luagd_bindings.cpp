@@ -1335,6 +1335,22 @@ static int luaGD_class_singleton_getter(lua_State *L) {
     return 1;
 }
 
+static int luaGD_class_eq(lua_State *L) {
+    Object *self = LuaStackOp<Object *>::get(L, 1);
+    Object *other = LuaStackOp<Object *>::get(L, 2);
+
+    bool eq = false;
+
+    if (self != nullptr && other != nullptr) {
+        eq = self->get_instance_id() == other->get_instance_id();
+    } else {
+        eq = self == other;
+    }
+
+    lua_pushboolean(L, eq);
+    return 1;
+}
+
 void luaGD_openclasses(lua_State *L) {
     LUAGD_LOAD_GUARD(L, "_gdClassesLoaded");
 
@@ -1407,6 +1423,10 @@ void luaGD_openclasses(lua_State *L) {
         lua_pushlightuserdata(L, &g_class);
         lua_pushcclosure(L, luaGD_class_singleton_getter, g_class.singleton_getter_debug_name, 1);
         lua_setfield(L, -3, "GetSingleton");
+
+        // __eq
+        lua_pushcfunction(L, luaGD_class_eq, "Godot.Object.Object.__eq");
+        lua_setfield(L, -4, "__eq");
 
         luaGD_poplib(L);
     }

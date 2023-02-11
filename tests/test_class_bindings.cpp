@@ -201,7 +201,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: tostring") {
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "classes: permissions"){
+TEST_CASE_METHOD(LuauFixture, "classes: permissions") {
     ASSERT_EVAL_FAIL(
             L,
             "OS.GetSingleton():GetName()",
@@ -210,4 +210,32 @@ TEST_CASE_METHOD(LuauFixture, "classes: permissions"){
 
 TEST_CASE_METHOD(LuauFixture, "classes: invalid global access") {
     ASSERT_EVAL_FAIL(L, "return Object.duhduhduh", "exec:1: 'duhduhduh' is not a valid member of Object")
+}
+
+TEST_CASE_METHOD(LuauFixture, "classes: equality") {
+    Object obj;
+
+    LuaStackOp<Object *>::push(L, &obj);
+    lua_setglobal(L, "a");
+
+    SECTION("equal") {
+        LuaStackOp<Object *>::push(L, &obj);
+        lua_setglobal(L, "b");
+
+        ASSERT_EVAL_EQ(L, R"ASDF(
+            return a == b
+        )ASDF",
+                bool, true)
+    }
+
+    SECTION("not equal") {
+        Object obj2;
+        LuaStackOp<Object *>::push(L, &obj2);
+        lua_setglobal(L, "b");
+
+        ASSERT_EVAL_EQ(L, R"ASDF(
+            return a == b
+        )ASDF",
+                bool, false)
+    }
 }
