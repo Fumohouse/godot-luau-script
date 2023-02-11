@@ -155,7 +155,7 @@ Object *LuaStackOp<Object *>::get(lua_State *L, int index) {
         return nullptr;
 
     GDObjectInstanceID *udata = LuaStackOp<Object *>::get_ptr(L, index);
-    if (*udata == 0)
+    if (udata == nullptr || *udata == 0)
         return nullptr;
 
     return ObjectDB::get_instance(*udata);
