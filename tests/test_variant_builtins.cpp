@@ -73,7 +73,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
     }
 
     SECTION("index access"){
-        ASSERT_EVAL_EQ(L, "return Vector2.new(123, 456)[2]", float, 456)
+        ASSERT_EVAL_EQ(L, "return Vector2.new(123, 456):Get(2)", float, 456)
     }
 
     SECTION("member set fails"){
@@ -87,7 +87,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
         ASSERT_EVAL_EQ(L, R"ASDF(
             local array = PackedStringArray.new()
             array:PushBack("hi there")
-            array[1] = "hello"
+            array:Set(1, "hello")
 
             return array
         )ASDF",
@@ -101,7 +101,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
         LuaStackOp<Dictionary>::push(L, input);
         lua_setglobal(L, "testDict");
 
-        ASSERT_EVAL_EQ(L, "return testDict[Vector2.new(1, 2)]", String, "hi!")
+        ASSERT_EVAL_EQ(L, "return testDict:Get(Vector2.new(1, 2))", String, "hi!")
     }
 
     SECTION("keyed set") {
@@ -110,7 +110,7 @@ TEST_CASE_METHOD(LuauFixture, "builtins: setget") {
 
         ASSERT_EVAL_EQ(L, R"ASDF(
             local dictionary = Dictionary.new()
-            dictionary["one"] = 12.5
+            dictionary:Set("one", 12.5)
 
             return dictionary
         )ASDF",
@@ -208,13 +208,13 @@ TEST_CASE_METHOD(LuauFixture, "builtins: dictionary __iter") {
 
     ASSERT_EVAL_EQ(L, R"ASDF(
         local dict = Dictionary.new()
-        dict["a"] = "A";
-        dict["b"] = "B";
-        dict["c"] = "C";
+        dict:Set("a", "A")
+        dict:Set("b", "B")
+        dict:Set("c", "C")
 
         local copy = Dictionary.new()
         for k, v in dict do
-            copy[k] = v
+            copy:Set(k, v)
         end
 
         return copy

@@ -15,7 +15,3 @@ Tracking [godot#66475](https://github.com/godotengine/godot/issues/66475) and [g
 
 This likely occurs because the `ScriptLanguage` is used before initialization when the extension is loaded for the first time
 (or, that it is used during asset reimport somehow).
-
-## Type checking for `Array` and `Dictionary` `__index` is broken
-
-Direction of how to solve this is currently undecided.

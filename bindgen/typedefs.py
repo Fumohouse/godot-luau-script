@@ -156,8 +156,8 @@ def generate_builtin_class(src, builtin_class, api):
     # Keying
     if builtin_class["is_keyed"]:
         append(src, 1, """\
-function __index(self, key: Variant): Variant
-function __newindex(self, key: Variant, value: Variant)\
+function Get(self, key: Variant): Variant
+function Set(self, key: Variant, value: Variant)\
 """)
 
     # Indexing
@@ -165,8 +165,8 @@ function __newindex(self, key: Variant, value: Variant)\
         indexing_type_name = builtin_class["indexing_return_type"]
 
         append(src, 1, f"""\
-function __index(self, key: number): {get_luau_type(indexing_type_name, api, True)}
-function __newindex(self, key: number, value: {get_luau_type(indexing_type_name, api)})\
+function Get(self, key: number): {get_luau_type(indexing_type_name, api, True)}
+function Set(self, key: number, value: {get_luau_type(indexing_type_name, api)})\
 """)
 
     # Members

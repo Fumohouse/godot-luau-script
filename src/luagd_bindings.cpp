@@ -547,34 +547,8 @@ static int luaGD_callable_ctor(lua_State *L) {
 }
 
 static int luaGD_builtin_newindex(lua_State *L) {
-    const ApiBuiltinClass *builtin_class = luaGD_lightudataup<ApiBuiltinClass>(L, 1);
-
-    LuauVariant self;
-    self.lua_check(L, 1, builtin_class->type);
-
-    Variant key = LuaStackOp<Variant>::check(L, 2);
-
-    if (builtin_class->indexed_setter != nullptr && key.get_type() == Variant::INT) {
-        // Indexed
-        LuauVariant val;
-        val.lua_check(L, 3, builtin_class->indexing_return_type);
-
-        // lua is 1 indexed :))))
-        builtin_class->indexed_setter(self.get_opaque_pointer(), key.operator int64_t() - 1, val.get_opaque_pointer());
-        return 0;
-    } else if (builtin_class->keyed_setter != nullptr) {
-        // Keyed
-        // if the key or val is ever assumed to not be Variant, this will segfault. nice.
-        Variant val = LuaStackOp<Variant>::check(L, 3);
-        builtin_class->keyed_setter(self.get_opaque_pointer(), &key, &val);
-        return 0;
-    }
-
-    // All other set operations are invalid
-    if (builtin_class->members.has(key.operator String()))
-        luaL_error(L, "type '%s' is read-only", builtin_class->name);
-    else
-        luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name);
+    const char *name = lua_tostring(L, lua_upvalueindex(1));
+    luaL_error(L, "type '%s' is read-only", name);
 }
 
 static int luaGD_builtin_index(lua_State *L) {
@@ -583,52 +557,22 @@ static int luaGD_builtin_index(lua_State *L) {
     LuauVariant self;
     self.lua_check(L, 1, builtin_class->type);
 
-    Variant key = LuaStackOp<Variant>::check(L, 2);
+    String key = LuaStackOp<String>::check(L, 2);
 
-    if (builtin_class->indexed_getter != nullptr && key.get_type() == Variant::INT) {
-        // Indexed
+    // Members
+    if (builtin_class->members.has(key)) {
+        const ApiVariantMember &member = builtin_class->members.get(key);
+
         LuauVariant ret;
-        ret.initialize(builtin_class->indexing_return_type);
+        ret.initialize(member.type);
 
-        // lua is 1 indexed :))))
-        builtin_class->indexed_getter(self.get_opaque_pointer(), key.operator int64_t() - 1, ret.get_opaque_pointer());
+        member.getter(self.get_opaque_pointer(), ret.get_opaque_pointer());
 
         ret.lua_push(L);
         return 1;
-    } else if (key.get_type() == Variant::STRING) {
-        // Members
-        String name = key.operator String();
-
-        if (builtin_class->members.has(name)) {
-            const ApiVariantMember &member = builtin_class->members.get(name);
-
-            LuauVariant ret;
-            ret.initialize(member.type);
-
-            member.getter(self.get_opaque_pointer(), ret.get_opaque_pointer());
-
-            ret.lua_push(L);
-            return 1;
-        }
     }
 
-    // Keyed
-    if (builtin_class->keyed_getter != nullptr) {
-        Variant self_var = LuaStackOp<Variant>::check(L, 1);
-
-        // misleading types: keyed_checker expects the type pointer, not a variant
-        if (builtin_class->keyed_checker(self.get_opaque_pointer(), &key)) {
-            Variant ret;
-            // this is sketchy. if key or ret is ever assumed by Godot to not be Variant, this will segfault. Cool!
-            // ! see: core/variant/variant_setget.cpp
-            builtin_class->keyed_getter(self.get_opaque_pointer(), &key, &ret);
-
-            LuaStackOp<Variant>::push(L, ret);
-            return 1;
-        }
-    }
-
-    luaGD_indexerror(L, key.operator String().utf8().get_data(), builtin_class->name);
+    luaGD_indexerror(L, key.utf8().get_data(), builtin_class->name);
 }
 
 static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_class, const ApiVariantMethod &method) {
@@ -705,6 +649,70 @@ static int luaGD_builtin_namecall(lua_State *L) {
     const ApiBuiltinClass *builtin_class = luaGD_lightudataup<ApiBuiltinClass>(L, 1);
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
+        if (strcmp(name, "Set") == 0) {
+            LuauVariant self;
+            self.lua_check(L, 1, builtin_class->type);
+
+            Variant key = LuaStackOp<Variant>::check(L, 2);
+
+            if (builtin_class->indexed_setter != nullptr && key.get_type() == Variant::INT) {
+                // Indexed
+                LuauVariant val;
+                val.lua_check(L, 3, builtin_class->indexing_return_type);
+
+                // lua is 1 indexed :))))
+                builtin_class->indexed_setter(self.get_opaque_pointer(), key.operator int64_t() - 1, val.get_opaque_pointer());
+                return 0;
+            }
+
+            if (builtin_class->keyed_setter != nullptr) {
+                // Keyed
+                // if the key or val is ever assumed to not be Variant, this will segfault. nice.
+                Variant val = LuaStackOp<Variant>::check(L, 3);
+                builtin_class->keyed_setter(self.get_opaque_pointer(), &key, &val);
+                return 0;
+            }
+
+            luaL_error(L, "class %s does not have any indexed or keyed setter", builtin_class->name);
+        }
+
+        if (strcmp(name, "Get") == 0) {
+            LuauVariant self;
+            self.lua_check(L, 1, builtin_class->type);
+
+            Variant key = LuaStackOp<Variant>::check(L, 2);
+
+            if (builtin_class->indexed_getter != nullptr && key.get_type() == Variant::INT) {
+                // Indexed
+                LuauVariant ret;
+                ret.initialize(builtin_class->indexing_return_type);
+
+                // lua is 1 indexed :))))
+                builtin_class->indexed_getter(self.get_opaque_pointer(), key.operator int64_t() - 1, ret.get_opaque_pointer());
+
+                ret.lua_push(L);
+                return 1;
+            }
+
+            if (builtin_class->keyed_getter != nullptr) {
+                // Keyed
+                Variant self_var = LuaStackOp<Variant>::check(L, 1);
+
+                // misleading types: keyed_checker expects the type pointer, not a variant
+                if (builtin_class->keyed_checker(self.get_opaque_pointer(), &key)) {
+                    Variant ret;
+                    // this is sketchy. if key or ret is ever assumed by Godot to not be Variant, this will segfault. Cool!
+                    // ! see: core/variant/variant_setget.cpp
+                    builtin_class->keyed_getter(self.get_opaque_pointer(), &key, &ret);
+
+                    LuaStackOp<Variant>::push(L, ret);
+                    return 1;
+                }
+            }
+
+            luaL_error(L, "class %s does not have any indexed or keyed getter", builtin_class->name);
+        }
+
         if (builtin_class->methods.has(name))
             return call_builtin_method(L, *builtin_class, builtin_class->methods.get(name));
 
@@ -802,7 +810,7 @@ void luaGD_openbuiltins(lua_State *L) {
         }
 
         // Members (__newindex, __index)
-        lua_pushlightuserdata(L, (void *)&builtin_class);
+        lua_pushstring(L, builtin_class.name);
         lua_pushcclosure(L, luaGD_builtin_newindex, builtin_class.newindex_debug_name, 1);
         lua_setfield(L, -4, "__newindex");
 
