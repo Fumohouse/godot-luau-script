@@ -8,14 +8,14 @@ from bindgen.stack_ops import generate_stack_ops
 from bindgen.api_bin import generate_api_bin
 from bindgen.typedefs import generate_typedefs
 
+import platform
 
-def open_api(filepath):
-    api = None
+major, minor, patch = platform.python_version_tuple()
 
-    with open(filepath) as api_file:
-        api = json.load(api_file)
-
-    return api
+if int(major) > 3 or (int(major) == 3 and int(minor) >= 11):
+    import tomllib
+else:
+    import tomli as tomllib
 
 
 def scons_emit_files(target, source, env):
@@ -35,7 +35,16 @@ def scons_emit_files(target, source, env):
 
 def scons_generate_bindings(target, source, env):
     output_dir = target[0].abspath
-    api = open_api(str(source[0]))
+
+    # Open API
+    api = None
+    with open(str(source[0])) as api_file:
+        api = json.load(api_file)
+
+    # Open class settings
+    class_settings = {}
+    with open(str(source[1]), "rb") as settings_file:
+        class_settings = tomllib.load(settings_file)
 
     # Initialize output folders
     src_dir = Path(output_dir) / "gen" / "src"
@@ -48,7 +57,7 @@ def scons_generate_bindings(target, source, env):
 
     # Codegen
     generate_stack_ops(src_dir, include_dir, api)
-    generate_api_bin(src_dir, api, str(source[1]))
-    generate_typedefs(defs_dir, api, str(source[2]))
+    generate_api_bin(src_dir, api, class_settings)
+    generate_typedefs(defs_dir, api, class_settings, str(source[2]))
 
     return None

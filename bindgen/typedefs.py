@@ -10,7 +10,7 @@ gd_luau_type_map = {
 }
 
 
-def get_luau_type(type_string, api, is_ret=False):
+def get_luau_type(type_string, api, is_ret=False, is_obj_nullable=True):
     if type_string in ["StringName", "NodePath"]:
         return "string" if is_ret else f"string | {type_string}"
 
@@ -39,7 +39,7 @@ def get_luau_type(type_string, api, is_ret=False):
         enum_segments = enum_name.split(".")
         return f"ClassEnum{enum_segments[0]}_{enum_segments[1]}"
 
-    if type_string in [c["name"] for c in api["classes"]]:
+    if is_obj_nullable and type_string in [c["name"] for c in api["classes"]]:
         type_string = type_string + "?"
 
     return type_string
@@ -84,7 +84,7 @@ def generate_args(method, api, with_self=True, is_type=False, self_annot=""):
     return out
 
 
-def generate_method(src, class_name, method, api, is_def_static=False):
+def generate_method(src, class_name, method, api, is_def_static=False, is_obj_nullable=True):
     method_name = utils.snake_to_pascal(method["name"])
 
     # Special cases
@@ -96,9 +96,9 @@ def generate_method(src, class_name, method, api, is_def_static=False):
     method_ret_str = ""
 
     if "return_type" in method:
-        method_ret_str = get_luau_type(method["return_type"], api, True)
+        method_ret_str = get_luau_type(method["return_type"], api, True, is_obj_nullable)
     elif "return_value" in method:
-        method_ret_str = get_luau_type(method["return_value"]["type"], api, True)
+        method_ret_str = get_luau_type(method["return_value"]["type"], api, True, is_obj_nullable)
 
     if is_def_static:
         is_method_static = "is_static" in method and method["is_static"]
@@ -266,9 +266,14 @@ declare {name}: {name}_GLOBAL
 """)
 
 
-def generate_class(src, g_class, api):
+def generate_class(src, g_class, api, class_settings):
     name = g_class["name"]
     src.append(f"-- {name}")
+
+    method_settings = class_settings[name]["methods"]
+    def is_obj_nullable(method):
+        method_name_luau = utils.snake_to_pascal(method["name"])
+        return method_settings[method_name_luau]["ret_nullable"] if "ret_nullable" in method_settings[method_name_luau] else True
 
     #
     # Class declaration
@@ -282,7 +287,7 @@ def generate_class(src, g_class, api):
     # Methods
     if "methods" in g_class:
         for method in utils.get_class_methods(g_class):
-            generate_method(src, name, method, api)
+            generate_method(src, name, method, api, is_obj_nullable=is_obj_nullable(method))
 
     # Custom Object methods
     if name == "Object":
@@ -306,6 +311,7 @@ function Free(self)\
             prop_name = utils.snake_to_camel(prop["name"])
 
             prop_type = prop["type"]
+            is_prop_nullable = True
 
             # Enum properties are registered as integers, so reference their setter/getter to find real type
             if "methods" in g_class:
@@ -314,6 +320,7 @@ function Free(self)\
 
                 if len(prop_method) == 1:
                     prop_method = prop_method[0]
+                    is_prop_nullable = is_obj_nullable(prop_method)
 
                     if "return_value" in prop_method:
                         prop_type = prop_method["return_value"]["type"]
@@ -322,7 +329,7 @@ function Free(self)\
                         prop_type = prop_method["arguments"][arg_idx]["type"]
 
             # BaseMaterial/ShaderMaterial multiple types
-            prop_type = " | ".join([get_luau_type(t, api, True)
+            prop_type = " | ".join([get_luau_type(t, api, True, is_prop_nullable)
                                    for t in prop_type.split(",")])
 
             append(src, 1, f"[\"{prop_name}\"]: {prop_type}")
@@ -368,7 +375,7 @@ function Free(self)\
     # Statics
     if "methods" in g_class:
         for method in utils.get_class_methods(g_class):
-            generate_method(src, name, method, api, True)
+            generate_method(src, name, method, api, True, is_obj_nullable=is_obj_nullable(method))
 
     src.append(f"""\
 end
@@ -377,7 +384,7 @@ declare {name}: {name}_GLOBAL
 """)
 
 
-def generate_typedefs(defs_dir, api, lib_types):
+def generate_typedefs(defs_dir, api, class_settings, lib_types):
     src = [constants.header_comment_lua, ""]
 
     # Global enums
@@ -494,7 +501,7 @@ def generate_typedefs(defs_dir, api, lib_types):
     classes = sorted(classes, key=sort_classes(classes))
 
     for g_class in classes:
-        generate_class(src, g_class, api)
+        generate_class(src, g_class, api, class_settings)
 
     # Special types
     src.append("""\

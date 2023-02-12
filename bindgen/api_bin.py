@@ -3,15 +3,6 @@ from . import constants, utils
 from io import BytesIO
 import struct
 
-import platform
-
-major, minor, patch = platform.python_version_tuple()
-
-if int(major) > 3 or (int(major) == 3 and int(minor) >= 11):
-    import tomllib
-else:
-    import tomli as tomllib
-
 
 #########
 # Utils #
@@ -548,7 +539,7 @@ def generate_class_argument(io, argument, classes, variant_values, variant_value
         write_int32(io, -1)  # int32_t default_variant_index
 
 
-def generate_class_method(io, class_name, metatable_name, classes, permissions, method, variant_values, variant_value_map):
+def generate_class_method(io, class_name, metatable_name, classes, settings, method, variant_values, variant_value_map):
     # ApiClassMethod
 
     method_name = method["name"]
@@ -564,10 +555,8 @@ def generate_class_method(io, class_name, metatable_name, classes, permissions, 
     write_string(io, method_debug_name)  # String debug_name
 
     # permissions
-    permission = ThreadPermissions["INHERIT"]
-    if "methods" in permissions and method_name_luau in permissions["methods"]:
-        permission = ThreadPermissions[permissions["methods"]
-                                       [method_name_luau]]
+    permission = ThreadPermissions[settings["methods"]
+                                   [method_name_luau]["permissions"]]
     write_int32(io, permission)  # ThreadPermissions permissions
 
     # more properties
@@ -596,7 +585,7 @@ def generate_class_method(io, class_name, metatable_name, classes, permissions, 
         generate_class_type(io, "Nil", classes)  # ApiClassType return_type
 
 
-def generate_class(io, g_class, classes, class_permissions, singletons, variant_values, variant_value_map):
+def generate_class(io, g_class, classes, class_settings, singletons, variant_values, variant_value_map):
     # ApiClass
 
     class_name = g_class["name"]
@@ -616,15 +605,10 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
         write_int32(io, -1)  # int32_t parent_idx
 
     # permissions
-    permissions = {}
-    if class_name in class_permissions:
-        permissions = class_permissions[class_name]
+    settings = class_settings[class_name]
 
-        # ThreadPermissions default_permissions
-        write_int32(io, ThreadPermissions[permissions["default_permissions"]])
-    else:
-        # ThreadPermissions default_permissions
-        write_int32(io, ThreadPermissions["INTERNAL"])
+    # ThreadPermissions default_permissions
+    write_int32(io, ThreadPermissions[settings["default_permissions"]])
 
     # enums
     if "enums" in g_class:
@@ -663,7 +647,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
 
         for method in inst_methods:  # ApiClassMethod methods[num_methods]
             generate_class_method(
-                io, class_name, metatable_name, classes, permissions, method, variant_values, variant_value_map)
+                io, class_name, metatable_name, classes, settings, method, variant_values, variant_value_map)
 
         if len(inst_methods) > 0:
             # String namecall_debug_name
@@ -675,7 +659,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
         # ApiClassMethod static_methods[num_static_methods]
         for method in static_methods:
             generate_class_method(
-                io, class_name, metatable_name, classes, permissions, method, variant_values, variant_value_map)
+                io, class_name, metatable_name, classes, settings, method, variant_values, variant_value_map)
     else:
         write_uint64(io, 0)  # uint64_t num_methods
         write_uint64(io, 0)  # uint64_t num_static_methods
@@ -761,7 +745,7 @@ def generate_class(io, g_class, classes, class_permissions, singletons, variant_
 # Main #
 ########
 
-def generate_api_bin(src_dir, api, perms_path):
+def generate_api_bin(src_dir, api, class_settings):
     ###################
     # Generate binary #
     ###################
@@ -823,15 +807,11 @@ def generate_api_bin(src_dir, api, perms_path):
     classes = api["classes"]
     singletons = api["singletons"]
 
-    class_permissions = {}
-    with open(perms_path, "rb") as f:
-        class_permissions = tomllib.load(f)
-
     write_uint64(api_bin, len(classes))  # uint64_t num_classes
 
     for g_class in classes:
         generate_class(api_bin, g_class, classes,
-                       class_permissions, singletons, variant_values, variant_value_map)
+                       class_settings, singletons, variant_values, variant_value_map)
 
     ###################
     # Generate source #
