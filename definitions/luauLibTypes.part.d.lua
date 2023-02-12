@@ -51,7 +51,7 @@ declare function gdtypeof(value: any): EnumVariantType?
 -- LUAU_LIB TYPES --
 --------------------
 
-declare class EnumPermissions end
+export type EnumPermissions = number
 
 declare class EnumPermissions_INTERNAL
     --- Used for functionality that is available to all scripts by default.

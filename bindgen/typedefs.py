@@ -127,10 +127,8 @@ def generate_enum(src, enum, class_name=""):
     if class_name != "":
         type_name = f"ClassEnum{class_name}_{name}"
 
-    # Item classes
-    src.append(f"declare class {type_name} end")
-
-    src.append("")
+    # Item class
+    src.append(f"export type {type_name} = number\n")
 
     # Enum type
     internal_type_name = type_name + "_INTERNAL"
