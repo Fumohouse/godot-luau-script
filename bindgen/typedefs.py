@@ -153,21 +153,20 @@ def generate_builtin_class(src, builtin_class, api):
 
     src.append(f"declare class {name}")
 
+    has_set_method = name.endswith("Array") or name == "Dictionary"
     # Keying
     if builtin_class["is_keyed"]:
-        append(src, 1, """\
-function Get(self, key: Variant): Variant
-function Set(self, key: Variant, value: Variant)\
-""")
+        append(src, 1, "function Get(self, key: Variant): Variant")
+        if has_set_method:
+            append(src, 1, "function Set(self, key: Variant, value: Variant)")
 
     # Indexing
     if "indexing_return_type" in builtin_class:
         indexing_type_name = builtin_class["indexing_return_type"]
 
-        append(src, 1, f"""\
-function Get(self, key: number): {get_luau_type(indexing_type_name, api, True)}
-function Set(self, key: number, value: {get_luau_type(indexing_type_name, api)})\
-""")
+        append(src, 1, f"function Get(self, key: number): {get_luau_type(indexing_type_name, api, True)}")
+        if has_set_method:
+            append(src, 1, f"function Set(self, key: number, value: {get_luau_type(indexing_type_name, api)})")
 
     # Members
     if "members" in builtin_class:

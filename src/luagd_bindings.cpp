@@ -548,7 +548,7 @@ static int luaGD_callable_ctor(lua_State *L) {
 
 static int luaGD_builtin_newindex(lua_State *L) {
     const char *name = lua_tostring(L, lua_upvalueindex(1));
-    luaL_error(L, "type '%s' is read-only", name);
+    luaGD_readonlyerror(L, name);
 }
 
 static int luaGD_builtin_index(lua_State *L) {
@@ -650,6 +650,9 @@ static int luaGD_builtin_namecall(lua_State *L) {
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
         if (strcmp(name, "Set") == 0) {
+            if (builtin_class->type != GDEXTENSION_VARIANT_TYPE_DICTIONARY && get_array_type_info(builtin_class->type) == nullptr)
+                luaGD_readonlyerror(L, builtin_class->name);
+
             LuauVariant self;
             self.lua_check(L, 1, builtin_class->type);
 
