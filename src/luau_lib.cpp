@@ -677,7 +677,11 @@ static int luascript_require(lua_State *L) {
     luaL_findtable(L, LUA_REGISTRYINDEX, LUASCRIPT_MODULE_TABLE, 1);
 
     // Get full path.
-    String full_path = String("res://").path_join(path);
+    String script_path = udata->script->get_path();
+    if (script_path.is_empty())
+        luaL_error(L, "require failed: could not find current script directory");
+
+    String full_path = script_path.get_base_dir().path_join(path);
 
     if (FileAccess::file_exists(full_path + ".lua")) {
         full_path = full_path + ".lua";

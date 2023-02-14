@@ -68,7 +68,6 @@ private:
     bool _is_module = false;
     HashSet<String> dependents;
 
-    String base_dir;
     String source;
     LuauData luau_data;
     bool source_changed_cache;

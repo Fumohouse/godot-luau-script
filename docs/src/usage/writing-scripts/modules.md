@@ -4,7 +4,7 @@
 
 ## `require`
 
-The `require` function accepts a path relative to the *project root*, without the `.lua` extension.
+The `require` function accepts a path relative to the current script, without the `.lua` extension.
 It will load the file at the given path and return whatever the file returned.
 
 Requires are cached within the same Lua VM, and are reloaded when necessary (if the script changes).

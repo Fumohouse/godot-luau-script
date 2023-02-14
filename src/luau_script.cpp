@@ -224,7 +224,7 @@ void LuauScript::update_base_script(Error &r_error, bool p_recursive) {
         if (definition.extends.begins_with("res://"))
             base_script_path = definition.extends;
         else
-            base_script_path = base_dir.path_join(definition.extends);
+            base_script_path = get_path().get_base_dir().path_join(definition.extends);
 
         if (base.is_valid())
             base->dependents.erase(get_path());
@@ -279,8 +279,6 @@ Error LuauScript::_reload(bool p_keep_state) {
     }
 
     ERR_FAIL_COND_V(!p_keep_state && has_instances, ERR_ALREADY_IN_USE);
-
-    base_dir = get_path().get_base_dir();
 
     // Load script.
     unref_table_refs();

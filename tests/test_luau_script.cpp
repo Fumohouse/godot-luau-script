@@ -681,7 +681,7 @@ TEST_CASE("luau script: require") {
 
     SECTION("cyclic dependencies") {
         SECTION("module-module") {
-            String new_src = module->_get_source_code().replace("--@1", "require('test_scripts/require/Module2.mod')");
+            String new_src = module->_get_source_code().replace("--@1", "require('Module2.mod')");
             module->_set_source_code(new_src);
             LuauLanguage::get_singleton()->_reload_tool_script(module, false);
 
@@ -689,7 +689,7 @@ TEST_CASE("luau script: require") {
         }
 
         SECTION("class-class") {
-            String new_src = script_base->_get_source_code().replace("--@1", "require('test_scripts/require/Script')");
+            String new_src = script_base->_get_source_code().replace("--@1", "require('Script')");
             script_base->_set_source_code(new_src);
             LuauLanguage::get_singleton()->_reload_tool_script(script_base, false);
 
@@ -698,7 +698,7 @@ TEST_CASE("luau script: require") {
         }
 
         SECTION("module-class") {
-            String new_src = module->_get_source_code().replace("--@1", "require('test_scripts/require/Base')");
+            String new_src = module->_get_source_code().replace("--@1", "require('Base')");
             module->_set_source_code(new_src);
             LuauLanguage::get_singleton()->_reload_tool_script(module, false);
 

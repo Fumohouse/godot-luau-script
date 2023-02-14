@@ -1,3 +1,3 @@
-require("test_scripts/require/Module.mod")
+require("Module.mod")
 
 return {}
