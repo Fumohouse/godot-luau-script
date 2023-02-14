@@ -662,24 +662,6 @@ static int luascript_classprop_namecall(lua_State *L) {
 
 /* LIBRARY */
 
-static int luascript_global_index(lua_State *L) {
-    lua_pushvalue(L, 2); // key
-    lua_rawget(L, 1); // pop key push value
-
-    if (lua_isnil(L, -1)) {
-        StringName key = luaL_optstring(L, 2, "");
-
-        if (!key.is_empty()) {
-            HashMap<StringName, Variant>::ConstIterator E = LuauLanguage::get_singleton()->get_global_constants().find(key);
-
-            if (E)
-                LuaStackOp<Variant>::push(L, E->value);
-        }
-    }
-
-    return 1;
-}
-
 // Based on Luau Repl implementation.
 static int finishrequire(lua_State *L) {
     if (lua_isstring(L, -1))
@@ -763,11 +745,26 @@ static int luascript_wait(lua_State *L) {
     return lua_yield(L, 0);
 }
 
+static int luascript_gdglobal(lua_State *L) {
+    const char *name = luaL_checkstring(L, 1);
+
+    HashMap<StringName, Variant>::ConstIterator E = LuauLanguage::get_singleton()->get_global_constants().find(name);
+
+    if (E) {
+        LuaStackOp<Variant>::push(L, E->value);
+        return 1;
+    }
+
+    luaL_error(L, "singleton '%s' was not found", name);
+}
+
 static const luaL_Reg global_funcs[] = {
     { "gdclass", luascript_gdclass },
 
     { "require", luascript_require },
     { "wait", luascript_wait },
+
+    { "gdglobal", luascript_gdglobal },
 
     { nullptr, nullptr }
 };
@@ -818,16 +815,4 @@ void luascript_openlibs(lua_State *L) {
     }
 
     luaL_register(L, "_G", global_funcs);
-
-    {
-        // Global metatable
-        lua_createtable(L, 0, 1);
-
-        lua_pushcfunction(L, luascript_global_index, "_G.__index");
-        lua_setfield(L, -2, "__index");
-
-        lua_setreadonly(L, -1, true);
-
-        lua_setmetatable(L, LUA_GLOBALSINDEX);
-    }
 }

@@ -367,3 +367,9 @@ declare function gdclass(name: string?, extends: string?): GDClassDefinition
     @param duration The duration to wait. If the engine is affected by a time factor, this duration will be affected by it.
 ]]
 declare function wait(duration: number): number
+
+--[[--
+    Gets a global constant (e.g. AutoLoad) which was defined in the Godot editor.
+    @param name The name of the global constant.
+]]
+declare function gdglobal(name: string | StringName): Variant

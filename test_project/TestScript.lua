@@ -22,7 +22,7 @@ function TestClass:_Ready()
 	self:TestMethod()
 	TestBaseScript.TestMethod(self)
 
-	TestAutoLoad:TestMethod()
+	gdglobal("TestAutoLoad"):TestMethod()
 
 	print(TestModule.testConstant)
 
