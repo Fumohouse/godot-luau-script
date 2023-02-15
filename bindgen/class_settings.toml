@@ -1611,10 +1611,19 @@ permissions = "INHERIT" #
 [AnimationTree.methods.GetRootMotionPosition]
 permissions = "INHERIT" #
 
+[AnimationTree.methods.GetRootMotionPositionAccumulator]
+permissions = "INHERIT" #
+
 [AnimationTree.methods.GetRootMotionRotation]
 permissions = "INHERIT" #
 
+[AnimationTree.methods.GetRootMotionRotationAccumulator]
+permissions = "INHERIT" #
+
 [AnimationTree.methods.GetRootMotionScale]
+permissions = "INHERIT" #
+
+[AnimationTree.methods.GetRootMotionScaleAccumulator]
 permissions = "INHERIT" #
 
 [AnimationTree.methods.GetRootMotionTrack]
@@ -11108,6 +11117,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [Engine.methods.SetTimeScale]
+permissions = "INHERIT" #
+
+[Engine.methods.UnregisterScriptLanguage]
 permissions = "INHERIT" #
 
 [Engine.methods.UnregisterSingleton]
@@ -36154,6 +36166,9 @@ permissions = "INHERIT" #
 [TileMap.methods.GetLayersCount]
 permissions = "INHERIT" #
 
+[TileMap.methods.GetNavigationMap]
+permissions = "INHERIT" #
+
 [TileMap.methods.GetNavigationVisibilityMode]
 permissions = "INHERIT" #
 
@@ -36238,6 +36253,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [TileMap.methods.SetLayerZIndex]
+permissions = "INHERIT" #
+
+[TileMap.methods.SetNavigationMap]
 permissions = "INHERIT" #
 
 [TileMap.methods.SetNavigationVisibilityMode]

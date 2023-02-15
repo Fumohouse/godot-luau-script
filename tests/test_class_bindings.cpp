@@ -105,10 +105,9 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
             return PhysicsRayQueryParameters3D.Create(Vector3.new(1, 2, 3), Vector3.new(4, 5, 6))
         )ASDF",
                 {
-                    Ref<PhysicsRayQueryParameters3D> params = Object::cast_to<PhysicsRayQueryParameters3D>(
-                            LuaStackOp<Object *>::check(L, -1));
+                    PhysicsRayQueryParameters3D *params = (PhysicsRayQueryParameters3D *)LuaStackOp<Object *>::check(L, -1);
+                    REQUIRE(UtilityFunctions::is_instance_valid(params));
 
-                    REQUIRE(params.is_valid());
                     REQUIRE(params->get_from() == Vector3(1, 2, 3));
                     REQUIRE(params->get_to() == Vector3(4, 5, 6));
                     REQUIRE(params->get_collision_mask() == 4294967295);
@@ -121,8 +120,7 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
             return PhysicsRayQueryParameters3D.Create(Vector3.new(1, 2, 3), Vector3.new(4, 5, 6), 1, Array.new())
         )ASDF",
                 {
-                    RefCounted *rc = Object::cast_to<RefCounted>(LuaStackOp<Object *>::check(L, -1));
-
+                    RefCounted *rc = (RefCounted *)LuaStackOp<Object *>::check(L, -1);
                     REQUIRE(UtilityFunctions::is_instance_valid(rc));
 
                     lua_pop(L, 1);

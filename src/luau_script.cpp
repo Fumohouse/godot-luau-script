@@ -653,11 +653,6 @@ void LuauScript::unref_table_refs() {
 }
 
 LuauScript::~LuauScript() {
-    {
-        MutexLock lock(LuauLanguage::get_singleton()->lock);
-        LuauLanguage::get_singleton()->script_list.remove(&script_list);
-    }
-
     if (GDLuau::get_singleton() != nullptr) {
         unref_table_refs();
     }

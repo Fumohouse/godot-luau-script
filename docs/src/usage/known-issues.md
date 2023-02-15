@@ -7,10 +7,6 @@ As such, you may experience significant issues when using all of these things to
 
 Tracking [godot-cpp#889](https://github.com/godotengine/godot-cpp/issues/889).
 
-## Upstream issue: Godot segfaults on exit (2)
-
-Tracking [godot#66475](https://github.com/godotengine/godot/issues/66475) and [godot#67155](https://github.com/godotengine/godot/pull/67155).
-
 ## Upstream issue: Godot crashes when loading a project for the first time
 
 This likely occurs because the `ScriptLanguage` is used before initialization when the extension is loaded for the first time

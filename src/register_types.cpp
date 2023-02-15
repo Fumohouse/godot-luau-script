@@ -7,6 +7,7 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/resource_saver.hpp>
 #include <godot_cpp/core/class_db.hpp>
+#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -49,7 +50,7 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<LuauLanguage>();
 
     script_language_luau = memnew(LuauLanguage);
-    Engine::get_singleton()->register_script_language(script_language_luau);
+    CRASH_COND_MSG(Engine::get_singleton()->register_script_language(script_language_luau) != OK, "failed to register LuauLanguage");
 
     ClassDB::register_class<ResourceFormatLoaderLuauScript>();
     resource_loader_luau.instantiate();
@@ -95,12 +96,10 @@ void uninitialize_luau_script_module(ModuleInitializationLevel p_level) {
 
     UtilityFunctions::print_verbose("luau script: uninitializing...");
 
-    // TODO: unregister script language (not currently possible)
+    Engine::get_singleton()->unregister_script_language(script_language_luau);
 
-    // 2022-09-21: it does break. (segfault when ScriptServer cleans up)
-    // should be ok if/when script languages can be properly unregistered
-    // if (script_language_luau)
-    // memdelete(script_language_luau); // will this break? maybe
+    if (script_language_luau)
+        memdelete(script_language_luau);
 
     ResourceLoader::get_singleton()->remove_resource_format_loader(resource_loader_luau);
     resource_loader_luau.unref();

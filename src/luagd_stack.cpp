@@ -76,9 +76,8 @@ String LuaStackOp<String>::check(lua_State *L, int index) {
 /* OBJECTS */
 
 static void luaGD_object_init(Object *ptr) {
-    RefCounted *rc = Object::cast_to<RefCounted>(ptr);
-    if (rc != nullptr)
-        rc->init_ref();
+    if (ptr != nullptr && ptr->is_class(RefCounted::get_class_static()))
+        ((RefCounted *)ptr)->init_ref();
 }
 
 static void luaGD_object_dtor(void *ptr) {
@@ -87,10 +86,8 @@ static void luaGD_object_dtor(void *ptr) {
         return;
 
     Object *instance = ObjectDB::get_instance(id);
-
-    RefCounted *rc = Object::cast_to<RefCounted>(instance);
-    if (rc != nullptr)
-        rc->unreference();
+    if (instance != nullptr && instance->is_class(RefCounted::get_class_static()))
+        ((RefCounted *)instance)->unreference();
 }
 
 void LuaStackOp<Object *>::push(lua_State *L, Object *value) {

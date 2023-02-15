@@ -64,7 +64,7 @@ struct VariantAssignMethods : public VariantMethodsBase<T> {
 
     virtual void copy(LuauVariant &self, const LuauVariant &other) const override {
         initialize(self);
-        memcpy(self._data._opaque, other._data._opaque, sizeof(T));
+        *(T *)self._data._opaque = *(T *)other._data._opaque;
     }
 };
 
@@ -205,7 +205,6 @@ struct VariantObjectMethods : public VariantMethods {
         // - Use _arg for all arguments
         // - _arg is never needed for return values or builtin/class `self`
         // - _arg is never needed for values which will never be Object
-        // - Use _arg for Variant constructors (why?!)
 
         // This is a mess. Hopefully it gets fixed at some point.
         if (is_arg)
