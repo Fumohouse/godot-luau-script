@@ -545,7 +545,6 @@ static int luascript_classprop_namecall(lua_State *L) {
                 prop->property.hint_string = luascript_stringhintlist(L, 3);
 
             prop->property.hint = is_global ? PROPERTY_HINT_GLOBAL_FILE : PROPERTY_HINT_FILE;
-            prop->property.hint_string = String();
         } else if (strcmp(key, "Dir") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
                 luaGD_hinterror(L, "directory", "string");
