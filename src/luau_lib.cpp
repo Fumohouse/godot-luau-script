@@ -274,6 +274,9 @@ static int luascript_gdclass_namecall(lua_State *L) {
 
             class_prop.property.name = name;
 
+            // Godot will not provide a sensible default value by default.
+            class_prop.default_value = LuauVariant::default_variant(class_prop.property.type);
+
             int idx = def->set_prop(name, class_prop);
 
             LuaStackOp<GDClassProperty *>::push(L, &def->properties.ptrw()[idx]);

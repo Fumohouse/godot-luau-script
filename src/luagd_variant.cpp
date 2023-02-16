@@ -395,6 +395,15 @@ Variant LuauVariant::to_variant() {
     return ret;
 }
 
+Variant LuauVariant::default_variant(GDExtensionVariantType type) {
+    Variant ret;
+    GDExtensionCallError err;
+    internal::gde_interface->variant_construct(type, &ret, nullptr, 0, &err);
+    ERR_FAIL_COND_V(err.error != GDEXTENSION_CALL_OK, Variant());
+
+    return ret;
+}
+
 void LuauVariant::copy_variant(LuauVariant &to, const LuauVariant &from) {
     if (from.type != -1) {
         type_methods[from.type]->copy(to, from);

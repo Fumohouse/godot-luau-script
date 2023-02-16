@@ -69,6 +69,7 @@ public:
     /* To/from Variant */
     void assign_variant(const Variant &val);
     Variant to_variant();
+    static Variant default_variant(GDExtensionVariantType type);
 
     /* Constructor */
     _FORCE_INLINE_ LuauVariant() :

@@ -103,7 +103,6 @@ TestClass:RegisterProperty("testRangeF", Enum.VariantType.FLOAT)
 TestClass:PropertySubgroup("Enums")
 TestClass:RegisterProperty("testEnumInt", Enum.VariantType.INT)
 	:Enum("One", "Two", "Three")
-	:Default(0)
 
 TestClass:RegisterProperty("testEnumString", Enum.VariantType.STRING)
 	:Enum("One", "Two", "Three")
@@ -111,7 +110,6 @@ TestClass:RegisterProperty("testEnumString", Enum.VariantType.STRING)
 
 TestClass:RegisterProperty("testSuggestion", Enum.VariantType.STRING)
 	:Suggestion("One", "Two", "Three")
-	:Default("")
 
 TestClass:RegisterProperty("testFlags", Enum.VariantType.INT)
 	:Flags("One", "Two", "Three")
@@ -121,29 +119,23 @@ TestClass:RegisterProperty("testFlags", Enum.VariantType.INT)
 TestClass:PropertySubgroup("File")
 TestClass:RegisterProperty("testFile", Enum.VariantType.STRING)
 	:File(false, "*.png,*.pdf")
-	:Default("")
 
 TestClass:RegisterProperty("testFileG", Enum.VariantType.STRING)
 	:File(true, "*.png,*.svg")
-	:Default("")
 
 TestClass:RegisterProperty("testDir", Enum.VariantType.STRING)
 	:Dir()
-	:Default("")
 
 TestClass:RegisterProperty("testDirG", Enum.VariantType.STRING)
 	:Dir(true)
-	:Default("")
 
 -- String
 TestClass:PropertySubgroup("String")
 TestClass:RegisterProperty("testMultiline", Enum.VariantType.STRING)
 	:Multiline()
-	:Default("")
 
 TestClass:RegisterProperty("testPlaceholder", Enum.VariantType.STRING)
 	:TextPlaceholder("Placeholder!")
-	:Default("")
 
 -- Layers
 TestClass:PropertySubgroup("Layers")
