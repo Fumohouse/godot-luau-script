@@ -1,9 +1,11 @@
 local Module = require("Module.mod")
 --@1
 
+local BaseImpl = {}
 local Base = gdclass(nil, Node)
+    :RegisterImpl(BaseImpl)
 
-function Base.TestFunc()
+function BaseImpl.TestFunc()
     return "what's up"
 end
 

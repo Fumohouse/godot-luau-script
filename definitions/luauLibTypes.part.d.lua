@@ -345,11 +345,6 @@ declare class GDClassDefinition
     -- METAMETHODS --
 
     --[[--
-        Sets a value on the implementation table, creating one if it has not been registered through @see GDClassDefinition.RegisterImpl yet.
-    ]]
-    function __newindex(self, key: string, value: any)
-
-    --[[--
         Gets a value on the implementation table, erroring if one has not been created.
     ]]
     function __index(self, key: string): any

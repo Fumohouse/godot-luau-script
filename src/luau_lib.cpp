@@ -365,27 +365,7 @@ static int luascript_gdclass_namecall(lua_State *L) {
 }
 
 static int luascript_gdclass_newindex(lua_State *L) {
-    GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
-    if (def->is_readonly)
-        luascript_gdclass_readonly_error(L);
-
-    const char *key = luaL_checkstring(L, 2);
-
-    if (strcmp(key, "new") == 0)
-        luaL_error(L, "cannot set constructor 'new' on GDClassDefinition");
-
-    if (def->table_ref == -1) {
-        // Create def table in registry.
-        lua_newtable(L);
-        def->table_ref = lua_ref(L, -1);
-    } else {
-        lua_getref(L, def->table_ref);
-    }
-
-    lua_insert(L, -3);
-    lua_settable(L, -3);
-
-    return 0;
+    luaGD_readonlyerror(L, "GDClassDefinition");
 }
 
 static int luascript_gdclass_new(lua_State *L) {

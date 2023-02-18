@@ -88,8 +88,11 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
 
     SECTION("get from definition table") {
         EVAL_THEN(T, R"ASDF(
+            local TestClassImpl = {}
             local TestClass = gdclass(nil, Node)
-            function TestClass:TestMethod() end
+                :RegisterImpl(TestClassImpl)
+
+            function TestClassImpl:TestMethod() end
 
             return TestClass
         )ASDF",

@@ -27,17 +27,6 @@ TEST_CASE("luau analysis: base analysis") {
         REQUIRE(res.types.has("TypeAlias"));
     }
 
-    SECTION("no impl") {
-        LOAD_SCRIPT_FILE(script, "analysis/NoImpl.lua")
-
-        const LuauScriptAnalysisResult &res = script->get_luau_data().analysis_result;
-
-        REQUIRE(res.definition != nullptr);
-        REQUIRE(res.definition == res.impl);
-
-        REQUIRE(res.methods.has("TestMethod"));
-    }
-
     SECTION("odd") {
         LOAD_SCRIPT_FILE(script, "analysis/Odd.lua")
 

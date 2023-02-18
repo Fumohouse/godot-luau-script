@@ -1,4 +1,5 @@
 local Module = require("Module.mod")
+
 local Base = gdclass(nil, Node)
 
 --@1

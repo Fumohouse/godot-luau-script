@@ -123,7 +123,7 @@ bool luascript_analyze(const Luau::ParseResult &parse_result, LuauScriptAnalysis
     }
 
     if (result.impl == nullptr)
-        result.impl = result.definition;
+        return false;
 
     // Step 3: Find defined methods and types.
     TypesMethodsFinder types_methods_finder(result.impl);

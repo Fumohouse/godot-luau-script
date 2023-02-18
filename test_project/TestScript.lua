@@ -1,22 +1,24 @@
 local TestBaseScript = require("TestBaseScript")
 local TestModule = require("TestModule.mod")
 
+local TestClassImpl = {}
 local TestClass = gdclass(nil, TestBaseScript)
 	:Tool(true) -- For custom properties in editor
 	:Permissions(Enum.Permissions.INTERNAL)
+	:RegisterImpl(TestClassImpl)
 
-function TestClass:Counter()
+function TestClassImpl:Counter()
 	for i = 3, 1, -1 do
 		print(i.."!")
 		wait(1)
 	end
 end
 
-function TestClass._Init(obj, tbl)
+function TestClassImpl._Init(obj, tbl)
 	tbl.customProperty = "hey"
 end
 
-function TestClass:_Ready()
+function TestClassImpl:_Ready()
 	print("TestScript: Ready!")
 
 	self:TestMethod()
@@ -40,8 +42,7 @@ TestClass:RegisterMethod("_Ready")
 TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
 	:Default(1.5)
 
-
-function TestClass:_GetPropertyList()
+function TestClassImpl:_GetPropertyList()
 	return {
 		{ name = "Custom Property", usage = Enum.PropertyUsageFlags.GROUP },
 		{ name = "customProperty", type = Enum.VariantType.STRING },
@@ -49,7 +50,7 @@ function TestClass:_GetPropertyList()
 	}
 end
 
-function TestClass:_PropertyCanRevert(property)
+function TestClassImpl:_PropertyCanRevert(property)
 	if property == "customProperty" then
 		return true
 	end
@@ -57,7 +58,7 @@ function TestClass:_PropertyCanRevert(property)
 	return false
 end
 
-function TestClass:_PropertyGetRevert(property)
+function TestClassImpl:_PropertyGetRevert(property)
 	if property == "customProperty" then
 		return "hey"
 	end
@@ -65,7 +66,7 @@ function TestClass:_PropertyGetRevert(property)
 	return nil
 end
 
-function TestClass:_Set(property, value)
+function TestClassImpl:_Set(property, value)
 	if property == "customProperty" then
 		self.customProperty = value
 		return true
@@ -74,7 +75,7 @@ function TestClass:_Set(property, value)
 	return false
 end
 
-function TestClass:_Get(property)
+function TestClassImpl:_Get(property)
 	if property == "customProperty" then
 		return self.customProperty
 	end

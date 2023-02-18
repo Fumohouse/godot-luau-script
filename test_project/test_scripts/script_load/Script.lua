@@ -1,5 +1,7 @@
+local TestClassImpl = {}
 local TestClass = gdclass("TestClass")
     :Tool(true)
+    :RegisterImpl(TestClassImpl)
 
 TestClass:RegisterSignal("testSignal")
     :Args(
@@ -13,12 +15,12 @@ TestClass:RegisterRpc("TestRpc", {
     channel = 4
 })
 
-function TestClass:TestMethod()
+function TestClassImpl:TestMethod()
 end
 
 TestClass:RegisterMethod("TestMethod")
 
-function TestClass:__WeirdMethodName()
+function TestClassImpl:__WeirdMethodName()
 end
 
 TestClass:RegisterMethod("__WeirdMethodName")

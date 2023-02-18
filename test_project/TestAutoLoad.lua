@@ -1,13 +1,15 @@
+local TestAutoLoadImpl = {}
 local TestAutoLoad = gdclass(nil, Node)
 	:Tool(true)
+	:RegisterImpl(TestAutoLoadImpl)
 
-function TestAutoLoad:_Ready()
+function TestAutoLoadImpl:_Ready()
 	print("TestAutoLoad: Ready!")
 end
 
 TestAutoLoad:RegisterMethod("_Ready")
 
-function TestAutoLoad:TestMethod()
+function TestAutoLoadImpl:TestMethod()
 	print("TestAutoLoad: TestMethod")
 end
 
