@@ -674,7 +674,7 @@ static int finishrequire(lua_State *L) {
     return 1;
 }
 
-static int luascript_require(lua_State *L) {
+int LuauScript::luascript_require(lua_State *L) {
     String path = LuaStackOp<String>::check(L, 1);
     GDThreadData *udata = luaGD_getthreaddata(L);
 
@@ -701,12 +701,18 @@ static int luascript_require(lua_State *L) {
 
     // Load and write dependency.
     Error err;
-    Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err, false, udata->script);
+    Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err);
 
-    if (script->is_loading()) {
-        luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
-                udata->script->get_path().utf8().get_data(),
-                full_path_utf8.get_data());
+    if (udata->script->is_loading()) {
+        // Dependencies are, for the most part, not of any concern if they aren't part of the load stage.
+        // (i.e. requires processed after initial script load should not write or check dependencies)
+        udata->script->dependencies.insert(script);
+
+        if (script->has_dependency(udata->script)) {
+            luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
+                    udata->script->get_path().utf8().get_data(),
+                    full_path_utf8.get_data());
+        }
     }
 
     // Return from cache.
@@ -725,9 +731,13 @@ static int luascript_require(lua_State *L) {
             lua_remove(L, -2); // thread
         }
     } else {
-        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::alloc(L);
-        if (script->get_class_definition(lua_mainthread(L), *def) != OK) {
-            lua_pop(L, 1); // def
+        if (udata->vm_type >= GDLuau::VM_MAX) {
+            luaL_error(L, "could not get class definition: unknown VM");
+        }
+
+        if (script->load_definition(udata->vm_type) == OK) {
+            LuaStackOp<GDClassDefinition>::push(L, script->get_definition(udata->vm_type));
+        } else {
             LuaStackOp<String>::push(L, "could not get class definition for script at " + script->get_path());
         }
     }
@@ -763,7 +773,7 @@ static int luascript_gdglobal(lua_State *L) {
 static const luaL_Reg global_funcs[] = {
     { "gdclass", luascript_gdclass },
 
-    { "require", luascript_require },
+    { "require", LuauScript::luascript_require },
     { "wait", luascript_wait },
 
     { "gdglobal", luascript_gdglobal },

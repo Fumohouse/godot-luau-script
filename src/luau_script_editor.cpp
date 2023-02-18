@@ -37,8 +37,6 @@ void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
 }
 
 void LuauScript::_update_exports() {
-    dependencies.clear();
-
     if (_is_module)
         return;
 
@@ -48,7 +46,8 @@ void LuauScript::_update_exports() {
     List<Ref<LuauScript>> scripts = LuauLanguage::get_singleton()->get_scripts();
 
     for (Ref<LuauScript> &scr : scripts) {
-        if (scr->has_dependency(this))
+        // Check dependent to avoid endless loop.
+        if (scr->has_dependency(this) && !this->has_dependency(scr))
             scr->_update_exports();
     }
 }
@@ -58,7 +57,7 @@ void LuauScript::update_exports_values(List<GDProperty> &properties, HashMap<Str
         base->update_exports_values(properties, values);
     }
 
-    for (const GDClassProperty &prop : definition.properties) {
+    for (const GDClassProperty &prop : get_definition().properties) {
         properties.push_back(prop.property);
         values[prop.property.name] = prop.default_value;
     }
@@ -72,19 +71,15 @@ bool LuauScript::update_exports_internal(PlaceHolderScriptInstance *p_instance_t
         source_changed_cache = false;
         changed = true;
 
-        GDClassDefinition def;
+        dependencies.clear();
+
         compile(); // Always recompile.
-        Error err = get_class_definition(nullptr, def);
+        unload_module();
+        Error err = load_definition(GDLuau::VM_SCRIPT_LOAD, true);
 
         if (err == OK) {
             // Update base class
-            definition.extends = def.extends;
-            definition.base_script = def.base_script;
-            base = Ref<LuauScript>(definition.base_script);
-
-            // Update properties, signals
-            definition.signals = def.signals;
-            definition.properties = def.properties;
+            base = Ref<LuauScript>(get_definition().base_script);
         } else {
             placeholder_fallback_enabled = true;
             return false;
@@ -164,12 +159,14 @@ struct LuauScriptDepSort {
 void LuauScript::unload_module() {
     luau_data.bytecode.clear(); // Forces recompile on next load.
 
+    CharString path_utf8 = get_path().utf8();
+
     for (int i = 0; i < GDLuau::VM_MAX; i++) {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
 
         luaL_findtable(L, LUA_REGISTRYINDEX, LUASCRIPT_MODULE_TABLE, 1);
         lua_pushnil(L);
-        lua_setfield(L, -2, get_path().utf8().get_data());
+        lua_setfield(L, -2, path_utf8.get_data());
 
         lua_pop(L, 1); // MODULE_TABLE
     }
