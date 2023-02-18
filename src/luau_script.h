@@ -160,7 +160,7 @@ public:
     TypedArray<Dictionary> _get_documentation() const override { return TypedArray<Dictionary>(); }
 
     /* MISC (NON OVERRIDE) */
-    static Error get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid);
+    Error get_class_definition(lua_State *L, GDClassDefinition &r_def);
 
     const LuauData &get_luau_data() const { return luau_data; }
     Ref<LuauScript> get_base() const { return base; }

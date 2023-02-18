@@ -73,9 +73,8 @@ bool LuauScript::update_exports_internal(PlaceHolderScriptInstance *p_instance_t
         changed = true;
 
         GDClassDefinition def;
-        bool is_valid;
         compile(); // Always recompile.
-        Error err = get_class_definition(this, nullptr, def, is_valid);
+        Error err = get_class_definition(nullptr, def);
 
         if (err == OK) {
             // Update base class

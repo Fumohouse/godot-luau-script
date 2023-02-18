@@ -10,10 +10,6 @@ using namespace godot;
 
 LuauCache *LuauCache::singleton = nullptr;
 
-bool LuauCache::is_loading(const String &p_path) const {
-    return cache.has(p_path) && cache[p_path]->is_loading();
-}
-
 Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache, Ref<LuauScript> p_dependent) {
     String path = p_path.simplify_path();
 

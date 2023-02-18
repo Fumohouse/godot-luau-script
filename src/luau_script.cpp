@@ -168,12 +168,10 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
     return ret;
 }
 
-Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, GDClassDefinition &r_def, bool &r_is_valid) {
+Error LuauScript::get_class_definition(lua_State *L, GDClassDefinition &r_def) {
     // TODO: error line numbers?
-    r_is_valid = false;
-
-    ERR_FAIL_COND_V_MSG(p_script->_is_loading, ERR_CYCLIC_LINK, "cyclic dependency detected. requested script load when it was already loading.");
-    p_script->_is_loading = true;
+    ERR_FAIL_COND_V_MSG(_is_loading, ERR_CYCLIC_LINK, "cyclic dependency detected. requested script load when it was already loading.");
+    _is_loading = true;
 
     if (L == nullptr)
         L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
@@ -182,33 +180,32 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
     luaL_sandboxthread(T);
 
     GDThreadData *udata = luaGD_getthreaddata(T);
-    udata->script = p_script;
+    udata->script = Ref<LuauScript>(this);
 
-    if (p_script->try_load(T) == OK) {
-        LUAU_LOAD_RESUME(p_script, L, T)
+    if (try_load(T) == OK) {
+        LUAU_LOAD_RESUME(this, L, T)
 
         if (lua_isnil(T, 1) || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
             lua_pop(L, 1); // thread
-            LUAU_LOAD_ERR(p_script, 1, LUAU_LOAD_NO_DEF_MSG);
+            LUAU_LOAD_ERR(this, 1, LUAU_LOAD_NO_DEF_MSG);
 
-            p_script->_is_loading = false;
+            _is_loading = false;
             return ERR_COMPILATION_FAILED;
         }
 
         GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
-        def->script = p_script.ptr();
+        def->script = this;
         def->is_readonly = true;
 
         r_def = *def;
-        r_is_valid = true;
 
         lua_pop(L, 1); // thread
-        p_script->_is_loading = false;
+        _is_loading = false;
         return OK;
     }
 
     lua_pop(L, 1); // thread
-    p_script->_is_loading = false;
+    _is_loading = false;
     return ERR_COMPILATION_FAILED;
 }
 
@@ -216,30 +213,27 @@ Error LuauScript::_reload(bool p_keep_state) {
     if (_is_module)
         return OK;
 
-    dependencies.clear();
-
-    bool has_instances;
-
     {
         MutexLock lock(LuauLanguage::singleton->lock);
-        has_instances = instances.size();
+        ERR_FAIL_COND_V(!p_keep_state && instances.size() > 0, ERR_ALREADY_IN_USE);
     }
 
-    ERR_FAIL_COND_V(!p_keep_state && has_instances, ERR_ALREADY_IN_USE);
+    dependencies.clear();
 
     // Load script.
     unref_table_refs();
     compile(); // Always recompile on reload.
     lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
 
-    Error err = get_class_definition(this, L, definition, valid);
+    valid = false;
+    Error err = get_class_definition(L, definition);
     if (err != OK) {
         return err;
     }
 
     // Update base script.
     base = Ref<LuauScript>(definition.base_script);
-    valid = valid && (!base.is_valid() || base->_is_valid());
+    valid = !base.is_valid() || base->_is_valid(); // Already known that this script is valid
 
     // Build method cache.
     methods.clear();
@@ -546,15 +540,7 @@ Error LuauScript::load_module(lua_State *L) {
     if (try_load(ML, &err) == OK) {
         LUAU_LOAD_RESUME(this, L, ML)
 
-        if (lua_gettop(ML) == 0) {
-#define NO_RET_ERR "module must return a value"
-
-            lua_pushstring(L, NO_RET_ERR);
-            _is_loading = false;
-            ERR_FAIL_V_MSG(ERR_COMPILATION_FAILED, NO_RET_ERR);
-        }
-
-        if (!lua_istable(ML, -1) && !lua_isfunction(L, -1)) {
+        if (lua_gettop(ML) == 0 || (!lua_istable(ML, -1) && !lua_isfunction(L, -1))) {
 #define RET_ERR "module must return a function or table"
 
             lua_pushstring(L, RET_ERR);

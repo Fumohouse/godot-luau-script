@@ -707,6 +707,10 @@ static int luascript_require(lua_State *L) {
 
     String full_path = script_path.get_base_dir().path_join(path);
 
+    // Checks.
+    if (udata->script->get_path() == full_path)
+        luaL_error(L, "cannot require current script");
+
     if (FileAccess::file_exists(full_path + ".lua")) {
         full_path = full_path + ".lua";
     } else {
@@ -715,15 +719,11 @@ static int luascript_require(lua_State *L) {
 
     CharString full_path_utf8 = full_path.utf8();
 
-    // Checks.
-    if (udata->script->get_path() == full_path)
-        luaL_error(L, "cannot require current script");
-
     // Load and write dependency.
     Error err;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err, false, udata->script);
 
-    if (LuauCache::get_singleton()->is_loading(full_path)) {
+    if (script->is_loading()) {
         luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
                 udata->script->get_path().utf8().get_data(),
                 full_path_utf8.get_data());
@@ -746,16 +746,10 @@ static int luascript_require(lua_State *L) {
         }
     } else {
         GDClassDefinition *def = LuaStackOp<GDClassDefinition>::alloc(L);
-        bool is_valid;
-
-        LuauScript::get_class_definition(script, lua_mainthread(L), *def, is_valid);
-
-        if (!is_valid) {
+        if (script->get_class_definition(lua_mainthread(L), *def) != OK) {
             lua_pop(L, 1); // def
             LuaStackOp<String>::push(L, "could not get class definition for script at " + script->get_path());
         }
-
-        def->is_readonly = true;
     }
 
     lua_pushvalue(L, -1);
