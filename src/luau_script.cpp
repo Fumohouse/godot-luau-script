@@ -212,64 +212,11 @@ Error LuauScript::get_class_definition(Ref<LuauScript> p_script, lua_State *L, G
     return ERR_COMPILATION_FAILED;
 }
 
-void LuauScript::update_base_script(Error &r_error, bool p_recursive) {
-    r_error = OK;
-
-    if (get_path().is_empty())
-        return;
-
-    if (!definition.extends.is_empty() && !Utils::class_exists(definition.extends)) {
-        String base_script_path;
-
-        if (definition.extends.begins_with("res://"))
-            base_script_path = definition.extends;
-        else
-            base_script_path = get_path().get_base_dir().path_join(definition.extends);
-
-        if (base.is_valid())
-            base->dependents.erase(get_path());
-
-        Ref<LuauScript> prev_cyclic = cyclic_base;
-
-        base = LuauCache::get_singleton()->get_script(base_script_path, r_error, false, get_path());
-
-        if (dependents.has(base_script_path) || r_error == ERR_CYCLIC_LINK) {
-            r_error = ERR_CYCLIC_LINK;
-
-            valid = false;
-            base->valid = false;
-            cyclic_base = base;
-            base.unref();
-
-            // Avoid spewing errors on _update_exports if the cyclic base has not changed.
-            ERR_FAIL_COND_MSG(cyclic_base != prev_cyclic, "cyclic inheritance detected in " + get_path() + ". halting base script load.");
-            return;
-        }
-
-        if (r_error != OK)
-            return;
-
-        if (p_recursive && base.is_valid()) {
-            base->update_base_script(r_error);
-        }
-
-        if (cyclic_base.is_valid()) {
-            if (base != cyclic_base) {
-                cyclic_base->dependents.erase(get_path());
-            }
-
-            cyclic_base.unref();
-        }
-    } else {
-        base.unref();
-    }
-}
-
 Error LuauScript::_reload(bool p_keep_state) {
     if (_is_module)
         return OK;
 
-    dependents.clear();
+    dependencies.clear();
 
     bool has_instances;
 
@@ -286,17 +233,13 @@ Error LuauScript::_reload(bool p_keep_state) {
     lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
 
     Error err = get_class_definition(this, L, definition, valid);
-
     if (err != OK) {
         return err;
     }
 
-    // Load base script.
-    update_base_script(err, true);
-    if (err != OK || (base.is_valid() && !base->_is_valid())) {
-        valid = false;
-        return err;
-    }
+    // Update base script.
+    base = Ref<LuauScript>(definition.base_script);
+    valid = valid && (!base.is_valid() || base->_is_valid());
 
     // Build method cache.
     methods.clear();
@@ -579,8 +522,8 @@ void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
     lua_remove(T, -2);
 }
 
-bool LuauScript::has_dependent(const String &p_path) const {
-    return dependents.has(p_path);
+bool LuauScript::has_dependency(const Ref<LuauScript> &p_script) const {
+    return dependencies.has(p_script);
 }
 
 // Based on Luau Repl implementation.

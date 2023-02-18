@@ -1,4 +1,4 @@
-local Base = gdclass(nil, "Node")
+local Base = gdclass(nil, Node)
 
 --@1
 

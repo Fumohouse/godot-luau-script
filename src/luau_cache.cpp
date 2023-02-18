@@ -1,6 +1,7 @@
 #include "luau_cache.h"
 
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 
 #include "luau_script.h"
@@ -13,7 +14,7 @@ bool LuauCache::is_loading(const String &p_path) const {
     return cache.has(p_path) && cache[p_path]->is_loading();
 }
 
-Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache, const String &p_dependent) {
+Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache, Ref<LuauScript> p_dependent) {
     String path = p_path.simplify_path();
 
     Ref<LuauScript> script;
@@ -23,9 +24,8 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
         script = cache[path];
 
         if (!p_ignore_cache) {
-            if (!p_dependent.is_empty()) {
-                script->dependents.insert(p_dependent);
-            }
+            if (p_dependent.is_valid())
+                p_dependent->dependencies.insert(script);
 
             return script;
         }
@@ -48,9 +48,8 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
             return script;
     }
 
-    if (!p_dependent.is_empty()) {
-        script->dependents.insert(p_dependent);
-    }
+    if (p_dependent.is_valid())
+        p_dependent->dependencies.insert(script);
 
     // Set cache before _reload to prevent infinite recursion inside.
     cache[path] = script;

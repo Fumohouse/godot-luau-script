@@ -358,9 +358,9 @@ end
 --[[--
     Creates a new @see GDClassDefinition.
     @param name The name of the class. This makes it "global" in the Godot editor, meaning it will, for example, show up in the Node/Resource creation dialogs.
-    @param extends The name of the Godot class this script extends, or the relative path to a script file which this script will extend.
+    @param extends The Luau or Godot class this class extends.
 ]]
-declare function gdclass(name: string?, extends: string?): GDClassDefinition
+declare function gdclass(name: string?, extends: GDClassDefinition | ClassGlobal?): GDClassDefinition
 
 --[[--
     Yields the current thread and waits before resuming.

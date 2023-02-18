@@ -7,6 +7,7 @@
 
 #define MT_VARIANT_TYPE "__gdvariant"
 #define MT_CLASS_TYPE "__gdclass"
+#define MT_CLASS_GLOBAL "__classglobal"
 
 #define LUAGD_LOAD_GUARD(L, key)             \
     lua_getfield(L, LUA_REGISTRYINDEX, key); \

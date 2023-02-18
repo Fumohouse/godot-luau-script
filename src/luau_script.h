@@ -66,7 +66,7 @@ private:
     Ref<LuauScript> base;
 
     bool _is_module = false;
-    HashSet<String> dependents;
+    HashSet<Ref<LuauScript>> dependencies;
 
     String source;
     LuauData luau_data;
@@ -89,10 +89,8 @@ private:
 
     Error load_methods(GDLuau::VMType p_vm_type, bool p_force = false);
 
-    void update_base_script(Error &r_error, bool p_recursive = false);
-
     void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
-    bool update_exports_internal(bool *r_err, PlaceHolderScriptInstance *p_instance_to_update);
+    bool update_exports_internal(PlaceHolderScriptInstance *p_instance_to_update);
 
     void unref_table_refs();
 
@@ -173,7 +171,7 @@ public:
     bool is_loading() const { return _is_loading; }
 
     bool is_module() const { return _is_module; }
-    bool has_dependent(const String &p_path) const;
+    bool has_dependency(const Ref<LuauScript> &p_script) const;
 
     Error load_module(lua_State *L);
     void unload_module();

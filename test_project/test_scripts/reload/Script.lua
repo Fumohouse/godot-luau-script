@@ -1,4 +1,6 @@
-local Script = gdclass(nil, "Base.lua")
+local Base = require("Base")
+
+local Script = gdclass(nil, Base)
 
 --@1
 

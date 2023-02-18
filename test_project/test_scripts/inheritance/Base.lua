@@ -1,4 +1,4 @@
-local Base = gdclass("Base", "Object")
+local Base = gdclass("Base", Object)
 
 function Base._Init(obj, tbl)
     tbl.property1 = "hey"

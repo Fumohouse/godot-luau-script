@@ -1,4 +1,4 @@
-local TestBaseScript = gdclass(nil, "Node3D")
+local TestBaseScript = gdclass(nil, Node3D)
 
 function TestBaseScript:TestMethod()
 	print("TestBaseScript: TestMethod")

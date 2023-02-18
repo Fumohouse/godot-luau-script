@@ -627,26 +627,23 @@ TEST_CASE("luau script: placeholders") {
             }
 
             SECTION("base script") {
-                String path = script->get_path();
-
                 SECTION("cyclic inheritance") {
-                    String new_src_base = script_base->_get_source_code().replace("\"Node\"", "\"Script.lua\"");
+                    String new_src_base = script_base->_get_source_code().replace("Node", "require('Script')");
                     script_base->_set_source_code(new_src_base);
                     script->_update_exports();
 
-                    REQUIRE(!script->_is_valid());
-                    REQUIRE(!script_base->_is_valid());
+                    REQUIRE(script_base->_is_placeholder_fallback_enabled());
                 }
 
                 SECTION("base script updating") {
-                    REQUIRE(script_base->has_dependent(path));
+                    REQUIRE(script->has_dependency(script_base));
 
-                    String new_src = script->_get_source_code().replace("\"Base.lua\"", "\"Base2.lua\"");
+                    String new_src = script->_get_source_code().replace("Base", "Base2");
                     script->_set_source_code(new_src);
                     script->_update_exports();
 
-                    REQUIRE(!script_base->has_dependent(path));
-                    REQUIRE(script_base2->has_dependent(path));
+                    REQUIRE(!script->has_dependency(script_base));
+                    REQUIRE(script->has_dependency(script_base2));
 
                     Variant val;
 

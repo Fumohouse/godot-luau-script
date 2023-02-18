@@ -71,7 +71,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
     lua_State *T = lua_newthread(L);
 
     SECTION("explicit extends") {
-        EVAL_THEN(T, "return gdclass('TestClass', 'Node3D')", {
+        EVAL_THEN(T, "return gdclass('TestClass', Node3D)", {
             GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
             REQUIRE(def->name == "TestClass");
             REQUIRE(def->extends == "Node3D");
@@ -88,7 +88,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
 
     SECTION("get from definition table") {
         EVAL_THEN(T, R"ASDF(
-            local TestClass = gdclass(nil, "Node")
+            local TestClass = gdclass(nil, Node)
             function TestClass:TestMethod() end
 
             return TestClass
@@ -150,7 +150,7 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
         expected_property.type = GDEXTENSION_VARIANT_TYPE_FLOAT;
 
         EVAL_THEN(T, R"ASDF(
-            local TestClass = gdclass("TestClass", "Node3D")
+            local TestClass = gdclass("TestClass", Node3D)
                 :Tool(true)
 
             TestClass:RegisterMethod("TestMethod")

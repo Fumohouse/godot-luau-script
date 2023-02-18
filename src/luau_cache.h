@@ -19,7 +19,7 @@ public:
     static LuauCache *get_singleton() { return singleton; }
 
     bool is_loading(const String &p_path) const;
-    Ref<LuauScript> get_script(const String &p_path, Error &r_error, bool p_ignore_cache = false, const String &p_dependent = "");
+    Ref<LuauScript> get_script(const String &p_path, Error &r_error, bool p_ignore_cache = false, Ref<LuauScript> p_dependent = nullptr);
 
     LuauCache();
     ~LuauCache();

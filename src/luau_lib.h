@@ -77,6 +77,7 @@ struct GDClassDefinition {
 
     String name;
     String extends = "RefCounted";
+    LuauScript *base_script = nullptr;
 
     String icon_path;
 

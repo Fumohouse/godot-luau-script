@@ -1,4 +1,6 @@
-local Script = gdclass("Script", "Base.lua")
+local Base = require("Base")
+
+local Script = gdclass("Script", Base)
 
 function Script:GetProperty2()
     return "hihi"

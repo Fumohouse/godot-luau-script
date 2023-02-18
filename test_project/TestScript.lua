@@ -1,7 +1,7 @@
 local TestBaseScript = require("TestBaseScript")
 local TestModule = require("TestModule.mod")
 
-local TestClass = gdclass(nil, "TestBaseScript.lua")
+local TestClass = gdclass(nil, TestBaseScript)
 	:Tool(true) -- For custom properties in editor
 	:Permissions(Enum.Permissions.INTERNAL)
 

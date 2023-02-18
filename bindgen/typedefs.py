@@ -229,7 +229,7 @@ function __iter(self): any\
             src.append("")
 
     # Main declaration
-    src.append(f"declare class {name}_GLOBAL")
+    src.append(f"declare class {name}_GLOBAL extends ClassGlobal")
 
     # Enums
     for enum_name, type_name, internal_type_name in class_enum_types:
@@ -348,7 +348,7 @@ function Free(self)\
 
             src.append("")
 
-    src.append(f"declare class {name}_GLOBAL")
+    src.append(f"declare class {name}_GLOBAL extends ClassGlobal")
 
     # Enums
     for enum_name, type_name, internal_type_name in class_enum_types:
@@ -458,6 +458,8 @@ def generate_typedefs(defs_dir, api, class_settings, lib_types):
 ---------------------
 -- BUILTIN CLASSES --
 ---------------------
+
+declare class ClassGlobal end
 """)
 
     builtin_classes = api["builtin_classes"]

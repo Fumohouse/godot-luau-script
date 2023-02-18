@@ -1,6 +1,6 @@
 --!strict
 local MyClassImpl = {}
-local MyClass = gdclass("MyClass", "Resource")
+local MyClass = gdclass("MyClass", Resource)
     :RegisterImpl(MyClassImpl)
 
 -- These items registered on the impl will be accessible by indexing `MyClass`,

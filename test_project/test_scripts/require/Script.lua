@@ -1,7 +1,7 @@
 local Base = require("Base")
 --@1
 
-local Script = gdclass(nil, "Base.lua")
+local Script = gdclass(nil, Base)
 
 Script:RegisterProperty("baseMsg", Enum.VariantType.STRING)
     :Default(Base.TestFunc())

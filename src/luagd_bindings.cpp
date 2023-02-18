@@ -251,10 +251,10 @@ static void luaGD_newlib(lua_State *L,
         int class_idx = -1) {
     luaL_newmetatable(L, mt_name); // instance metatable
     lua_newtable(L); // global table
-    lua_createtable(L, 0, 2); // global metatable - assume 2 fields: __fortype, __index
+    lua_createtable(L, 0, 2); // global metatable - assume 2 fields: __classglobal, __index
 
-    lua_pushstring(L, mt_name);
-    lua_setfield(L, -2, "__fortype");
+    lua_pushstring(L, global_name);
+    lua_setfield(L, -2, MT_CLASS_GLOBAL);
 
     // global index
     lua_pushstring(L, global_name);

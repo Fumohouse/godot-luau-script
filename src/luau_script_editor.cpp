@@ -37,29 +37,19 @@ void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
 }
 
 void LuauScript::_update_exports() {
+    dependencies.clear();
+
     if (_is_module)
         return;
 
-    bool cyclic_error = false;
-    update_exports_internal(&cyclic_error, nullptr);
+    update_exports_internal(nullptr);
 
-    if (cyclic_error)
-        return;
+    // Update old dependent scripts.
+    List<Ref<LuauScript>> scripts = LuauLanguage::get_singleton()->get_scripts();
 
-    // Update inheriting scripts
-    HashSet<String> copy = dependents; // Gets modified by _update_exports
-
-    for (const String &E : copy) {
-        Error err;
-        Ref<LuauScript> scr = LuauCache::get_singleton()->get_script(E, err);
-
-        // Most likely means cyclic inheritance.
-        // Skip silently as this method is called several times at once, and an error (or several) for cyclic dependency
-        // should already have been printed.
-        if (scr->has_dependent(get_path()))
-            continue;
-
-        scr->_update_exports();
+    for (Ref<LuauScript> &scr : scripts) {
+        if (scr->has_dependency(this))
+            scr->_update_exports();
     }
 }
 
@@ -74,7 +64,7 @@ void LuauScript::update_exports_values(List<GDProperty> &properties, HashMap<Str
     }
 }
 
-bool LuauScript::update_exports_internal(bool *r_err, PlaceHolderScriptInstance *p_instance_to_update) {
+bool LuauScript::update_exports_internal(PlaceHolderScriptInstance *p_instance_to_update) {
     // Step 1: Reload base class, properties, and signals from source
     bool changed = false;
 
@@ -90,6 +80,8 @@ bool LuauScript::update_exports_internal(bool *r_err, PlaceHolderScriptInstance 
         if (err == OK) {
             // Update base class
             definition.extends = def.extends;
+            definition.base_script = def.base_script;
+            base = Ref<LuauScript>(definition.base_script);
 
             // Update properties, signals
             definition.signals = def.signals;
@@ -104,23 +96,9 @@ bool LuauScript::update_exports_internal(bool *r_err, PlaceHolderScriptInstance 
 
     placeholder_fallback_enabled = false;
 
-    // Step 2: Update base and base scripts
+    // Step 2: Update base scripts
     // This always happens (i.e. not only when source changed) to be certain that any cyclic inheritance is caught.
-    Error err;
-    update_base_script(err, true);
-
-    if (err == ERR_CYCLIC_LINK) {
-        if (r_err != nullptr)
-            *r_err = true;
-
-        return false;
-    }
-
-    if (base.is_valid() && base->update_exports_internal(r_err, nullptr)) {
-        if (r_err != nullptr && *r_err) {
-            return false;
-        }
-
+    if (base.is_valid() && base->update_exports_internal(nullptr)) {
         changed = true;
     }
 
@@ -174,7 +152,7 @@ struct LuauScriptDepSort {
         const LuauScript *s = b.ptr();
 
         while (s != nullptr) {
-            if (a->has_dependent(s->get_path()))
+            if (s->has_dependency(a))
                 return true;
 
             s = s->get_base().ptr();
@@ -247,7 +225,7 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
         bool dependency_changed = false;
 
         for (const KeyValue<Ref<LuauScript>, ScriptInstanceState> &pair : to_reload) {
-            if (pair.key->has_dependent(script->get_path())) {
+            if (script->has_dependency(pair.key)) {
                 dependency_changed = true;
                 break;
             }
@@ -674,7 +652,7 @@ PlaceHolderScriptInstance::PlaceHolderScriptInstance(Ref<LuauScript> p_script, O
         owner(p_owner) {
     // Placeholder instance creation takes place in a const method.
     script->placeholders.insert(p_owner->get_instance_id(), this);
-    script->update_exports_internal(nullptr, this);
+    script->update_exports_internal(this);
 }
 
 PlaceHolderScriptInstance::~PlaceHolderScriptInstance() {

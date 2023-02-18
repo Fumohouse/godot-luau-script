@@ -179,7 +179,29 @@ static GDRpc luascript_read_rpc(lua_State *L, int idx) {
 static int luascript_gdclass(lua_State *L) {
     GDClassDefinition def;
     def.name = luaL_optstring(L, 1, "");
-    def.extends = luaL_optstring(L, 2, "RefCounted");
+
+    if (lua_gettop(L) > 1) {
+        if (lua_istable(L, 2)) {
+            lua_getmetatable(L, 2);
+
+            lua_getfield(L, -1, MT_CLASS_GLOBAL);
+            if (lua_type(L, -1) != LUA_TSTRING)
+                luaL_error(L, "table argument to gdclass must be a class global (i.e. containing the " MT_CLASS_GLOBAL " field)");
+
+            def.extends = lua_tostring(L, -1);
+
+            lua_pop(L, 2); // value, metatable
+        } else if (LuaStackOp<GDClassDefinition>::is(L, 2)) {
+            const GDClassDefinition *other_def = LuaStackOp<GDClassDefinition>::get_ptr(L, 2);
+            if (other_def->script == nullptr)
+                luaL_error(L, "could not determine script path from class definition");
+
+            def.extends = "";
+            def.base_script = other_def->script;
+        } else {
+            luaL_typeerrorL(L, 2, "GDClassDefinition or ClassGlobal");
+        }
+    }
 
     LuaStackOp<GDClassDefinition>::push(L, def);
     return 1;
@@ -697,15 +719,15 @@ static int luascript_require(lua_State *L) {
     if (udata->script->get_path() == full_path)
         luaL_error(L, "cannot require current script");
 
+    // Load and write dependency.
+    Error err;
+    Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err, false, udata->script);
+
     if (LuauCache::get_singleton()->is_loading(full_path)) {
         luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
                 udata->script->get_path().utf8().get_data(),
                 full_path_utf8.get_data());
     }
-
-    // Load and write dependency.
-    Error err;
-    Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err, false, udata->script->get_path());
 
     // Return from cache.
     lua_getfield(L, -1, full_path_utf8.get_data());
