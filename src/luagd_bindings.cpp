@@ -1290,14 +1290,16 @@ static int luaGD_class_newindex(lua_State *L) {
                 luaL_error(L, "property '%s' is read-only", key);
 
             LuauScriptInstance::PropertySetGetError err;
-            Variant val = LuaStackOp<Variant>::get(L, 3);
-            bool is_valid = inst->set(key, val, &err);
+            LuauVariant val;
+            val.lua_check(L, 3, prop->property.type);
+
+            bool is_valid = inst->set(key, val.to_variant(), &err);
 
             if (is_valid)
                 return 0;
             else if (err == LuauScriptInstance::PROP_WRONG_TYPE)
                 luaGD_valueerror(L, key,
-                        Variant::get_type_name(val.get_type()).utf8().get_data(),
+                        luaL_typename(L, 3),
                         Variant::get_type_name((Variant::Type)prop->property.type).utf8().get_data());
             else if (err == LuauScriptInstance::PROP_SET_FAILED)
                 luaL_error(L, "failed to set property '%s'; see previous errors for more information", key);
