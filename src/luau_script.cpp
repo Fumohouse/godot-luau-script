@@ -20,6 +20,7 @@
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
+#include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/pair.hpp>
@@ -37,6 +38,7 @@
 
 #include "gd_luau.h"
 #include "luagd.h"
+#include "luagd_permissions.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luau_analysis.h"
@@ -1537,12 +1539,24 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
     L = GDLuau::get_singleton()->get_vm(p_vm_type);
 
-    if (p_script->get_definition().permissions != PERMISSION_BASE) {
-        UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->get_definition().permissions);
-        CRASH_COND_MSG(!LuauLanguage::get_singleton()->is_core_script(p_script->get_path()), "!!! non-core script declared permissions !!!");
+    Vector<LuauScript *> base_scripts;
+    LuauScript *s = p_script.ptr();
+
+    while (s != nullptr) {
+        base_scripts.push_back(s);
+        permissions = permissions | s->get_definition().permissions;
+
+        s = s->base.ptr();
     }
 
-    T = luaGD_newthread(L, p_script->get_definition().permissions);
+    base_scripts.reverse(); // To initialize base-first
+
+    if (permissions != PERMISSION_BASE) {
+        CRASH_COND_MSG(!LuauLanguage::get_singleton()->is_core_script(p_script->get_path()), "!!! non-core script declared permissions !!!");
+        UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->get_definition().permissions);
+    }
+
+    T = luaGD_newthread(L, permissions);
     luaL_sandboxthread(T);
 
     GDThreadData *udata = luaGD_getthreaddata(T);
@@ -1554,16 +1568,6 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     lua_newtable(T);
     table_ref = lua_ref(T, -1);
     lua_pop(T, 1); // table
-
-    Vector<LuauScript *> base_scripts;
-    LuauScript *s = p_script.ptr();
-
-    while (s != nullptr) {
-        base_scripts.push_back(s);
-        s = s->base.ptr();
-    }
-
-    base_scripts.reverse();
 
     for (LuauScript *&scr : base_scripts) {
         // Initialize default values

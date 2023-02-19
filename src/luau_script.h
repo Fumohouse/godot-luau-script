@@ -12,6 +12,7 @@
 #include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/core/error_macros.hpp>
+#include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/list.hpp>
@@ -25,6 +26,7 @@
 #include <string>
 
 #include "gd_luau.h"
+#include "luagd_permissions.h"
 #include "luau_analysis.h"
 #include "luau_lib.h"
 #include "task_scheduler.h"
@@ -241,6 +243,7 @@ private:
     Ref<LuauScript> script;
     Object *owner;
     GDLuau::VMType vm_type;
+    BitField<ThreadPermissions> permissions = PERMISSION_BASE;
 
     int table_ref;
     int thread_ref;
@@ -283,6 +286,8 @@ public:
     const GDClassProperty *get_property(const StringName &p_name) const;
     const GDMethod *get_signal(const StringName &p_name) const;
     const Variant *get_constant(const StringName &p_name) const;
+
+    BitField<ThreadPermissions> get_permissions() const { return permissions; }
 
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();

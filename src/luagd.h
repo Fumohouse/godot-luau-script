@@ -18,8 +18,8 @@ struct GDThreadData {
     Ref<LuauScript> script;
 };
 
-lua_State *luaGD_newstate(GDLuau::VMType vm_type, ThreadPermissions base_permissions);
-lua_State *luaGD_newthread(lua_State *L, ThreadPermissions permissions);
+lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> base_permissions);
+lua_State *luaGD_newthread(lua_State *L, BitField<ThreadPermissions> permissions);
 void luaGD_close(lua_State *L);
 
 GDThreadData *luaGD_getthreaddata(lua_State *L);

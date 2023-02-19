@@ -4,10 +4,11 @@
 #include <lualib.h>
 #include <cstdlib>
 #include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/core/type_info.hpp>
 
 #include "gd_luau.h"
-#include "luagd_permissions.h"
 #include "luagd_bindings.h"
+#include "luagd_permissions.h"
 
 using namespace godot;
 
@@ -50,7 +51,7 @@ static void luaGD_userthread(lua_State *LP, lua_State *L) {
     }
 }
 
-lua_State *luaGD_newstate(GDLuau::VMType vm_type, ThreadPermissions base_permissions) {
+lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> base_permissions) {
     lua_State *L = lua_newstate(luaGD_alloc, nullptr);
 
     luaL_openlibs(L);
@@ -68,7 +69,7 @@ lua_State *luaGD_newstate(GDLuau::VMType vm_type, ThreadPermissions base_permiss
     return L;
 }
 
-lua_State *luaGD_newthread(lua_State *L, ThreadPermissions permissions) {
+lua_State *luaGD_newthread(lua_State *L, BitField<ThreadPermissions> permissions) {
     lua_State *T = lua_newthread(L);
 
     GDThreadData *udata = luaGD_getthreaddata(T);

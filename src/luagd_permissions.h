@@ -1,6 +1,10 @@
 #pragma once
 
+#include <godot_cpp/core/method_ptrcall.hpp> // TODO: unused. required to prevent compile error when specializing PtrToArg.
+#include <godot_cpp/core/type_info.hpp>
 #include <lua.h>
+
+using namespace godot;
 
 class ApiEnum;
 
@@ -15,5 +19,5 @@ enum ThreadPermissions {
     PERMISSION_HTTP = 1 << 3
 };
 
-void luaGD_checkpermissions(lua_State *L, const char *name, ThreadPermissions permissions);
+void luaGD_checkpermissions(lua_State *L, const char *name, BitField<ThreadPermissions> permissions);
 const ApiEnum &get_permissions_enum();
