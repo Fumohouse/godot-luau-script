@@ -1440,9 +1440,11 @@ void luaGD_openclasses(lua_State *L) {
         lua_setfield(L, -4, "__index");
 
         // Singleton
-        lua_pushlightuserdata(L, &g_class);
-        lua_pushcclosure(L, luaGD_class_singleton_getter, g_class.singleton_getter_debug_name, 1);
-        lua_setfield(L, -3, "GetSingleton");
+        if (!g_class.singleton_name.is_empty()) {
+            lua_pushlightuserdata(L, &g_class);
+            lua_pushcclosure(L, luaGD_class_singleton_getter, g_class.singleton_getter_debug_name, 1);
+            lua_setfield(L, -3, "GetSingleton");
+        }
 
         // __eq
         lua_pushcfunction(L, luaGD_class_eq, "Godot.Object.Object.__eq");
