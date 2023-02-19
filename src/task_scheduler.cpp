@@ -63,6 +63,7 @@ void TaskScheduler::frame(double delta) {
         pair.second->update(delta);
 
         lua_State *L = pair.first;
+        LUAU_LOCK(L);
 
         if (pair.second->is_complete()) {
             TaskList::Element *to_remove = task;

@@ -364,6 +364,13 @@ declare function gdclass(name: string?, extends: GDClassDefinition | ClassGlobal
 declare function wait(duration: number): number
 
 --[[--
+    Yields the current thread and waits for the signal to be emitted before resuming.
+    @param signal The signal.
+    @return Arguments passed to the signal when it was emitted.
+]]
+declare function wait_signal<T...>(signal: Signal): T...
+
+--[[--
     Gets a global constant (e.g. AutoLoad) which was defined in the Godot editor.
     @param name The name of the global constant.
 ]]

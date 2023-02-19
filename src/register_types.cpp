@@ -13,6 +13,7 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "luagd_variant.h"
+#include "luau_lib.h"
 #include "luau_script.h"
 
 #ifdef TESTS_ENABLED
@@ -59,6 +60,8 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<ResourceFormatSaverLuauScript>();
     resource_saver_luau.instantiate();
     ResourceSaver::get_singleton()->add_resource_format_saver(resource_saver_luau);
+
+    ClassDB::register_class<SignalWaiter>();
 
 #ifdef TESTS_ENABLED
     if (!OS::get_singleton()->get_cmdline_args().has("--luau-tests"))

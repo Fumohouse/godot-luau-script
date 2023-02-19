@@ -20,6 +20,7 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "gd_luau.h"
+#include "luagd.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
 
@@ -163,6 +164,7 @@ void LuauScript::unload_module() {
 
     for (int i = 0; i < GDLuau::VM_MAX; i++) {
         lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
+        LUAU_LOCK(L);
 
         luaL_findtable(L, LUA_REGISTRYINDEX, LUASCRIPT_MODULE_TABLE, 1);
         lua_pushnil(L);
@@ -176,7 +178,7 @@ List<Ref<LuauScript>> LuauLanguage::get_scripts() const {
     List<Ref<LuauScript>> scripts;
 
     {
-        MutexLock lock(this->lock);
+        MutexLock lock(*this->lock.ptr());
 
         const SelfList<LuauScript> *elem = script_list.first();
 

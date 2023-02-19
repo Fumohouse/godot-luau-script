@@ -40,7 +40,6 @@
 #include "luagd.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
-#include "luagd_utils.h"
 #include "luau_analysis.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
@@ -183,6 +182,8 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
     _is_loading = true;
 
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
+    LUAU_LOCK(L);
+
     lua_State *T = lua_newthread(L);
     luaL_sandboxthread(T);
 
@@ -220,8 +221,9 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
 void LuauScript::unref_definition(GDLuau::VMType vm) {
     if (vm_defs_valid[vm] && vm_defs[vm].table_ref != -1) {
         lua_State *L = GDLuau::get_singleton()->get_vm(vm);
-        lua_unref(L, vm_defs[vm].table_ref);
+        LUAU_LOCK(L);
 
+        lua_unref(L, vm_defs[vm].table_ref);
         vm_defs_valid[vm] = false;
     }
 }
@@ -231,7 +233,7 @@ Error LuauScript::_reload(bool p_keep_state) {
         return OK;
 
     {
-        MutexLock lock(LuauLanguage::singleton->lock);
+        MutexLock lock(*LuauLanguage::singleton->lock.ptr());
         ERR_FAIL_COND_V(!p_keep_state && instances.size() > 0, ERR_ALREADY_IN_USE);
     }
 
@@ -253,6 +255,7 @@ Error LuauScript::_reload(bool p_keep_state) {
 
     // Build method cache.
     lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
+    LUAU_LOCK(L);
     methods.clear();
 
     if (def.table_ref != -1) {
@@ -480,18 +483,19 @@ void *LuauScript::_instance_create(Object *p_for_object) const {
 }
 
 bool LuauScript::_instance_has(Object *p_object) const {
-    MutexLock lock(LuauLanguage::singleton->lock);
+    MutexLock lock(*LuauLanguage::singleton->lock.ptr());
     return instances.has(p_object->get_instance_id());
 }
 
 LuauScriptInstance *LuauScript::instance_get(Object *p_object) const {
-    MutexLock lock(LuauLanguage::singleton->lock);
+    MutexLock lock(*LuauLanguage::singleton->lock.ptr());
     return instances.get(p_object->get_instance_id());
 }
 
 void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
     lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
     ERR_FAIL_COND_MSG(lua_mainthread(L) != lua_mainthread(T), "cannot push definition table to a thread from a different VM than the one being queried");
+    LUAU_LOCK(L);
 
     int table_ref = vm_defs[p_vm_type].table_ref;
     if (table_ref == -1) {
@@ -554,7 +558,7 @@ Error LuauScript::load_module(lua_State *L) {
 LuauScript::LuauScript() :
         script_list(this) {
     {
-        MutexLock lock(LuauLanguage::get_singleton()->lock);
+        MutexLock lock(*LuauLanguage::get_singleton()->lock.ptr());
         LuauLanguage::get_singleton()->script_list.add(&script_list);
     }
 }
@@ -871,16 +875,15 @@ static GDExtensionScriptInstanceInfo init_script_instance_info() {
 const GDExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
 int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret) {
+    LUAU_LOCK(ET);
+
     const LuauScript *s = script.ptr();
 
     while (s != nullptr) {
         LuaStackOp<String>::push(ET, p_method);
         s->def_table_get(vm_type, ET);
 
-        if (!lua_isnil(ET, -1)) {
-            if (lua_type(ET, -1) != LUA_TFUNCTION)
-                luaGD_valueerror(ET, String(p_method).utf8().get_data(), luaL_typename(ET, -1), "function");
-
+        if (lua_isfunction(ET, -1)) {
             lua_insert(ET, -nargs - 1);
 
             LuaStackOp<Object *>::push(ET, owner);
@@ -964,6 +967,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             }
 
             // Set
+            LUAU_LOCK(T);
             lua_State *ET = lua_newthread(T);
             int status;
 
@@ -1062,6 +1066,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
             }
 
             // Get
+            LUAU_LOCK(T);
             lua_State *ET = lua_newthread(T);
             int status;
 
@@ -1472,9 +1477,10 @@ void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out) {
 }
 
 bool LuauScriptInstance::table_set(lua_State *T) const {
-    if (lua_mainthread(T) != lua_mainthread(L))
+    if (lua_mainthread(T) != lua_mainthread(this->T))
         return false;
 
+    LUAU_LOCK(T);
     lua_getref(T, table_ref);
     lua_insert(T, -3);
     lua_settable(T, -3);
@@ -1484,9 +1490,10 @@ bool LuauScriptInstance::table_set(lua_State *T) const {
 }
 
 bool LuauScriptInstance::table_get(lua_State *T) const {
-    if (lua_mainthread(T) != lua_mainthread(L))
+    if (lua_mainthread(T) != lua_mainthread(this->T))
         return false;
 
+    LUAU_LOCK(T);
     lua_getref(T, table_ref);
     lua_insert(T, -2);
     lua_gettable(T, -2);
@@ -1533,11 +1540,9 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         script(p_script), owner(p_owner), vm_type(p_vm_type) {
     // this usually occurs in _instance_create, but that is marked const for ScriptExtension
     {
-        MutexLock lock(LuauLanguage::singleton->lock);
+        MutexLock lock(*LuauLanguage::singleton->lock.ptr());
         p_script->instances.insert(p_owner->get_instance_id(), this);
     }
-
-    L = GDLuau::get_singleton()->get_vm(p_vm_type);
 
     Vector<LuauScript *> base_scripts;
     LuauScript *s = p_script.ptr();
@@ -1556,6 +1561,8 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->get_definition().permissions);
     }
 
+    lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
+    LUAU_LOCK(L);
     T = luaGD_newthread(L, permissions);
     luaL_sandboxthread(T);
 
@@ -1585,10 +1592,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
             LuaStackOp<String>::push(T, "_Init");
             scr->def_table_get(vm_type, T);
 
-            if (!lua_isnil(T, -1)) {
-                if (lua_type(T, -1) != LUA_TFUNCTION)
-                    luaGD_valueerror(T, "_Init", luaL_typename(T, -1), "function");
-
+            if (lua_isfunction(T, -1)) {
                 LuaStackOp<Object *>::push(T, p_owner);
                 lua_getref(T, table_ref);
 
@@ -1611,9 +1615,12 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 
 LuauScriptInstance::~LuauScriptInstance() {
     if (script.is_valid() && owner != nullptr) {
-        MutexLock lock(LuauLanguage::singleton->lock);
+        MutexLock lock(*LuauLanguage::singleton->lock.ptr());
         script->instances.erase(owner->get_instance_id());
     }
+
+    lua_State *L = GDLuau::get_singleton()->get_vm(vm_type);
+    LUAU_LOCK(L);
 
     lua_unref(L, table_ref);
     table_ref = 0;
@@ -1630,6 +1637,7 @@ LuauLanguage *LuauLanguage::singleton = nullptr;
 
 LuauLanguage::LuauLanguage() {
     singleton = this;
+    lock.instantiate();
 }
 
 LuauLanguage::~LuauLanguage() {

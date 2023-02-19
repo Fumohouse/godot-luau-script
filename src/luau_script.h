@@ -238,8 +238,6 @@ public:
 
 class LuauScriptInstance : public ScriptInstance {
 private:
-    lua_State *L;
-
     Ref<LuauScript> script;
     Object *owner;
     GDLuau::VMType vm_type;
@@ -339,7 +337,7 @@ class LuauLanguage : public ScriptLanguageExtension {
 
 private:
     // TODO: idk why these are needed, but all the other implementations have them
-    Mutex lock;
+    Ref<Mutex> lock;
 
     static LuauLanguage *singleton;
     GDLuau *luau = nullptr;

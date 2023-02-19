@@ -34,6 +34,7 @@ static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
         udata->vm_type = parent_udata->vm_type;
         udata->permissions = parent_udata->permissions;
         udata->script = parent_udata->script;
+        udata->lock = parent_udata->lock;
     }
 
     return udata;
@@ -62,6 +63,7 @@ lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> ba
     GDThreadData *udata = luaGD_initthreaddata(nullptr, L);
     udata->vm_type = vm_type;
     udata->permissions = base_permissions;
+    udata->lock.instantiate();
 
     lua_Callbacks *callbacks = lua_callbacks(L);
     callbacks->userthread = luaGD_userthread;

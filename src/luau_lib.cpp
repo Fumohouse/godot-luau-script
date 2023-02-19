@@ -9,15 +9,19 @@
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
+#include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/char_string.hpp>
+#include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd.h"
 #include "luagd_bindings.h"
+#include "luagd_bindings_stack.gen.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
 #include "luagd_variant.h"
@@ -757,6 +761,55 @@ static int luascript_wait(lua_State *L) {
     return lua_yield(L, 0);
 }
 
+void SignalWaiter::_bind_methods() {
+    ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "on_signal", &SignalWaiter::on_signal);
+}
+
+void SignalWaiter::initialize(lua_State *L, Signal p_signal) {
+    this->L = L;
+    signal = p_signal;
+
+    signal.connect(callable);
+
+    lua_pushthread(L);
+    thread_ref = lua_ref(L, -1);
+    lua_pop(L, 1); // thread
+}
+
+void SignalWaiter::on_signal(const Variant **p_args, GDExtensionInt p_argc, GDExtensionCallError &r_err) {
+    {
+        LUAU_LOCK(L);
+
+        for (int i = 0; i < p_argc; i++) {
+            LuaStackOp<Variant>::push(L, *p_args[i]);
+        }
+
+        int status = lua_resume(L, nullptr, p_argc);
+
+        if (status != LUA_OK && status != LUA_YIELD) {
+            GDThreadData *udata = luaGD_getthreaddata(L);
+            Ref<LuauScript> script = udata->script;
+            LUAU_ERR("SignalWaiter::on_signnal", script, 1, LuaStackOp<String>::get(L, -1));
+
+            lua_pop(L, 1); // error
+        }
+
+        lua_unref(L, thread_ref);
+    }
+
+    signal.disconnect(callable);
+    memdelete(this);
+}
+
+static int luascript_wait_signal(lua_State *L) {
+    Signal signal = LuaStackOp<Signal>::check(L, 1);
+
+    SignalWaiter *waiter = memnew(SignalWaiter);
+    waiter->initialize(L, signal);
+
+    return lua_yield(L, 0);
+}
+
 static int luascript_gdglobal(lua_State *L) {
     const char *name = luaL_checkstring(L, 1);
 
@@ -774,7 +827,9 @@ static const luaL_Reg global_funcs[] = {
     { "gdclass", luascript_gdclass },
 
     { "require", LuauScript::luascript_require },
+
     { "wait", luascript_wait },
+    { "wait_signal", luascript_wait_signal },
 
     { "gdglobal", luascript_gdglobal },
 
