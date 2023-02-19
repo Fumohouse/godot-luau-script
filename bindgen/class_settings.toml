@@ -20796,15 +20796,15 @@ permissions = "INHERIT" #
 
 [Node.methods.GetTree]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc2: Don't expect null unless not in tree
 
 [Node.methods.GetViewport]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Don't expect null unless not in tree
+ret_nullable = false #* 4.0-rc1: Same as GetTree
 
 [Node.methods.GetWindow]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Same as GetViewport
+ret_nullable = false #* 4.0-rc1: Same as GetTree
 
 [Node.methods.HasNode]
 permissions = "INHERIT" #
@@ -30213,7 +30213,7 @@ permissions = "INHERIT" #
 
 [SceneTree.methods.GetRoot]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc2: Essentially not possible
 
 [SceneTree.methods.HasGroup]
 permissions = "INHERIT" #
