@@ -10,8 +10,8 @@
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
-#include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -470,29 +470,25 @@ bool PlaceHolderScriptInstance::get(const StringName &p_name, Variant &r_ret, Pr
 }
 
 GDExtensionPropertyInfo *PlaceHolderScriptInstance::get_property_list(uint32_t *r_count) {
-    Vector<GDExtensionPropertyInfo> props;
+    LocalVector<GDExtensionPropertyInfo> props;
 
     int size = properties.size();
     props.resize(size);
-
-    GDExtensionPropertyInfo *props_ptr = props.ptrw();
 
     if (script->_is_placeholder_fallback_enabled()) {
         for (int i = 0; i < size; i++) {
             GDExtensionPropertyInfo dst;
             copy_prop(properties[i], dst);
 
-            props_ptr[i] = dst;
+            props[i] = dst;
         }
     } else {
         for (int i = 0; i < size; i++) {
-            GDExtensionPropertyInfo pinfo;
+            GDExtensionPropertyInfo &pinfo = props[i];
             copy_prop(properties[i], pinfo);
 
             if (!values.has(properties[i].name))
                 pinfo.usage |= PROPERTY_USAGE_SCRIPT_DEFAULT_VALUE;
-
-            props_ptr[i] = pinfo; // this is actually wrong in godot source (?)
         }
     }
 

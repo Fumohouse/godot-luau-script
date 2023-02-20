@@ -9,6 +9,7 @@
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/godot.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
@@ -126,7 +127,7 @@ template <>
 struct has_default_value_trait<ApiArgumentNoDefault> : std::false_type {};
 
 template <typename TMethod, typename TArg>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::true_type const &) {
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, LocalVector<const void *> *pargs, const TMethod &method, std::true_type const &) {
     for (int i = nargs; i < method.arguments.size(); i++) {
         const TArg &arg = method.arguments[i];
 
@@ -138,9 +139,9 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
                     ERR_PRINT("could not set non-null object argument default value");
                 }
 
-                pargs->set(i, nullptr);
+                pargs->ptr()[i] = nullptr;
             } else {
-                pargs->set(i, arg.default_value.get_opaque_pointer());
+                pargs->ptr()[i] = arg.default_value.get_opaque_pointer();
             }
         } else {
             LuauVariant dummy;
@@ -151,7 +152,7 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
 
 template <>
 _FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
-        lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const GDMethod &method, std::true_type const &) {
+        lua_State *L, int arg_offset, int nargs, LocalVector<const void *> *pargs, const GDMethod &method, std::true_type const &) {
     int args_allowed = method.arguments.size();
     int args_default = method.default_arguments.size();
     int args_required = args_allowed - args_default;
@@ -160,7 +161,7 @@ _FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
         const GDProperty &arg = method.arguments[i];
 
         if (i >= args_required) {
-            pargs->set(i, &method.default_arguments[i - args_required]);
+            pargs->ptr()[i] = &method.default_arguments[i - args_required];
         } else {
             LuauVariant dummy;
             get_argument(L, i + 1 + arg_offset, arg, dummy);
@@ -169,7 +170,7 @@ _FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
 }
 
 template <typename TMethod, typename>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, Vector<const void *> *pargs, const TMethod &method, std::false_type const &) {
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, LocalVector<const void *> *pargs, const TMethod &method, std::false_type const &) {
     LuauVariant dummy;
     get_argument(L, nargs + 1 + arg_offset, method.arguments[nargs], dummy);
 }
@@ -178,9 +179,9 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
 template <typename T, typename TArg>
 static int get_arguments(lua_State *L,
         const char *method_name,
-        Vector<Variant> *varargs,
-        Vector<LuauVariant> *args,
-        Vector<const void *> *pargs,
+        LocalVector<Variant> *varargs,
+        LocalVector<LuauVariant> *args,
+        LocalVector<const void *> *pargs,
         const T &method) {
     // arg 1 is self for instance methods
     int arg_offset = is_method_static(method) ? 0 : 1;
@@ -199,12 +200,12 @@ static int get_arguments(lua_State *L,
         for (int i = 0; i < nargs; i++) {
             if (i < method.arguments.size()) {
                 get_argument(L, i + 1 + arg_offset, method.arguments[i], arg);
-                varargs->set(i, arg.to_variant());
+                varargs->ptr()[i] = arg.to_variant();
             } else {
-                varargs->set(i, LuaStackOp<Variant>::check(L, i + 1 + arg_offset));
+                varargs->ptr()[i] = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
             }
 
-            pargs->set(i, &varargs->operator[](i));
+            pargs->ptr()[i] = &varargs->ptr()[i];
         }
     } else {
         args->resize(nargs);
@@ -212,11 +213,9 @@ static int get_arguments(lua_State *L,
         if (nargs > method.arguments.size())
             luaL_error(L, "too many arguments to '%s' (expected at most %d)", method_name, method.arguments.size());
 
-        LuauVariant *args_ptr = args->ptrw();
-
         for (int i = 0; i < nargs; i++) {
-            get_argument(L, i + 1 + arg_offset, method.arguments[i], args->ptrw()[i]);
-            pargs->set(i, args_ptr[i].get_opaque_pointer_arg());
+            get_argument(L, i + 1 + arg_offset, method.arguments[i], args->ptr()[i]);
+            pargs->ptr()[i] = args->ptr()[i].get_opaque_pointer_arg();
         }
     }
 
@@ -451,10 +450,10 @@ static int luaGD_builtin_ctor(lua_State *L) {
 
     int nargs = lua_gettop(L);
 
-    Vector<LuauVariant> args;
+    LocalVector<LuauVariant> args;
     args.resize(nargs);
 
-    Vector<const void *> pargs;
+    LocalVector<const void *> pargs;
     pargs.resize(nargs);
 
     for (const ApiVariantConstructor &ctor : builtin_class->constructors) {
@@ -462,8 +461,6 @@ static int luaGD_builtin_ctor(lua_State *L) {
             continue;
 
         bool valid = true;
-
-        LuauVariant *args_ptr = args.ptrw();
 
         for (int i = 0; i < nargs; i++) {
             GDExtensionVariantType type = ctor.arguments[i].type;
@@ -474,11 +471,8 @@ static int luaGD_builtin_ctor(lua_State *L) {
                 break;
             }
 
-            LuauVariant arg;
-            arg.lua_check(L, i + 1, type);
-
-            args.set(i, arg);
-            pargs.set(i, args_ptr[i].get_opaque_pointer_arg());
+            args[i].lua_check(L, i + 1, type);
+            pargs[i] = args[i].get_opaque_pointer_arg();
         }
 
         if (!valid)
@@ -576,9 +570,9 @@ static int luaGD_builtin_index(lua_State *L) {
 }
 
 static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_class, const ApiVariantMethod &method) {
-    Vector<Variant> varargs;
-    Vector<LuauVariant> args;
-    Vector<const void *> pargs;
+    LocalVector<Variant> varargs;
+    LocalVector<LuauVariant> args;
+    LocalVector<const void *> pargs;
 
     get_arguments<ApiVariantMethod, ApiArgument>(L, method.name, &varargs, &args, &pargs, method);
 
@@ -951,9 +945,9 @@ static void handle_object_returned(Object *obj) {
 static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
     luaGD_checkpermissions(L, method.debug_name, get_method_permissions(g_class, method));
 
-    Vector<Variant> varargs;
-    Vector<LuauVariant> args;
-    Vector<const void *> pargs;
+    LocalVector<Variant> varargs;
+    LocalVector<LuauVariant> args;
+    LocalVector<const void *> pargs;
 
     get_arguments<ApiClassMethod, ApiClassArgument>(L, method.name, &varargs, &args, &pargs, method);
 
@@ -1117,8 +1111,8 @@ static int luaGD_class_namecall(lua_State *L) {
 
             if (const GDMethod *method = inst->get_method(name)) {
                 // Attempt to use instance `call` (cross-vm method call).
-                Vector<Variant> varargs;
-                Vector<const void *> pargs;
+                LocalVector<Variant> varargs;
+                LocalVector<const void *> pargs;
 
                 get_arguments<GDMethod, GDProperty>(L, name, &varargs, nullptr, &pargs, *method);
 
@@ -1461,9 +1455,9 @@ void luaGD_openclasses(lua_State *L) {
 static int luaGD_utility_function(lua_State *L) {
     const ApiUtilityFunction *func = luaGD_lightudataup<ApiUtilityFunction>(L, 1);
 
-    Vector<Variant> varargs;
-    Vector<LuauVariant> args;
-    Vector<const void *> pargs;
+    LocalVector<Variant> varargs;
+    LocalVector<LuauVariant> args;
+    LocalVector<const void *> pargs;
 
     int nargs = get_arguments<ApiUtilityFunction, ApiArgumentNoDefault>(L, func->name, &varargs, &args, &pargs, *func);
 
@@ -1486,20 +1480,20 @@ static int luaGD_print_function(lua_State *L) {
 
     int nargs = lua_gettop(L);
 
-    Vector<Variant> varargs;
-    Vector<const void *> pargs;
+    LocalVector<Variant> varargs;
+    LocalVector<const void *> pargs;
 
     varargs.resize(nargs);
     pargs.resize(nargs);
 
     for (int i = 0; i < nargs; i++) {
         if (LuaStackOp<Variant>::is(L, i + 1)) {
-            varargs.set(i, LuaStackOp<Variant>::get(L, i + 1));
+            varargs[i] = LuaStackOp<Variant>::get(L, i + 1);
         } else {
-            varargs.set(i, luaL_tolstring(L, i + 1, nullptr));
+            varargs[i] = luaL_tolstring(L, i + 1, nullptr);
         }
 
-        pargs.set(i, &varargs[i]);
+        pargs[i] = &varargs[i];
     }
 
     func(nullptr, pargs.ptr(), pargs.size());

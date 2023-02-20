@@ -24,7 +24,7 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/pair.hpp>
-#include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
@@ -747,7 +747,7 @@ void ScriptInstance::free_property_list(const GDExtensionPropertyInfo *p_list) c
 }
 
 GDExtensionMethodInfo *ScriptInstance::get_method_list(uint32_t *r_count) const {
-    Vector<GDExtensionMethodInfo> methods;
+    LocalVector<GDExtensionMethodInfo> methods;
     HashSet<StringName> defined;
 
     const LuauScript *s = get_script().ptr();
@@ -1146,8 +1146,8 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
 #define GET_PROPERTY_LIST_NAME "_GetPropertyList"
 #define GET_PROPERTY_ERR(err) LUAU_ERR("LuauScriptInstance::get_property_list", script, 1, String("failed to get custom property list: ") + err)
 
-    Vector<GDExtensionPropertyInfo> properties;
-    Vector<GDExtensionPropertyInfo> custom_properties;
+    LocalVector<GDExtensionPropertyInfo> properties;
+    LocalVector<GDExtensionPropertyInfo> custom_properties;
     HashSet<StringName> defined;
 
     const LuauScript *s = script.ptr();
@@ -1232,7 +1232,7 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
         s = s->base.ptr();
     }
 
-    properties.reverse();
+    properties.invert();
 
     // Custom properties are last.
     for (int i = custom_properties.size() - 1; i >= 0; i--) {
@@ -1544,7 +1544,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         p_script->instances.insert(p_owner->get_instance_id(), this);
     }
 
-    Vector<LuauScript *> base_scripts;
+    LocalVector<LuauScript *> base_scripts;
     LuauScript *s = p_script.ptr();
 
     while (s != nullptr) {
@@ -1554,7 +1554,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         s = s->base.ptr();
     }
 
-    base_scripts.reverse(); // To initialize base-first
+    base_scripts.invert(); // To initialize base-first
 
     if (permissions != PERMISSION_BASE) {
         CRASH_COND_MSG(!LuauLanguage::get_singleton()->is_core_script(p_script->get_path()), "!!! non-core script declared permissions !!!");
