@@ -216,3 +216,29 @@ def get_class_methods(g_class):
         return False
 
     return [m for m in g_class["methods"] if not should_skip(m)]
+
+
+def get_property_setget(prop, g_class):
+    setter = prop["setter"] if "setter" in prop else ""
+    getter = prop["getter"] if "getter" in prop else ""
+
+    def has_setget(method_name):
+        # Currently, no funny business with inheriters or base classes having the method
+        return "methods" in g_class and True in [m["name"] == method_name for m in g_class["methods"]]
+
+    def get_actual_setget(method_name):
+        # Attempt to strip _ to ensure any virtual setters/getters have the correct method name
+        if method_name == "":
+            return "", False
+
+        if has_setget(method_name):
+            return snake_to_pascal(method_name), False
+        elif has_setget(method_name.strip("_")):
+            return snake_to_pascal(method_name.strip("_")), False
+        else:
+            return "", True
+
+    setter_luau, setter_not_found = get_actual_setget(setter)
+    getter_luau, getter_not_found = get_actual_setget(getter)
+
+    return setter_luau, getter_luau, setter_not_found, getter_not_found
