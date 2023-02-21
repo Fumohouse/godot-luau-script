@@ -5318,7 +5318,7 @@ default_permissions = "BASE" #
 
 [CallbackTweener.methods.SetDelay]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 #############################
 
@@ -18713,15 +18713,15 @@ default_permissions = "BASE" #
 
 [MethodTweener.methods.SetDelay]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [MethodTweener.methods.SetEase]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [MethodTweener.methods.SetTrans]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 #############################
 
@@ -20729,7 +20729,7 @@ permissions = "INHERIT" #
 
 [Node.methods.CreateTween]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Only null when not in tree
 
 [Node.methods.Duplicate]
 permissions = "INHERIT" #
@@ -25903,27 +25903,27 @@ default_permissions = "BASE" #
 
 [PropertyTweener.methods.AsRelative]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.From]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.FromCurrent]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.SetDelay]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.SetEase]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.SetTrans]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 #############################
 
@@ -30205,7 +30205,7 @@ ret_nullable = true #
 
 [SceneTree.methods.CreateTween]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [SceneTree.methods.GetCurrentScene]
 permissions = "INHERIT" #
@@ -37708,11 +37708,11 @@ default_permissions = "BASE" #
 
 [Tween.methods.BindNode]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.Chain]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.CustomStep]
 permissions = "INHERIT" #
@@ -37734,7 +37734,7 @@ permissions = "INHERIT" #
 
 [Tween.methods.Parallel]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.Pause]
 permissions = "INHERIT" #
@@ -37744,50 +37744,50 @@ permissions = "INHERIT" #
 
 [Tween.methods.SetEase]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetLoops]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetParallel]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetPauseMode]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetProcessMode]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetSpeedScale]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetTrans]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.Stop]
 permissions = "INHERIT" #
 
 [Tween.methods.TweenCallback]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.TweenInterval]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.TweenMethod]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.TweenProperty]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0-rc3: Unlikely
 
 #############################
 
