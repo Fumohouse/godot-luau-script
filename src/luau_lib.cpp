@@ -789,7 +789,7 @@ void SignalWaiter::on_signal(const Variant **p_args, GDExtensionInt p_argc, GDEx
         if (status != LUA_OK && status != LUA_YIELD) {
             GDThreadData *udata = luaGD_getthreaddata(L);
             Ref<LuauScript> script = udata->script;
-            LUAU_ERR("SignalWaiter::on_signnal", script, 1, LuaStackOp<String>::get(L, -1));
+            LUAU_ERR("SignalWaiter::on_signal", script, 1, LuaStackOp<String>::get(L, -1));
 
             lua_pop(L, 1); // error
         }
