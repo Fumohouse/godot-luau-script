@@ -4211,9 +4211,6 @@ permissions = "INHERIT" #
 [Bone2D.methods.GetBoneAngle]
 permissions = "INHERIT" #
 
-[Bone2D.methods.GetDefaultLength]
-permissions = "INHERIT" #
-
 [Bone2D.methods.GetIndexInSkeleton]
 permissions = "INHERIT" #
 
@@ -4230,9 +4227,6 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [Bone2D.methods.SetBoneAngle]
-permissions = "INHERIT" #
-
-[Bone2D.methods.SetDefaultLength]
 permissions = "INHERIT" #
 
 [Bone2D.methods.SetLength]
@@ -11876,6 +11870,9 @@ default_permissions = "FILE"
 
 [FileAccess.methods]
 
+[FileAccess.methods.Close]
+permissions = "INHERIT" #
+
 [FileAccess.methods.EofReached]
 permissions = "INHERIT" #
 
@@ -13095,9 +13092,6 @@ permissions = "INHERIT" #
 [GLTFNode.methods.GetHeight]
 permissions = "INHERIT" #
 
-[GLTFNode.methods.GetJoint]
-permissions = "INHERIT" #
-
 [GLTFNode.methods.GetLight]
 permissions = "INHERIT" #
 
@@ -13135,9 +13129,6 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [GLTFNode.methods.SetHeight]
-permissions = "INHERIT" #
-
-[GLTFNode.methods.SetJoint]
 permissions = "INHERIT" #
 
 [GLTFNode.methods.SetLight]
@@ -19536,6 +19527,12 @@ permissions = "INHERIT" #
 [NavigationLink2D.methods.GetEnterCost]
 permissions = "INHERIT" #
 
+[NavigationLink2D.methods.GetGlobalEndPosition]
+permissions = "INHERIT" #
+
+[NavigationLink2D.methods.GetGlobalStartPosition]
+permissions = "INHERIT" #
+
 [NavigationLink2D.methods.GetNavigationLayerValue]
 permissions = "INHERIT" #
 
@@ -19566,6 +19563,12 @@ permissions = "INHERIT" #
 [NavigationLink2D.methods.SetEnterCost]
 permissions = "INHERIT" #
 
+[NavigationLink2D.methods.SetGlobalEndPosition]
+permissions = "INHERIT" #
+
+[NavigationLink2D.methods.SetGlobalStartPosition]
+permissions = "INHERIT" #
+
 [NavigationLink2D.methods.SetNavigationLayerValue]
 permissions = "INHERIT" #
 
@@ -19590,6 +19593,12 @@ default_permissions = "BASE" #
 permissions = "INHERIT" #
 
 [NavigationLink3D.methods.GetEnterCost]
+permissions = "INHERIT" #
+
+[NavigationLink3D.methods.GetGlobalEndPosition]
+permissions = "INHERIT" #
+
+[NavigationLink3D.methods.GetGlobalStartPosition]
 permissions = "INHERIT" #
 
 [NavigationLink3D.methods.GetNavigationLayerValue]
@@ -19620,6 +19629,12 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [NavigationLink3D.methods.SetEnterCost]
+permissions = "INHERIT" #
+
+[NavigationLink3D.methods.SetGlobalEndPosition]
+permissions = "INHERIT" #
+
+[NavigationLink3D.methods.SetGlobalStartPosition]
 permissions = "INHERIT" #
 
 [NavigationLink3D.methods.SetNavigationLayerValue]
@@ -20252,6 +20267,9 @@ permissions = "INHERIT" #
 [NavigationServer2D.methods.FreeRid]
 permissions = "INHERIT" #
 
+[NavigationServer2D.methods.GetDebugEnabled]
+permissions = "INHERIT" #
+
 [NavigationServer2D.methods.GetMaps]
 permissions = "INHERIT" #
 
@@ -20408,6 +20426,9 @@ permissions = "INHERIT" #
 [NavigationServer2D.methods.RegionSetTravelCost]
 permissions = "INHERIT" #
 
+[NavigationServer2D.methods.SetDebugEnabled]
+permissions = "INHERIT" #
+
 #############################
 
 [NavigationServer3D]
@@ -20456,6 +20477,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [NavigationServer3D.methods.FreeRid]
+permissions = "INHERIT" #
+
+[NavigationServer3D.methods.GetDebugEnabled]
 permissions = "INHERIT" #
 
 [NavigationServer3D.methods.GetMaps]
@@ -20575,9 +20599,6 @@ permissions = "INHERIT" #
 [NavigationServer3D.methods.MapSetUp]
 permissions = "INHERIT" #
 
-[NavigationServer3D.methods.Process]
-permissions = "INHERIT" #
-
 [NavigationServer3D.methods.QueryPath]
 permissions = "INHERIT" #
 
@@ -20636,6 +20657,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [NavigationServer3D.methods.SetActive]
+permissions = "INHERIT" #
+
+[NavigationServer3D.methods.SetDebugEnabled]
 permissions = "INHERIT" #
 
 #############################
@@ -33434,6 +33458,14 @@ ret_nullable = true #
 [TLSOptions.methods.Server]
 permissions = "INHERIT" #
 ret_nullable = true #
+
+#############################
+
+[TTS_Linux]
+inherits = "Object"
+default_permissions = "INTERNAL" #
+
+[TTS_Linux.methods]
 
 #############################
 

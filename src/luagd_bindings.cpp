@@ -938,8 +938,10 @@ static void handle_object_returned(Object *obj) {
     // as such, the RefCounted we receive will be initialized at a refcount of 1
     // and is considered "initialized" (first Ref already made).
     // we need to decrement the refcount by 1 after pushing to Luau to avoid leak.
-    if (obj != nullptr && obj->is_class(RefCounted::get_class_static()))
-        ((RefCounted *)obj)->unreference();
+    RefCounted *rc = Object::cast_to<RefCounted>(obj);
+
+    if (rc != nullptr)
+        rc->unreference();
 }
 
 static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
