@@ -53,5 +53,7 @@ String Utils::resource_type_hint(const String &type) {
 bool Utils::variant_types_compatible(Variant::Type t1, Variant::Type t2) {
     return t1 == t2 ||
             (t1 == Variant::FLOAT && t2 == Variant::INT) ||
-            (t1 == Variant::INT && t2 == Variant::FLOAT);
+            (t1 == Variant::INT && t2 == Variant::FLOAT) ||
+            (t1 == Variant::NIL && t2 == Variant::OBJECT) ||
+            (t1 == Variant::OBJECT && t2 == Variant::NIL);
 }

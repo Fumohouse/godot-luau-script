@@ -1391,7 +1391,7 @@ void LuauScriptInstance::call(
                 const Variant &arg = *p_args[i];
 
                 if (!(method.arguments[i].usage & PROPERTY_USAGE_NIL_IS_VARIANT) &&
-                        (GDExtensionVariantType)arg.get_type() != method.arguments[i].type) {
+                        !Utils::variant_types_compatible(arg.get_type(), Variant::Type(method.arguments[i].type))) {
                     r_error->error = GDEXTENSION_CALL_ERROR_INVALID_ARGUMENT;
                     r_error->argument = i;
                     r_error->expected = method.arguments[i].type;
