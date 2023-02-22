@@ -120,6 +120,7 @@ public:
     StringName _get_instance_base_type() const override;
     Ref<Script> _get_base_script() const override;
     bool _inherits_script(const Ref<Script> &p_script) const override;
+    StringName _get_global_name() const override;
 
     TypedArray<Dictionary> _get_script_method_list() const override;
     bool _has_method(const StringName &p_method) const override;

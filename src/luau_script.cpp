@@ -249,6 +249,8 @@ Error LuauScript::_reload(bool p_keep_state) {
 
     const GDClassDefinition &def = get_definition();
 
+    set_name(def.name);
+
     // Update base script.
     base = Ref<LuauScript>(def.base_script);
     valid = !base.is_valid() || base->_is_valid(); // Already known that this script is valid
@@ -337,6 +339,10 @@ bool LuauScript::_inherits_script(const Ref<Script> &p_script) const {
     }
 
     return false;
+}
+
+StringName LuauScript::_get_global_name() const {
+    return get_name();
 }
 
 TypedArray<Dictionary> LuauScript::_get_script_method_list() const {
