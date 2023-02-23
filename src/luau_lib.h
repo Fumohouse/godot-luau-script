@@ -123,5 +123,7 @@ public:
             callable(Callable(this, "on_signal")) {}
 };
 
+void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, LuauScript *&r_script);
+
 GDProperty luascript_read_property(lua_State *L, int idx);
 void luascript_openlibs(lua_State *L);

@@ -82,6 +82,16 @@ TEST_CASE_METHOD(LuauFixture, "classes: methods/functions") {
         }
     }
 
+    SECTION("object IsA") {
+        Ref<RefCounted> rc;
+        rc.instantiate();
+
+        LuaStackOp<Object *>::push(L, rc.ptr());
+        lua_setglobal(L, "testRc");
+
+        ASSERT_EVAL_EQ(L, "return testRc:IsA(Object)", bool, true)
+    }
+
     SECTION("invoked from global table"){
         ASSERT_EVAL_EQ(L, R"ASDF(
             local params = PhysicsRayQueryParameters3D.new()

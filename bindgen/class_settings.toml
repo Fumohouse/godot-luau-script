@@ -21714,9 +21714,6 @@ permissions = "BASE"
 [Object.methods.IsBlockingSignals]
 permissions = "BASE"
 
-[Object.methods.IsClass]
-permissions = "BASE"
-
 [Object.methods.IsConnected]
 permissions = "BASE"
 

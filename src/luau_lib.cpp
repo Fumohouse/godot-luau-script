@@ -185,25 +185,10 @@ static int luascript_gdclass(lua_State *L) {
     def.name = luaL_optstring(L, 1, "");
 
     if (lua_gettop(L) > 1) {
-        if (lua_istable(L, 2)) {
-            lua_getmetatable(L, 2);
+        luascript_get_classdef_or_type(L, 2, def.extends, def.base_script);
 
-            lua_getfield(L, -1, MT_CLASS_GLOBAL);
-            if (lua_type(L, -1) != LUA_TSTRING)
-                luaL_error(L, "table argument to gdclass must be a class global (i.e. containing the " MT_CLASS_GLOBAL " field)");
-
-            def.extends = lua_tostring(L, -1);
-
-            lua_pop(L, 2); // value, metatable
-        } else if (LuaStackOp<GDClassDefinition>::is(L, 2)) {
-            const GDClassDefinition *other_def = LuaStackOp<GDClassDefinition>::get_ptr(L, 2);
-            if (other_def->script == nullptr)
-                luaL_error(L, "could not determine script path from class definition");
-
+        if (def.base_script != nullptr) {
             def.extends = "";
-            def.base_script = other_def->script;
-        } else {
-            luaL_typeerrorL(L, 2, "GDClassDefinition or ClassGlobal");
         }
     }
 
@@ -837,6 +822,28 @@ static const luaL_Reg global_funcs[] = {
 };
 
 /* EXPOSED FUNCTIONS */
+
+void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, LuauScript *&r_script) {
+    if (lua_istable(L, index)) {
+        lua_getmetatable(L, index);
+
+        lua_getfield(L, -1, MT_CLASS_GLOBAL);
+        if (lua_type(L, -1) != LUA_TSTRING)
+            luaL_error(L, "table argument to gdclass must be a class global (i.e. containing the " MT_CLASS_GLOBAL " field)");
+
+        r_type = lua_tostring(L, -1);
+
+        lua_pop(L, 2); // value, metatable
+    } else if (LuaStackOp<GDClassDefinition>::is(L, index)) {
+        const GDClassDefinition *other_def = LuaStackOp<GDClassDefinition>::get_ptr(L, index);
+        if (other_def->script == nullptr)
+            luaL_error(L, "could not determine script from class definition");
+
+        r_script = other_def->script;
+    } else {
+        luaL_typeerrorL(L, index, "GDClassDefinition or ClassGlobal");
+    }
+}
 
 void luascript_openlibs(lua_State *L) {
     // Class

@@ -1019,6 +1019,46 @@ static void push_class_method(lua_State *L, const ApiClass &g_class, ApiClassMet
     lua_pushcclosure(L, luaGD_class_method, method.debug_name, 2);
 }
 
+static int luaGD_class_free(lua_State *L) {
+    Object *self = LuaStackOp<Object *>::check(L, 1);
+
+    if (self->is_class("RefCounted"))
+        luaL_error(L, "cannot free a RefCounted object");
+
+    // Zero out the object to prevent segfaults
+    *LuaStackOp<Object *>::get_ptr(L, 1) = 0;
+
+    memdelete(self);
+    return 0;
+}
+
+static int luaGD_class_isa(lua_State *L) {
+    Object *self = LuaStackOp<Object *>::check(L, 1);
+
+    String type;
+    LuauScript *script = nullptr;
+    luascript_get_classdef_or_type(L, 2, type, script);
+
+    if (!type.is_empty()) {
+        lua_pushboolean(L, self->is_class(type));
+        return 1;
+    } else {
+        Ref<LuauScript> s = self->get_script();
+
+        while (s.is_valid()) {
+            if (s == script) {
+                lua_pushboolean(L, true);
+                return 1;
+            }
+
+            s = s->get_base();
+        }
+
+        lua_pushboolean(L, false);
+        return 1;
+    }
+}
+
 #define SET_DBG_NAME "Godot.Object.Object.Set"
 static int luaGD_class_set(lua_State *L) {
     Object *self = LuaStackOp<Object *>::check(L, 1);
@@ -1149,32 +1189,9 @@ static int luaGD_class_namecall(lua_State *L) {
         }
 
         if (strcmp(name, "Free") == 0) {
-            if (self->is_class("RefCounted"))
-                luaL_error(L, "cannot free a RefCounted object");
-
-            // Zero out the object to prevent segfaults
-            *LuaStackOp<Object *>::get_ptr(L, 1) = 0;
-
-            memdelete(self);
-            return 0;
-        } else if (strcmp(name, "IsScript") == 0) {
-            GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 2);
-
-            if (def->script != nullptr) {
-                Ref<LuauScript> s = self->get_script();
-
-                while (s.is_valid()) {
-                    if (s == def->script) {
-                        lua_pushboolean(L, true);
-                        return 1;
-                    }
-
-                    s = s->get_base();
-                }
-            }
-
-            lua_pushboolean(L, false);
-            return 1;
+            return luaGD_class_free(L);
+        } else if (strcmp(name, "IsA") == 0) {
+            return luaGD_class_isa(L);
         } else if (strcmp(name, "Set") == 0) {
             return luaGD_class_set(L);
         } else if (strcmp(name, "Get") == 0) {
@@ -1415,13 +1432,17 @@ void luaGD_openclasses(lua_State *L) {
             lua_setfield(L, -3, static_method.name);
         }
 
-        {
+        if (strcmp(g_class.name, "Object") == 0) {
             // Overridden Object methods
-            lua_pushcfunction(L, luaGD_class_set, SET_DBG_NAME);
-            lua_setfield(L, -3, "Set");
 
-            lua_pushcfunction(L, luaGD_class_get, GET_DBG_NAME);
-            lua_setfield(L, -3, "Get");
+#define CUSTOM_OBJ_METHOD(method, name)                        \
+    lua_pushcfunction(L, method, "Godot.Object.Object." name); \
+    lua_setfield(L, -3, name);
+
+            CUSTOM_OBJ_METHOD(luaGD_class_free, "Free")
+            CUSTOM_OBJ_METHOD(luaGD_class_isa, "IsA")
+            CUSTOM_OBJ_METHOD(luaGD_class_set, "Set")
+            CUSTOM_OBJ_METHOD(luaGD_class_get, "Get")
         }
 
         // Properties (__newindex, __index)

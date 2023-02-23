@@ -210,7 +210,7 @@ def get_class_methods(g_class):
             return True
 
         # Handled as special case
-        if g_class["name"] == "Object" and method["name"] in ["get", "set"]:
+        if g_class["name"] == "Object" and method["name"] in ["get", "set", "is_class"]:
             return True
 
         return False

@@ -523,14 +523,14 @@ TEST_CASE("luau script: inheritance") {
             LuaStackOp<GDClassDefinition>::push(T, script->get_definition());
             lua_setglobal(T, "scriptDef");
 
-            ASSERT_EVAL_EQ(T, "return obj:IsScript(scriptDef)", bool, true)
+            ASSERT_EVAL_EQ(T, "return obj:IsA(scriptDef)", bool, true)
         }
 
         SECTION("base") {
             LuaStackOp<GDClassDefinition>::push(T, base->get_definition());
             lua_setglobal(T, "baseDef");
 
-            ASSERT_EVAL_EQ(T, "return obj:IsScript(baseDef)", bool, true)
+            ASSERT_EVAL_EQ(T, "return obj:IsA(baseDef)", bool, true)
         }
     }
 
