@@ -9977,6 +9977,13 @@ permissions = "INHERIT" #
 [EditorFileDialog.methods.GetFileMode]
 permissions = "INHERIT" #
 
+[EditorFileDialog.methods.GetFilters]
+permissions = "INHERIT" #
+
+[EditorFileDialog.methods.GetLineEdit]
+permissions = "INHERIT" #
+ret_nullable = true #
+
 [EditorFileDialog.methods.GetVbox]
 permissions = "INHERIT" #
 ret_nullable = true #
@@ -10009,6 +10016,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [EditorFileDialog.methods.SetFileMode]
+permissions = "INHERIT" #
+
+[EditorFileDialog.methods.SetFilters]
 permissions = "INHERIT" #
 
 [EditorFileDialog.methods.SetShowHiddenFiles]
@@ -33455,14 +33465,6 @@ ret_nullable = true #
 [TLSOptions.methods.Server]
 permissions = "INHERIT" #
 ret_nullable = true #
-
-#############################
-
-[TTS_Linux]
-inherits = "Object"
-default_permissions = "INTERNAL" #
-
-[TTS_Linux.methods]
 
 #############################
 
