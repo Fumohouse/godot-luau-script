@@ -162,7 +162,7 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
         String err = LuaStackOp<String>::get(L, -1);
         LUAU_LOAD_ERR(this, 1, err);
 
-        if (r_err != nullptr)
+        if (r_err)
             *r_err = err;
     }
 
@@ -228,6 +228,19 @@ void LuauScript::unref_definition(GDLuau::VMType vm) {
     }
 }
 
+Error LuauScript::reload_defs() {
+    for (int i = 0; i < GDLuau::VM_MAX; i++) {
+        if (i != GDLuau::VM_SCRIPT_LOAD && !vm_defs_valid[i])
+            continue;
+
+        Error err = load_definition(GDLuau::VMType(i), true);
+        if (err != OK)
+            return err;
+    }
+
+    return OK;
+}
+
 Error LuauScript::_reload(bool p_keep_state) {
     if (_is_module)
         return OK;
@@ -275,17 +288,6 @@ Error LuauScript::_reload(bool p_keep_state) {
         lua_pop(L, 1); // table
     }
 
-    // Reload all loaded definitions.
-    for (int i = GDLuau::VM_SCRIPT_LOAD + 1; i < GDLuau::VM_MAX; i++) {
-        if (!vm_defs_valid[i])
-            continue;
-
-        if (load_definition(GDLuau::VMType(i), true) != OK) {
-            valid = false;
-            return ERR_COMPILATION_FAILED;
-        }
-    }
-
     return OK;
 }
 
@@ -331,7 +333,7 @@ bool LuauScript::_inherits_script(const Ref<Script> &p_script) const {
 
     const LuauScript *s = this;
 
-    while (s != nullptr) {
+    while (s) {
         if (s == script.ptr())
             return true;
 
@@ -365,7 +367,7 @@ bool LuauScript::has_method(const StringName &p_method, StringName *r_actual_nam
     StringName pascal_name = Utils::to_pascal_case(p_method);
 
     if (get_definition().methods.has(pascal_name)) {
-        if (r_actual_name != nullptr)
+        if (r_actual_name)
             *r_actual_name = pascal_name;
 
         return true;
@@ -393,7 +395,7 @@ TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
 
     const LuauScript *s = this;
 
-    while (s != nullptr) {
+    while (s) {
         // Reverse to add properties from base scripts first.
         for (int i = get_definition().properties.size() - 1; i >= 0; i--) {
             const GDClassProperty &prop = get_definition().properties[i];
@@ -569,21 +571,8 @@ LuauScript::LuauScript() :
     }
 }
 
-Error LuauScript::reload_defs() {
-    for (int i = 0; i < GDLuau::VM_MAX; i++) {
-        if (i != GDLuau::VM_SCRIPT_LOAD && !vm_defs_valid[i])
-            continue;
-
-        Error err = load_definition(GDLuau::VMType(i), true);
-        if (err != OK)
-            return err;
-    }
-
-    return OK;
-}
-
 LuauScript::~LuauScript() {
-    if (GDLuau::get_singleton() != nullptr) {
+    if (GDLuau::get_singleton()) {
         for (int i = 0; i < GDLuau::VM_MAX; i++) {
             if (!vm_defs_valid[i])
                 continue;
@@ -740,7 +729,7 @@ void ScriptInstance::get_property_state(List<Pair<StringName, Variant>> &p_list)
 }
 
 void ScriptInstance::free_property_list(const GDExtensionPropertyInfo *p_list) const {
-    if (p_list == nullptr)
+    if (!p_list)
         return;
 
     // don't ask.
@@ -758,7 +747,7 @@ GDExtensionMethodInfo *ScriptInstance::get_method_list(uint32_t *r_count) const 
 
     const LuauScript *s = get_script().ptr();
 
-    while (s != nullptr) {
+    while (s) {
         for (const KeyValue<StringName, GDMethod> pair : s->get_definition().methods) {
             if (defined.has(pair.key))
                 continue;
@@ -810,7 +799,7 @@ GDExtensionMethodInfo *ScriptInstance::get_method_list(uint32_t *r_count) const 
 }
 
 void ScriptInstance::free_method_list(const GDExtensionMethodInfo *p_list) const {
-    if (p_list == nullptr)
+    if (!p_list)
         return;
 
     // don't ask.
@@ -885,7 +874,7 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
 
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         LuaStackOp<String>::push(ET, p_method);
         s->def_table_get(vm_type, ET);
 
@@ -950,7 +939,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         HashMap<StringName, uint64_t>::ConstIterator E = s->get_definition().property_indices.find(p_name);
 
         if (E) {
@@ -958,7 +947,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 
             // Check type
             if (!Utils::variant_types_compatible(p_value.get_type(), Variant::Type(prop.property.type))) {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_WRONG_TYPE;
 
                 return false;
@@ -966,7 +955,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 
             // Check read-only (getter, no setter)
             if (prop.setter == StringName() && prop.getter != StringName()) {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_READ_ONLY;
 
                 return false;
@@ -987,22 +976,22 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             lua_pop(T, 1); // thread
 
             if (status == LUA_OK) {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_OK;
 
                 return true;
             } else if (status == LUA_YIELD) {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_SET_FAILED;
 
                 ERR_FAIL_V_MSG(false, "setter for " + p_name + " yielded unexpectedly");
             } else if (status == -1) {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_NOT_FOUND;
 
                 ERR_FAIL_V_MSG(false, "setter for " + p_name + " not found");
             } else {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_SET_FAILED;
 
                 return false;
@@ -1018,7 +1007,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 
             if (status == OK) {
                 if (lua_type(ET, -1) != LUA_TBOOLEAN) {
-                    if (r_err != nullptr) {
+                    if (r_err) {
                         *r_err = PROP_SET_FAILED;
                     }
 
@@ -1027,7 +1016,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                     bool valid = lua_toboolean(ET, -1);
 
                     if (valid) {
-                        if (r_err != nullptr) {
+                        if (r_err) {
                             *r_err = PROP_OK;
                         }
 
@@ -1046,7 +1035,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
         s = s->base.ptr();
     }
 
-    if (r_err != nullptr)
+    if (r_err)
         *r_err = PROP_NOT_FOUND;
 
     return false;
@@ -1057,7 +1046,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
 
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         HashMap<StringName, uint64_t>::ConstIterator E = s->get_definition().property_indices.find(p_name);
 
         if (E) {
@@ -1065,7 +1054,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
 
             // Check write-only (setter, no getter)
             if (prop.setter != StringName() && prop.getter == StringName()) {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_WRITE_ONLY;
 
                 return false;
@@ -1086,17 +1075,17 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
                 r_ret = LuaStackOp<Variant>::get(ET, -1);
                 lua_pop(T, 1); // thread
 
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_OK;
 
                 return true;
             } else if (status == -1) {
                 ERR_PRINT("getter for " + p_name + " not found");
 
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_NOT_FOUND;
             } else {
-                if (r_err != nullptr)
+                if (r_err)
                     *r_err = PROP_GET_FAILED;
             }
 
@@ -1113,7 +1102,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
 
             if (status == OK) {
                 if (!LuaStackOp<Variant>::is(ET, -1)) {
-                    if (r_err != nullptr) {
+                    if (r_err) {
                         *r_err = PROP_GET_FAILED;
                     }
 
@@ -1122,7 +1111,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
                     Variant ret = LuaStackOp<Variant>::get(ET, -1);
 
                     if (ret != Variant()) {
-                        if (r_err != nullptr) {
+                        if (r_err) {
                             *r_err = PROP_OK;
                         }
 
@@ -1142,7 +1131,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
         s = s->base.ptr();
     }
 
-    if (r_err != nullptr)
+    if (r_err)
         *r_err = PROP_NOT_FOUND;
 
     return false;
@@ -1161,7 +1150,7 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
     // Push properties in reverse then reverse the entire vector.
     // Ensures base properties are first.
     // (see _get_script_property_list)
-    while (s != nullptr) {
+    while (s) {
         for (int i = s->get_definition().properties.size() - 1; i >= 0; i--) {
             const GDClassProperty &prop = s->get_definition().properties[i];
 
@@ -1257,11 +1246,11 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
 Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bool *r_is_valid) const {
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         HashMap<StringName, uint64_t>::ConstIterator E = s->get_definition().property_indices.find(p_name);
 
         if (E) {
-            if (r_is_valid != nullptr)
+            if (r_is_valid)
                 *r_is_valid = true;
 
             return (Variant::Type)s->get_definition().properties[E->value].property.type;
@@ -1270,7 +1259,7 @@ Variant::Type LuauScriptInstance::get_property_type(const StringName &p_name, bo
         s = s->base.ptr();
     }
 
-    if (r_is_valid != nullptr)
+    if (r_is_valid)
         *r_is_valid = false;
 
     return Variant::NIL;
@@ -1281,7 +1270,7 @@ bool LuauScriptInstance::property_can_revert(const StringName &p_name) {
 
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         if (s->methods.has(PROPERTY_CAN_REVERT_NAME)) {
             lua_State *ET = lua_newthread(T);
 
@@ -1315,7 +1304,7 @@ bool LuauScriptInstance::property_get_revert(const StringName &p_name, Variant *
 
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         if (s->methods.has(PROPERTY_GET_REVERT_NAME)) {
             lua_State *ET = lua_newthread(T);
 
@@ -1347,7 +1336,7 @@ bool LuauScriptInstance::property_get_revert(const StringName &p_name, Variant *
 bool LuauScriptInstance::has_method(const StringName &p_name) const {
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         if (s->has_method(p_name))
             return true;
 
@@ -1363,7 +1352,7 @@ void LuauScriptInstance::call(
         Variant *r_return, GDExtensionCallError *r_error) {
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         StringName actual_name = p_method;
 
         // check name given and name converted to pascal
@@ -1443,7 +1432,7 @@ void LuauScriptInstance::notification(int32_t p_what) {
 
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         if (s->methods.has(NOTIF_NAME)) {
             lua_State *ET = lua_newthread(T);
 
@@ -1462,7 +1451,7 @@ void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out) {
 
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         if (s->methods.has(TO_STRING_NAME)) {
             lua_State *ET = lua_newthread(T);
 
@@ -1471,7 +1460,7 @@ void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out) {
             if (status == LUA_OK)
                 *r_out = LuaStackOp<String>::get(ET, -1);
 
-            if (r_is_valid != nullptr)
+            if (r_is_valid)
                 *r_is_valid = status == LUA_OK;
 
             lua_pop(T, 1); // thread
@@ -1512,7 +1501,7 @@ bool LuauScriptInstance::table_get(lua_State *T) const {
     const type *LuauScriptInstance::get_##method_name(const StringName &p_name) const {            \
         const LuauScript *s = script.ptr();                                                        \
                                                                                                    \
-        while (s != nullptr) {                                                                     \
+        while (s) {                                                                                \
             HashMap<StringName, type>::ConstIterator E = s->get_definition().def_key.find(p_name); \
                                                                                                    \
             if (E)                                                                                 \
@@ -1529,7 +1518,7 @@ DEF_GETTER(GDMethod, method, methods)
 const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name) const {
     const LuauScript *s = script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         if (s->has_property(p_name))
             return &s->get_property(p_name);
 
@@ -1553,7 +1542,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     LocalVector<LuauScript *> base_scripts;
     LuauScript *s = p_script.ptr();
 
-    while (s != nullptr) {
+    while (s) {
         base_scripts.push_back(s);
         permissions = permissions | s->get_definition().permissions;
 
@@ -1620,7 +1609,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
 }
 
 LuauScriptInstance::~LuauScriptInstance() {
-    if (script.is_valid() && owner != nullptr) {
+    if (script.is_valid() && owner) {
         MutexLock lock(*LuauLanguage::singleton->lock.ptr());
         script->instances.erase(owner->get_instance_id());
     }
@@ -1699,12 +1688,12 @@ void LuauLanguage::finalize() {
     if (finalized)
         return;
 
-    if (luau != nullptr) {
+    if (luau) {
         memdelete(luau);
         luau = nullptr;
     }
 
-    if (cache != nullptr) {
+    if (cache) {
         memdelete(cache);
         cache = nullptr;
     }

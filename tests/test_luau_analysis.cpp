@@ -20,7 +20,7 @@ TEST_CASE("luau analysis: base analysis") {
 
         const LuauScriptAnalysisResult &res = script->get_luau_data().analysis_result;
 
-        REQUIRE(res.definition != nullptr);
+        REQUIRE(res.definition);
         REQUIRE(res.definition != res.impl);
 
         REQUIRE(res.methods.has("TestMethod"));
@@ -32,7 +32,7 @@ TEST_CASE("luau analysis: base analysis") {
 
         const LuauScriptAnalysisResult &res = script->get_luau_data().analysis_result;
 
-        REQUIRE(res.definition != nullptr);
+        REQUIRE(res.definition);
         REQUIRE(res.definition != res.impl);
 
         REQUIRE(res.methods.has("TestMethod"));

@@ -11,7 +11,7 @@ using namespace godot;
 Object *Utils::class_db = nullptr;
 
 Object *Utils::get_class_db() {
-    if (class_db == nullptr)
+    if (!class_db)
         class_db = Engine::get_singleton()->get_singleton("ClassDB");
 
     return class_db;

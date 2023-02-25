@@ -31,7 +31,7 @@ GDLuau::GDLuau() {
     init_vm(VM_CORE);
     init_vm(VM_USER);
 
-    if (singleton == nullptr)
+    if (!singleton)
         singleton = this;
 }
 

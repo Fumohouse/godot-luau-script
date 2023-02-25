@@ -58,7 +58,7 @@ void TaskScheduler::frame(double delta) {
     /* TASKS */
     TaskList::Element *task = tasks.front();
 
-    while (task != nullptr) {
+    while (task) {
         Pair<lua_State *, ScheduledTask *> &pair = task->get();
         pair.second->update(delta);
 

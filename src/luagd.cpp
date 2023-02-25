@@ -16,7 +16,7 @@ using namespace godot;
 static void *luaGD_alloc(void *, void *ptr, size_t, size_t nsize) {
     if (nsize == 0) {
         // Lua assumes free(NULL) is ok. For Godot it is not.
-        if (ptr != nullptr)
+        if (ptr)
             memfree(ptr);
 
         return nullptr;
@@ -29,7 +29,7 @@ static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
     GDThreadData *udata = memnew(GDThreadData);
     lua_setthreaddata(L, udata);
 
-    if (LP != nullptr) {
+    if (LP) {
         GDThreadData *parent_udata = luaGD_getthreaddata(LP);
         udata->vm_type = parent_udata->vm_type;
         udata->permissions = parent_udata->permissions;
@@ -41,11 +41,11 @@ static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
 }
 
 static void luaGD_userthread(lua_State *LP, lua_State *L) {
-    if (LP != nullptr) {
+    if (LP) {
         luaGD_initthreaddata(LP, L);
     } else {
         GDThreadData *udata = luaGD_getthreaddata(L);
-        if (udata != nullptr) {
+        if (udata) {
             lua_setthreaddata(L, nullptr);
             memdelete(udata);
         }
@@ -84,7 +84,7 @@ void luaGD_close(lua_State *L) {
     L = lua_mainthread(L);
 
     GDThreadData *udata = luaGD_getthreaddata(L);
-    if (udata != nullptr) {
+    if (udata) {
         lua_setthreaddata(L, nullptr);
         memdelete(udata);
     }

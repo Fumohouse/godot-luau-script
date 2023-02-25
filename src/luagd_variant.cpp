@@ -219,7 +219,7 @@ struct VariantObjectMethods : public VariantMethods {
 
     bool is(lua_State *L, int idx, const String &type_name) const override {
         Object *obj = LuaStackOp<Object *>::get(L, idx);
-        if (obj == nullptr)
+        if (!obj)
             return false;
 
         return type_name.is_empty() || obj->is_class(type_name);
@@ -227,7 +227,7 @@ struct VariantObjectMethods : public VariantMethods {
 
     bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
         Object *obj = LuaStackOp<Object *>::check(L, idx);
-        if (obj == nullptr) {
+        if (!obj) {
             self._data._ptr = nullptr;
             return false;
         }
@@ -242,7 +242,7 @@ struct VariantObjectMethods : public VariantMethods {
     void push(const LuauVariant &self, lua_State *L) const override {
         GDExtensionObjectPtr obj = (GDExtensionObjectPtr)self._data._ptr;
 
-        if (obj == nullptr) {
+        if (!obj) {
             LuaStackOp<Object *>::push(L, nullptr);
             return;
         }
@@ -316,7 +316,7 @@ void LuauVariant::_register_types() {
 
 #ifdef DEBUG_ENABLED
     for (int i = 0; i < GDEXTENSION_VARIANT_TYPE_VARIANT_MAX; i++) {
-        CRASH_COND_MSG(type_methods[i] == nullptr, "variant type was left uninitialized");
+        CRASH_COND_MSG(!type_methods[i], "variant type was left uninitialized");
     }
 #endif // DEBUG_ENABLED
 }

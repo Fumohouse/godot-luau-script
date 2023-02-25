@@ -187,7 +187,7 @@ static int luascript_gdclass(lua_State *L) {
     if (lua_gettop(L) > 1) {
         luascript_get_classdef_or_type(L, 2, def.extends, def.base_script);
 
-        if (def.base_script != nullptr) {
+        if (def.base_script) {
             def.extends = "";
         }
     }
@@ -218,7 +218,7 @@ static int luascript_gdclass_namecall(lua_State *L) {
             int32_t permissions = LuaStackOp<int32_t>::check(L, 2);
 
             String path = udata->script->get_path();
-            if (path.is_empty() || LuauLanguage::get_singleton() == nullptr || !LuauLanguage::get_singleton()->is_core_script(path))
+            if (path.is_empty() || !LuauLanguage::get_singleton()->is_core_script(path))
                 luaL_error(L, "!!! cannot set permissions on a non-core script !!!");
 
             def->permissions = static_cast<ThreadPermissions>(permissions);
@@ -360,7 +360,7 @@ static int luascript_gdclass_newindex(lua_State *L) {
 static int luascript_gdclass_new(lua_State *L) {
     GDClassDefinition *def = luaGD_lightudataup<GDClassDefinition>(L, 1);
 
-    if (def->script == nullptr)
+    if (!def->script)
         luaL_error(L, "cannot instantiate: script is unknown");
 
     if (def->script->is_loading())
@@ -836,7 +836,7 @@ void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, Lua
         lua_pop(L, 2); // value, metatable
     } else if (LuaStackOp<GDClassDefinition>::is(L, index)) {
         const GDClassDefinition *other_def = LuaStackOp<GDClassDefinition>::get_ptr(L, index);
-        if (other_def->script == nullptr)
+        if (!other_def->script)
             luaL_error(L, "could not determine script from class definition");
 
         r_script = other_def->script;

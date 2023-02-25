@@ -134,7 +134,7 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
         if (arg.has_default_value) {
             // Special case: null Object default value
             if (get_arg_type(arg) == GDEXTENSION_VARIANT_TYPE_OBJECT) {
-                if (*arg.default_value.template get_ptr<GDExtensionObjectPtr>() != nullptr) {
+                if (*arg.default_value.template get_ptr<GDExtensionObjectPtr>()) {
                     // Should never happen
                     ERR_PRINT("could not set non-null object argument default value");
                 }
@@ -233,7 +233,7 @@ static int get_arguments(lua_State *L,
 
 static int luaGD_variant_tostring(lua_State *L) {
     // Special case - freed objects
-    if (LuaStackOp<Object *>::is(L, 1) && LuaStackOp<Object *>::get(L, 1) == nullptr) {
+    if (LuaStackOp<Object *>::is(L, 1) && !LuaStackOp<Object *>::get(L, 1)) {
         lua_pushstring(L, "<Freed Object>");
     } else {
         Variant v = LuaStackOp<Variant>::check(L, 1);
@@ -294,7 +294,7 @@ static void luaGD_poplib(lua_State *L) {
 }
 
 static LuauScriptInstance *get_script_instance(Object *self) {
-    if (self == nullptr)
+    if (!self)
         return nullptr;
 
     Ref<LuauScript> script = self->get_script();
@@ -644,7 +644,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
         if (strcmp(name, "Set") == 0) {
-            if (builtin_class->type != GDEXTENSION_VARIANT_TYPE_DICTIONARY && get_array_type_info(builtin_class->type) == nullptr)
+            if (builtin_class->type != GDEXTENSION_VARIANT_TYPE_DICTIONARY && !get_array_type_info(builtin_class->type))
                 luaGD_readonlyerror(L, builtin_class->name);
 
             LuauVariant self;
@@ -652,7 +652,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
 
             Variant key = LuaStackOp<Variant>::check(L, 2);
 
-            if (builtin_class->indexed_setter != nullptr && key.get_type() == Variant::INT) {
+            if (builtin_class->indexed_setter && key.get_type() == Variant::INT) {
                 // Indexed
                 LuauVariant val;
                 val.lua_check(L, 3, builtin_class->indexing_return_type);
@@ -662,7 +662,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
                 return 0;
             }
 
-            if (builtin_class->keyed_setter != nullptr) {
+            if (builtin_class->keyed_setter) {
                 // Keyed
                 // if the key or val is ever assumed to not be Variant, this will segfault. nice.
                 Variant val = LuaStackOp<Variant>::check(L, 3);
@@ -679,7 +679,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
 
             Variant key = LuaStackOp<Variant>::check(L, 2);
 
-            if (builtin_class->indexed_getter != nullptr && key.get_type() == Variant::INT) {
+            if (builtin_class->indexed_getter && key.get_type() == Variant::INT) {
                 // Indexed
                 LuauVariant ret;
                 ret.initialize(builtin_class->indexing_return_type);
@@ -691,7 +691,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
                 return 1;
             }
 
-            if (builtin_class->keyed_getter != nullptr) {
+            if (builtin_class->keyed_getter) {
                 // Keyed
                 Variant self_var = LuaStackOp<Variant>::check(L, 1);
 
@@ -924,7 +924,7 @@ static int luaGD_class_ctor(lua_State *L) {
     ApiClass *current_class = &classes->ptrw()[class_idx];                  \
                                                                             \
     Object *self = LuaStackOp<Object *>::check(L, 1);                       \
-    if (self == nullptr)                                                    \
+    if (!self)                                                              \
         luaL_error(L, "Object has been freed");
 
 #define INHERIT_OR_BREAK                                             \
@@ -940,7 +940,7 @@ static void handle_object_returned(Object *obj) {
     // we need to decrement the refcount by 1 after pushing to Luau to avoid leak.
     RefCounted *rc = Object::cast_to<RefCounted>(obj);
 
-    if (rc != nullptr)
+    if (rc)
         rc->unreference();
 }
 
@@ -994,7 +994,7 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
             ret.lua_push(L);
 
             // handle ref returned from Godot
-            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT && *ret.get_ptr<GDExtensionObjectPtr>() != nullptr) {
+            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT && *ret.get_ptr<GDExtensionObjectPtr>()) {
                 Object *obj = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(*ret.get_ptr<GDExtensionObjectPtr>()));
                 handle_object_returned(obj);
             }
@@ -1132,7 +1132,7 @@ static int luaGD_class_namecall(lua_State *L) {
 
                 LuauScript *s = inst->get_script().ptr();
 
-                while (s != nullptr) {
+                while (s) {
                     lua_pushstring(L, name);
                     s->def_table_get(udata->vm_type, L);
 
@@ -1228,7 +1228,7 @@ static int luaGD_class_index(lua_State *L) {
     bool attempt_table_get = false;
     LuauScriptInstance *inst = get_script_instance(self);
 
-    if (inst != nullptr) {
+    if (inst) {
         if (const GDClassProperty *prop = inst->get_property(key)) {
             if (prop->setter != StringName() && prop->getter == StringName())
                 luaL_error(L, "property '%s' is write-only", key);
@@ -1297,7 +1297,7 @@ static int luaGD_class_newindex(lua_State *L) {
     bool attempt_table_set = false;
     LuauScriptInstance *inst = get_script_instance(self);
 
-    if (inst != nullptr) {
+    if (inst) {
         if (const GDClassProperty *prop = inst->get_property(key)) {
             if (prop->getter != StringName() && prop->setter == StringName())
                 luaL_error(L, "property '%s' is read-only", key);
@@ -1318,9 +1318,9 @@ static int luaGD_class_newindex(lua_State *L) {
                 luaL_error(L, "failed to set property '%s'; see previous errors for more information", key);
             else
                 luaL_error(L, "failed to set property '%s': unknown error", key); // should never happen
-        } else if (inst->get_signal(key) != nullptr) {
+        } else if (inst->get_signal(key)) {
             SIGNAL_ASSIGN_ERROR;
-        } else if (inst->get_constant(key) != nullptr) {
+        } else if (inst->get_constant(key)) {
             luaL_error(L, "cannot assign to constant '%s'", key);
         } else {
             // object properties should take precedence over arbitrary values
@@ -1361,7 +1361,7 @@ static int luaGD_class_singleton_getter(lua_State *L) {
         luaL_error(L, "singleton getter takes no arguments");
 
     Object *singleton = g_class->try_get_singleton();
-    if (singleton == nullptr)
+    if (!singleton)
         luaL_error(L, "could not get singleton '%s'", g_class->name);
 
     LuaStackOp<Object *>::push(L, singleton);
@@ -1374,7 +1374,7 @@ static int luaGD_class_eq(lua_State *L) {
 
     bool eq = false;
 
-    if (self != nullptr && other != nullptr) {
+    if (self && other) {
         eq = self->get_instance_id() == other->get_instance_id();
     } else {
         eq = self == other;

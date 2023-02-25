@@ -181,7 +181,7 @@ public:
 
     // avoid issues with getting this before method binds are initialized
     _FORCE_INLINE_ GDExtensionMethodBindPtr try_get_method_bind() {
-        if (method != nullptr)
+        if (method)
             return method;
 
         StringName class_sn = class_name;
@@ -242,11 +242,11 @@ public:
 
     // avoid issues with getting singleton before they are initialized
     _FORCE_INLINE_ Object *try_get_singleton() {
-        if (singleton != nullptr)
+        if (singleton)
             return singleton;
 
         GDExtensionObjectPtr singleton_obj = internal::gde_interface->global_get_singleton(&singleton_name);
-        if (singleton_obj == nullptr)
+        if (!singleton_obj)
             return nullptr;
 
         GDObjectInstanceID singleton_id = internal::gde_interface->object_get_instance_id(singleton_obj);

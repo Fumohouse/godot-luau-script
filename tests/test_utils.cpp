@@ -16,7 +16,7 @@ LuauFixture::LuauFixture() {
 }
 
 LuauFixture::~LuauFixture() {
-    if (L != nullptr) {
+    if (L) {
         luaGD_close(L);
         L = nullptr;
     }

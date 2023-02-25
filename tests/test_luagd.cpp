@@ -11,7 +11,7 @@ TEST_CASE("vm: permissions") {
     GDThreadData *udata = luaGD_getthreaddata(L);
 
     SECTION("vm initialized") {
-        REQUIRE(udata != nullptr);
+        REQUIRE(udata);
         REQUIRE(udata->permissions == PERMISSION_INTERNAL);
     }
 
@@ -19,7 +19,7 @@ TEST_CASE("vm: permissions") {
         lua_State *T = lua_newthread(L);
         GDThreadData *thread_udata = luaGD_getthreaddata(T);
 
-        REQUIRE(thread_udata != nullptr);
+        REQUIRE(thread_udata);
         REQUIRE(thread_udata != udata);
         REQUIRE(thread_udata->permissions == PERMISSION_INTERNAL);
 
@@ -30,7 +30,7 @@ TEST_CASE("vm: permissions") {
         lua_State *T = luaGD_newthread(L, PERMISSION_FILE);
         GDThreadData *thread_udata = luaGD_getthreaddata(T);
 
-        REQUIRE(thread_udata != nullptr);
+        REQUIRE(thread_udata);
         REQUIRE(thread_udata != udata);
         REQUIRE(thread_udata->permissions == PERMISSION_FILE);
 

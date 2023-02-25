@@ -54,7 +54,7 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
 }
 
 LuauCache::LuauCache() {
-    if (singleton == nullptr)
+    if (!singleton)
         singleton = this;
 }
 

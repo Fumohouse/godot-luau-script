@@ -98,7 +98,7 @@ bool LuauScript::update_exports_internal(PlaceHolderScriptInstance *p_instance_t
     }
 
     // Step 3: Update placeholder instances
-    if ((changed || p_instance_to_update != nullptr) && placeholders.size() > 0) {
+    if ((changed || p_instance_to_update) && placeholders.size() > 0) {
         List<GDProperty> properties;
         HashMap<StringName, Variant> values;
 
@@ -146,7 +146,7 @@ struct LuauScriptDepSort {
 
         const LuauScript *s = b.ptr();
 
-        while (s != nullptr) {
+        while (s) {
             if (s->has_dependency(a))
                 return true;
 
@@ -280,7 +280,7 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
             const List<Pair<StringName, Variant>> &saved_state = F.value;
 
             Object *obj = ObjectDB::get_instance(F.key);
-            if (obj == nullptr)
+            if (!obj)
                 return;
 
             if (!p_soft_reload) {
@@ -404,7 +404,7 @@ const GDExtensionScriptInstanceInfo PlaceHolderScriptInstance::INSTANCE_INFO = i
 
 bool PlaceHolderScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err) {
     if (script->_is_placeholder_fallback_enabled()) {
-        if (r_err != nullptr)
+        if (r_err)
             *r_err = PROP_NOT_FOUND;
 
         return false;
@@ -441,7 +441,7 @@ bool PlaceHolderScriptInstance::set(const StringName &p_name, const Variant &p_v
         }
     }
 
-    if (r_err != nullptr)
+    if (r_err)
         *r_err = PROP_NOT_FOUND;
 
     return false;
@@ -463,7 +463,7 @@ bool PlaceHolderScriptInstance::get(const StringName &p_name, Variant &r_ret, Pr
         return true;
     }
 
-    if (r_err != nullptr)
+    if (r_err)
         *r_err = PROP_NOT_FOUND;
 
     return false;
@@ -502,20 +502,20 @@ GDExtensionPropertyInfo *PlaceHolderScriptInstance::get_property_list(uint32_t *
 
 Variant::Type PlaceHolderScriptInstance::get_property_type(const StringName &p_name, bool *r_is_valid) const {
     if (values.has(p_name)) {
-        if (r_is_valid != nullptr)
+        if (r_is_valid)
             *r_is_valid = true;
 
         return values[p_name].get_type();
     }
 
     if (constants.has(p_name)) {
-        if (r_is_valid != nullptr)
+        if (r_is_valid)
             *r_is_valid = true;
 
         return constants[p_name].get_type();
     }
 
-    if (r_is_valid != nullptr)
+    if (r_is_valid)
         *r_is_valid = false;
 
     return Variant::NIL;
@@ -626,7 +626,7 @@ void PlaceHolderScriptInstance::update(const List<GDProperty> &p_properties, con
         to_remove.pop_front();
     }
 
-    if (owner != nullptr && script.is_valid() && script->placeholder_has(owner) && script->placeholder_get(owner) == this) {
+    if (owner && script.is_valid() && script->placeholder_has(owner) && script->placeholder_get(owner) == this) {
         owner->notify_property_list_changed();
     }
 

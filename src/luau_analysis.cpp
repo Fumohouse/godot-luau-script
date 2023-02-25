@@ -94,18 +94,18 @@ bool luascript_analyze(const Luau::ParseResult &parse_result, LuauScriptAnalysis
     // Step 1: Scan root return value for definition expression.
     search_stat_return(parse_result.root->body, result.definition);
 
-    if (result.definition == nullptr)
+    if (!result.definition)
         return false;
 
     // Step 2: Find the implementation table, if any.
     LocalDefinitionFinder def_local_def_finder(result.definition);
     parse_result.root->visit(&def_local_def_finder);
-    if (def_local_def_finder.result == nullptr)
+    if (!def_local_def_finder.result)
         return false;
 
     Luau::AstExprCall *chained_call = def_local_def_finder.result->as<Luau::AstExprCall>();
 
-    while (chained_call != nullptr) {
+    while (chained_call) {
         Luau::AstExpr *func = chained_call->func;
 
         if (Luau::AstExprIndexName *index = func->as<Luau::AstExprIndexName>()) {
@@ -122,7 +122,7 @@ bool luascript_analyze(const Luau::ParseResult &parse_result, LuauScriptAnalysis
         }
     }
 
-    if (result.impl == nullptr)
+    if (!result.impl)
         return false;
 
     // Step 3: Find defined methods and types.
@@ -198,7 +198,7 @@ static bool get_prop(Luau::AstTypeReference *type, GDProperty &prop) {
         // TypedArray
         Luau::AstType *param = type->parameters.begin()->type;
 
-        if (param != nullptr) {
+        if (param) {
             if (Luau::AstTypeReference *param_ref = param->as<Luau::AstTypeReference>()) {
                 GDProperty type_info;
                 if (!get_type(param_ref->name.value, type_info))
@@ -242,11 +242,11 @@ static Luau::AstTypeReference *get_type_reference(Luau::AstType *type, bool *was
             if (Luau::AstTypeReference *ref = uni_type->as<Luau::AstTypeReference>()) {
                 if (ref->name == "nil")
                     nil_found = true;
-                else if (first_non_nil_ref == nullptr)
+                else if (!first_non_nil_ref)
                     first_non_nil_ref = ref;
 
-                if (nil_found && first_non_nil_ref != nullptr) {
-                    if (was_conditional != nullptr)
+                if (nil_found && first_non_nil_ref) {
+                    if (was_conditional)
                         *was_conditional = true;
 
                     return first_non_nil_ref;
@@ -278,7 +278,7 @@ bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const String
 
         bool ret_conditional = false;
         Luau::AstTypeReference *ref = get_type_reference(*types.begin(), &ret_conditional);
-        if (ref == nullptr)
+        if (!ref)
             return false;
 
         GDProperty return_val;
@@ -297,11 +297,10 @@ bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const String
     if (func->vararg)
         ret.flags = ret.flags | METHOD_FLAG_VARARG;
 
-    bool has_self = func->self != nullptr;
-    int arg_offset = has_self ? 0 : 1;
+    int arg_offset = func->self ? 0 : 1;
 
     int i = 0;
-    ret.arguments.resize(has_self ? func->args.size : func->args.size - 1);
+    ret.arguments.resize(func->self ? func->args.size : func->args.size - 1);
 
     GDProperty *arg_props = ret.arguments.ptrw();
     for (Luau::AstLocal *arg : func->args) {
@@ -313,11 +312,11 @@ bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const String
         GDProperty arg_prop;
         arg_prop.name = arg->name.value;
 
-        if (arg->annotation == nullptr)
+        if (!arg->annotation)
             return false;
 
         Luau::AstTypeReference *arg_type = get_type_reference(arg->annotation);
-        if (arg_type == nullptr || !get_prop(arg_type, arg_prop))
+        if (!arg_type || !get_prop(arg_type, arg_prop))
             return false;
 
         arg_props[i - arg_offset] = arg_prop;
