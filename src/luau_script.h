@@ -11,7 +11,6 @@
 #include <godot_cpp/classes/script_extension.hpp>
 #include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
-#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
@@ -37,8 +36,6 @@ class ScriptLanguage;
 } //namespace godot
 
 using namespace godot;
-
-#define LUAU_ERR(method, script, line, msg) _err_print_error(method, script->get_path().is_empty() ? "built-in" : script->get_path().utf8().get_data(), line, "Luau Error: " + msg)
 
 class PlaceHolderScriptInstance;
 
@@ -179,6 +176,8 @@ public:
 
     Error load_module(lua_State *L);
     void unload_module();
+
+    void error(const char *p_method, String p_msg, int p_line = 0) const;
 
     LuauScript();
     ~LuauScript();

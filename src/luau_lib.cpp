@@ -658,7 +658,8 @@ static int luascript_classprop_namecall(lua_State *L) {
 // Based on Luau Repl implementation.
 static int finishrequire(lua_State *L) {
     if (lua_isstring(L, -1))
-        lua_error(L);
+        // Avoid lua_error to make sure line numbers are printed correctly
+        luaL_error(L, "%s", lua_tostring(L, -1));
 
     return 1;
 }
@@ -773,8 +774,7 @@ void SignalWaiter::on_signal(const Variant **p_args, GDExtensionInt p_argc, GDEx
 
         if (status != LUA_OK && status != LUA_YIELD) {
             GDThreadData *udata = luaGD_getthreaddata(L);
-            Ref<LuauScript> script = udata->script;
-            LUAU_ERR("SignalWaiter::on_signal", script, 1, LuaStackOp<String>::get(L, -1));
+            udata->script->error("SignalWaiter::on_signal", LuaStackOp<String>::get(L, -1));
 
             lua_pop(L, 1); // error
         }

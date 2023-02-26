@@ -73,8 +73,7 @@ void TaskScheduler::frame(double delta) {
 
             if (status != LUA_OK && status != LUA_YIELD) {
                 GDThreadData *udata = luaGD_getthreaddata(L);
-                Ref<LuauScript> script = udata->script;
-                LUAU_ERR("TaskScheduler::frame", script, 1, LuaStackOp<String>::get(L, -1));
+                udata->script->error("TaskScheduler::frame", LuaStackOp<String>::get(L, -1));
 
                 lua_pop(L, 1); // error
             }
