@@ -10,6 +10,7 @@
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/array.hpp>
+#include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_bindings.h"

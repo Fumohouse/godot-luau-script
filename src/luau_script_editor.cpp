@@ -4,7 +4,6 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/classes/global_constants.hpp>
-#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -24,9 +23,7 @@
 #include "luau_cache.h"
 #include "luau_lib.h"
 
-namespace godot {
-class Object;
-};
+using namespace godot;
 
 // Much of the editor-specific implementations are based heavily on the GDScript implementation
 // (especially placeholder and reloading functionality).

@@ -8,8 +8,8 @@
 #include <godot_cpp/variant/node_path.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
-#include "godot_cpp/variant/variant.hpp"
 #include "luagd.h"
 #include "luagd_stack.h"
 

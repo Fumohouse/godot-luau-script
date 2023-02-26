@@ -1,5 +1,7 @@
 #include "luagd_utils.h"
 
+#include <lua.h>
+
 bool luaGD_getfield(lua_State *L, int index, const char *key) {
     lua_getfield(L, index, key);
 

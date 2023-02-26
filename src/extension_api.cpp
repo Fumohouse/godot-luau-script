@@ -1,7 +1,6 @@
 #include "extension_api.h"
 
 #include <gdextension_interface.h>
-#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>

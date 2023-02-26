@@ -2,7 +2,6 @@
 
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/core/error_macros.hpp>
 
 #include "luau_script.h"
 

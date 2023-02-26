@@ -5,7 +5,6 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
-#include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/classes/wrapped.hpp>
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>

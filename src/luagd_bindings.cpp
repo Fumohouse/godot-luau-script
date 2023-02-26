@@ -3,7 +3,7 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
-#include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/error_macros.hpp>
@@ -17,7 +17,6 @@
 #include <type_traits>
 
 #include "extension_api.h"
-#include "gd_luau.h"
 #include "luagd.h"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_permissions.h"
@@ -27,10 +26,6 @@
 #include "luau_lib.h"
 #include "luau_script.h"
 #include "utils.h"
-
-namespace godot {
-class Object;
-}
 
 /////////////
 // Generic //

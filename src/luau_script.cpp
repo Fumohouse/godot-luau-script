@@ -13,8 +13,8 @@
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/core/error_macros.hpp>
@@ -25,7 +25,6 @@
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
-#include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -44,10 +43,6 @@
 #include "luau_cache.h"
 #include "luau_lib.h"
 #include "utils.h"
-
-namespace godot {
-class Object;
-}
 
 using namespace godot;
 

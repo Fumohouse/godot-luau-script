@@ -7,7 +7,6 @@
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/style_box.hpp>
 #include <godot_cpp/core/memory.hpp>
-#include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 

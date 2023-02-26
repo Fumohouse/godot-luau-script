@@ -10,11 +10,9 @@
 #include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
-#include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/variant.hpp>

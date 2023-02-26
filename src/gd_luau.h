@@ -1,6 +1,5 @@
 #pragma once
 
-#include <lualib.h>
 #include <cstdint>
 
 struct lua_State;

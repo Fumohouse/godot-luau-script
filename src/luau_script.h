@@ -9,7 +9,6 @@
 #include <godot_cpp/classes/resource_format_loader.hpp>
 #include <godot_cpp/classes/resource_format_saver.hpp>
 #include <godot_cpp/classes/script_extension.hpp>
-#include <godot_cpp/classes/script_language.hpp>
 #include <godot_cpp/classes/script_language_extension.hpp>
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -17,6 +16,7 @@
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/self_list.hpp>
+#include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
