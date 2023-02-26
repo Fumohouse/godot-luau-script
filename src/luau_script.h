@@ -288,6 +288,8 @@ public:
 
     BitField<ThreadPermissions> get_permissions() const { return permissions; }
 
+    static LuauScriptInstance *from_object(Object *p_object);
+
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();
 };

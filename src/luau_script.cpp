@@ -1531,6 +1531,17 @@ const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name
 DEF_GETTER(GDMethod, signal, signals)
 DEF_GETTER(Variant, constant, constants)
 
+LuauScriptInstance *LuauScriptInstance::from_object(Object *p_object) {
+    if (!p_object)
+        return nullptr;
+
+    Ref<LuauScript> script = p_object->get_script();
+    if (script.is_valid() && script->_instance_has(p_object))
+        return script->instance_get(p_object);
+
+    return nullptr;
+}
+
 LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type) :
         script(p_script), owner(p_owner), vm_type(p_vm_type) {
     // this usually occurs in _instance_create, but that is marked const for ScriptExtension

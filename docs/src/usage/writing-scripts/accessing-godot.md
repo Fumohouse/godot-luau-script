@@ -39,27 +39,26 @@ Additionally, if an enum name begins with a number after renaming (e.g. `KEY_9` 
 
 ### Variant and Object classes
 
-| Type                          | Godot Access                  | Luau Access                             | GDScript Example        | Luau Example               |
-| ----------------------------- | ----------------------------- | --------------------------------------- | ----------------------- | -------------------------- |
-| Variant constructors          | `<ClassName>`                 | `<ClassName>.new`                       | `Vector3(0, 1, 0)`      | `Vector3.new(0, 1, 0)`     |
-| Object constructors           | `<ClassName>.new`             | *unchanged*                             | `AESContext.new()`      | *unchanged*                |
-| Object singleton              | `<ClassName>`                 | `<ClassName>.GetSingleton()`            |
-| Static methods                | `<ClassName>.<Method>`        | *unchanged*                             | `Vector2.from_angle(x)` | `Vector2.FromAngle(x)`     |
-| Instance methods static call  | *N/A*                         | `<ClassName>.<Method>`                  | *N/A*                   | `Vector2.Dot(v1, v2)`      |
-| Instance methods              | `<Instance>.<Method>`         | `<Instance>:<Method>` *                 | `v1.dot(v2)`            | `v1:Dot(v2)`               |
-| Member/property/signal access | `<Instance>.<Property>`       | *unchanged* **                          | `vector.x`              | *unchanged*                |
-| Keyed/indexed set             | `<Instance>[<Key>] = <Value>` | `<Instance>:Set(<Key>, <Value>)`        | `dictionary["key"] = 1` | `dictionary:Set("key", 1)` |
-| Keyed/indexed get             | `<Instance>[<Key>]`           | `<Instance>:Get(<Key>)`                 | `dictionary["key"]`     | `dictionary:Get("key")`    |
-| Array length                  | `<Array>.size()`              | `<Array>:Size()` OR `#<Array>`          | `array.size()`          | `array:Size()` OR `#array` |
-| Array iteration               | `for item in <Array>:`        | `for index, item in <Array> do` ***     |
-| Dictionary iteration          | `for key in <Dictionary>:`    | `for key, value in <Dictionary> do` *** |
-| Variant type operators        | `<A> <Op> <B>`/`<Unary><A>`   | *unchanged* \*\*\*\*                    | `v1 == v2`              | *unchanged*                |
-| Variant/Object to string      | `str(<Instance>)`             | `tostring(<Instance>)`                  |
+| Type                          | Godot Access                  | Luau Access                            | GDScript Example        | Luau Example               |
+| ----------------------------- | ----------------------------- | -------------------------------------- | ----------------------- | -------------------------- |
+| Variant constructors          | `<ClassName>`                 | `<ClassName>.new`                      | `Vector3(0, 1, 0)`      | `Vector3.new(0, 1, 0)`     |
+| Object constructors           | `<ClassName>.new`             | *unchanged*                            | `AESContext.new()`      | *unchanged*                |
+| Object singleton              | `<ClassName>`                 | `<ClassName>.GetSingleton()`           |
+| Static methods                | `<ClassName>.<Method>`        | *unchanged*                            | `Vector2.from_angle(x)` | `Vector2.FromAngle(x)`     |
+| Instance methods static call  | *N/A*                         | `<ClassName>.<Method>`                 | *N/A*                   | `Vector2.Dot(v1, v2)`      |
+| Instance methods              | `<Instance>.<Method>`         | `<Instance>:<Method>`                  | `v1.dot(v2)`            | `v1:Dot(v2)`               |
+| Member/property/signal access | `<Instance>.<Property>`       | *unchanged* *                          | `vector.x`              | *unchanged*                |
+| Keyed/indexed set             | `<Instance>[<Key>] = <Value>` | `<Instance>:Set(<Key>, <Value>)`       | `dictionary["key"] = 1` | `dictionary:Set("key", 1)` |
+| Keyed/indexed get             | `<Instance>[<Key>]`           | `<Instance>:Get(<Key>)`                | `dictionary["key"]`     | `dictionary:Get("key")`    |
+| Array length                  | `<Array>.size()`              | `<Array>:Size()` OR `#<Array>`         | `array.size()`          | `array:Size()` OR `#array` |
+| Array iteration               | `for item in <Array>:`        | `for index, item in <Array> do` **     |
+| Dictionary iteration          | `for key in <Dictionary>:`    | `for key, value in <Dictionary> do` ** |
+| Variant type operators        | `<A> <Op> <B>`/`<Unary><A>`   | *unchanged* \*\*\*                     | `v1 == v2`              | *unchanged*                |
+| Variant/Object to string      | `str(<Instance>)`             | `tostring(<Instance>)`                 |
 
-*: In contrast to traditional Lua OOP, `v1.Dot(v1, v2)` is not valid. \
-\*\*: Variant type properties (e.g. `Vector2.x`) **cannot be set** because Luau does not support copy on assign (as C++ and GDScript do). You must construct a new object instead. \
-***: Iterators do not support modification during iteration. Doing so may cause errors or for items to be skipped. \
-\*\*\*\*: Some Godot operators are not supported as they do not exist in Luau. Also, `==` comparison is not allowed between two different types in Luau, so these operators do not work.
+*: Variant type properties (e.g. `Vector2.x`) **cannot be set** because Luau does not support copy on assign (as C++ and GDScript do). You must construct a new object instead. \
+**: Iterators do not support modification during iteration. Doing so may cause errors or for items to be skipped. \
+***: Some Godot operators are not supported as they do not exist in Luau. Also, `==` comparison is not allowed between two different types in Luau, so these operators do not work.
 
 ### Odd exceptions
 

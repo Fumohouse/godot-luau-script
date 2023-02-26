@@ -15,7 +15,6 @@
   - [Modules](./usage/writing-scripts/modules.md)
   - [The Task Scheduler](./usage/writing-scripts/task-scheduler.md)
   - [Typechecking and Autocomplete](./usage/writing-scripts/typechecking-autocomplete.md)
-  - [Quirks](./usage/writing-scripts/quirks.md)
 - [Known Issues](./usage/known-issues.md)
 
 # Development

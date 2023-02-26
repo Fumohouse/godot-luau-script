@@ -13,6 +13,7 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_bindings.h"
+#include "luau_script.h"
 #include "utils.h"
 
 using namespace godot;
@@ -106,6 +107,9 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
 
         while (!curr_class.is_empty()) {
             String metatable_name = "Godot.Object." + curr_class;
+            if (!LuauScriptInstance::from_object(value)) {
+                metatable_name = metatable_name + ".Namecall";
+            }
 
             luaL_getmetatable(L, metatable_name.utf8().get_data());
             if (!lua_isnil(L, -1)) {

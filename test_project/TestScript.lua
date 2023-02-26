@@ -29,7 +29,7 @@ function TestClassImpl:_Ready()
 	print(TestModule.testConstant)
 
 	if not Engine.GetSingleton():IsEditorHint() then
-		TestClass.Counter(self)
+		self:Counter()
 
 		-- Exit the test once complete
 		print_rich("[color=green]Tests finished![/color] Exiting...")

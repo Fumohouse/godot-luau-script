@@ -246,8 +246,7 @@ static int luaGD_variant_tostring(lua_State *L) {
 
 static void luaGD_newlib(lua_State *L,
         GDExtensionVariantType variant_type,
-        const char *global_name, const char *mt_name,
-        int class_idx = -1) {
+        const char *global_name, const char *mt_name) {
     luaL_newmetatable(L, mt_name); // instance metatable
     lua_newtable(L); // global table
     lua_createtable(L, 0, 2); // global metatable - assume 2 fields: __classglobal, __index
@@ -271,12 +270,6 @@ static void luaGD_newlib(lua_State *L,
     lua_pushinteger(L, variant_type);
     lua_setfield(L, -4, MT_VARIANT_TYPE);
 
-    // Object type ID
-    if (class_idx >= 0) {
-        lua_pushinteger(L, class_idx);
-        lua_setfield(L, -4, MT_CLASS_TYPE);
-    }
-
     // set global table's metatable
     lua_pushvalue(L, -1);
     lua_setmetatable(L, -3);
@@ -291,18 +284,6 @@ static void luaGD_poplib(lua_State *L) {
     lua_setreadonly(L, -1, true); // global metatable
 
     lua_pop(L, 3);
-}
-
-static LuauScriptInstance *get_script_instance(Object *self) {
-    if (!self)
-        return nullptr;
-
-    Ref<LuauScript> script = self->get_script();
-
-    if (script.is_valid() && script->_instance_has(self))
-        return script->instance_get(self);
-
-    return nullptr;
 }
 
 static ThreadPermissions get_method_permissions(const ApiClass &g_class, const ApiClassMethod &method) {
@@ -515,7 +496,7 @@ static int luaGD_callable_ctor(lua_State *L) {
     const char *method = luaL_checkstring(L, 2);
 
     // Check if instance has method.
-    if (LuauScriptInstance *inst = get_script_instance(obj)) {
+    if (LuauScriptInstance *inst = LuauScriptInstance::from_object(obj)) {
         if (inst->has_method(method)) {
             LuaStackOp<Callable>::push(L, Callable(obj, method));
             return 1;
@@ -1019,6 +1000,8 @@ static void push_class_method(lua_State *L, const ApiClass &g_class, ApiClassMet
     lua_pushcclosure(L, luaGD_class_method, method.debug_name, 2);
 }
 
+#define FREE_NAME "Free"
+#define FREE_DBG_NAME "Godot.Object.Object.Free"
 static int luaGD_class_free(lua_State *L) {
     Object *self = LuaStackOp<Object *>::check(L, 1);
 
@@ -1032,6 +1015,8 @@ static int luaGD_class_free(lua_State *L) {
     return 0;
 }
 
+#define ISA_NAME "IsA"
+#define ISA_DBG_NAME "Godot.Object.Object.IsA"
 static int luaGD_class_isa(lua_State *L) {
     Object *self = LuaStackOp<Object *>::check(L, 1);
 
@@ -1059,6 +1044,7 @@ static int luaGD_class_isa(lua_State *L) {
     }
 }
 
+#define SET_NAME "Set"
 #define SET_DBG_NAME "Godot.Object.Object.Set"
 static int luaGD_class_set(lua_State *L) {
     Object *self = LuaStackOp<Object *>::check(L, 1);
@@ -1075,6 +1061,7 @@ static int luaGD_class_set(lua_State *L) {
     return 0;
 }
 
+#define GET_NAME "Get"
 #define GET_DBG_NAME "Godot.Object.Object.Get"
 static int luaGD_class_get(lua_State *L) {
     Object *self = LuaStackOp<Object *>::check(L, 1);
@@ -1092,109 +1079,13 @@ static int luaGD_class_namecall(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
     if (const char *name = lua_namecallatom(L, nullptr)) {
-        if (LuauScriptInstance *inst = get_script_instance(self)) {
-            GDThreadData *udata = luaGD_getthreaddata(L);
-
-            if (inst->get_vm_type() == udata->vm_type) {
-                // Attempt to call from definition table.
-                int nargs = lua_gettop(L);
-                int nargs_to_send = nargs;
-
-                // Type checking.
-                if (const GDMethod *method = inst->get_method(name)) {
-                    LuauVariant dummy;
-
-                    int args_allowed = method->arguments.size();
-                    int args_default = method->default_arguments.size();
-                    int args_required = args_allowed - args_default;
-
-                    // Sizes and start indices listed like this because it's confusing.
-                    int first_arg_idx = 2;
-                    int last_required_arg_idx = args_required + 1;
-
-                    for (int i = first_arg_idx; i <= last_required_arg_idx; i++) {
-                        const GDProperty &arg = method->arguments[i - first_arg_idx];
-                        dummy.lua_check(L, i, arg.type, arg.class_name);
-                    }
-
-                    int first_default_idx = last_required_arg_idx + 1;
-                    int last_arg_idx = args_allowed + 1;
-
-                    for (int i = first_default_idx; i <= last_arg_idx; i++) {
-                        const GDProperty &arg = method->arguments[i - first_arg_idx];
-
-                        if (i > nargs)
-                            LuaStackOp<Variant>::push(L, method->default_arguments[i - first_default_idx]);
-                        else
-                            dummy.lua_check(L, i, arg.type, arg.class_name);
-                    }
-                }
-
-                LuauScript *s = inst->get_script().ptr();
-
-                while (s) {
-                    lua_pushstring(L, name);
-                    s->def_table_get(udata->vm_type, L);
-
-                    if (lua_isfunction(L, -1)) {
-                        lua_insert(L, 1);
-
-                        // Must re-get nargs in case default arguments were added.
-                        lua_call(L, lua_gettop(L) - 1, LUA_MULTRET);
-
-                        return lua_gettop(L);
-                    }
-
-                    lua_pop(L, 1); // value
-
-                    s = s->get_base().ptr();
-                }
-            }
-
-            if (const GDMethod *method = inst->get_method(name)) {
-                // Attempt to use instance `call` (cross-vm method call).
-                LocalVector<Variant> varargs;
-                LocalVector<const void *> pargs;
-
-                get_arguments<GDMethod, GDProperty>(L, name, &varargs, nullptr, &pargs, *method);
-
-                Variant ret;
-                GDExtensionCallError err;
-                inst->call(name, reinterpret_cast<const Variant *const *>(pargs.ptr()), pargs.size(), &ret, &err);
-
-                // Error should have been sent out when getting arguments, so ignore it.
-
-                LuaStackOp<Variant>::push(L, ret);
-                return 1;
-            }
-
-            {
-                // Attempt to call from instance table.
-                int nargs = lua_gettop(L);
-
-                lua_pushstring(L, name);
-                bool is_valid = inst->table_get(L);
-
-                if (is_valid) {
-                    if (lua_isfunction(L, -1)) {
-                        lua_insert(L, 1);
-                        lua_call(L, nargs, LUA_MULTRET);
-
-                        return lua_gettop(L);
-                    }
-
-                    lua_pop(L, 1); // value
-                }
-            }
-        }
-
-        if (strcmp(name, "Free") == 0) {
+        if (strcmp(name, FREE_NAME) == 0) {
             return luaGD_class_free(L);
-        } else if (strcmp(name, "IsA") == 0) {
+        } else if (strcmp(name, ISA_NAME) == 0) {
             return luaGD_class_isa(L);
-        } else if (strcmp(name, "Set") == 0) {
+        } else if (strcmp(name, SET_NAME) == 0) {
             return luaGD_class_set(L);
-        } else if (strcmp(name, "Get") == 0) {
+        } else if (strcmp(name, GET_NAME) == 0) {
             return luaGD_class_get(L);
         }
 
@@ -1220,16 +1111,64 @@ static int call_property_setget(lua_State *L, const ApiClass &g_class, const Api
     return call_class_method(L, g_class, method);
 }
 
+struct CrossVMMethod {
+    LuauScriptInstance *inst;
+    const GDMethod *method;
+};
+
+STACK_OP_PTR_DEF(CrossVMMethod)
+UDATA_STACK_OP_IMPL(CrossVMMethod, "Luau.CrossVMMethod", DTOR(CrossVMMethod))
+
+static int luaGD_crossvm_call(lua_State *L) {
+    CrossVMMethod m = LuaStackOp<CrossVMMethod>::check(L, 1);
+    lua_remove(L, 1); // To get args
+
+    LocalVector<Variant> varargs;
+    LocalVector<const void *> pargs;
+
+    get_arguments<GDMethod, GDProperty>(L, m.method->name.utf8().get_data(), &varargs, nullptr, &pargs, *m.method);
+
+    Variant ret;
+    GDExtensionCallError err;
+    m.inst->call(m.method->name, reinterpret_cast<const Variant *const *>(pargs.ptr()), pargs.size(), &ret, &err);
+
+    // Error should have been sent out when getting arguments, so ignore it.
+
+    LuaStackOp<Variant>::push(L, ret);
+    return 1;
+}
+
 static int luaGD_class_index(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
     const char *key = luaL_checkstring(L, 2);
 
-    bool attempt_table_get = false;
-    LuauScriptInstance *inst = get_script_instance(self);
+    LuauScriptInstance *inst = LuauScriptInstance::from_object(self);
 
     if (inst) {
-        if (const GDClassProperty *prop = inst->get_property(key)) {
+        GDThreadData *udata = luaGD_getthreaddata(L);
+
+        // Definition table
+        if (inst->get_vm_type() == udata->vm_type) {
+            LuauScript *s = inst->get_script().ptr();
+
+            while (s) {
+                lua_pushstring(L, key);
+                s->def_table_get(udata->vm_type, L);
+
+                if (!lua_isnil(L, -1))
+                    return 1;
+
+                lua_pop(L, 1); // value
+
+                s = s->get_base().ptr();
+            }
+        }
+
+        if (const GDMethod *method = inst->get_method(key)) {
+            LuaStackOp<CrossVMMethod>::push(L, { inst, method });
+            return 1;
+        } else if (const GDClassProperty *prop = inst->get_property(key)) {
             if (prop->setter != StringName() && prop->getter == StringName())
                 luaL_error(L, "property '%s' is write-only", key);
 
@@ -1250,13 +1189,29 @@ static int luaGD_class_index(lua_State *L) {
         } else if (const Variant *constant = inst->get_constant(key)) {
             LuaStackOp<Variant>::push(L, *constant);
             return 1;
-        } else {
-            // object properties should take precedence over arbitrary values
-            attempt_table_get = true;
         }
     }
 
+    if (strcmp(key, FREE_NAME) == 0) {
+        lua_pushcfunction(L, luaGD_class_free, FREE_DBG_NAME);
+        return 1;
+    } else if (strcmp(key, ISA_NAME) == 0) {
+        lua_pushcfunction(L, luaGD_class_isa, ISA_DBG_NAME);
+        return 1;
+    } else if (strcmp(key, SET_NAME) == 0) {
+        lua_pushcfunction(L, luaGD_class_set, SET_DBG_NAME);
+        return 1;
+    } else if (strcmp(key, GET_NAME) == 0) {
+        lua_pushcfunction(L, luaGD_class_get, GET_DBG_NAME);
+        return 1;
+    }
+
     while (true) {
+        if (current_class->methods.has(key)) {
+            push_class_method(L, *current_class, current_class->methods[key]);
+            return 1;
+        }
+
         if (current_class->properties.has(key)) {
             lua_remove(L, 2); // key
 
@@ -1278,11 +1233,10 @@ static int luaGD_class_index(lua_State *L) {
         INHERIT_OR_BREAK
     }
 
-    if (attempt_table_get) {
-        // the key is already on the top of the stack
-        if (inst->table_get(L))
-            return 1;
-    }
+    // Attempt get on internal table.
+    // the key is already on the top of the stack
+    if (inst && inst->table_get(L))
+        return 1;
 
     luaGD_indexerror(L, key, current_class->name);
 }
@@ -1294,8 +1248,7 @@ static int luaGD_class_newindex(lua_State *L) {
 
     const char *key = luaL_checkstring(L, 2);
 
-    bool attempt_table_set = false;
-    LuauScriptInstance *inst = get_script_instance(self);
+    LuauScriptInstance *inst = LuauScriptInstance::from_object(self);
 
     if (inst) {
         if (const GDClassProperty *prop = inst->get_property(key)) {
@@ -1322,9 +1275,6 @@ static int luaGD_class_newindex(lua_State *L) {
             SIGNAL_ASSIGN_ERROR;
         } else if (inst->get_constant(key)) {
             luaL_error(L, "cannot assign to constant '%s'", key);
-        } else {
-            // object properties should take precedence over arbitrary values
-            attempt_table_set = true;
         }
     }
 
@@ -1346,11 +1296,10 @@ static int luaGD_class_newindex(lua_State *L) {
         INHERIT_OR_BREAK
     }
 
-    if (attempt_table_set) {
-        // key and value are already on the top of the stack
-        if (inst->table_set(L))
-            return 0;
-    }
+    // Attempt set on internal table.
+    // key and value are already on the top of the stack
+    if (inst && inst->table_set(L))
+        return 0;
 
     luaGD_indexerror(L, key, current_class->name);
 }
@@ -1394,80 +1343,109 @@ void luaGD_openclasses(lua_State *L) {
     for (int i = 0; i < extension_api.classes.size(); i++) {
         ApiClass &g_class = classes[i];
 
-        luaGD_newlib(L, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name, g_class.metatable_name, i);
+        luaGD_newlib(L, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name, g_class.metatable_name);
+
+        String namecall_mt_name = String(g_class.metatable_name) + ".Namecall";
+        luaL_newmetatable(L, namecall_mt_name.utf8().get_data());
+
+        // Object type ID
+        lua_pushinteger(L, i);
+        lua_setfield(L, -5, MT_CLASS_TYPE);
 
         // Enums
         for (const ApiEnum &class_enum : g_class.enums) {
             push_enum(L, class_enum);
-            lua_setfield(L, -3, class_enum.name);
+            lua_setfield(L, -4, class_enum.name);
         }
 
         // Constants
         for (const ApiConstant &constant : g_class.constants) {
             lua_pushinteger(L, constant.value);
-            lua_setfield(L, -3, constant.name);
+            lua_setfield(L, -4, constant.name);
         }
 
         // Constructor (global .new)
         if (g_class.is_instantiable) {
             lua_pushstring(L, g_class.name);
             lua_pushcclosure(L, luaGD_class_ctor, g_class.constructor_debug_name, 1);
-            lua_setfield(L, -3, "new");
+            lua_setfield(L, -4, "new");
         }
 
         // Methods (__namecall)
         lua_pushinteger(L, i);
         lua_pushlightuserdata(L, &extension_api.classes);
         lua_pushcclosure(L, luaGD_class_namecall, g_class.namecall_debug_name, 2);
-        lua_setfield(L, -4, "__namecall");
+        lua_setfield(L, -2, "__namecall");
 
         // All methods (global table)
         for (KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
             push_class_method(L, g_class, pair.value);
-            lua_setfield(L, -3, pair.value.name);
+            lua_setfield(L, -4, pair.value.name);
         }
 
         for (ApiClassMethod &static_method : g_class.static_methods) {
             push_class_method(L, g_class, static_method);
-            lua_setfield(L, -3, static_method.name);
+            lua_setfield(L, -4, static_method.name);
         }
 
         if (strcmp(g_class.name, "Object") == 0) {
             // Overridden Object methods
 
-#define CUSTOM_OBJ_METHOD(method, name)                        \
-    lua_pushcfunction(L, method, "Godot.Object.Object." name); \
-    lua_setfield(L, -3, name);
+#define CUSTOM_OBJ_METHOD(method, name, dbg_name) \
+    lua_pushcfunction(L, method, dbg_name);       \
+    lua_setfield(L, -4, name);
 
-            CUSTOM_OBJ_METHOD(luaGD_class_free, "Free")
-            CUSTOM_OBJ_METHOD(luaGD_class_isa, "IsA")
-            CUSTOM_OBJ_METHOD(luaGD_class_set, "Set")
-            CUSTOM_OBJ_METHOD(luaGD_class_get, "Get")
+            CUSTOM_OBJ_METHOD(luaGD_class_free, FREE_NAME, FREE_DBG_NAME)
+            CUSTOM_OBJ_METHOD(luaGD_class_isa, ISA_NAME, ISA_DBG_NAME)
+            CUSTOM_OBJ_METHOD(luaGD_class_set, SET_NAME, SET_DBG_NAME)
+            CUSTOM_OBJ_METHOD(luaGD_class_get, GET_NAME, GET_DBG_NAME)
         }
 
         // Properties (__newindex, __index)
         lua_pushinteger(L, i);
         lua_pushlightuserdata(L, &extension_api.classes);
         lua_pushcclosure(L, luaGD_class_newindex, g_class.newindex_debug_name, 2);
-        lua_setfield(L, -4, "__newindex");
+        lua_setfield(L, -5, "__newindex");
 
         lua_pushinteger(L, i);
         lua_pushlightuserdata(L, &extension_api.classes);
         lua_pushcclosure(L, luaGD_class_index, g_class.index_debug_name, 2);
-        lua_setfield(L, -4, "__index");
+        lua_setfield(L, -5, "__index");
 
         // Singleton
         if (!g_class.singleton_name.is_empty()) {
             lua_pushlightuserdata(L, &g_class);
             lua_pushcclosure(L, luaGD_class_singleton_getter, g_class.singleton_getter_debug_name, 1);
-            lua_setfield(L, -3, "GetSingleton");
+            lua_setfield(L, -4, "GetSingleton");
         }
 
         // __eq
         lua_pushcfunction(L, luaGD_class_eq, "Godot.Object.Object.__eq");
-        lua_setfield(L, -4, "__eq");
+        lua_setfield(L, -5, "__eq");
+
+        // Copy main metatable to namecall metatable
+        lua_pushnil(L);
+        while (lua_next(L, -5) != 0) {
+            lua_pushvalue(L, -2);
+            lua_insert(L, -2);
+            lua_settable(L, -4);
+        }
+
+        lua_setreadonly(L, -1, true);
+        lua_pop(L, 1); // script instance metatable
 
         luaGD_poplib(L);
+    }
+
+    // CrossVMMethod
+    {
+        luaL_newmetatable(L, "Luau.CrossVMMethod");
+
+        lua_pushcfunction(L, luaGD_crossvm_call, "Luau.CrossVMMethod.__call");
+        lua_setfield(L, -2, "__call");
+
+        lua_setreadonly(L, -1, true);
+        lua_pop(L, 1);
     }
 }
 
