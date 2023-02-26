@@ -73,6 +73,14 @@ static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause r
     lua_setreadonly(L, -1, true);
 }
 
+#if TOOLS_ENABLED
+#define SET_CALL_STACK(L) LuauLanguage::get_singleton()->set_call_stack(L)
+#define CLEAR_CALL_STACK LuauLanguage::get_singleton()->clear_call_stack()
+#else
+#define SET_CALL_STACK(L)
+#define CLEAR_CALL_STACK
+#endif
+
 /* GETTING ARGUMENTS */
 
 // Getters for argument types
@@ -561,10 +569,14 @@ static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_clas
         Variant ret;
 
         if (method.is_static) {
+            SET_CALL_STACK(L);
             internal::gde_interface->variant_call_static(builtin_class.type, &method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+            CLEAR_CALL_STACK;
         } else {
             Variant self = LuaStackOp<Variant>::check(L, 1);
+            SET_CALL_STACK(L);
             internal::gde_interface->variant_call(&self, &method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+            CLEAR_CALL_STACK;
 
             // HACK: since the value in self is copied,
             // it's necessary to manually assign the changed value back to Luau
@@ -596,12 +608,16 @@ static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_clas
             LuauVariant ret;
             ret.initialize((GDExtensionVariantType)method.return_type);
 
+            SET_CALL_STACK(L);
             method.func(self_ptr, pargs.ptr(), ret.get_opaque_pointer(), pargs.size());
+            CLEAR_CALL_STACK;
 
             ret.lua_push(L);
             return 1;
         } else {
+            SET_CALL_STACK(L);
             method.func(self_ptr, pargs.ptr(), nullptr, pargs.size());
+            CLEAR_CALL_STACK;
             return 0;
         }
     }
@@ -948,7 +964,10 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
     if (method.is_vararg) {
         Variant ret;
         GDExtensionCallError error;
+
+        SET_CALL_STACK(L);
         internal::gde_interface->object_method_bind_call(method_bind, self, pargs.ptr(), pargs.size(), &ret, &error);
+        CLEAR_CALL_STACK;
 
         if (method.return_type.type != -1) {
             LuaStackOp<Variant>::push(L, ret);
@@ -969,7 +988,9 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
             ret_ptr = ret.get_opaque_pointer();
         }
 
+        SET_CALL_STACK(L);
         internal::gde_interface->object_method_bind_ptrcall(method_bind, self, pargs.ptr(), ret_ptr);
+        CLEAR_CALL_STACK;
 
         if (ret.get_type() != -1) {
             ret.lua_push(L);
@@ -1463,13 +1484,17 @@ static int luaGD_utility_function(lua_State *L) {
     int nargs = get_arguments<ApiUtilityFunction, ApiArgumentNoDefault>(L, func->name, &varargs, &args, &pargs, *func);
 
     if (func->return_type == -1) {
+        SET_CALL_STACK(L);
         func->func(nullptr, pargs.ptr(), nargs);
+        CLEAR_CALL_STACK;
         return 0;
     } else {
         LuauVariant ret;
         ret.initialize((GDExtensionVariantType)func->return_type);
 
+        SET_CALL_STACK(L);
         func->func(ret.get_opaque_pointer(), pargs.ptr(), nargs);
+        CLEAR_CALL_STACK;
 
         ret.lua_push(L);
         return 1;

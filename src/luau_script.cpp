@@ -144,7 +144,7 @@ void LuauScript::compile() {
 }
 
 Error LuauScript::try_load(lua_State *L, String *r_err) {
-    String chunkname = "=" + get_path().get_file();
+    String chunkname = "@" + get_path();
 
     if (get_luau_data().bytecode.empty())
         compile();
@@ -1675,6 +1675,7 @@ LuauLanguage *LuauLanguage::singleton = nullptr;
 LuauLanguage::LuauLanguage() {
     singleton = this;
     lock.instantiate();
+    debug.call_lock.instantiate();
 }
 
 LuauLanguage::~LuauLanguage() {

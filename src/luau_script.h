@@ -353,6 +353,21 @@ private:
 
     HashMap<StringName, Variant> global_constants;
 
+    struct DebugInfo {
+        struct StackInfo {
+            String source;
+            String name;
+            int line;
+
+            operator Dictionary() const;
+        };
+
+        Ref<Mutex> call_lock;
+        Vector<StackInfo> call_stack;
+    } debug;
+
+    static bool ar_to_si(lua_Debug &p_ar, DebugInfo::StackInfo &p_si);
+
     bool finalized = false;
     void finalize();
 
@@ -402,6 +417,20 @@ public:
     bool _handles_global_class_type(const String &p_type) const override;
     Dictionary _get_global_class_name(const String &p_path) const override;
 
+    /* DEBUGGER */
+    // String _debug_get_error() const;
+    // int64_t _debug_get_stack_level_count() const;
+    // int64_t _debug_get_stack_level_line(int64_t level) const;
+    // String _debug_get_stack_level_function(int64_t level) const;
+    // Dictionary _debug_get_stack_level_locals(int64_t level, int64_t max_subitems, int64_t max_depth);
+    // Dictionary _debug_get_stack_level_members(int64_t level, int64_t max_subitems, int64_t max_depth);
+    // void *_debug_get_stack_level_instance(int64_t level);
+    // Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth);
+    // String _debug_parse_stack_level_expression(int64_t level, const String &expression, int64_t max_subitems, int64_t max_depth);
+    void set_call_stack(lua_State *L);
+    void clear_call_stack();
+    TypedArray<Dictionary> _debug_get_current_stack_info() override;
+
     /* ???: pure virtual functions which have no clear purpose */
     Error _execute_file(const String &p_path) override;
     bool _has_named_classes() const override;
@@ -436,17 +465,6 @@ public:
     TypedArray<Dictionary> _get_public_functions() const override { return TypedArray<Dictionary>(); }
     Dictionary _get_public_constants() const override { return Dictionary(); }
     TypedArray<Dictionary> _get_public_annotations() const override { return TypedArray<Dictionary>(); }
-
-    // String _debug_get_error() const;
-    // int64_t _debug_get_stack_level_count() const;
-    // int64_t _debug_get_stack_level_line(int64_t level) const;
-    // String _debug_get_stack_level_function(int64_t level) const;
-    // Dictionary _debug_get_stack_level_locals(int64_t level, int64_t max_subitems, int64_t max_depth);
-    // Dictionary _debug_get_stack_level_members(int64_t level, int64_t max_subitems, int64_t max_depth);
-    // void *_debug_get_stack_level_instance(int64_t level);
-    // Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth);
-    // String _debug_parse_stack_level_expression(int64_t level, const String &expression, int64_t max_subitems, int64_t max_depth);
-    TypedArray<Dictionary> _debug_get_current_stack_info() override { return TypedArray<Dictionary>(); }
 
     /*
     // To implement later (or never)
