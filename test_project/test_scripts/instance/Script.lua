@@ -22,7 +22,7 @@ end
 function TestClassImpl._Init(obj, tbl)
     setmetatable(tbl, { __index = testClassIndex })
 
-    tbl._notifHits = 0
+    tbl.notifHits = 0
     tbl.testField = 1
     tbl._testProperty = 3.25
     tbl.customTestPropertyValue = 1.25
@@ -35,7 +35,7 @@ TestClass:RegisterMethod("_Ready")
 
 function TestClassImpl:_Notification(what)
     if what == 42 then
-        self._notifHits += 1
+        self.notifHits += 1
     end
 end
 

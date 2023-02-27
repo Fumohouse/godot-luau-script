@@ -449,8 +449,7 @@ static int luaGD_builtin_ctor(lua_State *L) {
         for (int i = 0; i < nargs; i++) {
             GDExtensionVariantType type = ctor.arguments[i].type;
 
-            if (!LuaStackOp<Variant>::is(L, i + 1) ||
-                    !Utils::variant_types_compatible(LuaStackOp<Variant>::check(L, i + 1).get_type(), (Variant::Type)type)) {
+            if (!LuauVariant::lua_is(L, i + 1, type)) {
                 valid = false;
                 break;
             }

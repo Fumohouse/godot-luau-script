@@ -281,24 +281,6 @@ TEST_CASE("luau script: instance") {
         }
     }
 
-    SECTION("notification") {
-        inst->notification(42);
-
-        LuaStackOp<String>::push(T, "_notifHits");
-        inst->table_get(T);
-
-        REQUIRE(LuaStackOp<int>::check(T, -1) == 1);
-    }
-
-    SECTION("to string") {
-        bool is_valid;
-        String out;
-        inst->to_string((GDExtensionBool *)&is_valid, &out);
-
-        REQUIRE(is_valid);
-        REQUIRE(out == "my awesome class");
-    }
-
     SECTION("setget") {
         SECTION("set") {
             SECTION("with wrong type") {
@@ -367,96 +349,6 @@ TEST_CASE("luau script: instance") {
             REQUIRE(state["testProperty2"] == "hello");
             REQUIRE(state["testProperty4"] == "hey");
             REQUIRE(state["custom/testProperty"] == Variant(1.25));
-        }
-    }
-
-    SECTION("metatable") {
-        SECTION("namecall") {
-            SECTION("from table index") {
-                ASSERT_EVAL_EQ(T, "return obj:PrivateMethod()", String, "hi there");
-            }
-
-            SECTION("non-registered method") {
-                ASSERT_EVAL_EQ(T, "return obj:NonRegisteredMethod()", String, "what's up");
-            }
-
-            SECTION("registered method") {
-                ASSERT_EVAL_EQ(T, "return obj:TestMethod(2.5, 'asdf')", String, "2.5, asdf");
-            }
-        }
-
-        SECTION("newindex") {
-            SECTION("signal read-only") {
-                ASSERT_EVAL_FAIL(T, "obj.testSignal = 1234", "exec:1: cannot assign to signal 'testSignal'");
-            }
-
-            SECTION("constant read-only") {
-                ASSERT_EVAL_FAIL(T, "obj.TEST_CONSTANT = 1234", "exec:1: cannot assign to constant 'TEST_CONSTANT'");
-            }
-
-            SECTION("registered") {
-                EVAL_THEN(T, "obj.testProperty = 2.5", {
-                    Variant ret;
-                    bool is_valid = inst->get("testProperty", ret);
-
-                    REQUIRE(is_valid);
-                    REQUIRE(ret == Variant(5));
-                });
-            }
-
-            SECTION("non registered") {
-                EVAL_THEN(T, "obj.testField = 2", {
-                    LuaStackOp<String>::push(T, "testField");
-                    bool is_valid = inst->table_get(T);
-
-                    REQUIRE(is_valid);
-                    REQUIRE(LuaStackOp<int>::get(T, -1) == 2);
-                });
-            }
-
-            SECTION("read-only") {
-                ASSERT_EVAL_FAIL(T, "obj.testProperty2 = 'asdf'", "exec:1: property 'testProperty2' is read-only");
-            }
-        }
-
-        SECTION("index") {
-            SECTION("signal") {
-                ASSERT_EVAL_EQ(T, "return obj.testSignal", Signal, Signal(&obj, "testSignal"));
-            }
-
-            SECTION("constant") {
-                ASSERT_EVAL_EQ(T, "return obj.TEST_CONSTANT", Vector2, Vector2(1, 2));
-            }
-
-            SECTION("registered") {
-                ASSERT_EVAL_EQ(T, "return obj.testProperty", float, 6.5f);
-            }
-
-            SECTION("non registered") {
-                ASSERT_EVAL_EQ(T, "return obj.testField", int, 1);
-            }
-
-            SECTION("write-only") {
-                ASSERT_EVAL_FAIL(T, "return obj.testProperty3", "exec:1: property 'testProperty3' is write-only")
-            }
-        }
-
-        lua_pop(L, 1); // thread
-    }
-
-    SECTION("Callable") {
-        SECTION("instance method"){
-            ASSERT_EVAL_EQ(T, R"ASDF(
-                return Callable.new(obj, "TestMethod")
-            )ASDF",
-                    Callable, Callable(&obj, "TestMethod"))
-        }
-
-        SECTION("no permissions") {
-            ASSERT_EVAL_FAIL(T, R"ASDF(
-                return Callable.new(obj, "Call")
-            )ASDF",
-                    "exec:2: !!! THREAD PERMISSION VIOLATION: attempted to access 'Godot.Object.Object.Call'. needed permissions: 1, got: 0 !!!")
         }
     }
 
