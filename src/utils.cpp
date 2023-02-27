@@ -50,10 +50,13 @@ String Utils::resource_type_hint(const String &type) {
     return String("{0}/{1}:{2}").format(hint_values);
 }
 
-bool Utils::variant_types_compatible(Variant::Type t1, Variant::Type t2) {
-    return t1 == t2 ||
-            (t1 == Variant::FLOAT && t2 == Variant::INT) ||
-            (t1 == Variant::INT && t2 == Variant::FLOAT) ||
+static bool variant_types_compatible_internal(Variant::Type t1, Variant::Type t2) {
+    return (t1 == Variant::FLOAT && t2 == Variant::INT) ||
             (t1 == Variant::NIL && t2 == Variant::OBJECT) ||
-            (t1 == Variant::OBJECT && t2 == Variant::NIL);
+            (t1 == Variant::STRING && t2 == Variant::NODE_PATH) ||
+            (t1 == Variant::STRING && t2 == Variant::STRING_NAME);
+}
+
+bool Utils::variant_types_compatible(Variant::Type t1, Variant::Type t2) {
+    return t1 == t2 || variant_types_compatible_internal(t1, t2) || variant_types_compatible_internal(t2, t1);
 }

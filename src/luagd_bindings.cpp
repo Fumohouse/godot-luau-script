@@ -25,7 +25,6 @@
 #include "luagd_variant.h"
 #include "luau_lib.h"
 #include "luau_script.h"
-#include "utils.h"
 
 /////////////
 // Generic //
@@ -732,7 +731,7 @@ static int luaGD_builtin_operator(lua_State *L) {
     for (const ApiVariantOperator &op : *operators) {
         if (op.right_type == GDEXTENSION_VARIANT_TYPE_NIL) {
             right_ptr = nullptr;
-        } else if (LuaStackOp<Variant>::is(L, right_idx) && Utils::variant_types_compatible(LuaStackOp<Variant>::check(L, right_idx).get_type(), (Variant::Type)op.right_type)) {
+        } else if (LuauVariant::lua_is(L, right_idx, op.right_type)) {
             right.lua_check(L, right_idx, op.right_type);
             right_ptr = right.get_opaque_pointer();
         } else {
