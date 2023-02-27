@@ -81,21 +81,6 @@ Error LuauScript::load_source_code(const String &p_path) {
     return OK;
 }
 
-#define LUAU_LOAD_RESUME(method, script, TL, L)                              \
-    int status = lua_resume(L, nullptr, 0);                                  \
-                                                                             \
-    if (status == LUA_YIELD) {                                               \
-        script->error(method, "script yielded when loading definition.", 1); \
-                                                                             \
-        lua_pop(TL, 1); /* thread */                                         \
-        return ERR_COMPILATION_FAILED;                                       \
-    } else if (status != LUA_OK) {                                           \
-        script->error(method, LuaStackOp<String>::get(L, -1));               \
-                                                                             \
-        lua_pop(TL, 1); /* thread */                                         \
-        return ERR_COMPILATION_FAILED;                                       \
-    }
-
 void LuauScript::compile() {
     // See Luau Compiler.cpp
     CharString src = source.utf8();
@@ -189,7 +174,17 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
     udata->script = Ref<LuauScript>(this);
 
     if (try_load(T) == OK) {
-        LUAU_LOAD_RESUME(LOAD_DEF_METHOD, this, L, T)
+        int status = lua_resume(T, nullptr, 0);
+
+        if (status == LUA_YIELD || status == LUA_BREAK) {
+            error(LOAD_DEF_METHOD, "script unexpectedly yielded during definition load.", 1);
+            lua_pop(L, 1); // thread
+            return ERR_COMPILATION_FAILED;
+        } else if (status != LUA_OK) {
+            error(LOAD_DEF_METHOD, LuaStackOp<String>::get(T, -1));
+            lua_pop(L, 1); // thread
+            return ERR_COMPILATION_FAILED;
+        }
 
         if (lua_isnil(T, 1) || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
             lua_pop(L, 1); // thread
@@ -530,11 +525,12 @@ void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
     if (p_line > 0) {
         line = p_line;
     } else {
+        // Expect : after res, then 2 more for regular Lua error
         PackedStringArray split = p_msg.split(":");
-        ERR_FAIL_COND_MSG(split.size() < 3, "failed to parse Lua error");
+        ERR_FAIL_COND_MSG(split.size() < 4, "failed to parse Lua error: " + p_msg);
 
-        line = split[1].to_int();
-        p_msg = String(":").join(split.slice(2)).substr(1);
+        line = split[2].to_int();
+        p_msg = String(":").join(split.slice(3)).substr(1);
     }
 
     internal::gde_interface->print_script_error_with_message(
@@ -547,44 +543,47 @@ void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
 }
 
 // Based on Luau Repl implementation.
-Error LuauScript::load_module(lua_State *L) {
-#define LOAD_MODULE_METHOD "LuauScript::load_module"
-
+void LuauScript::load_module(lua_State *L) {
     // Use main thread to avoid inheriting L's environment.
     _is_loading = true;
 
     lua_State *GL = lua_mainthread(L);
     lua_State *ML = lua_newthread(GL);
+    luaL_sandboxthread(ML);
 
     GDThreadData *udata = luaGD_getthreaddata(ML);
     udata->script = Ref<LuauScript>(this);
 
     lua_xmove(GL, L, 1); // thread
 
-    luaL_sandboxthread(ML);
-
     String err;
-
     if (try_load(ML, &err) == OK) {
-        LUAU_LOAD_RESUME(LOAD_MODULE_METHOD, this, L, ML)
+        int status = lua_resume(ML, nullptr, 0);
+
+        if (status == LUA_YIELD || status == LUA_BREAK) {
+            lua_pushstring(L, "module unexpectedly yielded during load.");
+            _is_loading = false;
+            return;
+        } else if (status != LUA_OK) {
+            lua_xmove(ML, L, 1); // error
+            _is_loading = false;
+            return;
+        }
 
         if (lua_gettop(ML) == 0 || (!lua_istable(ML, -1) && !lua_isfunction(L, -1))) {
-#define RET_ERR "module must return a function or table"
-
-            lua_pushstring(L, RET_ERR);
+            lua_pushstring(L, "module must return a function or table.");
             _is_loading = false;
-            error(LOAD_MODULE_METHOD, RET_ERR, 1);
-            return ERR_COMPILATION_FAILED;
+            return;
         }
 
         lua_xmove(ML, L, 1);
         _is_loading = false;
-        return OK;
+        return;
     }
 
     LuaStackOp<String>::push(L, err);
     _is_loading = false;
-    return ERR_COMPILATION_FAILED;
+    return;
 }
 
 LuauScript::LuauScript() :
@@ -1005,24 +1004,17 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                     *r_err = PROP_OK;
 
                 return true;
-            } else if (status == LUA_YIELD) {
-                if (r_err)
-                    *r_err = PROP_SET_FAILED;
-
-                s->error(SET_METHOD, "setter for " + p_name + " yielded unexpectedly", 1);
-                return false;
             } else if (status == -1) {
                 if (r_err)
                     *r_err = PROP_NOT_FOUND;
 
                 s->error(SET_METHOD, "setter for " + p_name + " not found", 1);
-                return false;
             } else {
                 if (r_err)
                     *r_err = PROP_SET_FAILED;
-
-                return false;
             }
+
+            return false;
         }
 
         if (s->methods.has(SET_NAME)) {
@@ -1033,13 +1025,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             int status = call_internal(SET_NAME, ET, 2, 1);
 
             if (status == OK) {
-                if (lua_type(ET, -1) != LUA_TBOOLEAN) {
-                    if (r_err) {
-                        *r_err = PROP_SET_FAILED;
-                    }
-
-                    s->error(SET_METHOD, "expected " SET_NAME " to return a boolean", 1);
-                } else {
+                if (lua_type(ET, -1) == LUA_TBOOLEAN) {
                     bool valid = lua_toboolean(ET, -1);
 
                     if (valid) {
@@ -1050,13 +1036,17 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                         lua_pop(T, 1); // thread
                         return true;
                     }
+                } else {
+                    if (r_err) {
+                        *r_err = PROP_SET_FAILED;
+                    }
+
+                    s->error(SET_METHOD, "expected " SET_NAME " to return a boolean", 1);
                 }
-            } else if (status != -1) {
-                lua_pop(T, 1); // thread
-                return false;
             }
 
             lua_pop(T, 1); // thread
+            return false;
         }
 
         s = s->base.ptr();
@@ -1069,6 +1059,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 }
 
 bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err) {
+#define GET_METHOD "LuauScriptInstance::get"
 #define GET_NAME "_Get"
 
     const LuauScript *s = script.ptr();
@@ -1100,24 +1091,28 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
 
             if (status == LUA_OK) {
                 r_ret = LuaStackOp<Variant>::get(ET, -1);
-                lua_pop(T, 1); // thread
 
                 if (r_err)
                     *r_err = PROP_OK;
 
+                lua_pop(T, 1); // thread
                 return true;
-            } else if (status == -1) {
-                ERR_PRINT("getter for " + p_name + " not found");
+            } else if (status == LUA_YIELD || status == LUA_BREAK) {
+                if (r_err)
+                    *r_err = PROP_GET_FAILED;
 
+                s->error(GET_METHOD, "getter for " + p_name + " yielded unexpectedly", 1);
+            } else if (status == -1) {
                 if (r_err)
                     *r_err = PROP_NOT_FOUND;
+
+                s->error(GET_METHOD, "getter for " + p_name + " not found", 1);
             } else {
                 if (r_err)
                     *r_err = PROP_GET_FAILED;
             }
 
             lua_pop(T, 1); // thread
-
             return false;
         }
 
@@ -1128,13 +1123,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
             int status = call_internal(GET_NAME, ET, 1, 1);
 
             if (status == OK) {
-                if (!LuaStackOp<Variant>::is(ET, -1)) {
-                    if (r_err) {
-                        *r_err = PROP_GET_FAILED;
-                    }
-
-                    s->error("LuauScriptInstance::get", "expected " GET_NAME " to return a Variant", 1);
-                } else {
+                if (LuaStackOp<Variant>::is(ET, -1)) {
                     Variant ret = LuaStackOp<Variant>::get(ET, -1);
 
                     if (ret != Variant()) {
@@ -1146,13 +1135,17 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
                         lua_pop(T, 1); // thread
                         return true;
                     }
+                } else {
+                    if (r_err) {
+                        *r_err = PROP_GET_FAILED;
+                    }
+
+                    s->error("LuauScriptInstance::get", "expected " GET_NAME " to return a Variant", 1);
                 }
-            } else if (status != -1) {
-                lua_pop(T, 1); // thread
-                return false;
             }
 
             lua_pop(T, 1); // thread
+            return false;
         }
 
         s = s->base.ptr();

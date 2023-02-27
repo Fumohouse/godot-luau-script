@@ -174,7 +174,7 @@ public:
     bool is_module() const { return _is_module; }
     bool has_dependency(const Ref<LuauScript> &p_script) const;
 
-    Error load_module(lua_State *L);
+    void load_module(lua_State *L);
     void unload_module();
 
     void error(const char *p_method, String p_msg, int p_line = 0) const;

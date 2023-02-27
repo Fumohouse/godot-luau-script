@@ -713,11 +713,8 @@ int LuauScript::luascript_require(lua_State *L) {
 
     // Load module and return.
     if (script->is_module()) {
-        if (script->load_module(L) != OK) {
-            LuaStackOp<String>::push(L, "failed to load module at " + script->get_path());
-        } else {
-            lua_remove(L, -2); // thread
-        }
+        script->load_module(L);
+        lua_remove(L, -2); // thread
     } else {
         if (udata->vm_type >= GDLuau::VM_MAX) {
             luaL_error(L, "could not get class definition: unknown VM");
