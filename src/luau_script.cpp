@@ -35,6 +35,7 @@
 #include <string>
 #include <utility>
 
+#include "Luau/CodeGen.h"
 #include "gd_luau.h"
 #include "luagd.h"
 #include "luagd_permissions.h"
@@ -147,6 +148,8 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
     const std::string &bytecode = get_luau_data().bytecode;
 
     Error ret = luau_load(L, chunkname.utf8().get_data(), bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
+    if (Luau::CodeGen::isSupported())
+        Luau::CodeGen::compile(L, -1);
 
     if (ret != OK) {
         String err = LuaStackOp<String>::get(L, -1);

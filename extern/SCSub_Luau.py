@@ -12,6 +12,7 @@ luau_includes = [
     "Ast",
     "Compiler",
     "VM",
+    "CodeGen",
 ]
 
 sources = []
@@ -21,6 +22,7 @@ for subdir in luau_includes:
 includes = [luau_dir + subdir + "/include/" for subdir in luau_includes]
 env.Append(CPPPATH=includes)
 env_luau.Append(CPPPATH=includes)
+env_luau.Append(CPPPATH=[luau_dir + subdir + "/src/" for subdir in luau_includes])
 
 lib = env_luau.Library("luau", source=sources)
 env.Append(LIBS=[lib])

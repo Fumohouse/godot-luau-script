@@ -1,5 +1,6 @@
 #include "gd_luau.h"
 
+#include <Luau/CodeGen.h>
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -20,6 +21,9 @@ void GDLuau::init_vm(VMType p_type) {
 
     // Seal main global state
     luaL_sandbox(L);
+
+    if (Luau::CodeGen::isSupported())
+        Luau::CodeGen::create(L);
 
     vms[p_type] = L;
 }

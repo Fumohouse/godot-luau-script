@@ -10,7 +10,7 @@ env.Tool("compilation_db")
 cdb = env.CompilationDatabase()
 Alias("cdb", cdb)
 
-if "TERM" in env["ENV"]:
+if "TERM" in os.environ:
     env["ENV"]["TERM"] = os.environ["TERM"]  # clang colors
 
 # Using this option makes a warning. Too bad!
