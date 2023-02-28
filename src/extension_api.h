@@ -159,7 +159,6 @@ struct ApiClassArgument {
 };
 
 struct ApiClassMethod {
-private:
     GDExtensionMethodBindPtr method = nullptr;
 
 public:
@@ -211,7 +210,6 @@ struct ApiClassProperty {
 };
 
 struct ApiClass {
-private:
     Object *singleton = nullptr;
 
 public:

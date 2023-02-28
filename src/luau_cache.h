@@ -10,7 +10,6 @@ using namespace godot;
 
 // Based on GDScriptCache
 class LuauCache {
-private:
     HashMap<String, Ref<LuauScript>> cache;
 
     static LuauCache *singleton;

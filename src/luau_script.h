@@ -59,7 +59,6 @@ class LuauScript : public ScriptExtension {
     friend class LuauScriptInstance;
     friend class PlaceHolderScriptInstance;
 
-private:
     SelfList<LuauScript> script_list;
 
     Ref<LuauScript> base;
@@ -237,7 +236,6 @@ public:
 };
 
 class LuauScriptInstance : public ScriptInstance {
-private:
     Ref<LuauScript> script;
     Object *owner;
     GDLuau::VMType vm_type;
@@ -297,7 +295,6 @@ public:
 // need to reimplement here because Godot does not expose placeholders to GDExtension.
 // doing this is okay because all Godot functions which request a placeholder instance assign it to a ScriptInstance *
 class PlaceHolderScriptInstance : public ScriptInstance {
-private:
     Object *owner = nullptr;
     Ref<LuauScript> script;
 
@@ -337,7 +334,6 @@ class LuauLanguage : public ScriptLanguageExtension {
     friend class LuauScript;
     friend class LuauScriptInstance;
 
-private:
     // TODO: idk why these are needed, but all the other implementations have them
     Ref<Mutex> lock;
 

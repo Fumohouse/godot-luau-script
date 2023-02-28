@@ -21,7 +21,6 @@ struct lua_State;
 #define STEPSIZE_MAX 10000
 
 class ScheduledTask {
-private:
     int thread_ref;
 
 protected:
@@ -40,7 +39,6 @@ public:
 };
 
 class WaitTask : public ScheduledTask {
-private:
     // usecs
     uint64_t duration;
     uint64_t start_time;
@@ -76,7 +74,6 @@ public:
 };
 
 class WaitSignalTask : public ScheduledTask {
-private:
     Ref<SignalWaiter> waiter;
     uint64_t until_timeout; // usec
 
@@ -92,7 +89,6 @@ public:
 typedef List<Pair<lua_State *, ScheduledTask *>> TaskList;
 
 class TaskScheduler {
-private:
     TaskList tasks;
 
     uint32_t gc_stepsize[GDLuau::VM_MAX] = { STEPSIZE_MIN };

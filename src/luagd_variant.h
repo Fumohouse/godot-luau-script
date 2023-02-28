@@ -16,7 +16,6 @@ struct lua_State;
 
 class LuauVariant
 {
-private:
     int32_t type;
 
     // forces the value to refer to a Luau userdata pointer
