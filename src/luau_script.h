@@ -432,7 +432,6 @@ public:
     TypedArray<Dictionary> _debug_get_current_stack_info() override;
 
     /* ???: pure virtual functions which have no clear purpose */
-    Error _execute_file(const String &p_path) override;
     bool _has_named_classes() const override;
 
     /* UNNEEDED */
@@ -475,12 +474,6 @@ public:
     void _profiling_stop();
     int64_t _profiling_get_accumulated_data(ScriptLanguageExtensionProfilingInfo *info_array, int64_t info_max);
     int64_t _profiling_get_frame_data(ScriptLanguageExtensionProfilingInfo *info_array, int64_t info_max);
-
-    // Seemingly unused by Godot
-    void *_alloc_instance_binding_data(Object *object);
-    void _free_instance_binding_data(void *data);
-    void _refcount_incremented_instance_binding(Object *object);
-    bool _refcount_decremented_instance_binding(Object *object);
     */
 
     bool is_core_script(const String &p_path) const;

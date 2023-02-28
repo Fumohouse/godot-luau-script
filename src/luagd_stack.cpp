@@ -33,9 +33,6 @@ bool luaGD_metatables_match(lua_State *L, int index, const char *metatable_name)
     return result;
 }
 
-// Template specialization is weird!!!
-// This way seems to work fine...
-
 /* BASIC TYPES */
 
 #define BASIC_STACK_OP_IMPL(type, op_name, is_name)                                                              \

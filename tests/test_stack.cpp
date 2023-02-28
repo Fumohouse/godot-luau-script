@@ -2,15 +2,14 @@
 
 #include <lua.h>
 #include <godot_cpp/variant/builtin_types.hpp>
+#include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/transform3d.hpp>
 #include <godot_cpp/variant/vector3.hpp>
 
-#include "godot_cpp/variant/packed_string_array.hpp"
-#include "test_utils.h"
-
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_stack.h"
+#include "test_utils.h"
 
 using namespace godot;
 
@@ -31,7 +30,7 @@ TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
     }
 
     SECTION("string coercion") {
-        SECTION("StringName") {
+        SECTION("StringName"){
             ASSERT_EVAL_EQ(L, "return 'hey'", StringName, StringName("hey"))
         }
 

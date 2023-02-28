@@ -9,10 +9,6 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <new>
 
-namespace godot {
-class Object;
-}
-
 using namespace godot;
 
 template <typename T>

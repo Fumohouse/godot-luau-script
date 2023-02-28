@@ -1870,11 +1870,6 @@ void LuauLanguage::_frame() {
     ticks_usec = new_ticks;
 }
 
-Error LuauLanguage::_execute_file(const String &p_path) {
-    // Unused by Godot; purpose unclear
-    return OK;
-}
-
 bool LuauLanguage::_has_named_classes() const {
     // not true for any of Godot's built in languages. why
     return false;
