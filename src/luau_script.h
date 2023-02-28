@@ -346,7 +346,7 @@ private:
     LuauCache *cache = nullptr;
     TaskScheduler task_scheduler;
 
-    uint64_t ticks_usec;
+    uint64_t ticks_usec = 0;
 
     SelfList<LuauScript>::List script_list;
     HashSet<String> core_scripts;

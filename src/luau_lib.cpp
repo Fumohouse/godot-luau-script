@@ -9,7 +9,6 @@
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/classes/ref.hpp>
-#include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
@@ -26,6 +25,7 @@
 #include "luau_analysis.h"
 #include "luau_cache.h"
 #include "luau_script.h"
+#include "task_scheduler.h"
 #include "utils.h"
 
 using namespace godot;
@@ -742,50 +742,12 @@ static int luascript_wait(lua_State *L) {
     return lua_yield(L, 0);
 }
 
-void SignalWaiter::_bind_methods() {
-    ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "on_signal", &SignalWaiter::on_signal);
-}
-
-void SignalWaiter::initialize(lua_State *L, Signal p_signal) {
-    this->L = L;
-    signal = p_signal;
-
-    signal.connect(callable);
-
-    lua_pushthread(L);
-    thread_ref = lua_ref(L, -1);
-    lua_pop(L, 1); // thread
-}
-
-void SignalWaiter::on_signal(const Variant **p_args, GDExtensionInt p_argc, GDExtensionCallError &r_err) {
-    {
-        LUAU_LOCK(L);
-
-        for (int i = 0; i < p_argc; i++) {
-            LuaStackOp<Variant>::push(L, *p_args[i]);
-        }
-
-        int status = lua_resume(L, nullptr, p_argc);
-
-        if (status != LUA_OK && status != LUA_YIELD) {
-            GDThreadData *udata = luaGD_getthreaddata(L);
-            udata->script->error("SignalWaiter::on_signal", LuaStackOp<String>::get(L, -1));
-
-            lua_pop(L, 1); // error
-        }
-
-        lua_unref(L, thread_ref);
-    }
-
-    signal.disconnect(callable);
-    memdelete(this);
-}
-
 static int luascript_wait_signal(lua_State *L) {
     Signal signal = LuaStackOp<Signal>::check(L, 1);
+    double timeout = luaL_optnumber(L, 2, 10);
 
-    SignalWaiter *waiter = memnew(SignalWaiter);
-    waiter->initialize(L, signal);
+    WaitSignalTask *task = memnew(WaitSignalTask(L, signal, timeout));
+    LuauLanguage::get_singleton()->get_task_scheduler().register_task(L, task);
 
     return lua_yield(L, 0);
 }

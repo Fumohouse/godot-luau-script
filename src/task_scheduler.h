@@ -1,8 +1,12 @@
 #pragma once
 
 #include <cstdint>
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/classes/wrapped.hpp>
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
+#include <godot_cpp/variant/signal.hpp>
 
 #include "gd_luau.h"
 
@@ -20,16 +24,19 @@ class ScheduledTask {
 private:
     int thread_ref;
 
+protected:
+    lua_State *L;
+
 public:
     int get_thread_ref() { return thread_ref; }
 
     virtual bool is_complete() = 0;
-    virtual int num_results() = 0;
+    virtual bool should_resume() { return true; }
     virtual int push_results(lua_State *L) = 0;
     virtual void update(double delta) = 0;
 
     ScheduledTask(lua_State *L);
-    virtual ~ScheduledTask() {}
+    virtual ~ScheduledTask();
 };
 
 class WaitTask : public ScheduledTask {
@@ -41,11 +48,45 @@ private:
 
 public:
     bool is_complete() override;
-    int num_results() override { return 1; }
     int push_results(lua_State *L) override;
     void update(double delta) override;
 
     WaitTask(lua_State *L, double duration_secs);
+};
+
+class SignalWaiter : public RefCounted {
+    GDCLASS(SignalWaiter, RefCounted)
+
+    lua_State *L;
+    Signal signal;
+    Callable callable;
+
+    bool _got_signal = false;
+
+protected:
+    static void _bind_methods();
+
+public:
+    void initialize(lua_State *L, Signal p_signal);
+    void on_signal(const Variant **p_args, GDExtensionInt p_argc, GDExtensionCallError &r_err);
+    bool got_signal() const { return _got_signal; }
+
+    SignalWaiter() :
+            callable(Callable(this, "on_signal")) {}
+};
+
+class WaitSignalTask : public ScheduledTask {
+private:
+    Ref<SignalWaiter> waiter;
+    uint64_t until_timeout; // usec
+
+public:
+    bool is_complete() override;
+    bool should_resume() override;
+    int push_results(lua_State *L) override;
+    void update(double delta) override;
+
+    WaitSignalTask(lua_State *L, Signal signal, double timeout_secs);
 };
 
 typedef List<Pair<lua_State *, ScheduledTask *>> TaskList;

@@ -5,7 +5,6 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
-#include <godot_cpp/classes/wrapped.hpp>
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -102,25 +101,6 @@ struct GDClassDefinition {
 };
 
 STACK_OP_PTR_DEF(GDClassDefinition)
-
-class SignalWaiter : public Object {
-    GDCLASS(SignalWaiter, Object)
-
-    lua_State *L;
-    int thread_ref;
-    Signal signal;
-    Callable callable;
-
-protected:
-    static void _bind_methods();
-
-public:
-    void initialize(lua_State *L, Signal p_signal);
-    void on_signal(const Variant **p_args, GDExtensionInt p_argc, GDExtensionCallError &r_err);
-
-    SignalWaiter() :
-            callable(Callable(this, "on_signal")) {}
-};
 
 void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, LuauScript *&r_script);
 

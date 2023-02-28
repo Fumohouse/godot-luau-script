@@ -13,8 +13,8 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "luagd_variant.h"
-#include "luau_lib.h"
 #include "luau_script.h"
+#include "task_scheduler.h"
 
 #ifdef TESTS_ENABLED
 #include <vector>

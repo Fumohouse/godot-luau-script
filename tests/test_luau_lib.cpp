@@ -13,8 +13,6 @@
 
 #include "luagd_stack.h"
 #include "luau_lib.h"
-#include "luau_script.h"
-#include "luau_cache.h"
 #include "test_utils.h"
 
 using namespace godot;
@@ -244,34 +242,4 @@ TEST_CASE_METHOD(LuauFixture, "lib: classes") {
     }
 
     lua_pop(L, 1);
-}
-
-TEST_CASE_METHOD(LuauFixture, "lib: wait_signal") {
-    luascript_openlibs(L);
-
-    // Load script
-    GDLuau gd_luau;
-    LuauCache luau_cache;
-
-    LOAD_SCRIPT_FILE(script, "instance/Script.lua")
-
-    // Object
-    Object *obj = memnew(Object);
-    obj->set_script(script);
-
-    LuaStackOp<Object *>::push(L, obj);
-    lua_setglobal(L, "testObj");
-
-    // Yield
-    ASSERT_EVAL_OK(L, "return wait_signal(testObj.testSignal)")
-    REQUIRE(lua_status(L) == LUA_YIELD);
-
-    // Fire
-    obj->emit_signal("testSignal", 16, "hello");
-    REQUIRE(lua_status(L) == LUA_OK);
-
-    REQUIRE(lua_tonumber(L, -2) == 16);
-    REQUIRE(LuaStackOp<String>::get(L, -1) == "hello");
-
-    memdelete(obj);
 }

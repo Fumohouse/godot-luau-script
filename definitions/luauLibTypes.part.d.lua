@@ -366,9 +366,10 @@ declare function wait(duration: number): number
 --[[--
     Yields the current thread and waits for the signal to be emitted before resuming.
     @param signal The signal.
-    @return Arguments passed to the signal when it was emitted.
+    @param timeout The number of seconds to wait before timing out (default: 10 seconds).
+    @return The first return value is whether the signal was emitted (true) or timed out (false), and subsequent values are the arguments passed to the signal when it was emitted.
 ]]
-declare function wait_signal<T...>(signal: Signal): T...
+declare function wait_signal<T...>(signal: Signal, timeout: number?): (true, T...) | false
 
 --[[--
     Gets a global constant (e.g. AutoLoad) which was defined in the Godot editor.
