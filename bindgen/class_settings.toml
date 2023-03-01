@@ -13402,9 +13402,6 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 ret_nullable = true #
 
-[GLTFState.methods.GetSkeletonToNode]
-permissions = "INHERIT" #
-
 [GLTFState.methods.GetSkeletons]
 permissions = "INHERIT" #
 
@@ -13484,9 +13481,6 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [GLTFState.methods.SetSceneName]
-permissions = "INHERIT" #
-
-[GLTFState.methods.SetSkeletonToNode]
 permissions = "INHERIT" #
 
 [GLTFState.methods.SetSkeletons]
