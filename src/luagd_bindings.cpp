@@ -751,7 +751,7 @@ static int luaGD_builtin_operator(lua_State *L) {
     luaL_error(L, "no operator matched");
 }
 
-static void luaGD_builtin_unbound(lua_State *L, const char *type_name, const char *metatable_name) {
+static void luaGD_builtin_unbound(lua_State *L, GDExtensionVariantType variant_type, const char *type_name, const char *metatable_name) {
     luaL_newmetatable(L, metatable_name);
 
     lua_pushstring(L, type_name);
@@ -759,6 +759,10 @@ static void luaGD_builtin_unbound(lua_State *L, const char *type_name, const cha
 
     lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
     lua_setfield(L, -2, "__tostring");
+
+    // Variant type ID
+    lua_pushinteger(L, variant_type);
+    lua_setfield(L, -2, MT_VARIANT_TYPE);
 
     lua_setreadonly(L, -1, true);
     lua_pop(L, 1); // metatable
@@ -887,8 +891,8 @@ void luaGD_openbuiltins(lua_State *L) {
     }
 
     // Special cases
-    luaGD_builtin_unbound(L, "StringName", BUILTIN_MT_NAME(StringName));
-    luaGD_builtin_unbound(L, "NodePath", BUILTIN_MT_NAME(NodePath));
+    luaGD_builtin_unbound(L, GDEXTENSION_VARIANT_TYPE_STRING_NAME, "StringName", BUILTIN_MT_NAME(StringName));
+    luaGD_builtin_unbound(L, GDEXTENSION_VARIANT_TYPE_NODE_PATH, "NodePath", BUILTIN_MT_NAME(NodePath));
 }
 
 /////////////
