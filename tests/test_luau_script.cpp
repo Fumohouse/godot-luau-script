@@ -316,7 +316,7 @@ TEST_CASE("luau script: instance") {
 
             Variant val;
             REQUIRE(inst->get("testProperty", val));
-            REQUIRE(val == Variant(7));
+            REQUIRE(val == Variant(7.0));
         }
 
         SECTION("with no getter or setter") {

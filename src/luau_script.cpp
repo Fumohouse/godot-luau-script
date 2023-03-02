@@ -40,6 +40,7 @@
 #include "luagd.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
+#include "luagd_variant.h"
 #include "luau_analysis.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
@@ -898,10 +899,15 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
     const LuauScript *s = script.ptr();
 
     while (s) {
-        LuaStackOp<String>::push(ET, p_method);
-        s->def_table_get(vm_type, ET);
+        if (s->methods.has(p_method)) {
+            LuaStackOp<String>::push(ET, p_method);
+            s->def_table_get(vm_type, ET);
 
-        if (lua_isfunction(ET, -1)) {
+            if (!lua_isfunction(ET, -1)) {
+                lua_pop(ET, 1);
+                return -1;
+            }
+
             lua_insert(ET, -nargs - 1);
 
             LuaStackOp<Object *>::push(ET, owner);
@@ -918,8 +924,6 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
 
             lua_settop(ET, nret);
             return status;
-        } else {
-            lua_pop(ET, 1);
         }
 
         s = s->base.ptr();
@@ -999,7 +1003,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 
             lua_pop(T, 1); // thread
 
-            if (status == LUA_OK) {
+            if (status == LUA_OK || status == LUA_YIELD || status == LUA_BREAK) {
                 if (r_err)
                     *r_err = PROP_OK;
 
@@ -1042,11 +1046,12 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                     }
 
                     s->error(SET_METHOD, "expected " SET_NAME " to return a boolean", 1);
+                    lua_pop(T, 1); // thread
+                    return false;
                 }
             }
 
             lua_pop(T, 1); // thread
-            return false;
         }
 
         s = s->base.ptr();
@@ -1090,7 +1095,22 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
             }
 
             if (status == LUA_OK) {
-                r_ret = LuaStackOp<Variant>::get(ET, -1);
+                if (!LuauVariant::lua_is(ET, -1, prop.property.type)) {
+                    if (r_err)
+                        *r_err = PROP_WRONG_TYPE;
+
+                    s->error(
+                            GET_METHOD,
+                            prop.getter == StringName() ? "table entry for " + p_name + " is the wrong type" : "getter for " + p_name + " returned the wrong type",
+                            1);
+
+                    lua_pop(T, 1); // thread
+                    return false;
+                }
+
+                LuauVariant ret;
+                ret.lua_check(ET, -1, prop.property.type);
+                r_ret = ret.to_variant();
 
                 if (r_err)
                     *r_err = PROP_OK;
@@ -1141,11 +1161,12 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
                     }
 
                     s->error("LuauScriptInstance::get", "expected " GET_NAME " to return a Variant", 1);
+                    lua_pop(T, 1); // thread
+                    return false;
                 }
             }
 
             lua_pop(T, 1); // thread
-            return false;
         }
 
         s = s->base.ptr();

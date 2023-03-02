@@ -218,9 +218,13 @@ struct VariantObjectMethods : public VariantMethods {
     }
 
     bool is(lua_State *L, int idx, const String &type_name) const override {
+        if (!LuaStackOp<Object *>::is(L, idx))
+            return false;
+
         Object *obj = LuaStackOp<Object *>::get(L, idx);
         if (!obj)
-            return false;
+            // Null object
+            return true;
 
         return type_name.is_empty() || obj->is_class(type_name);
     }
