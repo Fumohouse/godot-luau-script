@@ -534,13 +534,16 @@ void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
         p_msg = String(":").join(split.slice(3)).substr(1);
     }
 
-    internal::gde_interface->print_script_error_with_message(
-            "Method/function failed.",
+    // TODO: Switch back to script error when debugger is implemented
+    /*
+    internal::gde_interface->print_script_error(
             p_msg.utf8().get_data(),
             p_method,
             file.utf8().get_data(),
             line,
             false);
+    */
+    _err_print_error(p_method, file.utf8().get_data(), line, p_msg);
 }
 
 // Based on Luau Repl implementation.
