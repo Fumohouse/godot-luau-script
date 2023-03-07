@@ -175,6 +175,7 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
     udata->script = Ref<LuauScript>(this);
 
     if (try_load(T) == OK) {
+        INIT_TIMEOUT(T)
         int status = lua_resume(T, nullptr, 0);
 
         if (status == LUA_YIELD || status == LUA_BREAK) {
@@ -562,6 +563,7 @@ void LuauScript::load_module(lua_State *L) {
 
     String err;
     if (try_load(ML, &err) == OK) {
+        INIT_TIMEOUT(ML)
         int status = lua_resume(ML, nullptr, 0);
 
         if (status == LUA_YIELD || status == LUA_BREAK) {
@@ -916,6 +918,7 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
             LuaStackOp<Object *>::push(ET, owner);
             lua_insert(ET, -nargs - 1);
 
+            INIT_TIMEOUT(ET)
             int status = lua_resume(ET, nullptr, nargs + 1);
 
             if (status != LUA_OK && status != LUA_YIELD) {
@@ -947,6 +950,7 @@ int LuauScriptInstance::protected_table_set(lua_State *L, const Variant &p_key, 
     LuaStackOp<Variant>::push(L, p_key);
     LuaStackOp<Variant>::push(L, p_value);
 
+    INIT_TIMEOUT(L)
     return lua_pcall(L, 3, 0, 0);
 }
 
@@ -961,6 +965,7 @@ int LuauScriptInstance::protected_table_get(lua_State *L, const Variant &p_key) 
     lua_getref(L, table_ref);
     LuaStackOp<Variant>::push(L, p_key);
 
+    INIT_TIMEOUT(L)
     return lua_pcall(L, 2, 1, 0);
 }
 
@@ -1247,6 +1252,7 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
 
                 lua_insert(ET, 1);
 
+                INIT_TIMEOUT(ET)
                 int get_status = lua_pcall(ET, 1, LUA_MULTRET, 0);
                 if (get_status != LUA_OK) {
                     s->error(GET_PROPERTY_LIST_METHOD, LuaStackOp<String>::get(ET, -1));
@@ -1648,6 +1654,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
                 LuaStackOp<Object *>::push(T, p_owner);
                 lua_getref(T, table_ref);
 
+                INIT_TIMEOUT(T)
                 int status = lua_pcall(T, 2, 0, 0);
 
                 if (status == LUA_YIELD) {
@@ -1740,6 +1747,10 @@ void LuauLanguage::_init() {
     discover_core_scripts();
     UtilityFunctions::print_verbose("Done! ", core_scripts.size(), " core scripts discovered.");
     UtilityFunctions::print_verbose("==========================================");
+
+    // TODO: Only if EngineDebugger is active
+    // if (EngineDebugger::get_singleton()->is_active())
+    debug_init();
 }
 
 void LuauLanguage::finalize() {

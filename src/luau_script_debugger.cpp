@@ -5,6 +5,9 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 
+#include "gd_luau.h"
+#include "luagd.h"
+
 LuauLanguage::DebugInfo::StackInfo::operator Dictionary() const {
     Dictionary d;
     d["file"] = source;
@@ -12,6 +15,30 @@ LuauLanguage::DebugInfo::StackInfo::operator Dictionary() const {
     d["line"] = line;
 
     return d;
+}
+
+void LuauLanguage::debug_init() {
+    for (int i = 0; i < GDLuau::VM_MAX; i++) {
+        lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
+        lua_Callbacks *cb = lua_callbacks(L);
+
+        cb->interrupt = LuauLanguage::lua_interrupt;
+    }
+}
+
+#define STR1(x) #x
+#define STR(x) STR1(x)
+
+extern void luaG_pusherror(lua_State *L, const char *error);
+
+void LuauLanguage::lua_interrupt(lua_State *L, int gc) {
+    GDThreadData *udata = luaGD_getthreaddata(L);
+
+    if (udata->interrupt_deadline > 0 && (uint64_t)(lua_clock() * 1e6) > udata->interrupt_deadline) {
+        lua_checkstack(L, 1);
+        luaG_pusherror(L, "thread exceeded maximum execution time (" STR(THREAD_EXECUTION_TIMEOUT) " seconds)");
+        lua_error(L);
+    }
 }
 
 bool LuauLanguage::ar_to_si(lua_Debug &p_ar, DebugInfo::StackInfo &p_si) {

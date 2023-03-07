@@ -18,6 +18,8 @@ struct GDThreadData {
     BitField<ThreadPermissions> permissions = 0;
     Ref<LuauScript> script;
     Ref<Mutex> lock;
+
+    uint64_t interrupt_deadline = 0;
 };
 
 lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> base_permissions);
