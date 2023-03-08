@@ -25859,16 +25859,16 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [ProjectSettings.methods.GetSetting]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [ProjectSettings.methods.GetSettingWithOverride]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [ProjectSettings.methods.GlobalizePath]
 permissions = "INHERIT" #
 
 [ProjectSettings.methods.HasSetting]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [ProjectSettings.methods.LoadResourcePack]
 permissions = "INHERIT" #
