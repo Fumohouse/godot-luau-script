@@ -233,19 +233,19 @@ declare class GDClassProperty
         @param type The name of the type.
         @param isResource Whether the type is the class name of a resource.
     ]]
-    function TypedArray(self, type: string, isResource: boolean?): GDClassProperty
+    function TypedArray(self, type: GDClassDefinition | ClassGlobal): GDClassProperty
 
     --[[--
         Indicates an object property should be constrained to a specific resource type.
         @param type The name of the type.
     ]]
-    function Resource(self, type: string): GDClassProperty
+    function Resource(self, type: GDClassDefinition | ClassGlobal): GDClassProperty
 
     --[[--
         Constrains a NodePath property to specific node types.
         @varargs The names of the types.
     ]]
-    function NodePath(self, ...: string): GDClassProperty
+    function NodePath(self, ...: GDClassDefinition | ClassGlobal): GDClassProperty
 end
 
 declare class GDSignal

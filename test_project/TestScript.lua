@@ -170,15 +170,15 @@ TestClass:RegisterProperty("testColorNoAlpha", Enum.VariantType.COLOR)
 
 -- Array
 TestClass:RegisterProperty("testTypedArray", Enum.VariantType.ARRAY)
-    :TypedArray("RID")
+    :TypedArray(RID)
 
 -- Resource
 TestClass:RegisterProperty("testResource", Enum.VariantType.OBJECT)
-    :Resource("Texture2D")
+    :Resource(Texture2D)
 
 -- NodePath
 TestClass:RegisterProperty("testNodePath", Enum.VariantType.NODE_PATH)
-    :NodePath("Node3D")
+    :NodePath(Node3D)
 
 TestClass:PropertyGroup("")
 

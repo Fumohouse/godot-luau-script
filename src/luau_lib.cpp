@@ -433,7 +433,7 @@ static int luascript_method_namecall(lua_State *L) {
     luaGD_nonamecallatomerror(L);
 }
 
-#define luaGD_hinterror(L, kind, non) luaL_error(L, "cannot set %s hint on non-%s property", kind, non)
+#define luascript_hinterror(L, kind, non) luaL_error(L, "cannot set %s hint on non-%s property", kind, non)
 
 static String luascript_stringhintlist(lua_State *L, int start_index) {
     String hint_string = LuaStackOp<String>::check(L, start_index);
@@ -494,7 +494,7 @@ static int luascript_classprop_namecall(lua_State *L) {
                 hint_values[1] = max;
                 hint_values[2] = step;
             } else {
-                luaGD_hinterror(L, "range", "numeric");
+                luascript_hinterror(L, "range", "numeric");
             }
 
             prop->property.hint = PROPERTY_HINT_RANGE;
@@ -502,7 +502,7 @@ static int luascript_classprop_namecall(lua_State *L) {
         } else if (strcmp(key, "Enum") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING &&
                     prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "enum", "string/integer");
+                luascript_hinterror(L, "enum", "string/integer");
 
             String hint_string = luascript_stringhintlist(L, 2);
 
@@ -510,7 +510,7 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint_string = hint_string;
         } else if (strcmp(key, "Suggestion") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luaGD_hinterror(L, "suggestion", "string");
+                luascript_hinterror(L, "suggestion", "string");
 
             String hint_string = luascript_stringhintlist(L, 2);
 
@@ -518,7 +518,7 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint_string = hint_string;
         } else if (strcmp(key, "Flags") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "flags", "integer");
+                luascript_hinterror(L, "flags", "integer");
 
             String hint_string = luascript_stringhintlist(L, 2);
 
@@ -526,7 +526,7 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint_string = hint_string;
         } else if (strcmp(key, "File") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luaGD_hinterror(L, "file", "string");
+                luascript_hinterror(L, "file", "string");
 
             bool is_global = luaL_optboolean(L, 2, false);
 
@@ -536,7 +536,7 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint = is_global ? PROPERTY_HINT_GLOBAL_FILE : PROPERTY_HINT_FILE;
         } else if (strcmp(key, "Dir") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luaGD_hinterror(L, "directory", "string");
+                luascript_hinterror(L, "directory", "string");
 
             bool is_global = luaL_optboolean(L, 2, false);
 
@@ -544,13 +544,13 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint_string = String();
         } else if (strcmp(key, "Multiline") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luaGD_hinterror(L, "multiline text", "string");
+                luascript_hinterror(L, "multiline text", "string");
 
             prop->property.hint = PROPERTY_HINT_MULTILINE_TEXT;
             prop->property.hint_string = String();
         } else if (strcmp(key, "TextPlaceholder") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luaGD_hinterror(L, "placeholder text", "string");
+                luascript_hinterror(L, "placeholder text", "string");
 
             String placeholder = LuaStackOp<String>::check(L, 2);
 
@@ -558,43 +558,43 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint_string = placeholder;
         } else if (strcmp(key, "Flags2DRenderLayers") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "2D render layers", "integer");
+                luascript_hinterror(L, "2D render layers", "integer");
 
             prop->property.hint = PROPERTY_HINT_LAYERS_2D_RENDER;
             prop->property.hint_string = String();
         } else if (strcmp(key, "Flags2DPhysicsLayers") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "2D physics layers", "integer");
+                luascript_hinterror(L, "2D physics layers", "integer");
 
             prop->property.hint = PROPERTY_HINT_LAYERS_2D_PHYSICS;
             prop->property.hint_string = String();
         } else if (strcmp(key, "Flags2DNavigationLayers") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "2D navigation layers", "integer");
+                luascript_hinterror(L, "2D navigation layers", "integer");
 
             prop->property.hint = PROPERTY_HINT_LAYERS_2D_NAVIGATION;
             prop->property.hint_string = String();
         } else if (strcmp(key, "Flags3DRenderLayers") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "3D render layers", "integer");
+                luascript_hinterror(L, "3D render layers", "integer");
 
             prop->property.hint = PROPERTY_HINT_LAYERS_3D_RENDER;
             prop->property.hint_string = String();
         } else if (strcmp(key, "Flags3DPhysicsLayers") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "3D physics layers", "integer");
+                luascript_hinterror(L, "3D physics layers", "integer");
 
             prop->property.hint = PROPERTY_HINT_LAYERS_3D_PHYSICS;
             prop->property.hint_string = String();
         } else if (strcmp(key, "Flags3DNavigationLayers") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luaGD_hinterror(L, "3D navigation layers", "integer");
+                luascript_hinterror(L, "3D navigation layers", "integer");
 
             prop->property.hint = PROPERTY_HINT_LAYERS_3D_NAVIGATION;
             prop->property.hint_string = String();
         } else if (strcmp(key, "ExpEasing") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_FLOAT)
-                luaGD_hinterror(L, "exp easing", "float");
+                luascript_hinterror(L, "exp easing", "float");
 
             const char *hint_string = luaL_optstring(L, 2, "");
             if (strcmp(hint_string, "") != 0 &&
@@ -606,16 +606,23 @@ static int luascript_classprop_namecall(lua_State *L) {
             prop->property.hint_string = hint_string;
         } else if (strcmp(key, "NoAlpha") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_COLOR)
-                luaGD_hinterror(L, "no alpha", "color");
+                luascript_hinterror(L, "no alpha", "color");
 
             prop->property.hint = PROPERTY_HINT_COLOR_NO_ALPHA;
             prop->property.hint_string = String();
         } else if (strcmp(key, "TypedArray") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_ARRAY)
-                luaGD_hinterror(L, "typed array", "array");
+                luascript_hinterror(L, "typed array", "array");
 
-            const char *type = luaL_checkstring(L, 2);
-            bool is_resource = luaL_optboolean(L, 3, false);
+            LuauScript *script = nullptr;
+            String type = luascript_get_scriptname_or_type(L, 2, &script);
+
+            bool is_resource = false;
+            if (script) {
+                is_resource = Utils::is_parent_class(script->_get_instance_base_type(), "Resource");
+            } else if (Utils::class_exists(type)) {
+                is_resource = Utils::is_parent_class(type, "Resource");
+            }
 
             prop->property.hint = PROPERTY_HINT_ARRAY_TYPE;
 
@@ -626,17 +633,29 @@ static int luascript_classprop_namecall(lua_State *L) {
             }
         } else if (strcmp(key, "Resource") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_OBJECT)
-                luaGD_hinterror(L, "resource type", "object");
+                luascript_hinterror(L, "resource type", "object");
 
-            const char *type = luaL_checkstring(L, 2);
+            String type = luascript_get_scriptname_or_type(L, 2);
 
             prop->property.hint = PROPERTY_HINT_RESOURCE_TYPE;
             prop->property.hint_string = type;
         } else if (strcmp(key, "NodePath") == 0) {
             if (prop->property.type != GDEXTENSION_VARIANT_TYPE_NODE_PATH)
-                luaGD_hinterror(L, "node path valid types", "node path");
+                luascript_hinterror(L, "node path valid types", "node path");
 
-            String hint_string = luascript_stringhintlist(L, 2);
+            int top = lua_gettop(L);
+            if (top < 2)
+                luaL_error(L, "NodePath requires at least one type");
+
+            String hint_string;
+
+            for (int i = 2; i <= top; i++) {
+                String type = luascript_get_scriptname_or_type(L, i);
+                hint_string += type;
+
+                if (i != top)
+                    hint_string += ", ";
+            }
 
             prop->property.hint = PROPERTY_HINT_NODE_PATH_VALID_TYPES;
             prop->property.hint_string = hint_string;
@@ -800,6 +819,27 @@ void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, Lua
     } else {
         luaL_typeerrorL(L, index, "GDClassDefinition or ClassGlobal");
     }
+}
+
+String luascript_get_scriptname_or_type(lua_State *L, int index, LuauScript **r_script) {
+    String type;
+    LuauScript *script = nullptr;
+    luascript_get_classdef_or_type(L, index, type, script);
+
+    if (!type.is_empty()) {
+        return type;
+    }
+
+    type = script->get_definition().name;
+
+    if (type.is_empty()) {
+        luaL_error(L, "could not determine script name from script at %s; did you name it?", script->get_path().utf8().get_data());
+    }
+
+    if (r_script)
+        *r_script = script;
+
+    return type;
 }
 
 void luascript_openlibs(lua_State *L) {
