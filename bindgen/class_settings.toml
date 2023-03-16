@@ -11010,6 +11010,7 @@ permissions = "INHERIT" #
 #############################
 
 [Engine]
+#* CORRECT: 4.0-stable
 inherits = "Object"
 default_permissions = "INTERNAL" #
 
@@ -11019,82 +11020,83 @@ default_permissions = "INTERNAL" #
 permissions = "INHERIT" #
 
 [Engine.methods.GetAuthorInfo]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetCopyrightInfo]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetDonorInfo]
-permissions = "INHERIT" #
+permissions = "BASE"
 
+# Hiding frame information is essentially useless because framerate can be derived from _Process execution, etc.
 [Engine.methods.GetFramesDrawn]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetFramesPerSecond]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetLicenseInfo]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetLicenseText]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetMainLoop]
-permissions = "INHERIT" #
-ret_nullable = true #
+permissions = "BASE"
+ret_nullable = false #* 4.0-stable: Basically never null
 
 [Engine.methods.GetMaxFps]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetMaxPhysicsStepsPerFrame]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetPhysicsFrames]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetPhysicsInterpolationFraction]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetPhysicsJitterFix]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetPhysicsTicksPerSecond]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetProcessFrames]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetScriptLanguage]
-permissions = "INHERIT" #
+permissions = "BASE"
 ret_nullable = true #
 
 [Engine.methods.GetScriptLanguageCount]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetSingleton]
-permissions = "INHERIT" #
+permissions = "BASE"
 ret_nullable = true #
 
 [Engine.methods.GetSingletonList]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetTimeScale]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetVersionInfo]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.GetWriteMoviePath]
 permissions = "INHERIT" #
 
 [Engine.methods.HasSingleton]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.IsEditorHint]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.IsInPhysicsFrame]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [Engine.methods.IsPrintingErrorMessages]
 permissions = "INHERIT" #
@@ -30183,6 +30185,7 @@ permissions = "INHERIT" #
 #############################
 
 [SceneTree]
+#* CORRECT: 4.0-stable
 inherits = "MainLoop"
 default_permissions = "INTERNAL" #
 
@@ -30201,47 +30204,48 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [SceneTree.methods.CreateTimer]
-permissions = "INHERIT" #
-ret_nullable = true #
+permissions = "BASE"
+ret_nullable = false #* 4.0-stabe: Never null
 
 [SceneTree.methods.CreateTween]
-permissions = "INHERIT" #
+permissions = "BASE"
 ret_nullable = false #* 4.0-rc3: Never null
 
 [SceneTree.methods.GetCurrentScene]
-permissions = "INHERIT" #
+permissions = "BASE"
 ret_nullable = true #
 
 [SceneTree.methods.GetEditedSceneRoot]
-permissions = "INHERIT" #
+permissions = "BASE"
 ret_nullable = true #
 
 [SceneTree.methods.GetFirstNodeInGroup]
-permissions = "INHERIT" #
+permissions = "BASE"
 ret_nullable = true #
 
+# On frame information: See Engine
 [SceneTree.methods.GetFrame]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [SceneTree.methods.GetMultiplayer]
-permissions = "INHERIT" #
+permissions = "BASE"
 ret_nullable = true #
 
 [SceneTree.methods.GetNodeCount]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [SceneTree.methods.GetNodesInGroup]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [SceneTree.methods.GetProcessedTweens]
 permissions = "INHERIT" #
 
 [SceneTree.methods.GetRoot]
-permissions = "INHERIT" #
+permissions = "BASE" #
 ret_nullable = false #* 4.0-rc2: Essentially not possible
 
 [SceneTree.methods.HasGroup]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [SceneTree.methods.IsAutoAcceptQuit]
 permissions = "INHERIT" #
@@ -30259,7 +30263,7 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [SceneTree.methods.IsPaused]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [SceneTree.methods.IsQuitOnGoBack]
 permissions = "INHERIT" #
