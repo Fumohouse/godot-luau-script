@@ -521,16 +521,18 @@ bool LuauScript::has_dependency(const Ref<LuauScript> &p_script) const {
 }
 
 void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
-    String file = get_path().is_empty() ? "built-in" : get_path();
-
+    String file;
     int line;
+
     if (p_line > 0) {
+        file = get_path().is_empty() ? "built-in" : get_path();
         line = p_line;
     } else {
         // Expect : after res, then 2 more for regular Lua error
         PackedStringArray split = p_msg.split(":");
         ERR_FAIL_COND_MSG(split.size() < 4, "failed to parse Lua error: " + p_msg);
 
+        file = String(":").join(split.slice(0, 2));
         line = split[2].to_int();
         p_msg = String(":").join(split.slice(3)).substr(1);
     }
