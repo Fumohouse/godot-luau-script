@@ -400,6 +400,7 @@ public:
 
     PackedStringArray _get_reserved_words() const override;
     bool _is_control_flow_keyword(const String &p_keyword) const override;
+    String _validate_path(const String &p_path) const override { return ""; }
 
     PackedStringArray _get_comment_delimiters() const override;
     PackedStringArray _get_string_delimiters() const override;
@@ -473,9 +474,6 @@ public:
     TypedArray<Dictionary> _get_public_annotations() const override { return TypedArray<Dictionary>(); }
 
     /*
-    // To implement later (or never)
-    String _validate_path(const String &path) const; // used by C# only to prevent naming class to keyword. probably not super necessary
-
     // Profiler
     void _profiling_start();
     void _profiling_stop();
