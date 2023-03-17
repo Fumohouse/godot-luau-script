@@ -22,22 +22,28 @@ def get_luau_type(type_string, api, is_ret=False, is_obj_nullable=True):
         return f"TypedArray<{get_luau_type(array_type_name, api)}>"
 
     enum_name = None
+    is_bitfield = False
 
     if type_string.startswith(constants.enum_prefix):
         enum_name = type_string[len(constants.enum_prefix):]
 
     if type_string.startswith(constants.bitfield_prefix):
+        is_bitfield = True
         enum_name = type_string[len(constants.bitfield_prefix):]
 
     if enum_name:
         if enum_name == "Variant.Type":
             return "EnumVariantType"
 
-        if enum_name.find(".") == -1:
-            return "Enum" + enum_name
+        enum_type_name = None
 
-        enum_segments = enum_name.split(".")
-        return f"ClassEnum{enum_segments[0]}_{enum_segments[1]}"
+        if enum_name.find(".") == -1:
+            enum_type_name = "Enum" + enum_name
+        else:
+            enum_segments = enum_name.split(".")
+            enum_type_name = f"ClassEnum{enum_segments[0]}_{enum_segments[1]}"
+
+        return enum_type_name + " | number" if is_bitfield else enum_type_name
 
     if is_obj_nullable and type_string in [c["name"] for c in api["classes"]]:
         type_string = type_string + "?"
@@ -128,7 +134,10 @@ def generate_enum(src, enum, class_name=""):
         type_name = f"ClassEnum{class_name}_{name}"
 
     # Item class
-    src.append(f"export type {type_name} = number\n")
+    src.append(f"""\
+declare class {type_name}T end
+export type {type_name} = {type_name}T & number
+""")
 
     # Enum type
     internal_type_name = type_name + "_INTERNAL"
