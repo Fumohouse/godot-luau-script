@@ -710,7 +710,7 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
                 generate_class_type(io, t, classes)
 
             setter_luau, getter_luau, setter_not_found, getter_not_found = utils.get_property_setget(
-                prop, g_class)
+                prop, g_class, classes)
 
             if setter_not_found:
                 setter = prop["setter"]

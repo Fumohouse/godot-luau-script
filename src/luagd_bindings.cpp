@@ -473,7 +473,7 @@ static int luaGD_builtin_ctor(lua_State *L) {
 }
 
 static int luaGD_callable_ctor(lua_State *L) {
-    const Vector<ApiClass> *classes = luaGD_lightudataup<Vector<ApiClass>>(L, 1);
+    const Vector<ApiClass> &classes = get_extension_api().classes;
 
     int class_idx = -1;
 
@@ -506,17 +506,17 @@ static int luaGD_callable_ctor(lua_State *L) {
 
     // Check if class or its parents have method.
     while (class_idx != -1) {
-        const ApiClass *g_class = &classes->get(class_idx);
+        const ApiClass &g_class = classes.get(class_idx);
 
-        HashMap<String, ApiClassMethod>::ConstIterator E = g_class->methods.find(method);
+        HashMap<String, ApiClassMethod>::ConstIterator E = g_class.methods.find(method);
         if (E) {
-            luaGD_checkpermissions(L, E->value.debug_name, get_method_permissions(*g_class, E->value));
+            luaGD_checkpermissions(L, E->value.debug_name, get_method_permissions(g_class, E->value));
 
             LuaStackOp<Callable>::push(L, Callable(obj, E->value.gd_name));
             return 1;
         }
 
-        class_idx = g_class->parent_idx;
+        class_idx = g_class.parent_idx;
     }
 
     luaGD_nomethoderror(L, method, "this object");
@@ -790,8 +790,7 @@ void luaGD_openbuiltins(lua_State *L) {
 
         // Constructors (global .new)
         if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_CALLABLE) { // Special case for Callable security
-            lua_pushlightuserdata(L, (void *)&extension_api.classes);
-            lua_pushcclosure(L, luaGD_callable_ctor, "Callable.new", 1);
+            lua_pushcfunction(L, luaGD_callable_ctor, "Callable.new");
             lua_setfield(L, -3, "new");
         } else {
             lua_pushlightuserdata(L, (void *)&builtin_class);
@@ -911,20 +910,19 @@ static int luaGD_class_ctor(lua_State *L) {
     return 1;
 }
 
-#define LUAGD_CLASS_METAMETHOD                                              \
-    int class_idx = lua_tointeger(L, lua_upvalueindex(1));                  \
-    Vector<ApiClass> *classes = luaGD_lightudataup<Vector<ApiClass>>(L, 2); \
-                                                                            \
-    ApiClass *current_class = &classes->ptrw()[class_idx];                  \
-                                                                            \
-    Object *self = LuaStackOp<Object *>::check(L, 1);                       \
-    if (!self)                                                              \
+#define LUAGD_CLASS_METAMETHOD                               \
+    int class_idx = lua_tointeger(L, lua_upvalueindex(1));   \
+    Vector<ApiClass> &classes = get_extension_api().classes; \
+    ApiClass *current_class = &classes.ptrw()[class_idx];    \
+                                                             \
+    Object *self = LuaStackOp<Object *>::check(L, 1);        \
+    if (!self)                                               \
         luaL_error(L, "Object has been freed");
 
-#define INHERIT_OR_BREAK                                             \
-    if (current_class->parent_idx >= 0)                              \
-        current_class = &classes->ptrw()[current_class->parent_idx]; \
-    else                                                             \
+#define INHERIT_OR_BREAK                                            \
+    if (current_class->parent_idx >= 0)                             \
+        current_class = &classes.ptrw()[current_class->parent_idx]; \
+    else                                                            \
         break;
 
 static void handle_object_returned(Object *obj) {
@@ -1120,13 +1118,25 @@ static int luaGD_class_namecall(lua_State *L) {
     luaGD_nonamecallatomerror(L);
 }
 
-static int call_property_setget(lua_State *L, const ApiClass &g_class, const ApiClassProperty &property, ApiClassMethod &method) {
+static int call_property_setget(lua_State *L, int class_idx, const ApiClassProperty &property, const String &method) {
     if (property.index != -1) {
         lua_pushinteger(L, property.index);
         lua_insert(L, 2);
     }
 
-    return call_class_method(L, g_class, method);
+    Vector<ApiClass> &classes = get_extension_api().classes;
+
+    while (class_idx != -1) {
+        ApiClass &current_class = classes.ptrw()[class_idx];
+        HashMap<String, ApiClassMethod>::Iterator E = current_class.methods.find(method);
+        if (E) {
+            return call_class_method(L, current_class, E->value);
+        }
+
+        class_idx = current_class.parent_idx;
+    }
+
+    luaL_error(L, "setter/getter '%s' was not found", method.utf8().get_data());
 }
 
 struct CrossVMMethod {
@@ -1225,26 +1235,28 @@ static int luaGD_class_index(lua_State *L) {
     }
 
     while (true) {
-        if (current_class->methods.has(key)) {
-            push_class_method(L, *current_class, current_class->methods[key]);
+        HashMap<String, ApiClassMethod>::Iterator E = current_class->methods.find(key);
+
+        if (E) {
+            push_class_method(L, *current_class, E->value);
             return 1;
         }
 
-        if (current_class->properties.has(key)) {
+        HashMap<String, ApiClassProperty>::ConstIterator F = current_class->properties.find(key);
+
+        if (F) {
             lua_remove(L, 2); // key
 
-            const ApiClassProperty &prop = current_class->properties[key];
-
-            if (prop.getter == "")
+            if (F->value.getter == "")
                 luaL_error(L, "property '%s' is write-only", key);
 
-            return call_property_setget(L, *current_class, prop, current_class->methods[prop.getter]);
+            return call_property_setget(L, class_idx, F->value, F->value.getter);
         }
 
-        HashMap<String, ApiClassSignal>::ConstIterator E = current_class->signals.find(key);
+        HashMap<String, ApiClassSignal>::ConstIterator G = current_class->signals.find(key);
 
-        if (E) {
-            LuaStackOp<Signal>::push(L, Signal(self, E->value.gd_name));
+        if (G) {
+            LuaStackOp<Signal>::push(L, Signal(self, G->value.gd_name));
             return 1;
         }
 
@@ -1297,15 +1309,15 @@ static int luaGD_class_newindex(lua_State *L) {
     }
 
     while (true) {
-        if (current_class->properties.has(key)) {
+        HashMap<String, ApiClassProperty>::ConstIterator E = current_class->properties.find(key);
+
+        if (E) {
             lua_remove(L, 2); // key
 
-            const ApiClassProperty &prop = current_class->properties[key];
-
-            if (prop.setter == "")
+            if (E->value.setter == "")
                 luaL_error(L, "property '%s' is read-only", key);
 
-            return call_property_setget(L, *current_class, prop, current_class->methods[prop.setter]);
+            return call_property_setget(L, class_idx, E->value, E->value.setter);
         }
 
         if (current_class->signals.has(key))
@@ -1391,8 +1403,7 @@ void luaGD_openclasses(lua_State *L) {
 
         // Methods (__namecall)
         lua_pushinteger(L, i);
-        lua_pushlightuserdata(L, &extension_api.classes);
-        lua_pushcclosure(L, luaGD_class_namecall, g_class.namecall_debug_name, 2);
+        lua_pushcclosure(L, luaGD_class_namecall, g_class.namecall_debug_name, 1);
         lua_setfield(L, -2, "__namecall");
 
         // All methods (global table)
@@ -1421,13 +1432,11 @@ void luaGD_openclasses(lua_State *L) {
 
         // Properties (__newindex, __index)
         lua_pushinteger(L, i);
-        lua_pushlightuserdata(L, &extension_api.classes);
-        lua_pushcclosure(L, luaGD_class_newindex, g_class.newindex_debug_name, 2);
+        lua_pushcclosure(L, luaGD_class_newindex, g_class.newindex_debug_name, 1);
         lua_setfield(L, -5, "__newindex");
 
         lua_pushinteger(L, i);
-        lua_pushlightuserdata(L, &extension_api.classes);
-        lua_pushcclosure(L, luaGD_class_index, g_class.index_debug_name, 2);
+        lua_pushcclosure(L, luaGD_class_index, g_class.index_debug_name, 1);
         lua_setfield(L, -5, "__index");
 
         // Singleton

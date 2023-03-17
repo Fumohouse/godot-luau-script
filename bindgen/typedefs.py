@@ -314,7 +314,7 @@ function Free(self)\
     # Properties
     if "properties" in g_class:
         for prop in g_class["properties"]:
-            setter_luau, getter_luau, _, _ = utils.get_property_setget(prop, g_class)
+            setter_luau, getter_luau, _, _ = utils.get_property_setget(prop, g_class, api["classes"])
             if setter_luau == "" and getter_luau == "":
                 continue
 
