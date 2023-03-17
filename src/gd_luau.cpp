@@ -42,13 +42,13 @@ GDLuau::GDLuau() {
 GDLuau::~GDLuau() {
     UtilityFunctions::print_verbose("Luau runtime: uninitializing...");
 
-    if (singleton == this)
-        singleton = nullptr;
-
     for (lua_State *&L : vms) {
         luaGD_close(L);
         L = nullptr;
     }
+
+    if (singleton == this)
+        singleton = nullptr;
 }
 
 lua_State *GDLuau::get_vm(VMType p_type) {

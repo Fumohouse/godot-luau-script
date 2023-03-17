@@ -8,6 +8,7 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
+#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -88,8 +89,8 @@ static void luaGD_object_dtor(void *ptr) {
     Object *instance = ObjectDB::get_instance(id);
 
     RefCounted *rc = Object::cast_to<RefCounted>(instance);
-    if (rc)
-        rc->unreference();
+    if (rc && rc->unreference())
+        memdelete(rc);
 }
 
 void LuaStackOp<Object *>::push(lua_State *L, Object *value) {

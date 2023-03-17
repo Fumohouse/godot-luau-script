@@ -216,10 +216,14 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
 void LuauScript::unref_definition(GDLuau::VMType vm) {
     if (vm_defs_valid[vm] && vm_defs[vm].table_ref != -1) {
         lua_State *L = GDLuau::get_singleton()->get_vm(vm);
-        LUAU_LOCK(L);
 
-        lua_unref(L, vm_defs[vm].table_ref);
-        vm_defs_valid[vm] = false;
+        // See ~LuauScriptInstance
+        if (L && luaGD_getthreaddata(L)) {
+            LUAU_LOCK(L);
+
+            lua_unref(L, vm_defs[vm].table_ref);
+            vm_defs_valid[vm] = false;
+        }
     }
 }
 
@@ -895,6 +899,11 @@ static GDExtensionScriptInstanceInfo init_script_instance_info() {
         memdelete(INSTANCE_SELF);
     };
 
+    info.refcount_decremented_func = [](void *self) -> GDExtensionBool {
+        // If false (default), object cannot die
+        return true;
+    };
+
     return info;
 }
 
@@ -1482,6 +1491,14 @@ void LuauScriptInstance::call(
 void LuauScriptInstance::notification(int32_t p_what) {
 #define NOTIF_NAME "_Notification"
 
+    // This notification will fire at program exit; see ~LuauScriptInstance
+    if (p_what == Object::NOTIFICATION_PREDELETE) {
+        lua_State *L = GDLuau::get_singleton()->get_vm(vm_type);
+
+        if (!L || !luaGD_getthreaddata(L))
+            return;
+    }
+
     const LuauScript *s = script.ptr();
 
     while (s) {
@@ -1681,13 +1698,17 @@ LuauScriptInstance::~LuauScriptInstance() {
     }
 
     lua_State *L = GDLuau::get_singleton()->get_vm(vm_type);
-    LUAU_LOCK(L);
 
-    lua_unref(L, table_ref);
-    table_ref = 0;
+    // Check to prevent issues with unref during thread free (luaGD_close in ~GDLuau)
+    if (L && luaGD_getthreaddata(L)) {
+        LUAU_LOCK(L);
 
-    lua_unref(L, thread_ref);
-    thread_ref = 0;
+        lua_unref(L, table_ref);
+        lua_unref(L, thread_ref);
+    }
+
+    table_ref = -1;
+    thread_ref = -1;
 }
 
 //////////////
