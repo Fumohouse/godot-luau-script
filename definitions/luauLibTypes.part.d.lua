@@ -51,8 +51,7 @@ declare function gdtypeof(value: any): EnumVariantType?
 -- LUAU_LIB TYPES --
 --------------------
 
-declare class EnumPermissionsT end
-export type EnumPermissions = EnumPermissionsT & number
+export type EnumPermissions = number
 
 declare class EnumPermissions_INTERNAL
     --- Used for functionality that is available to all scripts by default.
@@ -286,7 +285,7 @@ declare class GDClassDefinition
         Declares permissions for instances of this script. Only valid for core scripts.
         @param permissions Declared permissions.
     ]]
-    function Permissions(self, permissions: EnumPermissions | number): GDClassDefinition
+    function Permissions(self, permissions: EnumPermissions): GDClassDefinition
 
     --[[--
         Declares an icon path for this type.
