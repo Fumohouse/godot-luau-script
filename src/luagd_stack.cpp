@@ -1,4 +1,5 @@
 #include "luagd_stack.h"
+#include "godot_cpp/godot.hpp"
 #include "luagd_variant.h"
 
 #include <gdextension_interface.h>
@@ -9,7 +10,6 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/memory.hpp>
-#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -17,6 +17,7 @@
 #include "luagd_bindings.h"
 #include "luau_script.h"
 #include "utils.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -75,10 +76,9 @@ String LuaStackOp<String>::check(lua_State *L, int index) {
 
 /* OBJECTS */
 
-static void luaGD_object_init(Object *ptr) {
-    RefCounted *rc = Object::cast_to<RefCounted>(ptr);
-    if (rc)
-        rc->init_ref();
+static void luaGD_object_init(GDExtensionObjectPtr obj) {
+    if (GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(obj))
+        nb::RefCounted(rc).init_ref();
 }
 
 static void luaGD_object_dtor(void *ptr) {
@@ -86,14 +86,12 @@ static void luaGD_object_dtor(void *ptr) {
     if (id == 0)
         return;
 
-    Object *instance = ObjectDB::get_instance(id);
-
-    RefCounted *rc = Object::cast_to<RefCounted>(instance);
-    if (rc && rc->unreference())
-        memdelete(rc);
+    GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(internal::gde_interface->object_get_instance_from_id(id));
+    if (rc && nb::RefCounted(rc).unreference())
+        internal::gde_interface->object_destroy(rc);
 }
 
-void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
+void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
     if (value) {
         GDObjectInstanceID *udata =
                 reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
@@ -102,7 +100,9 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
         // e.g. GodotPhysicsDirectSpaceState3D -> PhysicsDirectSpaceState3D
 
         bool mt_found = false;
-        StringName curr_class = value->get_class();
+
+        nb::Object obj = value;
+        StringName curr_class = obj.get_class();
 
         while (!curr_class.is_empty()) {
             String metatable_name = "Godot.Object." + curr_class;
@@ -122,16 +122,20 @@ void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
         }
 
         luaGD_object_init(value);
-        *udata = value->get_instance_id();
+        *udata = obj.get_instance_id();
 
         // Shouldn't be possible
         if (!lua_istable(L, -1))
-            luaL_error(L, "Metatable not found for class %s", value->get_class().utf8().get_data());
+            luaL_error(L, "Metatable not found for class %s", obj.get_class().utf8().get_data());
 
         lua_setmetatable(L, -2);
     } else {
         lua_pushnil(L);
     }
+}
+
+void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
+    LuaStackOp<Object *>::push(L, value ? value->_owner : nullptr);
 }
 
 bool LuaStackOp<Object *>::is(lua_State *L, int index) {
@@ -149,22 +153,22 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     return is_obj;
 }
 
-GDObjectInstanceID *LuaStackOp<Object *>::get_ptr(lua_State *L, int index) {
+GDObjectInstanceID *LuaStackOp<Object *>::get_id(lua_State *L, int index) {
     return reinterpret_cast<GDObjectInstanceID *>(lua_touserdata(L, index));
 }
 
-Object *LuaStackOp<Object *>::get(lua_State *L, int index) {
+GDExtensionObjectPtr LuaStackOp<Object *>::get(lua_State *L, int index) {
     if (!LuaStackOp<Object *>::is(L, index))
         return nullptr;
 
-    GDObjectInstanceID *udata = LuaStackOp<Object *>::get_ptr(L, index);
+    GDObjectInstanceID *udata = LuaStackOp<Object *>::get_id(L, index);
     if (!udata || *udata == 0)
         return nullptr;
 
-    return ObjectDB::get_instance(*udata);
+    return internal::gde_interface->object_get_instance_from_id(*udata);
 }
 
-Object *LuaStackOp<Object *>::check(lua_State *L, int index) {
+GDExtensionObjectPtr LuaStackOp<Object *>::check(lua_State *L, int index) {
     if (!LuaStackOp<Object *>::is(L, index))
         luaL_typeerrorL(L, index, "Object");
 

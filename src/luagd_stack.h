@@ -73,13 +73,13 @@ STACK_OP_DEF(int64_t)
 
 template <>
 struct LuaStackOp<Object *> {
+    static void push(lua_State *L, GDExtensionObjectPtr value);
     static void push(lua_State *L, Object *value);
 
-    static Object *get(lua_State *L, int index);
+    static GDObjectInstanceID *get_id(lua_State *L, int index);
+    static GDExtensionObjectPtr get(lua_State *L, int index);
     static bool is(lua_State *L, int index);
-    static Object *check(lua_State *L, int index);
-
-    static GDObjectInstanceID *get_ptr(lua_State *L, int index);
+    static GDExtensionObjectPtr check(lua_State *L, int index);
 };
 
 template <>

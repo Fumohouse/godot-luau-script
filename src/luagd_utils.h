@@ -5,6 +5,7 @@
 
 #include "luagd_stack.h"
 
+#define luaGD_objnullerror(L, i) luaL_error(L, "argument #%d: Object is null or freed", i)
 #define luaGD_indexerror(L, key, of) luaL_error(L, "'%s' is not a valid member of %s", key, of)
 #define luaGD_nomethoderror(L, key, of) luaL_error(L, "'%s' is not a valid method of %s", key, of)
 #define luaGD_readonlyerror(L, type) luaL_error(L, "type '%s' is read-only", type)

@@ -13,6 +13,7 @@
 #include "luagd.h"
 #include "luagd_stack.h"
 #include "luau_script.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -39,7 +40,7 @@ bool WaitTask::is_complete() {
 }
 
 int WaitTask::push_results(lua_State *L) {
-    double actual_duration = (Time::get_singleton()->get_ticks_usec() - start_time) / 1e6f;
+    double actual_duration = (nb::Time::get_singleton_nb()->get_ticks_usec() - start_time) / 1e6f;
     lua_pushnumber(L, actual_duration);
 
     return 1;
@@ -58,7 +59,7 @@ WaitTask::WaitTask(lua_State *L, double duration_secs) :
         ScheduledTask(L) {
     duration = duration_secs * 1e6;
     remaining = duration;
-    start_time = Time::get_singleton()->get_ticks_usec();
+    start_time = nb::Time::get_singleton_nb()->get_ticks_usec();
 }
 
 // wait_signal

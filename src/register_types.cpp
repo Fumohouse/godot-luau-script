@@ -15,6 +15,7 @@
 #include "luagd_variant.h"
 #include "luau_script.h"
 #include "task_scheduler.h"
+#include "wrapped_no_binding.h"
 
 #ifdef TESTS_ENABLED
 #include <vector>
@@ -51,20 +52,20 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
     ClassDB::register_class<LuauLanguage>();
 
     script_language_luau = memnew(LuauLanguage);
-    CRASH_COND_MSG(Engine::get_singleton()->register_script_language(script_language_luau) != OK, "failed to register LuauLanguage");
+    CRASH_COND_MSG(nb::Engine::get_singleton_nb()->register_script_language(script_language_luau) != OK, "failed to register LuauLanguage");
 
     ClassDB::register_class<ResourceFormatLoaderLuauScript>();
     resource_loader_luau.instantiate();
-    ResourceLoader::get_singleton()->add_resource_format_loader(resource_loader_luau);
+    nb::ResourceLoader::get_singleton_nb()->add_resource_format_loader(resource_loader_luau);
 
     ClassDB::register_class<ResourceFormatSaverLuauScript>();
     resource_saver_luau.instantiate();
-    ResourceSaver::get_singleton()->add_resource_format_saver(resource_saver_luau);
+    nb::ResourceSaver::get_singleton_nb()->add_resource_format_saver(resource_saver_luau);
 
     ClassDB::register_class<SignalWaiter>();
 
 #ifdef TESTS_ENABLED
-    if (!OS::get_singleton()->get_cmdline_args().has("--luau-tests"))
+    if (!nb::OS::get_singleton_nb()->get_cmdline_args().has("--luau-tests"))
         return;
 
     UtilityFunctions::print("Catch2: Running tests...");
@@ -72,7 +73,7 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
     Catch::Session session;
 
     // Fetch args
-    PackedStringArray args = OS::get_singleton()->get_cmdline_user_args();
+    PackedStringArray args = nb::OS::get_singleton_nb()->get_cmdline_user_args();
     int argc = args.size();
 
     // CharString does not work with godot::Vector
@@ -99,15 +100,15 @@ void uninitialize_luau_script_module(ModuleInitializationLevel p_level) {
 
     UtilityFunctions::print_verbose("luau script: uninitializing...");
 
-    Engine::get_singleton()->unregister_script_language(script_language_luau);
+    nb::Engine::get_singleton_nb()->unregister_script_language(script_language_luau);
 
     if (script_language_luau)
         memdelete(script_language_luau);
 
-    ResourceLoader::get_singleton()->remove_resource_format_loader(resource_loader_luau);
+    nb::ResourceLoader::get_singleton_nb()->remove_resource_format_loader(resource_loader_luau);
     resource_loader_luau.unref();
 
-    ResourceSaver::get_singleton()->remove_resource_format_saver(resource_saver_luau);
+    nb::ResourceSaver::get_singleton_nb()->remove_resource_format_saver(resource_saver_luau);
     resource_saver_luau.unref();
 }
 

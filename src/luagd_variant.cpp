@@ -5,13 +5,13 @@
 #include <lualib.h>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
-#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_bindings_stack.gen.h" // IWYU pragma: keep
 #include "luagd_stack.h"
+#include "wrapped_no_binding.h"
 
 struct VariantMethods {
     virtual void initialize(LuauVariant &self) const = 0;
@@ -221,38 +221,30 @@ struct VariantObjectMethods : public VariantMethods {
         if (!LuaStackOp<Object *>::is(L, idx))
             return false;
 
-        Object *obj = LuaStackOp<Object *>::get(L, idx);
+        GDExtensionObjectPtr obj = LuaStackOp<Object *>::get(L, idx);
         if (!obj)
             // Null object
             return true;
 
-        return type_name.is_empty() || obj->is_class(type_name);
+        return type_name.is_empty() || nb::Object(obj).is_class(type_name);
     }
 
     bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
-        Object *obj = LuaStackOp<Object *>::check(L, idx);
+        GDExtensionObjectPtr obj = LuaStackOp<Object *>::check(L, idx);
         if (!obj) {
             self._data._ptr = nullptr;
             return false;
         }
 
-        if (!type_name.is_empty() && !obj->is_class(type_name))
+        if (!type_name.is_empty() && !nb::Object(obj).is_class(type_name))
             luaL_typeerrorL(L, idx, type_name.utf8().get_data());
 
-        self._data._ptr = obj->_owner;
+        self._data._ptr = obj;
         return false;
     }
 
     void push(const LuauVariant &self, lua_State *L) const override {
-        GDExtensionObjectPtr obj = (GDExtensionObjectPtr)self._data._ptr;
-
-        if (!obj) {
-            LuaStackOp<Object *>::push(L, nullptr);
-            return;
-        }
-
-        Object *inst = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(obj));
-        LuaStackOp<Object *>::push(L, inst);
+        LuaStackOp<Object *>::push(L, self._data._ptr);
     }
 
     void copy(LuauVariant &self, const LuauVariant &other) const override {

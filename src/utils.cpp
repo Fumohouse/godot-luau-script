@@ -1,20 +1,25 @@
 #include "utils.h"
 
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
+#include "wrapped_no_binding.h"
+
 using namespace godot;
 
 // TODO: the real ClassDB is not available in godot-cpp yet. this is what we get.
-Object *Utils::class_db = nullptr;
+nb::Object Utils::class_db = nullptr;
 
 Object *Utils::get_class_db() {
-    if (!class_db)
-        class_db = Engine::get_singleton()->get_singleton("ClassDB");
+    if (!class_db._owner) {
+        StringName classdb_name = "ClassDB";
+        class_db._owner = internal::gde_interface->global_get_singleton(&classdb_name);
+    }
 
-    return class_db;
+    return &class_db;
 }
 
 bool Utils::class_exists(const StringName &class_name) {

@@ -15,6 +15,7 @@
 #include "luau_script.h"
 
 #include "test_utils.h"
+#include "wrapped_no_binding.h"
 
 TEST_CASE("luau script: script load") {
     // singleton is not available during test runs.
@@ -72,7 +73,7 @@ TEST_CASE("luau script: instance") {
     Object obj;
     obj.set_script(script);
 
-    LuauScriptInstance *inst = script->instance_get(&obj);
+    LuauScriptInstance *inst = script->instance_get(obj.get_instance_id());
 
     REQUIRE(inst->get_owner()->get_instance_id() == obj.get_instance_id());
     REQUIRE(inst->get_script() == script);
@@ -359,9 +360,9 @@ TEST_CASE("luau script: instance") {
         EVAL_THEN(T, "return classDef.new()", {
             REQUIRE(LuaStackOp<Object *>::is(T, -1));
 
-            Object *obj = LuaStackOp<Object *>::get(T, -1);
-            REQUIRE(obj->get_script() == script);
-            REQUIRE(obj->get_class() == "RefCounted");
+            nb::Object obj = LuaStackOp<Object *>::get(T, -1);
+            REQUIRE(obj.get_script() == script);
+            REQUIRE(obj.get_class() == "RefCounted");
         });
     }
 }
@@ -377,7 +378,7 @@ TEST_CASE("luau script: inheritance") {
     Object obj;
     obj.set_script(script);
 
-    LuauScriptInstance *inst = script->instance_get(&obj);
+    LuauScriptInstance *inst = script->instance_get(obj.get_instance_id());
 
     lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
     lua_State *T = lua_newthread(L);
@@ -602,12 +603,12 @@ TEST_CASE("luau script: reloading at runtime") {
 
     Object base_obj;
     base_obj.set_script(script_base);
-    LuauScriptInstance *inst_base = script_base->instance_get(&base_obj);
+    LuauScriptInstance *inst_base = script_base->instance_get(base_obj.get_instance_id());
     inst_base->set("baseProperty", "hey");
 
     Object obj;
     obj.set_script(script);
-    LuauScriptInstance *inst = script->instance_get(&obj);
+    LuauScriptInstance *inst = script->instance_get(obj.get_instance_id());
     inst->set("testProperty", 5.25);
 
     Variant val;
@@ -620,7 +621,7 @@ TEST_CASE("luau script: reloading at runtime") {
         script->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script, false);
 
-        inst = script->instance_get(&obj);
+        inst = script->instance_get(obj.get_instance_id());
         REQUIRE(inst->get("testProperty2", val));
         REQUIRE(val == Variant(1.25));
     }
@@ -633,11 +634,11 @@ TEST_CASE("luau script: reloading at runtime") {
         script_base->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script_base, false);
 
-        inst_base = script_base->instance_get(&base_obj);
+        inst_base = script_base->instance_get(base_obj.get_instance_id());
         REQUIRE(inst_base->get("baseProperty2", val));
         REQUIRE(val == Variant(1.5));
 
-        inst = script->instance_get(&obj);
+        inst = script->instance_get(obj.get_instance_id());
     }
 
     SECTION("invalid then valid keeps state") {
@@ -655,7 +656,7 @@ TEST_CASE("luau script: reloading at runtime") {
         REQUIRE(script->_is_valid());
         REQUIRE(script->pending_reload_state.is_empty());
 
-        inst = script->instance_get(&obj);
+        inst = script->instance_get(obj.get_instance_id());
     }
 
     SECTION("reload module reloads dependencies") {
@@ -667,8 +668,8 @@ TEST_CASE("luau script: reloading at runtime") {
 
         REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hey there"));
 
-        inst_base = script_base->instance_get(&base_obj);
-        inst = script->instance_get(&obj);
+        inst_base = script_base->instance_get(base_obj.get_instance_id());
+        inst = script->instance_get(obj.get_instance_id());
     }
 
     REQUIRE(inst->get("testProperty", val));

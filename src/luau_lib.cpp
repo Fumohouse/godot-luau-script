@@ -10,7 +10,6 @@
 #include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/core/memory.hpp>
-#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/signal.hpp>
@@ -27,6 +26,7 @@
 #include "luau_script.h"
 #include "task_scheduler.h"
 #include "utils.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -367,11 +367,9 @@ static int luascript_gdclass_new(lua_State *L) {
     StringName class_name = def->script->_get_instance_base_type();
 
     GDExtensionObjectPtr ptr = internal::gde_interface->classdb_construct_object(&class_name);
-    GDObjectInstanceID id = internal::gde_interface->object_get_instance_id(ptr);
-    Object *obj = ObjectDB::get_instance(id);
-    obj->set_script(Ref<LuauScript>(def->script));
+    nb::Object(ptr).set_script(Ref<LuauScript>(def->script));
 
-    LuaStackOp<Object *>::push(L, obj);
+    LuaStackOp<Object *>::push(L, ptr);
     return 1;
 }
 

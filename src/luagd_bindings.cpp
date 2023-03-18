@@ -25,6 +25,8 @@
 #include "luagd_variant.h"
 #include "luau_lib.h"
 #include "luau_script.h"
+#include "utils.h"
+#include "wrapped_no_binding.h"
 
 /////////////
 // Generic //
@@ -493,13 +495,14 @@ static int luaGD_callable_ctor(lua_State *L) {
             luaL_typeerrorL(L, 1, "Object");
     }
 
-    Object *obj = LuaStackOp<Object *>::get(L, 1);
+    GDExtensionObjectPtr self = LuaStackOp<Object *>::get(L, 1);
     const char *method = luaL_checkstring(L, 2);
 
     // Check if instance has method.
-    if (LuauScriptInstance *inst = LuauScriptInstance::from_object(obj)) {
+    if (LuauScriptInstance *inst = LuauScriptInstance::from_object(self)) {
         if (inst->has_method(method)) {
-            LuaStackOp<Callable>::push(L, Callable(obj, method));
+            nb::Object self_obj = self;
+            LuaStackOp<Callable>::push(L, Callable(&self_obj, method));
             return 1;
         }
     }
@@ -512,7 +515,8 @@ static int luaGD_callable_ctor(lua_State *L) {
         if (E) {
             luaGD_checkpermissions(L, E->value.debug_name, get_method_permissions(g_class, E->value));
 
-            LuaStackOp<Callable>::push(L, Callable(obj, E->value.gd_name));
+            nb::Object self_obj = self;
+            LuaStackOp<Callable>::push(L, Callable(&self_obj, E->value.gd_name));
             return 1;
         }
 
@@ -901,23 +905,19 @@ void luaGD_openbuiltins(lua_State *L) {
 static int luaGD_class_ctor(lua_State *L) {
     StringName class_name = lua_tostring(L, lua_upvalueindex(1));
 
-    GDExtensionObjectPtr native_ptr = internal::gde_interface->classdb_construct_object(&class_name);
-    GDObjectInstanceID id = internal::gde_interface->object_get_instance_id(native_ptr);
-
-    Object *obj = ObjectDB::get_instance(id);
+    GDExtensionObjectPtr obj = internal::gde_interface->classdb_construct_object(&class_name);
     LuaStackOp<Object *>::push(L, obj);
-
     return 1;
 }
 
-#define LUAGD_CLASS_METAMETHOD                               \
-    int class_idx = lua_tointeger(L, lua_upvalueindex(1));   \
-    Vector<ApiClass> &classes = get_extension_api().classes; \
-    ApiClass *current_class = &classes.ptrw()[class_idx];    \
-                                                             \
-    Object *self = LuaStackOp<Object *>::check(L, 1);        \
-    if (!self)                                               \
-        luaL_error(L, "Object has been freed");
+#define LUAGD_CLASS_METAMETHOD                                     \
+    int class_idx = lua_tointeger(L, lua_upvalueindex(1));         \
+    Vector<ApiClass> &classes = get_extension_api().classes;       \
+    ApiClass *current_class = &classes.ptrw()[class_idx];          \
+                                                                   \
+    GDExtensionObjectPtr self = LuaStackOp<Object *>::check(L, 1); \
+    if (!self)                                                     \
+        luaGD_objnullerror(L, 1);
 
 #define INHERIT_OR_BREAK                                            \
     if (current_class->parent_idx >= 0)                             \
@@ -925,15 +925,13 @@ static int luaGD_class_ctor(lua_State *L) {
     else                                                            \
         break;
 
-static void handle_object_returned(Object *obj) {
+static void handle_object_returned(GDExtensionObjectPtr obj) {
     // if Godot returns a RefCounted from a method, it is always in the form of a Ref.
     // as such, the RefCounted we receive will be initialized at a refcount of 1
     // and is considered "initialized" (first Ref already made).
     // we need to decrement the refcount by 1 after pushing to Luau to avoid leak.
-    RefCounted *rc = Object::cast_to<RefCounted>(obj);
-
-    if (rc)
-        rc->unreference();
+    if (GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(obj))
+        nb::RefCounted(rc).unreference();
 }
 
 static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
@@ -967,8 +965,10 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
         if (method.return_type.type != -1) {
             LuaStackOp<Variant>::push(L, ret);
 
-            if (ret.get_type() == Variant::OBJECT)
-                handle_object_returned(ret.operator Object *());
+            if (ret.get_type() == Variant::OBJECT) {
+                Object *obj = ret.operator Object *();
+                handle_object_returned(obj ? obj->_owner : nullptr);
+            }
 
             return 1;
         }
@@ -991,10 +991,8 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
             ret.lua_push(L);
 
             // handle ref returned from Godot
-            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT && *ret.get_ptr<GDExtensionObjectPtr>()) {
-                Object *obj = ObjectDB::get_instance(internal::gde_interface->object_get_instance_id(*ret.get_ptr<GDExtensionObjectPtr>()));
-                handle_object_returned(obj);
-            }
+            if (ret.get_type() == GDEXTENSION_VARIANT_TYPE_OBJECT && *ret.get_ptr<GDExtensionObjectPtr>())
+                handle_object_returned(*ret.get_ptr<GDExtensionObjectPtr>());
 
             return 1;
         }
@@ -1019,32 +1017,41 @@ static void push_class_method(lua_State *L, const ApiClass &g_class, ApiClassMet
 #define FREE_NAME "Free"
 #define FREE_DBG_NAME "Godot.Object.Object.Free"
 static int luaGD_class_free(lua_State *L) {
-    Object *self = LuaStackOp<Object *>::check(L, 1);
+    GDExtensionObjectPtr self = LuaStackOp<Object *>::check(L, 1);
+    if (!self)
+        luaGD_objnullerror(L, 1);
 
-    if (self->is_class("RefCounted"))
+    if (nb::Object(self).is_class(RefCounted::get_class_static()))
         luaL_error(L, "cannot free a RefCounted object");
 
     // Zero out the object to prevent segfaults
-    *LuaStackOp<Object *>::get_ptr(L, 1) = 0;
+    *LuaStackOp<Object *>::get_id(L, 1) = 0;
 
-    memdelete(self);
+    internal::gde_interface->object_destroy(self);
     return 0;
 }
 
 #define ISA_NAME "IsA"
 #define ISA_DBG_NAME "Godot.Object.Object.IsA"
 static int luaGD_class_isa(lua_State *L) {
-    Object *self = LuaStackOp<Object *>::check(L, 1);
+    GDExtensionObjectPtr self = LuaStackOp<Object *>::check(L, 1);
+
+    if (!self) {
+        lua_pushboolean(L, false);
+        return 1;
+    }
 
     String type;
     LuauScript *script = nullptr;
     luascript_get_classdef_or_type(L, 2, type, script);
 
+    nb::Object self_obj = self;
+
     if (!type.is_empty()) {
-        lua_pushboolean(L, self->is_class(type));
+        lua_pushboolean(L, self_obj.is_class(type));
         return 1;
     } else {
-        Ref<LuauScript> s = self->get_script();
+        Ref<LuauScript> s = self_obj.get_script();
 
         while (s.is_valid()) {
             if (s == script) {
@@ -1063,7 +1070,10 @@ static int luaGD_class_isa(lua_State *L) {
 #define SET_NAME "Set"
 #define SET_DBG_NAME "Godot.Object.Object.Set"
 static int luaGD_class_set(lua_State *L) {
-    Object *self = LuaStackOp<Object *>::check(L, 1);
+    GDExtensionObjectPtr self = LuaStackOp<Object *>::check(L, 1);
+    if (!self)
+        luaGD_objnullerror(L, 1);
+
     StringName property = LuaStackOp<StringName>::check(L, 2);
     Variant value = LuaStackOp<Variant>::check(L, 3);
 
@@ -1073,21 +1083,24 @@ static int luaGD_class_set(lua_State *L) {
         luaGD_checkpermissions(L, SET_DBG_NAME, PERMISSION_INTERNAL);
     }
 
-    self->set(property, value);
+    nb::Object(self).set(property, value);
     return 0;
 }
 
 #define GET_NAME "Get"
 #define GET_DBG_NAME "Godot.Object.Object.Get"
 static int luaGD_class_get(lua_State *L) {
-    Object *self = LuaStackOp<Object *>::check(L, 1);
+    GDExtensionObjectPtr self = LuaStackOp<Object *>::check(L, 1);
+    if (!self)
+        luaGD_objnullerror(L, 1);
+
     StringName property = LuaStackOp<StringName>::check(L, 2);
 
     if (!property.contains("/")) {
         luaGD_checkpermissions(L, GET_DBG_NAME, PERMISSION_INTERNAL);
     }
 
-    LuaStackOp<Variant>::push(L, self->get(property));
+    LuaStackOp<Variant>::push(L, nb::Object(self).get(property));
     return 1;
 }
 
@@ -1212,7 +1225,8 @@ static int luaGD_class_index(lua_State *L) {
             else
                 luaL_error(L, "failed to get property '%s': unknown error", key); // due to the checks above, this should hopefully never happen
         } else if (const GDMethod *signal = inst->get_signal(key)) {
-            LuaStackOp<Signal>::push(L, Signal(self, key));
+            nb::Object self_obj = self;
+            LuaStackOp<Signal>::push(L, Signal(&self_obj, key));
             return 1;
         } else if (const Variant *constant = inst->get_constant(key)) {
             LuaStackOp<Variant>::push(L, *constant);
@@ -1256,7 +1270,8 @@ static int luaGD_class_index(lua_State *L) {
         HashMap<String, ApiClassSignal>::ConstIterator G = current_class->signals.find(key);
 
         if (G) {
-            LuaStackOp<Signal>::push(L, Signal(self, G->value.gd_name));
+            nb::Object self_obj = self;
+            LuaStackOp<Signal>::push(L, Signal(&self_obj, G->value.gd_name));
             return 1;
         }
 
@@ -1339,7 +1354,7 @@ static int luaGD_class_singleton_getter(lua_State *L) {
     if (lua_gettop(L) > 0)
         luaL_error(L, "singleton getter takes no arguments");
 
-    Object *singleton = g_class->try_get_singleton();
+    GDExtensionObjectPtr singleton = g_class->try_get_singleton();
     if (!singleton)
         luaL_error(L, "could not get singleton '%s'", g_class->name);
 
@@ -1348,13 +1363,13 @@ static int luaGD_class_singleton_getter(lua_State *L) {
 }
 
 static int luaGD_class_eq(lua_State *L) {
-    Object *self = LuaStackOp<Object *>::get(L, 1);
-    Object *other = LuaStackOp<Object *>::get(L, 2);
+    GDObjectInstanceID *self = LuaStackOp<Object *>::get_id(L, 1);
+    GDObjectInstanceID *other = LuaStackOp<Object *>::get_id(L, 2);
 
     bool eq = false;
 
     if (self && other) {
-        eq = self->get_instance_id() == other->get_instance_id();
+        eq = *self == *other;
     } else {
         eq = self == other;
     }

@@ -3,7 +3,6 @@
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/core/defs.hpp> // TODO: 4.0-beta10: pair.hpp does not include, causes errors.
-#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -210,7 +209,7 @@ struct ApiClassProperty {
 };
 
 struct ApiClass {
-    Object *singleton = nullptr;
+    GDExtensionObjectPtr singleton = nullptr;
 
 public:
     const char *name;
@@ -239,16 +238,9 @@ public:
     const char *singleton_getter_debug_name;
 
     // avoid issues with getting singleton before they are initialized
-    _FORCE_INLINE_ Object *try_get_singleton() {
-        if (singleton)
-            return singleton;
-
-        GDExtensionObjectPtr singleton_obj = internal::gde_interface->global_get_singleton(&singleton_name);
-        if (!singleton_obj)
-            return nullptr;
-
-        GDObjectInstanceID singleton_id = internal::gde_interface->object_get_instance_id(singleton_obj);
-        singleton = ObjectDB::get_instance(singleton_id);
+    _FORCE_INLINE_ GDExtensionObjectPtr try_get_singleton() {
+        if (!singleton)
+            singleton = internal::gde_interface->global_get_singleton(&singleton_name);
 
         return singleton;
     }

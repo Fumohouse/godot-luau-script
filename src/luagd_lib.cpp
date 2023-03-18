@@ -12,6 +12,7 @@
 
 #include "luagd.h"
 #include "luagd_stack.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -67,7 +68,7 @@ static int luaGD_load(lua_State *L) {
         path = udata->script->get_path().get_base_dir().path_join(path);
     }
 
-    Ref<Resource> res = ResourceLoader::get_singleton()->load(path);
+    Ref<Resource> res = nb::ResourceLoader::get_singleton_nb()->load(path);
     LuaStackOp<Object *>::push(L, res.ptr());
     return 1;
 }

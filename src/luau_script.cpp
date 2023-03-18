@@ -1,6 +1,7 @@
 #include "luau_script.h"
 
 #include <Luau/BytecodeBuilder.h>
+#include <Luau/CodeGen.h>
 #include <Luau/Compiler.h>
 #include <Luau/Lexer.h>
 #include <Luau/ParseResult.h>
@@ -35,7 +36,6 @@
 #include <string>
 #include <utility>
 
-#include "Luau/CodeGen.h"
 #include "gd_luau.h"
 #include "luagd.h"
 #include "luagd_permissions.h"
@@ -45,6 +45,7 @@
 #include "luau_cache.h"
 #include "luau_lib.h"
 #include "utils.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -301,7 +302,7 @@ bool LuauScript::_is_valid() const {
 bool LuauScript::_can_instantiate() const {
     // TODO: built-in scripting languages check if scripting is enabled OR if this is a tool script
     // Scripting is disabled by default in the editor, check is ~equivalent
-    return !_is_module && valid && (_is_tool() || !Engine::get_singleton()->is_editor_hint());
+    return !_is_module && valid && (_is_tool() || !nb::Engine::get_singleton_nb()->is_editor_hint());
 }
 
 bool LuauScript::_is_tool() const {
@@ -489,14 +490,18 @@ void *LuauScript::_instance_create(Object *p_for_object) const {
     return internal::gde_interface->script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
 }
 
-bool LuauScript::_instance_has(Object *p_object) const {
+bool LuauScript::instance_has(uint64_t p_obj_id) const {
     MutexLock lock(*LuauLanguage::singleton->lock.ptr());
-    return instances.has(p_object->get_instance_id());
+    return instances.has(p_obj_id);
 }
 
-LuauScriptInstance *LuauScript::instance_get(Object *p_object) const {
+bool LuauScript::_instance_has(Object *p_object) const {
+    return instance_has(p_object->get_instance_id());
+}
+
+LuauScriptInstance *LuauScript::instance_get(uint64_t p_obj_id) const {
     MutexLock lock(*LuauLanguage::singleton->lock.ptr());
-    return instances.get(p_object->get_instance_id());
+    return instances.get(p_obj_id);
 }
 
 void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
@@ -1600,13 +1605,14 @@ const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name
 DEF_GETTER(GDMethod, signal, signals)
 DEF_GETTER(Variant, constant, constants)
 
-LuauScriptInstance *LuauScriptInstance::from_object(Object *p_object) {
+LuauScriptInstance *LuauScriptInstance::from_object(GDExtensionObjectPtr p_object) {
     if (!p_object)
         return nullptr;
 
-    Ref<LuauScript> script = p_object->get_script();
-    if (script.is_valid() && script->_instance_has(p_object))
-        return script->instance_get(p_object);
+    Ref<LuauScript> script = nb::Object(p_object).get_script();
+    uint64_t id = internal::gde_interface->object_get_instance_id(p_object);
+    if (script.is_valid() && script->instance_has(id))
+        return script->instance_get(id);
 
     return nullptr;
 }
@@ -1772,7 +1778,7 @@ void LuauLanguage::_init() {
     UtilityFunctions::print_verbose("==========================================");
 
     // TODO: Only if EngineDebugger is active
-    // if (EngineDebugger::get_singleton()->is_active())
+    // if (nb::EngineDebugger::get_singleton_nb()->is_active())
     debug_init();
 }
 
@@ -1914,8 +1920,8 @@ void LuauLanguage::_remove_named_global_constant(const StringName &p_name) {
 }
 
 void LuauLanguage::_frame() {
-    uint64_t new_ticks = Time::get_singleton()->get_ticks_usec();
-    double time_scale = Engine::get_singleton()->get_time_scale();
+    uint64_t new_ticks = nb::Time::get_singleton_nb()->get_ticks_usec();
+    double time_scale = nb::Engine::get_singleton_nb()->get_time_scale();
 
     double delta;
     if (ticks_usec == 0)

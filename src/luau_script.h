@@ -141,8 +141,9 @@ public:
 
     /* INSTANCE */
     void *_instance_create(Object *p_for_object) const override;
+    bool instance_has(uint64_t p_obj_id) const;
     bool _instance_has(Object *p_object) const override;
-    LuauScriptInstance *instance_get(Object *p_object) const;
+    LuauScriptInstance *instance_get(uint64_t p_obj_id) const;
 
     /* PLACEHOLDER INSTANCE */
     bool _is_placeholder_fallback_enabled() const override { return placeholder_fallback_enabled; }
@@ -285,7 +286,7 @@ public:
 
     BitField<ThreadPermissions> get_permissions() const { return permissions; }
 
-    static LuauScriptInstance *from_object(Object *p_object);
+    static LuauScriptInstance *from_object(GDExtensionObjectPtr p_object);
 
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();
