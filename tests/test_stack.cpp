@@ -1,6 +1,8 @@
 #include <catch_amalgamated.hpp>
 
 #include <lua.h>
+#include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -37,6 +39,31 @@ TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
         SECTION("NodePath") {
             ASSERT_EVAL_EQ(L, "return '../Node'", NodePath, NodePath("../Node"))
         }
+    }
+}
+
+TEST_CASE_METHOD(LuauFixture, "vm: object stack operations") {
+    BENCHMARK("object: 1 object push and pop once") {
+        Object *obj = memnew(Object);
+        LuaStackOp<Object *>::push(L, obj);
+        lua_pop(L, 1);
+        memdelete(obj);
+    };
+
+    Object *objs[10000];
+    for (int i = 0; i < 10000; i++) {
+        objs[i] = memnew(Object);
+    }
+
+    BENCHMARK("object: 10000 objects push and pop many times") {
+        for (int i = 0; i < 10000; i++) {
+            LuaStackOp<Object *>::push(L, objs[i]);
+            lua_pop(L, 1);
+        }
+    };
+
+    for (int i = 0; i < 10000; i++) {
+        memdelete(objs[i]);
     }
 }
 

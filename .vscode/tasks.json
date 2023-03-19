@@ -121,7 +121,8 @@
                     "-v",
                     "main.tscn",
                     "--luau-tests",
-                    "--"
+                    "--",
+                    "--skip-benchmarks"
                 ],
                 "options": {
                     "cwd": "${workspaceRoot}/test_project"

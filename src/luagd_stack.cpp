@@ -1,6 +1,4 @@
 #include "luagd_stack.h"
-#include "godot_cpp/godot.hpp"
-#include "luagd_variant.h"
 
 #include <gdextension_interface.h>
 #include <lua.h>
@@ -10,12 +8,13 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_bindings.h"
-#include "luau_script.h"
+#include "luagd_variant.h"
 #include "utils.h"
 #include "wrapped_no_binding.h"
 
@@ -76,38 +75,88 @@ String LuaStackOp<String>::check(lua_State *L, int index) {
 
 /* OBJECTS */
 
+struct ObjectUdata {
+    uint64_t id = 0;
+    bool is_namecall = true;
+};
+
 static void luaGD_object_init(GDExtensionObjectPtr obj) {
     if (GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(obj))
         nb::RefCounted(rc).init_ref();
 }
 
 static void luaGD_object_dtor(void *ptr) {
-    GDObjectInstanceID id = *reinterpret_cast<GDObjectInstanceID *>(ptr);
-    if (id == 0)
+    ObjectUdata *udata = reinterpret_cast<ObjectUdata *>(ptr);
+    if (udata->id == 0)
         return;
 
-    GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(internal::gde_interface->object_get_instance_from_id(id));
+    GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(internal::gde_interface->object_get_instance_from_id(udata->id));
     if (rc && nb::RefCounted(rc).unreference())
         internal::gde_interface->object_destroy(rc);
 }
 
+#define LUAGD_OBJ_CACHE_TABLE "_OBJECTS"
+
 void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
     if (value) {
-        GDObjectInstanceID *udata =
-                reinterpret_cast<GDObjectInstanceID *>(lua_newuserdatadtor(L, sizeof(GDObjectInstanceID), luaGD_object_dtor));
+        lua_getfield(L, LUA_REGISTRYINDEX, LUAGD_OBJ_CACHE_TABLE);
+
+        // Lazy initialize table
+        if (lua_isnil(L, -1)) {
+            lua_pop(L, 1); // nil
+
+            lua_newtable(L);
+            lua_pushvalue(L, -1);
+            lua_setfield(L, LUA_REGISTRYINDEX, LUAGD_OBJ_CACHE_TABLE);
+
+            // Mark table as weak
+            lua_newtable(L);
+            lua_pushstring(L, "v");
+            lua_setfield(L, -2, "__mode");
+            lua_setreadonly(L, -1, true);
+            lua_setmetatable(L, -2);
+        }
+
+        nb::Object obj = value;
+        ObjectUdata *udata = nullptr;
+        uint64_t id = obj.get_instance_id();
+        // Prevent loss of precision (vs casting)
+        double dbl_id = *reinterpret_cast<double *>(&id);
+
+        // Check to return from cache
+        lua_pushnumber(L, dbl_id);
+        lua_gettable(L, -2);
+
+        if (!lua_isnil(L, -1)) {
+            ObjectUdata *cached_udata = reinterpret_cast<ObjectUdata *>(lua_touserdata(L, -1));
+
+            if (cached_udata->is_namecall == !obj.get_script().operator Object *()) {
+                // Metatable is correct
+                lua_remove(L, -2); // table
+                return;
+            } else {
+                // Metatable should be changed, fall below to update
+                udata = cached_udata;
+            }
+        } else {
+            lua_pop(L, 1); // value
+        }
+
+        if (!udata)
+            udata = reinterpret_cast<ObjectUdata *>(lua_newuserdatadtor(L, sizeof(ObjectUdata), luaGD_object_dtor));
 
         // Must search parent classes because some classes used in Godot are not registered,
         // e.g. GodotPhysicsDirectSpaceState3D -> PhysicsDirectSpaceState3D
-
         bool mt_found = false;
-
-        nb::Object obj = value;
         StringName curr_class = obj.get_class();
 
         while (!curr_class.is_empty()) {
             String metatable_name = "Godot.Object." + curr_class;
-            if (!LuauScriptInstance::from_object(value)) {
+            if (!obj.get_script().operator Object *()) {
                 metatable_name = metatable_name + ".Namecall";
+                udata->is_namecall = true;
+            } else {
+                udata->is_namecall = false;
             }
 
             luaL_getmetatable(L, metatable_name.utf8().get_data());
@@ -122,13 +171,18 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
         }
 
         luaGD_object_init(value);
-        *udata = obj.get_instance_id();
+        udata->id = id;
 
         // Shouldn't be possible
         if (!lua_istable(L, -1))
             luaL_error(L, "Metatable not found for class %s", obj.get_class().utf8().get_data());
 
         lua_setmetatable(L, -2);
+
+        lua_pushnumber(L, dbl_id);
+        lua_pushvalue(L, -2);
+        lua_settable(L, -4);
+        lua_remove(L, -2); // table
     } else {
         lua_pushnil(L);
     }
@@ -154,7 +208,7 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index) {
 }
 
 GDObjectInstanceID *LuaStackOp<Object *>::get_id(lua_State *L, int index) {
-    return reinterpret_cast<GDObjectInstanceID *>(lua_touserdata(L, index));
+    return &reinterpret_cast<ObjectUdata *>(lua_touserdata(L, index))->id;
 }
 
 GDExtensionObjectPtr LuaStackOp<Object *>::get(lua_State *L, int index) {

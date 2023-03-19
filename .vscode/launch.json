@@ -22,7 +22,8 @@
                 "main.tscn",
                 "--luau-tests",
                 "--",
-                "--success"
+                "--success",
+                "--skip-benchmarks"
             ],
             "cwd": "${workspaceFolder}/test_project"
         }

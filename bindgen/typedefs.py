@@ -289,7 +289,6 @@ def generate_class(src, g_class, api, class_settings):
     # Custom Object methods
     if name == "Object":
         append(src, 1, """\
-function __eq(self, other: Object): boolean
 function Set(self, key: string | StringName, value: Variant)
 function Get(self, key: string | StringName): Variant
 function IsA(self, type: GDClassDefinition | ClassGlobal): boolean
