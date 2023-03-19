@@ -81,7 +81,6 @@ class LuauScript : public ScriptExtension {
     HashSet<String> methods;
 
     bool placeholder_fallback_enabled;
-    Ref<LuauScript> cyclic_base;
 
     void compile();
     Error try_load(lua_State *L, String *r_err = nullptr);

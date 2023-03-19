@@ -4,6 +4,7 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
+#include <godot_cpp/core/memory.hpp>
 
 #include "luagd_bindings_stack.gen.h" // IWYU pragma: keep
 #include "luagd_stack.h"
@@ -13,6 +14,9 @@
 /* PUSH */
 template <typename T>
 static void push_value(lua_State *L, const T &value) { LuaStackOp<T>::push(L, value); }
+
+template <>
+void push_value<Object *>(lua_State *L, Object *const &value) { LuaStackOp<Object *>::push(L, value->_owner); }
 
 template <>
 void push_value<StringName>(lua_State *L, const StringName &value) { LuaStackOp<StringName>::push(L, value, true); }
@@ -112,6 +116,7 @@ TEST_CASE_METHOD(LuauFixture, "luau variant") {
     variant_test(L, GDEXTENSION_VARIANT_TYPE_NIL, Variant(Vector3(1, 1, 1)), false);
 
     // Object
-    Object obj;
-    variant_test(L, GDEXTENSION_VARIANT_TYPE_OBJECT, &obj, false);
+    Object *obj = memnew(Object);
+    variant_test(L, GDEXTENSION_VARIANT_TYPE_OBJECT, obj, false);
+    memdelete(obj);
 }

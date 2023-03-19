@@ -4,6 +4,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -70,12 +71,12 @@ TEST_CASE("luau script: instance") {
 
     LOAD_SCRIPT_FILE(script, "instance/Script.lua")
 
-    Object obj;
-    obj.set_script(script);
+    Object *obj = memnew(Object);
+    obj->set_script(script);
 
-    LuauScriptInstance *inst = script->instance_get(obj.get_instance_id());
+    LuauScriptInstance *inst = script->instance_get(obj->get_instance_id());
 
-    REQUIRE(inst->get_owner()->get_instance_id() == obj.get_instance_id());
+    REQUIRE(inst->get_owner()->get_instance_id() == obj->get_instance_id());
     REQUIRE(inst->get_script() == script);
 
     // Global table access
@@ -83,7 +84,7 @@ TEST_CASE("luau script: instance") {
     lua_State *T = lua_newthread(L);
     luaL_sandboxthread(T);
 
-    LuaStackOp<Object *>::push(T, &obj);
+    LuaStackOp<Object *>::push(T, obj);
     lua_setglobal(T, "obj");
 
     SECTION("method methods") {
@@ -365,6 +366,8 @@ TEST_CASE("luau script: instance") {
             REQUIRE(obj.get_class() == "RefCounted");
         });
     }
+
+    memdelete(obj);
 }
 
 TEST_CASE("luau script: inheritance") {
@@ -375,16 +378,16 @@ TEST_CASE("luau script: inheritance") {
     LOAD_SCRIPT_FILE(script, "inheritance/Script.lua")
 
     // Instance
-    Object obj;
-    obj.set_script(script);
+    Object *obj = memnew(Object);
+    obj->set_script(script);
 
-    LuauScriptInstance *inst = script->instance_get(obj.get_instance_id());
+    LuauScriptInstance *inst = script->instance_get(obj->get_instance_id());
 
     lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
     lua_State *T = lua_newthread(L);
     luaL_sandboxthread(T);
 
-    LuaStackOp<Object *>::push(T, &obj);
+    LuaStackOp<Object *>::push(T, obj);
     lua_setglobal(T, "obj");
 
     SECTION("methods") {
@@ -423,7 +426,7 @@ TEST_CASE("luau script: inheritance") {
         }
     }
 
-    lua_pop(L, 1); // thread
+    memdelete(obj);
 }
 
 TEST_CASE("luau script: base script loading") {
@@ -468,84 +471,82 @@ TEST_CASE("luau script: placeholders") {
     LOAD_SCRIPT_FILE(script_base2, "placeholder/Base2.lua")
     LOAD_SCRIPT_FILE(script, "placeholder/Script.lua")
 
-    Object obj;
+    Object *obj = memnew(Object);
+    PlaceHolderScriptInstance *placeholder = memnew(PlaceHolderScriptInstance(script, obj));
 
-    SECTION("placeholder") {
-        PlaceHolderScriptInstance *placeholder = memnew(PlaceHolderScriptInstance(script, &obj));
+    SECTION("setget") {
+        Variant val;
 
-        SECTION("setget") {
+        REQUIRE(placeholder->get("testProperty", val));
+        REQUIRE(val == Variant(4.25));
+
+        REQUIRE(placeholder->get("baseProperty", val));
+        REQUIRE(val == Variant("hello"));
+    }
+
+    SECTION("update_exports") {
+        SECTION("script invalid") {
+            // Set beforehand - default values are not available when the script is invalid
+            REQUIRE(placeholder->set("testProperty", Variant(4.75)));
+
+            String new_src = script->_get_source_code().replace("--@1", "[!@#}^syntaxerror");
+            script->_set_source_code(new_src);
+            script->_update_exports();
+
+            REQUIRE(script->_is_placeholder_fallback_enabled());
+
             Variant val;
-
-            REQUIRE(placeholder->get("testProperty", val));
-            REQUIRE(val == Variant(4.25));
-
-            REQUIRE(placeholder->get("baseProperty", val));
-            REQUIRE(val == Variant("hello"));
+            REQUIRE(placeholder->property_get_fallback("testProperty", val));
+            REQUIRE(val == Variant(4.75));
         }
 
-        SECTION("update_exports") {
-            SECTION("script invalid") {
-                // Set beforehand - default values are not available when the script is invalid
-                REQUIRE(placeholder->set("testProperty", Variant(4.75)));
-
-                String new_src = script->_get_source_code().replace("--@1", "[!@#}^syntaxerror");
-                script->_set_source_code(new_src);
-                script->_update_exports();
-
-                REQUIRE(script->_is_placeholder_fallback_enabled());
-
-                Variant val;
-                REQUIRE(placeholder->property_get_fallback("testProperty", val));
-                REQUIRE(val == Variant(4.75));
-            }
-
-            SECTION("script change") {
-                String new_src = script->_get_source_code().replace("--@1", R"ASDF(
+        SECTION("script change") {
+            String new_src = script->_get_source_code().replace("--@1", R"ASDF(
                     Script:RegisterProperty("testProperty2", Enum.VariantType.VECTOR3)
                         :Default(Vector3.new(1, 2, 3))
                 )ASDF");
+            script->_set_source_code(new_src);
+            script->_update_exports();
+
+            Variant val;
+            REQUIRE(placeholder->get("testProperty", val));
+            REQUIRE(val == Variant(4.25));
+
+            REQUIRE(placeholder->get("testProperty2", val));
+            REQUIRE(val == Variant(Vector3(1, 2, 3)));
+        }
+
+        SECTION("base script") {
+            SECTION("cyclic inheritance") {
+                String new_src_base = script_base->_get_source_code().replace("Node", "require('Script')");
+                script_base->_set_source_code(new_src_base);
+                script->_update_exports();
+
+                REQUIRE(script_base->_is_placeholder_fallback_enabled());
+            }
+
+            SECTION("base script updating") {
+                REQUIRE(script->has_dependency(script_base));
+
+                String new_src = script->_get_source_code().replace("Base", "Base2");
                 script->_set_source_code(new_src);
                 script->_update_exports();
 
+                REQUIRE(!script->has_dependency(script_base));
+                REQUIRE(script->has_dependency(script_base2));
+
                 Variant val;
-                REQUIRE(placeholder->get("testProperty", val));
-                REQUIRE(val == Variant(4.25));
 
-                REQUIRE(placeholder->get("testProperty2", val));
-                REQUIRE(val == Variant(Vector3(1, 2, 3)));
-            }
+                REQUIRE(!placeholder->get("baseProperty", val));
 
-            SECTION("base script") {
-                SECTION("cyclic inheritance") {
-                    String new_src_base = script_base->_get_source_code().replace("Node", "require('Script')");
-                    script_base->_set_source_code(new_src_base);
-                    script->_update_exports();
-
-                    REQUIRE(script_base->_is_placeholder_fallback_enabled());
-                }
-
-                SECTION("base script updating") {
-                    REQUIRE(script->has_dependency(script_base));
-
-                    String new_src = script->_get_source_code().replace("Base", "Base2");
-                    script->_set_source_code(new_src);
-                    script->_update_exports();
-
-                    REQUIRE(!script->has_dependency(script_base));
-                    REQUIRE(script->has_dependency(script_base2));
-
-                    Variant val;
-
-                    REQUIRE(!placeholder->get("baseProperty", val));
-
-                    REQUIRE(placeholder->get("baseProperty2", val));
-                    REQUIRE(val == Variant(Vector2(1, 2)));
-                }
+                REQUIRE(placeholder->get("baseProperty2", val));
+                REQUIRE(val == Variant(Vector2(1, 2)));
             }
         }
-
-        memdelete(placeholder);
     }
+
+    memdelete(placeholder);
+    memdelete(obj);
 }
 
 TEST_CASE("luau script: require") {
@@ -601,14 +602,14 @@ TEST_CASE("luau script: reloading at runtime") {
     LOAD_SCRIPT_FILE(script, "reload/Script.lua")
     LOAD_SCRIPT_MOD_FILE(module, "reload/Module.mod.lua")
 
-    Object base_obj;
-    base_obj.set_script(script_base);
-    LuauScriptInstance *inst_base = script_base->instance_get(base_obj.get_instance_id());
+    Object *base_obj = memnew(Object);
+    base_obj->set_script(script_base);
+    LuauScriptInstance *inst_base = script_base->instance_get(base_obj->get_instance_id());
     inst_base->set("baseProperty", "hey");
 
-    Object obj;
-    obj.set_script(script);
-    LuauScriptInstance *inst = script->instance_get(obj.get_instance_id());
+    Object *obj = memnew(Object);
+    obj->set_script(script);
+    LuauScriptInstance *inst = script->instance_get(obj->get_instance_id());
     inst->set("testProperty", 5.25);
 
     Variant val;
@@ -621,7 +622,7 @@ TEST_CASE("luau script: reloading at runtime") {
         script->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script, false);
 
-        inst = script->instance_get(obj.get_instance_id());
+        inst = script->instance_get(obj->get_instance_id());
         REQUIRE(inst->get("testProperty2", val));
         REQUIRE(val == Variant(1.25));
     }
@@ -634,11 +635,11 @@ TEST_CASE("luau script: reloading at runtime") {
         script_base->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script_base, false);
 
-        inst_base = script_base->instance_get(base_obj.get_instance_id());
+        inst_base = script_base->instance_get(base_obj->get_instance_id());
         REQUIRE(inst_base->get("baseProperty2", val));
         REQUIRE(val == Variant(1.5));
 
-        inst = script->instance_get(obj.get_instance_id());
+        inst = script->instance_get(obj->get_instance_id());
     }
 
     SECTION("invalid then valid keeps state") {
@@ -656,7 +657,7 @@ TEST_CASE("luau script: reloading at runtime") {
         REQUIRE(script->_is_valid());
         REQUIRE(script->pending_reload_state.is_empty());
 
-        inst = script->instance_get(obj.get_instance_id());
+        inst = script->instance_get(obj->get_instance_id());
     }
 
     SECTION("reload module reloads dependencies") {
@@ -668,8 +669,8 @@ TEST_CASE("luau script: reloading at runtime") {
 
         REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hey there"));
 
-        inst_base = script_base->instance_get(base_obj.get_instance_id());
-        inst = script->instance_get(obj.get_instance_id());
+        inst_base = script_base->instance_get(base_obj->get_instance_id());
+        inst = script->instance_get(obj->get_instance_id());
     }
 
     REQUIRE(inst->get("testProperty", val));
@@ -677,4 +678,7 @@ TEST_CASE("luau script: reloading at runtime") {
 
     REQUIRE(inst_base->get("baseProperty", val));
     REQUIRE(val == Variant("hey"));
+
+    memdelete(base_obj);
+    memdelete(obj);
 }
