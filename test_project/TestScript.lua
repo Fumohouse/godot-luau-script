@@ -28,7 +28,7 @@ function TestClassImpl:_Ready()
 
     print(TestModule.testConstant)
 
-    if not Engine.GetSingleton():IsEditorHint() then
+    if not Engine.singleton:IsEditorHint() then
         self:Counter()
 
         -- Exit the test once complete

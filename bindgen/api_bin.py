@@ -737,14 +737,10 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
     singleton_matches = utils.get_singletons(class_name, singletons)
 
     singleton = ""
-    singleton_getter_debug_name = ""
     if len(singleton_matches) > 0:
         singleton = singleton_matches[0]["name"]
-        singleton_getter_debug_name = f"{class_name}.GetSingleton"
 
     write_string(io, singleton)  # String singleton
-    # String singleton_getter_debug_name
-    write_string(io, singleton_getter_debug_name)
 
 
 ########

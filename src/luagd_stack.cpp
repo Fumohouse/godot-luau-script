@@ -199,7 +199,7 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
         return false;
 
-    lua_getfield(L, -1, "__gdclass");
+    lua_getfield(L, -1, MT_CLASS_TYPE);
 
     bool is_obj = lua_isnumber(L, -1);
     lua_pop(L, 2); // value, metatable

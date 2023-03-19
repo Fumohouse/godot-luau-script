@@ -42,31 +42,6 @@ TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
     }
 }
 
-TEST_CASE_METHOD(LuauFixture, "vm: object stack operations") {
-    BENCHMARK("object: 1 object push and pop once") {
-        Object *obj = memnew(Object);
-        LuaStackOp<Object *>::push(L, obj);
-        lua_pop(L, 1);
-        memdelete(obj);
-    };
-
-    Object *objs[10000];
-    for (int i = 0; i < 10000; i++) {
-        objs[i] = memnew(Object);
-    }
-
-    BENCHMARK("object: 10000 objects push and pop many times") {
-        for (int i = 0; i < 10000; i++) {
-            LuaStackOp<Object *>::push(L, objs[i]);
-            lua_pop(L, 1);
-        }
-    };
-
-    for (int i = 0; i < 10000; i++) {
-        memdelete(objs[i]);
-    }
-}
-
 #define CHECK_ARR(type)                                          \
     {                                                            \
         REQUIRE(LuaStackOp<type>::is(L, -1));                    \

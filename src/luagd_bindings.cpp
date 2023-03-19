@@ -34,17 +34,7 @@
 
 static int luaGD_global_index(lua_State *L) {
     const char *name = lua_tostring(L, lua_upvalueindex(1));
-
-    // Copy key to front of stack
-    lua_pushvalue(L, 2);
-    lua_insert(L, 1);
-
-    lua_rawget(L, 2);
-
-    if (lua_isnil(L, -1))
-        luaGD_indexerror(L, luaL_checkstring(L, 1), name);
-
-    lua_pop(L, 1); // key
+    luaGD_indexerror(L, luaL_checkstring(L, 2), name);
 
     return 1;
 }
@@ -248,46 +238,39 @@ static int luaGD_variant_tostring(lua_State *L) {
     return 1;
 }
 
-static void luaGD_newlib(lua_State *L,
-        GDExtensionVariantType variant_type,
-        const char *global_name, const char *mt_name) {
-    luaL_newmetatable(L, mt_name); // instance metatable
-    lua_newtable(L); // global table
-    lua_createtable(L, 0, 2); // global metatable - assume 2 fields: __classglobal, __index
+static void luaGD_initmetatable(lua_State *L, int idx, GDExtensionVariantType variant_type, const char *global_name) {
+    idx = lua_absindex(L, idx);
+
+    // for typeof and type errors
+    lua_pushstring(L, global_name);
+    lua_setfield(L, idx, "__type");
+
+    lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
+    lua_setfield(L, idx, "__tostring");
+
+    // Variant type ID
+    lua_pushinteger(L, variant_type);
+    lua_setfield(L, idx, MT_VARIANT_TYPE);
+}
+
+static void luaGD_initglobaltable(lua_State *L, int idx, const char *global_name) {
+    idx = lua_absindex(L, idx);
+
+    lua_pushvalue(L, idx);
+    lua_setglobal(L, global_name);
+
+    lua_createtable(L, 0, 2);
 
     lua_pushstring(L, global_name);
     lua_setfield(L, -2, MT_CLASS_GLOBAL);
 
-    // global index
     lua_pushstring(L, global_name);
-    lua_pushcclosure(L, luaGD_global_index, "_G.__index", 1); // TODO: name?
+    lua_pushcclosure(L, luaGD_global_index, "_G.__index", 1); // TODO: name
     lua_setfield(L, -2, "__index");
 
-    // for typeof and type errors
-    lua_pushstring(L, global_name);
-    lua_setfield(L, -4, "__type");
+    lua_setreadonly(L, -1, true);
 
-    lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
-    lua_setfield(L, -4, "__tostring");
-
-    // Variant type ID
-    lua_pushinteger(L, variant_type);
-    lua_setfield(L, -4, MT_VARIANT_TYPE);
-
-    // set global table's metatable
-    lua_pushvalue(L, -1);
-    lua_setmetatable(L, -3);
-
-    lua_pushvalue(L, -2);
-    lua_setglobal(L, global_name);
-}
-
-static void luaGD_poplib(lua_State *L) {
-    // global will be set readonly on sandbox
-    lua_setreadonly(L, -3, true); // instance metatable
-    lua_setreadonly(L, -1, true); // global metatable
-
-    lua_pop(L, 3);
+    lua_setmetatable(L, idx);
 }
 
 static ThreadPermissions get_method_permissions(const ApiClass &g_class, const ApiClassMethod &method) {
@@ -482,7 +465,7 @@ static int luaGD_callable_ctor(lua_State *L) {
     {
         // Get class index.
         if (lua_getmetatable(L, 1)) {
-            lua_getfield(L, -1, "__gdclass");
+            lua_getfield(L, -1, MT_CLASS_TYPE);
 
             if (lua_isnumber(L, -1)) {
                 class_idx = lua_tointeger(L, -1);
@@ -778,54 +761,60 @@ void luaGD_openbuiltins(lua_State *L) {
     const ExtensionApi &extension_api = get_extension_api();
 
     for (const ApiBuiltinClass &builtin_class : extension_api.builtin_classes) {
-        luaGD_newlib(L, builtin_class.type, builtin_class.name, builtin_class.metatable_name);
+        luaL_newmetatable(L, builtin_class.metatable_name);
+        luaGD_initmetatable(L, -1, builtin_class.type, builtin_class.name);
+        int mt_idx = lua_gettop(L);
+
+        lua_newtable(L);
+        luaGD_initglobaltable(L, -1, builtin_class.name);
+        int global_idx = lua_gettop(L);
 
         // Enums
         for (const ApiEnum &class_enum : builtin_class.enums) {
             push_enum(L, class_enum);
-            lua_setfield(L, -3, class_enum.name);
+            lua_setfield(L, global_idx, class_enum.name);
         }
 
         // Constants
         for (const ApiVariantConstant &constant : builtin_class.constants) {
             LuaStackOp<Variant>::push(L, constant.value);
-            lua_setfield(L, -3, constant.name);
+            lua_setfield(L, global_idx, constant.name);
         }
 
         // Constructors (global .new)
         if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_CALLABLE) { // Special case for Callable security
             lua_pushcfunction(L, luaGD_callable_ctor, "Callable.new");
-            lua_setfield(L, -3, "new");
+            lua_setfield(L, global_idx, "new");
         } else {
             lua_pushlightuserdata(L, (void *)&builtin_class);
             lua_pushstring(L, builtin_class.constructor_error_string);
             lua_pushcclosure(L, luaGD_builtin_ctor, builtin_class.constructor_debug_name, 2);
-            lua_setfield(L, -3, "new");
+            lua_setfield(L, global_idx, "new");
         }
 
         // Members (__newindex, __index)
         lua_pushstring(L, builtin_class.name);
         lua_pushcclosure(L, luaGD_builtin_newindex, builtin_class.newindex_debug_name, 1);
-        lua_setfield(L, -4, "__newindex");
+        lua_setfield(L, mt_idx, "__newindex");
 
         lua_pushlightuserdata(L, (void *)&builtin_class);
         lua_pushcclosure(L, luaGD_builtin_index, builtin_class.index_debug_name, 1);
-        lua_setfield(L, -4, "__index");
+        lua_setfield(L, mt_idx, "__index");
 
         // Methods (__namecall)
         lua_pushlightuserdata(L, (void *)&builtin_class);
         lua_pushcclosure(L, luaGD_builtin_namecall, builtin_class.namecall_debug_name, 1);
-        lua_setfield(L, -4, "__namecall");
+        lua_setfield(L, mt_idx, "__namecall");
 
         // All methods (global table)
         for (const KeyValue<String, ApiVariantMethod> &pair : builtin_class.methods) {
             push_builtin_method(L, builtin_class, pair.value);
-            lua_setfield(L, -3, pair.value.name);
+            lua_setfield(L, global_idx, pair.value.name);
         }
 
         for (const ApiVariantMethod &static_method : builtin_class.static_methods) {
             push_builtin_method(L, builtin_class, static_method);
-            lua_setfield(L, -3, static_method.name);
+            lua_setfield(L, global_idx, static_method.name);
         }
 
         // Operators (misc metatable)
@@ -868,29 +857,30 @@ void luaGD_openbuiltins(lua_State *L) {
                     ERR_FAIL_MSG("variant operator not handled");
             }
 
-            lua_setfield(L, -4, op_mt_name);
+            lua_setfield(L, mt_idx, op_mt_name);
         }
 
         // Array type handling
         if (const ArrayTypeInfo *arr_type_info = get_array_type_info(builtin_class.type)) {
             // __len
             lua_pushcfunction(L, arr_type_info->len, arr_type_info->len_debug_name);
-            lua_setfield(L, -4, "__len");
+            lua_setfield(L, mt_idx, "__len");
 
             // __iter
             lua_pushcfunction(L, arr_type_info->iter_next, arr_type_info->iter_next_debug_name);
             lua_pushcclosure(L, luaGD_array_iter, BUILTIN_MT_NAME(Array) ".__iter", 1);
-            lua_setfield(L, -4, "__iter");
+            lua_setfield(L, mt_idx, "__iter");
         }
 
         // Dictionary iteration
         if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
             lua_pushcfunction(L, luaGD_dict_next, BUILTIN_MT_NAME(Dictionary) ".next");
             lua_pushcclosure(L, luaGD_dict_iter, BUILTIN_MT_NAME(Dictionary) ".__iter", 1);
-            lua_setfield(L, -4, "__iter");
+            lua_setfield(L, mt_idx, "__iter");
         }
 
-        luaGD_poplib(L);
+        lua_setreadonly(L, mt_idx, true);
+        lua_pop(L, 2);
     }
 
     // Special cases
@@ -952,14 +942,12 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
         self = *self_var.get_ptr<GDExtensionObjectPtr>();
     }
 
-    GDExtensionMethodBindPtr method_bind = method.try_get_method_bind();
-
     if (method.is_vararg) {
         Variant ret;
         GDExtensionCallError error;
 
         SET_CALL_STACK(L);
-        internal::gde_interface->object_method_bind_call(method_bind, self, pargs.ptr(), pargs.size(), &ret, &error);
+        internal::gde_interface->object_method_bind_call(method.bind, self, pargs.ptr(), pargs.size(), &ret, &error);
         CLEAR_CALL_STACK;
 
         if (method.return_type.type != -1) {
@@ -984,7 +972,7 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
         }
 
         SET_CALL_STACK(L);
-        internal::gde_interface->object_method_bind_ptrcall(method_bind, self, pargs.ptr(), ret_ptr);
+        internal::gde_interface->object_method_bind_ptrcall(method.bind, self, pargs.ptr(), ret_ptr);
         CLEAR_CALL_STACK;
 
         if (ret.get_type() != -1) {
@@ -1349,19 +1337,6 @@ static int luaGD_class_newindex(lua_State *L) {
     luaGD_indexerror(L, key, current_class->name);
 }
 
-static int luaGD_class_singleton_getter(lua_State *L) {
-    ApiClass *g_class = luaGD_lightudataup<ApiClass>(L, 1);
-    if (lua_gettop(L) > 0)
-        luaL_error(L, "singleton getter takes no arguments");
-
-    GDExtensionObjectPtr singleton = g_class->try_get_singleton();
-    if (!singleton)
-        luaL_error(L, "could not get singleton '%s'", g_class->name);
-
-    LuaStackOp<Object *>::push(L, singleton);
-    return 1;
-}
-
 void luaGD_openclasses(lua_State *L) {
     LUAGD_LOAD_GUARD(L, "_gdClassesLoaded");
 
@@ -1372,56 +1347,59 @@ void luaGD_openclasses(lua_State *L) {
     for (int i = 0; i < extension_api.classes.size(); i++) {
         ApiClass &g_class = classes[i];
 
-        luaGD_newlib(L, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name, g_class.metatable_name);
+        luaL_newmetatable(L, g_class.metatable_name);
+        luaGD_initmetatable(L, -1, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name);
+        int mt_idx = lua_gettop(L);
 
         String namecall_mt_name = String(g_class.metatable_name) + ".Namecall";
         luaL_newmetatable(L, namecall_mt_name.utf8().get_data());
+        int nc_mt_idx = lua_gettop(L);
 
-        // Object type ID
-        lua_pushinteger(L, i);
-        lua_setfield(L, -5, MT_CLASS_TYPE);
+        lua_newtable(L);
+        luaGD_initglobaltable(L, -1, g_class.name);
+        int global_idx = lua_gettop(L);
 
         // Enums
         for (const ApiEnum &class_enum : g_class.enums) {
             push_enum(L, class_enum);
-            lua_setfield(L, -4, class_enum.name);
+            lua_setfield(L, global_idx, class_enum.name);
         }
 
         // Constants
         for (const ApiConstant &constant : g_class.constants) {
             lua_pushinteger(L, constant.value);
-            lua_setfield(L, -4, constant.name);
+            lua_setfield(L, global_idx, constant.name);
         }
 
         // Constructor (global .new)
         if (g_class.is_instantiable) {
             lua_pushstring(L, g_class.name);
             lua_pushcclosure(L, luaGD_class_ctor, g_class.constructor_debug_name, 1);
-            lua_setfield(L, -4, "new");
+            lua_setfield(L, global_idx, "new");
         }
 
-        // Methods (__namecall)
-        lua_pushinteger(L, i);
-        lua_pushcclosure(L, luaGD_class_namecall, g_class.namecall_debug_name, 1);
-        lua_setfield(L, -2, "__namecall");
+        // Singleton
+        if (g_class.singleton) {
+            LuaStackOp<Object *>::push(L, g_class.singleton);
+            lua_setfield(L, global_idx, "singleton");
+        }
 
         // All methods (global table)
         for (KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
             push_class_method(L, g_class, pair.value);
-            lua_setfield(L, -4, pair.value.name);
+            lua_setfield(L, global_idx, pair.value.name);
         }
 
         for (ApiClassMethod &static_method : g_class.static_methods) {
             push_class_method(L, g_class, static_method);
-            lua_setfield(L, -4, static_method.name);
+            lua_setfield(L, global_idx, static_method.name);
         }
 
+        // Overridden Object methods
         if (strcmp(g_class.name, "Object") == 0) {
-            // Overridden Object methods
-
 #define CUSTOM_OBJ_METHOD(method, name, dbg_name) \
     lua_pushcfunction(L, method, dbg_name);       \
-    lua_setfield(L, -4, name);
+    lua_setfield(L, global_idx, name);
 
             CUSTOM_OBJ_METHOD(luaGD_class_free, FREE_NAME, FREE_DBG_NAME)
             CUSTOM_OBJ_METHOD(luaGD_class_isa, ISA_NAME, ISA_DBG_NAME)
@@ -1429,34 +1407,35 @@ void luaGD_openclasses(lua_State *L) {
             CUSTOM_OBJ_METHOD(luaGD_class_get, GET_NAME, GET_DBG_NAME)
         }
 
+        // Object type ID
+        lua_pushinteger(L, i);
+        lua_setfield(L, mt_idx, MT_CLASS_TYPE);
+
+        // Methods (__namecall)
+        lua_pushinteger(L, i);
+        lua_pushcclosure(L, luaGD_class_namecall, g_class.namecall_debug_name, 1);
+        lua_setfield(L, nc_mt_idx, "__namecall");
+
         // Properties (__newindex, __index)
         lua_pushinteger(L, i);
         lua_pushcclosure(L, luaGD_class_newindex, g_class.newindex_debug_name, 1);
-        lua_setfield(L, -5, "__newindex");
+        lua_setfield(L, mt_idx, "__newindex");
 
         lua_pushinteger(L, i);
         lua_pushcclosure(L, luaGD_class_index, g_class.index_debug_name, 1);
-        lua_setfield(L, -5, "__index");
-
-        // Singleton
-        if (!g_class.singleton_name.is_empty()) {
-            lua_pushlightuserdata(L, &g_class);
-            lua_pushcclosure(L, luaGD_class_singleton_getter, g_class.singleton_getter_debug_name, 1);
-            lua_setfield(L, -4, "GetSingleton");
-        }
+        lua_setfield(L, mt_idx, "__index");
 
         // Copy main metatable to namecall metatable
         lua_pushnil(L);
-        while (lua_next(L, -5) != 0) {
+        while (lua_next(L, mt_idx) != 0) {
             lua_pushvalue(L, -2);
             lua_insert(L, -2);
-            lua_settable(L, -4);
+            lua_settable(L, nc_mt_idx);
         }
 
-        lua_setreadonly(L, -1, true);
-        lua_pop(L, 1); // script instance metatable
-
-        luaGD_poplib(L);
+        lua_setreadonly(L, nc_mt_idx, true);
+        lua_setreadonly(L, mt_idx, true);
+        lua_pop(L, 3);
     }
 
     // CrossVMMethod

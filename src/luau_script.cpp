@@ -47,6 +47,15 @@
 #include "utils.h"
 #include "wrapped_no_binding.h"
 
+#ifdef TESTS_ENABLED
+#include <vector>
+
+#include <godot_cpp/classes/os.hpp>
+#include <godot_cpp/variant/char_string.hpp>
+
+#include <catch_amalgamated.hpp>
+#endif // TESTS_ENABLED
+
 using namespace godot;
 
 ////////////
@@ -1768,7 +1777,44 @@ void LuauLanguage::discover_core_scripts(const String &path) {
     }
 }
 
+#ifdef TESTS_ENABLED
+static void run_tests() {
+    if (!nb::OS::get_singleton_nb()->get_cmdline_args().has("--luau-tests"))
+        return;
+
+    UtilityFunctions::print("Catch2: Running tests...");
+
+    Catch::Session session;
+
+    // Fetch args
+    PackedStringArray args = nb::OS::get_singleton_nb()->get_cmdline_user_args();
+    int argc = args.size();
+
+    // CharString does not work with godot::Vector
+    std::vector<CharString> charstr_vec(argc);
+
+    std::vector<const char *> argv_vec(argc + 1);
+    argv_vec[0] = "luau-script"; // executable name
+
+    for (int i = 0; i < argc; i++) {
+        charstr_vec[i] = args[i].utf8();
+        argv_vec[i + 1] = charstr_vec[i].get_data();
+    }
+
+    session.applyCommandLine(argc + 1, argv_vec.data());
+
+    // Run
+    session.run();
+}
+#endif // TESTS_ENABLED
+
 void LuauLanguage::_init() {
+#ifdef TESTS_ENABLED
+    // Tests are run at this stage (before GDLuau and LuauCache are initialized and after _init is called)
+    // in order to ensure singletons/methods are all registered and available for immediate retrieval.
+    run_tests();
+#endif // TESTS_ENABLED
+
     luau = memnew(GDLuau);
     cache = memnew(LuauCache);
 

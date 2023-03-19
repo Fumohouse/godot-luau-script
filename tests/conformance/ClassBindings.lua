@@ -14,7 +14,7 @@ end
 
 do
     -- Singleton getter
-    assert(Engine.GetSingleton():GetClass() == "Engine")
+    assert(Engine.singleton:GetClass() == "Engine")
 end
 
 do

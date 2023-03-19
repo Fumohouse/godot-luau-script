@@ -158,11 +158,6 @@ struct ApiClassArgument {
 };
 
 struct ApiClassMethod {
-    GDExtensionMethodBindPtr method = nullptr;
-
-public:
-    const char *class_name;
-
     const char *name;
     const char *gd_name;
     const char *debug_name;
@@ -173,20 +168,9 @@ public:
     bool is_static;
     bool is_vararg;
 
-    uint32_t hash;
+    GDExtensionMethodBindPtr bind = nullptr;
     Vector<ApiClassArgument> arguments;
     ApiClassType return_type;
-
-    // avoid issues with getting this before method binds are initialized
-    _FORCE_INLINE_ GDExtensionMethodBindPtr try_get_method_bind() {
-        if (method)
-            return method;
-
-        StringName class_sn = class_name;
-        StringName gd_sn = gd_name;
-        method = internal::gde_interface->classdb_get_method_bind(&class_sn, &gd_sn, hash);
-        return method;
-    }
 };
 
 struct ApiClassSignal {
@@ -209,9 +193,6 @@ struct ApiClassProperty {
 };
 
 struct ApiClass {
-    GDExtensionObjectPtr singleton = nullptr;
-
-public:
     const char *name;
     const char *metatable_name;
     int32_t parent_idx = -1;
@@ -234,16 +215,7 @@ public:
     const char *newindex_debug_name;
     const char *index_debug_name;
 
-    StringName singleton_name;
-    const char *singleton_getter_debug_name;
-
-    // avoid issues with getting singleton before they are initialized
-    _FORCE_INLINE_ GDExtensionObjectPtr try_get_singleton() {
-        if (!singleton)
-            singleton = internal::gde_interface->global_get_singleton(&singleton_name);
-
-        return singleton;
-    }
+    GDExtensionObjectPtr singleton;
 };
 
 /////////////////////

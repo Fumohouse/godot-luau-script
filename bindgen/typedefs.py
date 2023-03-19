@@ -370,7 +370,7 @@ function Free(self)\
     # Singleton
     singleton_matches = utils.get_singletons(name, api["singletons"])
     if len(singleton_matches) > 0:
-        append(src, 1, f"GetSingleton: () -> {name}")
+        append(src, 1, f"singleton: {name}")
 
     # Statics
     if "methods" in g_class:

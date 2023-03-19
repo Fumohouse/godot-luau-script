@@ -36,7 +36,7 @@ declare function NP(str: string): NodePath
 
 -- TODO: constrain to Resource type?
 --[[--
-    Loads a resource. Mostly an alias for `ResourceLoader.GetSingleton():Load()`.
+    Loads a resource. Mostly an alias for `ResourceLoader.singleton:Load()`.
     @param path The **relative** path to the resource from this script.
 ]]
 declare function load<T>(path: string): T?

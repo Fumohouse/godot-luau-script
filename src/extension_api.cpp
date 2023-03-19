@@ -156,7 +156,6 @@ static ApiClassArgument read_class_arg(uint64_t &idx) {
 static ApiClassMethod read_class_method(uint64_t &idx, const char *class_name) {
     ApiClassMethod method;
 
-    method.class_name = class_name;
     method.name = read_string(idx);
     method.gd_name = read_string(idx);
     method.debug_name = read_string(idx);
@@ -167,7 +166,10 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *class_name) {
     method.is_static = read<uint8_t>(idx);
     method.is_vararg = read<uint8_t>(idx);
 
-    method.hash = read<uint32_t>(idx);
+    uint32_t hash = read<uint32_t>(idx);
+    StringName class_sn = class_name;
+    StringName gd_sn = method.gd_name;
+    method.bind = internal::gde_interface->classdb_get_method_bind(&class_sn, &gd_sn, hash);
 
     uint64_t num_args = read<uint64_t>(idx);
     method.arguments.resize(num_args);
@@ -520,8 +522,9 @@ ExtensionApi &get_extension_api() {
                 new_class.index_debug_name = read_string(idx);
 
                 // Singleton
-                new_class.singleton_name = read_string(idx);
-                new_class.singleton_getter_debug_name = read_string(idx);
+                StringName singleton_name = read_string(idx);
+                if (!singleton_name.is_empty())
+                    new_class.singleton = internal::gde_interface->global_get_singleton(&singleton_name);
             }
         }
 
