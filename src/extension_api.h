@@ -230,7 +230,7 @@ struct ExtensionApi {
     Vector<ApiClass> classes;
 };
 
-ExtensionApi &get_extension_api();
+const ExtensionApi &get_extension_api();
 
 // Corresponding definitions are generated.
 extern const Variant &get_variant_value(int idx);

@@ -495,6 +495,7 @@ static int luaGD_callable_ctor(lua_State *L) {
         const ApiClass &g_class = classes.get(class_idx);
 
         HashMap<String, ApiClassMethod>::ConstIterator E = g_class.methods.find(method);
+
         if (E) {
             luaGD_checkpermissions(L, E->value.debug_name, get_method_permissions(g_class, E->value));
 
@@ -902,17 +903,17 @@ static int luaGD_class_ctor(lua_State *L) {
 
 #define LUAGD_CLASS_METAMETHOD                                     \
     int class_idx = lua_tointeger(L, lua_upvalueindex(1));         \
-    Vector<ApiClass> &classes = get_extension_api().classes;       \
-    ApiClass *current_class = &classes.ptrw()[class_idx];          \
+    const Vector<ApiClass> &classes = get_extension_api().classes; \
+    const ApiClass *current_class = &classes[class_idx];           \
                                                                    \
     GDExtensionObjectPtr self = LuaStackOp<Object *>::check(L, 1); \
     if (!self)                                                     \
         luaGD_objnullerror(L, 1);
 
-#define INHERIT_OR_BREAK                                            \
-    if (current_class->parent_idx >= 0)                             \
-        current_class = &classes.ptrw()[current_class->parent_idx]; \
-    else                                                            \
+#define INHERIT_OR_BREAK                                     \
+    if (current_class->parent_idx >= 0)                      \
+        current_class = &classes[current_class->parent_idx]; \
+    else                                                     \
         break;
 
 static void handle_object_returned(GDExtensionObjectPtr obj) {
@@ -924,7 +925,7 @@ static void handle_object_returned(GDExtensionObjectPtr obj) {
         nb::RefCounted(rc).unreference();
 }
 
-static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
+static int call_class_method(lua_State *L, const ApiClass &g_class, const ApiClassMethod &method) {
     luaGD_checkpermissions(L, method.debug_name, get_method_permissions(g_class, method));
 
     LocalVector<Variant> varargs;
@@ -991,14 +992,14 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, ApiClassMeth
 
 static int luaGD_class_method(lua_State *L) {
     const ApiClass *g_class = luaGD_lightudataup<ApiClass>(L, 1);
-    ApiClassMethod *method = luaGD_lightudataup<ApiClassMethod>(L, 2);
+    const ApiClassMethod *method = luaGD_lightudataup<ApiClassMethod>(L, 2);
 
     return call_class_method(L, *g_class, *method);
 }
 
-static void push_class_method(lua_State *L, const ApiClass &g_class, ApiClassMethod &method) {
+static void push_class_method(lua_State *L, const ApiClass &g_class, const ApiClassMethod &method) {
     lua_pushlightuserdata(L, (void *)&g_class);
-    lua_pushlightuserdata(L, &method);
+    lua_pushlightuserdata(L, (void *)&method);
     lua_pushcclosure(L, luaGD_class_method, method.debug_name, 2);
 }
 
@@ -1125,11 +1126,13 @@ static int call_property_setget(lua_State *L, int class_idx, const ApiClassPrope
         lua_insert(L, 2);
     }
 
-    Vector<ApiClass> &classes = get_extension_api().classes;
+    const Vector<ApiClass> &classes = get_extension_api().classes;
 
     while (class_idx != -1) {
-        ApiClass &current_class = classes.ptrw()[class_idx];
-        HashMap<String, ApiClassMethod>::Iterator E = current_class.methods.find(method);
+        const ApiClass &current_class = classes[class_idx];
+
+        HashMap<String, ApiClassMethod>::ConstIterator E = current_class.methods.find(method);
+
         if (E) {
             return call_class_method(L, current_class, E->value);
         }
@@ -1237,7 +1240,7 @@ static int luaGD_class_index(lua_State *L) {
     }
 
     while (true) {
-        HashMap<String, ApiClassMethod>::Iterator E = current_class->methods.find(key);
+        HashMap<String, ApiClassMethod>::ConstIterator E = current_class->methods.find(key);
 
         if (E) {
             push_class_method(L, *current_class, E->value);
@@ -1340,12 +1343,11 @@ static int luaGD_class_newindex(lua_State *L) {
 void luaGD_openclasses(lua_State *L) {
     LUAGD_LOAD_GUARD(L, "_gdClassesLoaded");
 
-    ExtensionApi &extension_api = get_extension_api();
-
-    ApiClass *classes = extension_api.classes.ptrw();
+    const ExtensionApi &extension_api = get_extension_api();
+    const ApiClass *classes = extension_api.classes.ptr();
 
     for (int i = 0; i < extension_api.classes.size(); i++) {
-        ApiClass &g_class = classes[i];
+        const ApiClass &g_class = classes[i];
 
         luaL_newmetatable(L, g_class.metatable_name);
         luaGD_initmetatable(L, -1, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name);
@@ -1385,12 +1387,12 @@ void luaGD_openclasses(lua_State *L) {
         }
 
         // All methods (global table)
-        for (KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
+        for (const KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
             push_class_method(L, g_class, pair.value);
             lua_setfield(L, global_idx, pair.value.name);
         }
 
-        for (ApiClassMethod &static_method : g_class.static_methods) {
+        for (const ApiClassMethod &static_method : g_class.static_methods) {
             push_class_method(L, g_class, static_method);
             lua_setfield(L, global_idx, static_method.name);
         }

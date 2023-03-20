@@ -188,7 +188,7 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *class_name) {
 // Main //
 //////////
 
-ExtensionApi &get_extension_api() {
+const ExtensionApi &get_extension_api() {
     static ExtensionApi extension_api;
     static bool did_init;
 
