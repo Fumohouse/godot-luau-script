@@ -9,23 +9,15 @@ TestClass:RegisterSignal("testSignal")
 
 TestClass:RegisterConstant("TEST_CONSTANT", Vector2.new(1, 2))
 
-local testClassIndex = {}
-
-function testClassIndex:PrivateMethod()
-    return "hi there"
-end
-
 function TestClassImpl:NonRegisteredMethod()
     return "what's up"
 end
 
-function TestClassImpl._Init(obj, tbl)
-    setmetatable(tbl, { __index = testClassIndex })
-
-    tbl.notifHits = 0
-    tbl.testField = 1
-    tbl._testProperty = 3.25
-    tbl.customTestPropertyValue = 1.25
+function TestClassImpl:_Init()
+    self.notifHits = 0
+    self.testField = 1
+    self._testProperty = 3.25
+    self.customTestPropertyValue = 1.25
 end
 
 function TestClassImpl:_Ready()

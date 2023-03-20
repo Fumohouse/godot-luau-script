@@ -13,12 +13,10 @@ MyClassImpl.TestEnum = {
 
 MyClassImpl.TEST_CONSTANT = "hello!"
 
--- Includes any custom fields/properties (essentially anything except methods)
-type MyClassT = {
+export type MyClass = Resource & typeof(MyClassImpl) & {
+    -- Includes any custom fields/properties (essentially anything except methods)
     testProperty: number,
 }
-
-export type MyClass = Resource & MyClassT & typeof(MyClassImpl)
 
 -- Register a property to be accessible in the editor
 MyClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)

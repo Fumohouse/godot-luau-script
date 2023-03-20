@@ -247,9 +247,6 @@ class LuauScriptInstance : public ScriptInstance {
 
     int call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret);
 
-    int protected_table_set(lua_State *L, const Variant &p_key, const Variant &p_value);
-    int protected_table_get(lua_State *L, const Variant &p_key);
-
 public:
     static const GDExtensionScriptInstanceInfo INSTANCE_INFO;
 

@@ -14,8 +14,8 @@ function TestClassImpl:Counter()
     end
 end
 
-function TestClassImpl._Init(obj, tbl)
-    tbl.customProperty = "hey"
+function TestClassImpl:_Init()
+    self.customProperty = "hey"
 end
 
 function TestClassImpl:_Ready()

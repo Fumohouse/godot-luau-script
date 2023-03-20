@@ -963,37 +963,6 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
     return -1;
 }
 
-int LuauScriptInstance::protected_table_set(lua_State *L, const Variant &p_key, const Variant &p_value) {
-    lua_pushcfunction(
-            L, [](lua_State *FL) {
-                lua_settable(FL, 1);
-                return 0;
-            },
-            "instance_table_set");
-
-    lua_getref(L, table_ref);
-    LuaStackOp<Variant>::push(L, p_key);
-    LuaStackOp<Variant>::push(L, p_value);
-
-    INIT_TIMEOUT(L)
-    return lua_pcall(L, 3, 0, 0);
-}
-
-int LuauScriptInstance::protected_table_get(lua_State *L, const Variant &p_key) {
-    lua_pushcfunction(
-            L, [](lua_State *FL) {
-                lua_gettable(FL, 1);
-                return 1;
-            },
-            "instance_table_get");
-
-    lua_getref(L, table_ref);
-    LuaStackOp<Variant>::push(L, p_key);
-
-    INIT_TIMEOUT(L)
-    return lua_pcall(L, 2, 1, 0);
-}
-
 bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err) {
 #define SET_METHOD "LuauScriptInstance::set"
 #define SET_NAME "_Set"
@@ -1025,13 +994,15 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
             // Set
             LUAU_LOCK(T);
             lua_State *ET = lua_newthread(T);
-            int status;
+            int status = LUA_OK;
 
             if (prop.setter != StringName()) {
                 LuaStackOp<Variant>::push(ET, p_value);
                 status = call_internal(prop.setter, ET, 1, 0);
             } else {
-                status = protected_table_set(ET, String(p_name), p_value);
+                LuaStackOp<String>::push(ET, p_name);
+                LuaStackOp<Variant>::push(ET, p_value);
+                table_set(ET);
             }
 
             lua_pop(T, 1); // thread
@@ -1119,12 +1090,13 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
             // Get
             LUAU_LOCK(T);
             lua_State *ET = lua_newthread(T);
-            int status;
+            int status = LUA_OK;
 
             if (prop.getter != StringName()) {
                 status = call_internal(prop.getter, ET, 0, 1);
             } else {
-                status = protected_table_get(ET, String(p_name));
+                LuaStackOp<String>::push(ET, p_name);
+                table_get(ET);
             }
 
             if (status == LUA_OK) {
@@ -1670,10 +1642,9 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         // Initialize default values
         for (const GDClassProperty &prop : scr->get_definition().properties) {
             if (prop.getter == StringName() && prop.setter == StringName()) {
-                int status = protected_table_set(T, String(prop.property.name), prop.default_value);
-                if (status != OK) {
-                    scr->error("LuauScriptInstance::LuauScriptInstance", LuaStackOp<String>::get(T, -1));
-                }
+                LuaStackOp<String>::push(T, prop.property.name);
+                LuaStackOp<Variant>::push(T, prop.default_value);
+                table_set(T);
             }
         }
 
@@ -1685,11 +1656,12 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
             scr->def_table_get(vm_type, T);
 
             if (lua_isfunction(T, -1)) {
+                // This object can be considered as the full script instance (minus some initialized values) because Object sets its script
+                // before instance_create was called, and this instance was registered with the script before now.
                 LuaStackOp<Object *>::push(T, p_owner);
-                lua_getref(T, table_ref);
 
                 INIT_TIMEOUT(T)
-                int status = lua_pcall(T, 2, 0, 0);
+                int status = lua_pcall(T, 1, 0, 0);
 
                 if (status == LUA_YIELD) {
                     ERR_PRINT(scr->get_path() + ":_Init yielded unexpectedly");

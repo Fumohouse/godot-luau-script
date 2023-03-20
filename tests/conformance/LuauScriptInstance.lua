@@ -26,7 +26,6 @@ do
     -- Metatable
 
     -- Namecall
-    assert(obj:PrivateMethod() == "hi there") -- table index
     assert(obj:NonRegisteredMethod() == "what's up")
     assert(obj:TestMethod(2.5, "asdf") == "2.5, asdf")
 

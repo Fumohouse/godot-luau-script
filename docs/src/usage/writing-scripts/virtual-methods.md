@@ -12,12 +12,12 @@ you can override it by defining it in your implementation table and registering 
 This project comes with a number of built-in virtual methods, which can be overridden just by defining them on your implementation table.
 They do not need to be registered to Godot.
 
-### `function _Init(obj: Object, table): ()`
+### `function _Init(self): ()`
 
 `_Init` is called as soon as an `Object` with your script is instantiated.
 
-At this time, you gain access to the underlying table for your script instance,
-where you can set a metatable on it or initialize any fields that do not need to be registered to Godot as a property.
+At this time, you can initialize any values on the object or the underlying table.
+Note that the virtual `_Ready` on `Node` may be equally or more appropriate in many cases.
 
 ### `function _Notification(self, what: number): ()`
 

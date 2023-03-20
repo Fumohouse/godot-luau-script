@@ -254,11 +254,11 @@ TEST_CASE("luau script: instance") {
             }
 
             SECTION("get") {
-                lua_pushstring(L, "PrivateMethod");
+                lua_pushstring(L, "notifHits");
                 bool is_valid = inst->table_get(L);
 
                 REQUIRE(is_valid);
-                REQUIRE(lua_isLfunction(L, -1));
+                REQUIRE(lua_isnumber(L, -1));
                 REQUIRE(lua_gettop(L) == top + 1);
             }
         }
@@ -275,7 +275,7 @@ TEST_CASE("luau script: instance") {
             }
 
             SECTION("get") {
-                lua_pushstring(L, "PrivateMethod");
+                lua_pushstring(L, "notifHits");
 
                 bool is_valid = inst->table_get(L);
                 REQUIRE(!is_valid);

@@ -2,11 +2,6 @@ local BaseImpl = {}
 local Base = gdclass("Base", Object)
     :RegisterImpl(BaseImpl)
 
-function BaseImpl._Init(obj, tbl)
-    tbl.property1 = "hey"
-    tbl.property2 = "hi"
-end
-
 Base:RegisterProperty("property1", Enum.VariantType.STRING)
     :Default("hey")
 
