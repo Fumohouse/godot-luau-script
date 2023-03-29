@@ -121,10 +121,10 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
         ObjectUdata *udata = nullptr;
         uint64_t id = obj.get_instance_id();
         // Prevent loss of precision (vs casting)
-        double dbl_id = *reinterpret_cast<double *>(&id);
+        const char *str_id = reinterpret_cast<const char *>(&id);
 
         // Check to return from cache
-        lua_pushnumber(L, dbl_id);
+        lua_pushlstring(L, str_id, sizeof(uint64_t));
         lua_gettable(L, -2);
 
         if (!lua_isnil(L, -1)) {
@@ -179,7 +179,7 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
 
         lua_setmetatable(L, -2);
 
-        lua_pushnumber(L, dbl_id);
+        lua_pushlstring(L, str_id, sizeof(uint64_t));
         lua_pushvalue(L, -2);
         lua_settable(L, -4);
         lua_remove(L, -2); // table
