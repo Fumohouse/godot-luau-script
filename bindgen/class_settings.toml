@@ -6520,6 +6520,9 @@ default_permissions = "BASE" #
 
 [CharacterBody2D.methods]
 
+[CharacterBody2D.methods.ApplyFloorSnap]
+permissions = "INHERIT" #
+
 [CharacterBody2D.methods.GetFloorAngle]
 permissions = "INHERIT" #
 
@@ -6670,6 +6673,9 @@ inherits = "PhysicsBody3D"
 default_permissions = "BASE" #
 
 [CharacterBody3D.methods]
+
+[CharacterBody3D.methods.ApplyFloorSnap]
+permissions = "INHERIT" #
 
 [CharacterBody3D.methods.GetFloorAngle]
 permissions = "INHERIT" #
@@ -41754,6 +41760,9 @@ ret_nullable = true #
 [XRServer.methods.GetTrackers]
 permissions = "INHERIT" #
 
+[XRServer.methods.GetWorldOrigin]
+permissions = "INHERIT" #
+
 [XRServer.methods.GetWorldScale]
 permissions = "INHERIT" #
 
@@ -41764,6 +41773,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [XRServer.methods.SetPrimaryInterface]
+permissions = "INHERIT" #
+
+[XRServer.methods.SetWorldOrigin]
 permissions = "INHERIT" #
 
 [XRServer.methods.SetWorldScale]
