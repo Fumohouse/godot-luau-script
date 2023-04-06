@@ -36,6 +36,7 @@
 #include <string>
 #include <utility>
 
+#include "extension_api.h"
 #include "gd_luau.h"
 #include "luagd.h"
 #include "luagd_permissions.h"
@@ -93,6 +94,25 @@ Error LuauScript::load_source_code(const String &p_path) {
 }
 
 void LuauScript::compile() {
+    static LocalVector<const char *> mutable_globals;
+    static bool did_init = false;
+
+    if (!did_init) {
+        for (const ApiClass &g_class : get_extension_api().classes) {
+            if (!g_class.singleton || g_class.properties.size() == 0)
+                continue;
+
+            for (const KeyValue<String, ApiClassProperty> &E : g_class.properties) {
+                if (!E.value.setter.is_empty()) {
+                    mutable_globals.push_back(g_class.name);
+                    break;
+                }
+            }
+        }
+
+        mutable_globals.push_back(nullptr);
+    }
+
     // See Luau Compiler.cpp
     CharString src = source.utf8();
 
@@ -107,6 +127,8 @@ void LuauScript::compile() {
     if (parse_result.errors.empty()) {
         try {
             Luau::CompileOptions opts;
+            // Prevents Luau from optimizing the value such that it (seemingly) won't ever change
+            opts.mutableGlobals = mutable_globals.ptr();
 
             Luau::BytecodeBuilder bcb;
             Luau::compileOrThrow(bcb, parse_result, names, opts);
