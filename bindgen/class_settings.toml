@@ -7986,7 +7986,7 @@ default_permissions = "BASE" #
 
 [ConfirmationDialog.methods.GetCancelButton]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [ConfirmationDialog.methods.GetCancelButtonText]
 permissions = "INHERIT" #
@@ -9988,11 +9988,11 @@ permissions = "INHERIT" #
 
 [EditorFileDialog.methods.GetLineEdit]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorFileDialog.methods.GetVbox]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorFileDialog.methods.Invalidate]
 permissions = "INHERIT" #
@@ -10043,7 +10043,7 @@ permissions = "INHERIT" #
 
 [EditorFileSystem.methods.GetFilesystem]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorFileSystem.methods.GetFilesystemPath]
 permissions = "INHERIT" #
@@ -10185,11 +10185,11 @@ permissions = "INHERIT" #
 
 [EditorInterface.methods.GetBaseControl]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetCommandPalette]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetCurrentDirectory]
 permissions = "INHERIT" #
@@ -10214,15 +10214,15 @@ permissions = "INHERIT" #
 
 [EditorInterface.methods.GetEditorSettings]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetFileSystemDock]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetInspector]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetOpenScenes]
 permissions = "INHERIT" #
@@ -10232,15 +10232,15 @@ permissions = "INHERIT" #
 
 [EditorInterface.methods.GetResourceFilesystem]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetResourcePreviewer]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetScriptEditor]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetSelectedPaths]
 permissions = "INHERIT" #
@@ -18326,7 +18326,7 @@ permissions = "INHERIT" #
 
 [MenuButton.methods.GetPopup]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [MenuButton.methods.IsSwitchOnHover]
 permissions = "INHERIT" #
@@ -22191,7 +22191,7 @@ permissions = "INHERIT" #
 
 [OptionButton.methods.GetPopup]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false #* 4.0.2-stable: Never null
 
 [OptionButton.methods.GetSelectableItem]
 permissions = "INHERIT" #
