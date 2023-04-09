@@ -233,19 +233,19 @@ declare class GDClassProperty
         @param type The name of the type.
         @param isResource Whether the type is the class name of a resource.
     ]]
-    function TypedArray(self, type: GDClassDefinition | ClassGlobal): GDClassProperty
+    function TypedArray(self, type: string | GDClassDefinition | ClassGlobal): GDClassProperty
 
     --[[--
         Indicates an object property should be constrained to a specific resource type.
         @param type The name of the type.
     ]]
-    function Resource(self, type: GDClassDefinition | ClassGlobal): GDClassProperty
+    function Resource(self, type: string | GDClassDefinition | ClassGlobal): GDClassProperty
 
     --[[--
         Constrains a NodePath property to specific node types.
         @varargs The names of the types.
     ]]
-    function NodePath(self, ...: GDClassDefinition | ClassGlobal): GDClassProperty
+    function NodePath(self, ...: string | GDClassDefinition | ClassGlobal): GDClassProperty
 end
 
 declare class GDSignal
@@ -355,7 +355,7 @@ end
     @param name The name of the class. This makes it "global" in the Godot editor, meaning it will, for example, show up in the Node/Resource creation dialogs.
     @param extends The Luau or Godot class this class extends.
 ]]
-declare function gdclass(name: string?, extends: GDClassDefinition | ClassGlobal?): GDClassDefinition
+declare function gdclass(name: string?, extends: string | GDClassDefinition | ClassGlobal?): GDClassDefinition
 
 --[[--
     Yields the current thread and waits before resuming.

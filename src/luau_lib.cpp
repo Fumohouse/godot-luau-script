@@ -800,7 +800,9 @@ static const luaL_Reg global_funcs[] = {
 #define luascript_classglobal_error(L) luaL_error(L, "table argument to gdclass must be a class global (i.e. metatable containing the " MT_CLASS_GLOBAL " field)")
 
 void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, LuauScript *&r_script) {
-    if (lua_istable(L, index)) {
+    if (lua_isstring(L, index)) {
+        r_type = lua_tostring(L, index);
+    } else if (lua_istable(L, index)) {
         if (!lua_getmetatable(L, index))
             luascript_classglobal_error(L);
 
@@ -818,7 +820,7 @@ void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, Lua
 
         r_script = other_def->script;
     } else {
-        luaL_typeerrorL(L, index, "GDClassDefinition or ClassGlobal");
+        luaL_typeerrorL(L, index, "string, GDClassDefinition, or ClassGlobal");
     }
 }
 

@@ -291,7 +291,7 @@ def generate_class(src, g_class, api, class_settings):
         append(src, 1, """\
 function Set(self, key: string | StringName, value: Variant)
 function Get(self, key: string | StringName): Variant
-function IsA(self, type: GDClassDefinition | ClassGlobal): boolean
+function IsA(self, type: string | GDClassDefinition | ClassGlobal): boolean
 function Free(self)\
 """)
 
