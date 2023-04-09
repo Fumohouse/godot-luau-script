@@ -682,6 +682,8 @@ static int luaGD_builtin_namecall(lua_State *L) {
 
                     LuaStackOp<Variant>::push(L, ret);
                     return 1;
+                } else {
+                    luaL_error(L, "this %s does not have key '%s'", builtin_class->name, key.stringify().utf8().get_data());
                 }
             }
 

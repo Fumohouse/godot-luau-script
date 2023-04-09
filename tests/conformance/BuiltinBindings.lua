@@ -66,6 +66,11 @@ do
     local dict = Dictionary.new()
     dict:Set(Vector2.new(1, 2), "hi!")
     assert(dict:Get(Vector2.new(1, 2)) == "hi!")
+
+    asserterror(function()
+        local dict = Dictionary.new()
+        dict:Get("hi")
+    end, "this Dictionary does not have key 'hi'")
 end
 
 do
