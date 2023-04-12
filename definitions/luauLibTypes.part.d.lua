@@ -3,26 +3,6 @@
 ---------------------
 
 --[[--
-    Extension to Luau's default string library which includes some commonly used methods
-    which are not implemented in Luau.
-]]
-declare strext: {
-    --[[--
-        Finds whether a string starts with another string.
-        @param self The string being queried.
-        @param str The start string.
-    ]]
-    startswith: (self: string, str: string) -> boolean,
-
-    --[[--
-        Finds whether a string ends with another string.
-        @param self The string being queried.
-        @param str The end string.
-    ]]
-    endswith: (self: string, str: string) -> boolean,
-}
-
---[[--
     Constructs a new `StringName`.
     @param str The string to use.
 ]]

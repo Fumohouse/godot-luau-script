@@ -1,14 +1,9 @@
 do
-    -- strext
+    -- globals
 
-    -- Length mismatch (handling same between both methods)
-    assert(strext.startswith("short", "longer") == false)
+    assert(gdtypeof(1) == Enum.VariantType.INT)
+    assert(gdtypeof(1.5) == Enum.VariantType.FLOAT)
 
-    -- startswith
-    assert(strext.startswith("startswith", "starts"))
-    assert(not strext.startswith("startswith", "ends"))
-
-    -- endswith
-    assert(strext.endswith("withends", "ends"))
-    assert(not strext.endswith("withends", "starts"))
+    assert(typeof(SN"x") == "StringName")
+    assert(typeof(NP"/") == "NodePath")
 end

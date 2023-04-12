@@ -16,41 +16,6 @@
 
 using namespace godot;
 
-/* STRING */
-
-#define LUAGD_STREXT_COMPARISON_ARGS                       \
-    size_t self_len;                                       \
-    const char *self = luaL_checklstring(L, 1, &self_len); \
-                                                           \
-    size_t cmp_len;                                        \
-    const char *cmp = luaL_checklstring(L, 2, &cmp_len);   \
-                                                           \
-    if (cmp_len > self_len) {                              \
-        lua_pushboolean(L, false);                         \
-        return 1;                                          \
-    }
-
-static int luaGD_strext_startswith(lua_State *L) {
-    LUAGD_STREXT_COMPARISON_ARGS
-
-    lua_pushboolean(L, strncmp(self, cmp, cmp_len) == 0);
-    return 1;
-}
-
-static int luaGD_strext_endswith(lua_State *L) {
-    LUAGD_STREXT_COMPARISON_ARGS
-
-    const char *self_end = self + self_len - cmp_len;
-    lua_pushboolean(L, strcmp(self_end, cmp) == 0);
-    return 1;
-}
-
-static const luaL_Reg string_ext[] = {
-    { "startswith", luaGD_strext_startswith },
-    { "endswith", luaGD_strext_endswith },
-    { nullptr, nullptr }
-};
-
 /* GLOBAL */
 
 template <typename T>
@@ -100,6 +65,5 @@ static const luaL_Reg global_funcs[] = {
 /* OPEN */
 
 void luaGD_openlibs(lua_State *L) {
-    luaL_register(L, "strext", string_ext);
     luaL_register(L, "_G", global_funcs);
 }

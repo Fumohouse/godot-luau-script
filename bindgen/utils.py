@@ -30,7 +30,7 @@ def write_file(path, lines):
 
 
 def should_skip_class(class_name):
-    to_skip = ["Nil", "bool", "int", "float", "String"]
+    to_skip = ["Nil", "bool", "int", "float"]
 
     return class_name in to_skip
 
@@ -200,6 +200,27 @@ def get_operators(class_name, operators):
 
 def get_singletons(class_name, singletons):
     return [s for s in singletons if s["type"] == class_name]
+
+
+def get_builtin_methods(b_class):
+    def should_skip(method):
+        if b_class["name"] == "String" and method["name"] in [
+            # Remove methods which are almost entirely redundant.
+            # Some versions which use Godot types instead of Lua types are kept.
+            "length", "is_empty",
+            "to_lower", "to_upper",
+            "to_int", "to_float",
+            "is_valid_int", "is_valid_float",
+            "repeat",
+            "left", "right",
+            "contains",
+            "format",
+        ]:
+            return True
+
+        return False
+
+    return [m for m in b_class["methods"] if not should_skip(m)]
 
 
 def get_class_methods(g_class):

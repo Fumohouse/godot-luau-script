@@ -107,7 +107,7 @@ def generate_method(src, class_name, method, api, is_def_static=False, is_obj_nu
             method_ret_str = "()"
 
         append(
-            src, 1, f"{method_name}: ({generate_args(method, api, not is_method_static, True, class_name)}) -> {method_ret_str}")
+            src, 1, f"{method_name}: ({generate_args(method, api, not is_method_static, True, get_luau_type(class_name, api))}) -> {method_ret_str}")
     else:
         if method_ret_str != "":
             method_ret_str = ": " + method_ret_str
@@ -151,66 +151,67 @@ def generate_builtin_class(src, builtin_class, api):
     # Class declaration
     #
 
-    src.append(f"declare class {name}")
+    if name != "String":
+        src.append(f"declare class {name}")
 
-    has_set_method = name.endswith("Array") or name == "Dictionary"
-    # Keying
-    if builtin_class["is_keyed"]:
-        append(src, 1, "function Get(self, key: Variant): Variant")
-        if has_set_method:
-            append(src, 1, "function Set(self, key: Variant, value: Variant)")
+        has_set_method = name.endswith("Array") or name == "Dictionary"
+        # Keying
+        if builtin_class["is_keyed"]:
+            append(src, 1, "function Get(self, key: Variant): Variant")
+            if has_set_method:
+                append(src, 1, "function Set(self, key: Variant, value: Variant)")
 
-    # Indexing
-    if "indexing_return_type" in builtin_class:
-        indexing_type_name = builtin_class["indexing_return_type"]
+        # Indexing
+        if "indexing_return_type" in builtin_class:
+            indexing_type_name = builtin_class["indexing_return_type"]
 
-        append(src, 1, f"function Get(self, key: number): {get_luau_type(indexing_type_name, api, True)}")
-        if has_set_method:
-            append(src, 1, f"function Set(self, key: number, value: {get_luau_type(indexing_type_name, api)})")
+            append(src, 1, f"function Get(self, key: number): {get_luau_type(indexing_type_name, api, True)}")
+            if has_set_method:
+                append(src, 1, f"function Set(self, key: number, value: {get_luau_type(indexing_type_name, api)})")
 
-    # Members
-    if "members" in builtin_class:
-        for member in builtin_class["members"]:
-            member_name = member["name"]
-            member_type = get_luau_type(member["type"], api, True)
+        # Members
+        if "members" in builtin_class:
+            for member in builtin_class["members"]:
+                member_name = member["name"]
+                member_type = get_luau_type(member["type"], api, True)
 
-            append(src, 1, f"[\"{member_name}\"]: {member_type}")
+                append(src, 1, f"[\"{member_name}\"]: {member_type}")
 
-    # Methods
-    if "methods" in builtin_class:
-        for method in builtin_class["methods"]:
-            if method["is_static"]:
-                continue
+        # Methods
+        if "methods" in builtin_class:
+            for method in utils.get_builtin_methods(builtin_class):
+                if method["is_static"]:
+                    continue
 
-            generate_method(src, name, method, api)
+                generate_method(src, name, method, api)
 
-    # Operators
-    if "operators" in builtin_class:
-        operators = utils.get_operators(name, builtin_class["operators"])
+        # Operators
+        if "operators" in builtin_class:
+            operators = utils.get_operators(name, builtin_class["operators"])
 
-        for op in operators:
-            op_mt_name = "__" + utils.variant_op_map[op["name"]]
-            op_return_type = get_luau_type(op["return_type"], api, True)
+            for op in operators:
+                op_mt_name = "__" + utils.variant_op_map[op["name"]]
+                op_return_type = get_luau_type(op["return_type"], api, True)
 
-            if "right_type" in op:
-                op_right_type = get_luau_type(op["right_type"], api)
+                if "right_type" in op:
+                    op_right_type = get_luau_type(op["right_type"], api)
 
-                append(
-                    src, 1, f"function {op_mt_name}(self, other: {op_right_type}): {op_return_type}")
-            else:
-                append(
-                    src, 1, f"function {op_mt_name}(self): {op_return_type}")
+                    append(
+                        src, 1, f"function {op_mt_name}(self, other: {op_right_type}): {op_return_type}")
+                else:
+                    append(
+                        src, 1, f"function {op_mt_name}(self): {op_return_type}")
 
-        # Special cases
-        if name.endswith("Array"):
-            append(src, 1, """\
+            # Special cases
+            if name.endswith("Array"):
+                append(src, 1, """\
 function __len(self): number
 function __iter(self): any\
-""")
-        elif name == "Dictionary":
-            append(src, 1, "function __iter(self): any")
+    """)
+            elif name == "Dictionary":
+                append(src, 1, "function __iter(self): any")
 
-    src.append("end\n")
+        src.append("end\n")
 
     #
     # Global declaration
@@ -246,14 +247,14 @@ function __iter(self): any\
     # Constructors
     if name == "Callable":
         append(src, 1, "new: (obj: Object, method: string) -> Callable")
-    else:
+    elif name != "String":
         for constructor in builtin_class["constructors"]:
             append(
                 src, 1, f"new: ({generate_args(constructor, api, False, True)}) -> {name}")
 
     # Statics
     if "methods" in builtin_class:
-        for method in builtin_class["methods"]:
+        for method in utils.get_builtin_methods(builtin_class):
             generate_method(src, name, method, api, True)
 
     src.append(f"""\
@@ -515,10 +516,11 @@ declare class ClassGlobal end
     var_def = "export type Variant = nil | boolean | number | string | Object | "
 
     for i, builtin_class in enumerate(builtin_classes):
-        if utils.should_skip_class(builtin_class["name"]):
+        b_name = builtin_class["name"]
+        if utils.should_skip_class(b_name) or b_name == "String":
             continue
 
-        var_def += builtin_class["name"]
+        var_def += b_name
 
         if i != len(builtin_classes) - 1:
             var_def += " | "

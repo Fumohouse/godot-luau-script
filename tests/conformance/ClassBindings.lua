@@ -91,7 +91,7 @@ end
 do
     -- tostring
     local node = Node3D.new()
-    assert(strext.startswith(tostring(node), "<Node3D#"))
+    assert(String.BeginsWith(tostring(node), "<Node3D#"))
     node:Free()
     assert(tostring(node) == "<Freed Object>")
 end

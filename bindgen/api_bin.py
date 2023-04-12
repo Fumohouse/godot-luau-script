@@ -399,7 +399,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
     # methods
     if "methods" in builtin_class:
-        methods = builtin_class["methods"]
+        methods = utils.get_builtin_methods(builtin_class)
         inst_methods, static_methods = filter_methods(methods)
 
         # instance methods
