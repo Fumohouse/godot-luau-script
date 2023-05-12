@@ -215,7 +215,7 @@ struct ApiClass {
     const char *newindex_debug_name;
     const char *index_debug_name;
 
-    GDExtensionObjectPtr singleton;
+    GDExtensionObjectPtr singleton = nullptr;
 };
 
 /////////////////////
