@@ -19279,6 +19279,12 @@ permissions = "INHERIT" #
 [NavigationAgent2D.methods.GetPathMetadataFlags]
 permissions = "INHERIT" #
 
+[NavigationAgent2D.methods.GetPathPostprocessing]
+permissions = "INHERIT" #
+
+[NavigationAgent2D.methods.GetPathfindingAlgorithm]
+permissions = "INHERIT" #
+
 [NavigationAgent2D.methods.GetRadius]
 permissions = "INHERIT" #
 
@@ -19346,6 +19352,12 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [NavigationAgent2D.methods.SetPathMetadataFlags]
+permissions = "INHERIT" #
+
+[NavigationAgent2D.methods.SetPathPostprocessing]
+permissions = "INHERIT" #
+
+[NavigationAgent2D.methods.SetPathfindingAlgorithm]
 permissions = "INHERIT" #
 
 [NavigationAgent2D.methods.SetRadius]
@@ -19438,6 +19450,12 @@ permissions = "INHERIT" #
 [NavigationAgent3D.methods.GetPathMetadataFlags]
 permissions = "INHERIT" #
 
+[NavigationAgent3D.methods.GetPathPostprocessing]
+permissions = "INHERIT" #
+
+[NavigationAgent3D.methods.GetPathfindingAlgorithm]
+permissions = "INHERIT" #
+
 [NavigationAgent3D.methods.GetRadius]
 permissions = "INHERIT" #
 
@@ -19508,6 +19526,12 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [NavigationAgent3D.methods.SetPathMetadataFlags]
+permissions = "INHERIT" #
+
+[NavigationAgent3D.methods.SetPathPostprocessing]
+permissions = "INHERIT" #
+
+[NavigationAgent3D.methods.SetPathfindingAlgorithm]
 permissions = "INHERIT" #
 
 [NavigationAgent3D.methods.SetRadius]
@@ -20867,6 +20891,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [Node.methods.IsMultiplayerAuthority]
+permissions = "INHERIT" #
+
+[Node.methods.IsNodeReady]
 permissions = "INHERIT" #
 
 [Node.methods.IsPhysicsProcessing]
@@ -27538,6 +27565,9 @@ permissions = "INHERIT" #
 [RenderingDevice.methods.SamplerCreate]
 permissions = "INHERIT" #
 
+[RenderingDevice.methods.SamplerIsFormatSupportedForFilter]
+permissions = "INHERIT" #
+
 [RenderingDevice.methods.ScreenGetFramebufferFormat]
 permissions = "INHERIT" #
 
@@ -28832,6 +28862,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [RenderingServer.methods.ViewportGetRenderInfo]
+permissions = "INHERIT" #
+
+[RenderingServer.methods.ViewportGetRenderTarget]
 permissions = "INHERIT" #
 
 [RenderingServer.methods.ViewportGetTexture]
