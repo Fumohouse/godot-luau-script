@@ -36,6 +36,7 @@
 #include <string>
 #include <utility>
 
+#include "Luau/ParseOptions.h"
 #include "extension_api.h"
 #include "gd_luau.h"
 #include "luagd.h"
@@ -116,9 +117,12 @@ void LuauScript::compile() {
     // See Luau Compiler.cpp
     CharString src = source.utf8();
 
+    Luau::ParseOptions parse_options;
+    parse_options.captureComments = true;
+
     Luau::Allocator allocator;
     Luau::AstNameTable names(allocator);
-    Luau::ParseResult parse_result = Luau::Parser::parse(src.get_data(), src.length() + 1, names, allocator);
+    Luau::ParseResult parse_result = Luau::Parser::parse(src.get_data(), src.length() + 1, names, allocator, parse_options);
     std::string bytecode;
 
     LuauScriptAnalysisResult analysis_result;
@@ -134,7 +138,7 @@ void LuauScript::compile() {
             Luau::compileOrThrow(bcb, parse_result, names, opts);
 
             bytecode = bcb.getBytecode();
-            analysis_valid = luascript_analyze(parse_result, analysis_result);
+            analysis_valid = luascript_analyze(src.get_data(), parse_result, analysis_result);
         } catch (Luau::CompileError &err) {
             std::string error = Luau::format(":%d: %s", err.getLocation().begin.line + 1, err.what());
             bytecode = Luau::BytecodeBuilder::getError(error);

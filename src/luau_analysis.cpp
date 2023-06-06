@@ -1,10 +1,15 @@
 #include "luau_analysis.h"
 
 #include <Luau/Ast.h>
+#include <Luau/Lexer.h>
+#include <Luau/Location.h>
+#include <Luau/ParseResult.h>
 #include <gdextension_interface.h>
 #include <string.h>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
+#include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -16,22 +21,23 @@ using namespace godot;
 
 /* BASE ANALYSIS */
 
-static void search_stat_return(Luau::AstArray<Luau::AstStat *> body, Luau::AstLocal *&result) {
+static Luau::AstLocal *find_return_local(Luau::AstArray<Luau::AstStat *> body) {
     for (Luau::AstStat *stat : body) {
         if (Luau::AstStatBlock *block = stat->as<Luau::AstStatBlock>()) {
             // Can return from inside a block, for some reason.
-            search_stat_return(block->body, result);
+            return find_return_local(block->body);
         } else if (Luau::AstStatReturn *ret = stat->as<Luau::AstStatReturn>()) {
             if (ret->list.size == 0)
-                return;
+                return nullptr;
 
             Luau::AstExpr *expr = *ret->list.begin();
-
             if (Luau::AstExprLocal *local = expr->as<Luau::AstExprLocal>()) {
-                result = local->local;
+                return local->local;
             }
         }
     }
+
+    return nullptr;
 }
 
 struct LocalDefinitionFinder : public Luau::AstVisitor {
@@ -59,10 +65,8 @@ struct TypesMethodsFinder : public Luau::AstVisitor {
     Luau::AstLocal *impl;
 
     HashMap<StringName, Luau::AstStatFunction *> methods;
-    HashMap<StringName, Luau::AstStatTypeAlias *> types;
 
     bool visit(Luau::AstStatFunction *func) override {
-        // look at this
         if (Luau::AstExprIndexName *index = func->name->as<Luau::AstExprIndexName>()) {
             if (Luau::AstExprLocal *local = index->expr->as<Luau::AstExprLocal>()) {
                 if (local->local == impl) {
@@ -71,11 +75,6 @@ struct TypesMethodsFinder : public Luau::AstVisitor {
             }
         }
 
-        return false;
-    }
-
-    bool visit(Luau::AstStatTypeAlias *type) override {
-        types.insert(type->name.value, type);
         return false;
     }
 
@@ -90,19 +89,71 @@ struct TypesMethodsFinder : public Luau::AstVisitor {
 // - The returned value must be the same local variable as the one that defined the class.
 // - All methods which chain on classes (namely, `RegisterImpl`) must be called in the same expression that defines the class definition.
 // Basically, make everything "idiomatic" (if such a thing exists) and don't do anything weird, then this should work.
-bool luascript_analyze(const Luau::ParseResult &parse_result, LuauScriptAnalysisResult &result) {
-    // Step 1: Scan root return value for definition expression.
-    search_stat_return(parse_result.root->body, result.definition);
+bool luascript_analyze(const char *src, const Luau::ParseResult &parse_result, LuauScriptAnalysisResult &result) {
+    // Step 1: Extract comments
+    LocalVector<const char *> line_offsets;
+    line_offsets.push_back(src);
+    {
+        const char *ptr = src;
 
+        while (*ptr) {
+            if (*ptr == '\n') {
+                line_offsets.push_back(ptr + 1);
+            }
+
+            ptr++;
+        }
+    }
+
+    for (const Luau::Comment &comment : parse_result.commentLocations) {
+        if (comment.type == Luau::Lexeme::BrokenComment) {
+            continue;
+        }
+
+        const Luau::Location &loc = comment.location;
+        const char *start_line_ptr = line_offsets[loc.begin.line];
+
+        LuauComment parsed_comment;
+
+        if (comment.type == Luau::Lexeme::BlockComment) {
+            parsed_comment.type = LuauComment::BLOCK;
+        } else {
+            // Search from start of line. If there is nothing other than whitespace before the comment, count it as "exclusive".
+            const char *ptr = start_line_ptr;
+
+            while (*ptr) {
+                if (*ptr == '-' && *(ptr + 1) == '-') {
+                    parsed_comment.type = LuauComment::SINGLE_LINE_EXCL;
+                    break;
+                } else if (*ptr != '\t' && *ptr != ' ' && *ptr != '\v' && *ptr != '\f') {
+                    parsed_comment.type = LuauComment::SINGLE_LINE;
+                    break;
+                }
+
+                ptr++;
+            }
+        }
+
+        parsed_comment.location = loc;
+
+        const char *start_ptr = start_line_ptr + loc.begin.column;
+        const char *end_ptr = line_offsets[loc.end.line] + loc.end.column; // not inclusive
+        parsed_comment.contents = String::utf8(start_ptr, end_ptr - start_ptr);
+
+        result.comments.push_back(parsed_comment);
+    }
+
+    // Step 2: Scan root return value for definition expression.
+    result.definition = find_return_local(parse_result.root->body);
     if (!result.definition)
         return false;
 
-    // Step 2: Find the implementation table, if any.
     LocalDefinitionFinder def_local_def_finder(result.definition);
     parse_result.root->visit(&def_local_def_finder);
     if (!def_local_def_finder.result)
         return false;
 
+    // Step 3: Find the implementation table, if any.
     Luau::AstExprCall *chained_call = def_local_def_finder.result->as<Luau::AstExprCall>();
 
     while (chained_call) {
@@ -125,12 +176,11 @@ bool luascript_analyze(const Luau::ParseResult &parse_result, LuauScriptAnalysis
     if (!result.impl)
         return false;
 
-    // Step 3: Find defined methods and types.
+    // Step 4: Find defined methods and types.
     TypesMethodsFinder types_methods_finder(result.impl);
     parse_result.root->visit(&types_methods_finder);
 
     result.methods = types_methods_finder.methods;
-    result.types = types_methods_finder.types;
 
     return true;
 }

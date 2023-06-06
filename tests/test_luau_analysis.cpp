@@ -24,7 +24,19 @@ TEST_CASE("luau analysis: base analysis") {
         REQUIRE(res.definition != res.impl);
 
         REQUIRE(res.methods.has("TestMethod"));
-        REQUIRE(res.types.has("TypeAlias"));
+
+        SECTION("comments") {
+            REQUIRE(res.comments.size() == 3);
+
+            REQUIRE(res.comments[0].type == LuauComment::BLOCK);
+            REQUIRE(res.comments[0].contents == "--[[\n    block comment\n]]");
+
+            REQUIRE(res.comments[1].type == LuauComment::SINGLE_LINE_EXCL);
+            REQUIRE(res.comments[1].contents == "-- comment");
+
+            REQUIRE(res.comments[2].type == LuauComment::SINGLE_LINE);
+            REQUIRE(res.comments[2].contents == "-- comment 2");
+        }
     }
 
     SECTION("odd") {
