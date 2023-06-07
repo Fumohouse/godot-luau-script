@@ -46,8 +46,8 @@ int WaitTask::push_results(lua_State *L) {
     return 1;
 }
 
-void WaitTask::update(double delta) {
-    uint64_t delta_usec = delta * 1e6;
+void WaitTask::update(double p_delta) {
+    uint64_t delta_usec = p_delta * 1e6;
 
     if (delta_usec > remaining)
         remaining = 0;
@@ -55,9 +55,9 @@ void WaitTask::update(double delta) {
         remaining -= delta_usec;
 }
 
-WaitTask::WaitTask(lua_State *L, double duration_secs) :
+WaitTask::WaitTask(lua_State *L, double p_duration_secs) :
         ScheduledTask(L) {
-    duration = duration_secs * 1e6;
+    duration = p_duration_secs * 1e6;
     remaining = duration;
     start_time = nb::Time::get_singleton_nb()->get_ticks_usec();
 }
@@ -113,8 +113,8 @@ int WaitSignalTask::push_results(lua_State *L) {
     return 1;
 }
 
-void WaitSignalTask::update(double delta) {
-    uint64_t delta_usec = delta * 1e6;
+void WaitSignalTask::update(double p_delta) {
+    uint64_t delta_usec = p_delta * 1e6;
 
     if (until_timeout > delta_usec) {
         until_timeout -= delta_usec;
@@ -123,19 +123,19 @@ void WaitSignalTask::update(double delta) {
     }
 }
 
-WaitSignalTask::WaitSignalTask(lua_State *L, Signal signal, double timeout_secs) :
+WaitSignalTask::WaitSignalTask(lua_State *L, Signal p_signal, double p_timeout_secs) :
         ScheduledTask(L) {
-    until_timeout = timeout_secs * 1e6;
+    until_timeout = p_timeout_secs * 1e6;
 
     waiter.instantiate();
-    waiter->initialize(L, signal);
+    waiter->initialize(L, p_signal);
 }
 
 ///////////////
 // Scheduler //
 ///////////////
 
-void TaskScheduler::frame(double delta) {
+void TaskScheduler::frame(double p_delta) {
     /* TASKS */
     TaskList::Element *task = tasks.front();
 
@@ -144,7 +144,7 @@ void TaskScheduler::frame(double delta) {
         lua_State *L = E.first;
         ScheduledTask *s_task = E.second;
 
-        s_task->update(delta);
+        s_task->update(p_delta);
 
         LUAU_LOCK(L);
 
@@ -182,12 +182,12 @@ void TaskScheduler::frame(double delta) {
     GDLuau::get_singleton()->gc_size(new_gcsize);
 
     for (int i = 0; i < GDLuau::VM_MAX; i++) {
-        gc_rate[i] = (new_gcsize[i] - last_gc_size[i]) / delta;
+        gc_rate[i] = (new_gcsize[i] - last_gc_size[i]) / p_delta;
         last_gc_size[i] = new_gcsize[i];
     }
 
     // Perform GC.
-    GDLuau::get_singleton()->gc_step(gc_stepsize, delta);
+    GDLuau::get_singleton()->gc_step(gc_stepsize, p_delta);
 
     // Tune step size.
     for (int i = 0; i < GDLuau::VM_MAX; i++) {
@@ -215,8 +215,8 @@ void TaskScheduler::frame(double delta) {
     }
 }
 
-void TaskScheduler::register_task(lua_State *L, ScheduledTask *task) {
+void TaskScheduler::register_task(lua_State *L, ScheduledTask *p_task) {
     // Push front to avoid iterating over this task if it was created during `frame`
     // (i.e. a thread resumed and yielded again immediately)
-    tasks.push_front({ L, task });
+    tasks.push_front({ L, p_task });
 }

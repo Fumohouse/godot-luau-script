@@ -19,15 +19,15 @@ class Utils {
 
 public:
     template <typename T>
-    static GDExtensionObjectPtr cast_obj(GDExtensionObjectPtr ptr) {
-        return internal::gde_interface->object_cast_to(ptr, internal::gde_interface->classdb_get_class_tag(&T::get_class_static()));
+    static GDExtensionObjectPtr cast_obj(GDExtensionObjectPtr p_ptr) {
+        return internal::gde_interface->object_cast_to(p_ptr, internal::gde_interface->classdb_get_class_tag(&T::get_class_static()));
     }
 
-    static bool class_exists(const StringName &class_name);
-    static bool is_parent_class(const StringName &class_name, const StringName &inherits);
-    static StringName get_parent_class(const StringName &class_name);
+    static bool class_exists(const StringName &p_class_name);
+    static bool is_parent_class(const StringName &p_class_name, const StringName &p_inherits);
+    static StringName get_parent_class(const StringName &p_class_name);
 
-    static String to_pascal_case(const String &input);
-    static String resource_type_hint(const String &type);
-    static bool variant_types_compatible(Variant::Type t1, Variant::Type t2);
+    static String to_pascal_case(const String &p_input);
+    static String resource_type_hint(const String &p_type);
+    static bool variant_types_compatible(Variant::Type p_t1, Variant::Type p_t2);
 };

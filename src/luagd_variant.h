@@ -51,32 +51,32 @@ public:
     _FORCE_INLINE_ bool is_from_luau() const { return from_luau; }
 
     /* (De)Initialization */
-    void initialize(GDExtensionVariantType init_type);
+    void initialize(GDExtensionVariantType p_init_type);
     void clear();
 
     /* Stack */
     static bool lua_is(
-            lua_State *L, int idx,
-            GDExtensionVariantType required_type,
-            const String &type_name = "");
+            lua_State *L, int p_idx,
+            GDExtensionVariantType p_required_type,
+            const String &p_type_name = "");
     void lua_check(
-            lua_State *L, int idx,
-            GDExtensionVariantType required_type,
-            const String &type_name = "");
+            lua_State *L, int p_idx,
+            GDExtensionVariantType p_required_type,
+            const String &p_type_name = "");
     void lua_push(lua_State *L) const;
 
     /* To/from Variant */
-    void assign_variant(const Variant &val);
+    void assign_variant(const Variant &p_val);
     Variant to_variant();
-    static Variant default_variant(GDExtensionVariantType type);
+    static Variant default_variant(GDExtensionVariantType p_type);
 
     /* Constructor */
     _FORCE_INLINE_ LuauVariant() :
             type(-1), from_luau(false) {}
-    LuauVariant(const LuauVariant &from);
-    LuauVariant &operator=(const LuauVariant &from);
+    LuauVariant(const LuauVariant &p_from);
+    LuauVariant &operator=(const LuauVariant &p_from);
     ~LuauVariant();
 
 private:
-    static void copy_variant(LuauVariant &to, const LuauVariant &from);
+    static void copy_variant(LuauVariant &p_to, const LuauVariant &p_from);
 };

@@ -42,11 +42,11 @@ TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
     }
 }
 
-#define CHECK_ARR(type)                                          \
-    {                                                            \
-        REQUIRE(LuaStackOp<type>::is(L, -1));                    \
-        REQUIRE(LuaStackOp<type>::get(L, -1) == expected_arr);   \
-        REQUIRE(LuaStackOp<type>::check(L, -1) == expected_arr); \
+#define CHECK_ARR(m_type)                                          \
+    {                                                              \
+        REQUIRE(LuaStackOp<m_type>::is(L, -1));                    \
+        REQUIRE(LuaStackOp<m_type>::get(L, -1) == expected_arr);   \
+        REQUIRE(LuaStackOp<m_type>::check(L, -1) == expected_arr); \
     }
 
 TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {

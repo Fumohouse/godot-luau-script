@@ -34,6 +34,6 @@ struct LuauScriptAnalysisResult {
     HashMap<StringName, Luau::AstStatFunction *> methods;
 };
 
-bool luascript_analyze(const char *src, const Luau::ParseResult &parse_result, LuauScriptAnalysisResult &result);
+bool luascript_analyze(const char *p_src, const Luau::ParseResult &p_parse_result, LuauScriptAnalysisResult &r_result);
 
-bool luascript_ast_method(const LuauScriptAnalysisResult &analysis, const StringName &method, GDMethod &ret);
+bool luascript_ast_method(const LuauScriptAnalysisResult &p_analysis, const StringName &p_method, GDMethod &r_ret);

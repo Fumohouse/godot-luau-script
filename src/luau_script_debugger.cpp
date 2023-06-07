@@ -26,15 +26,15 @@ void LuauLanguage::debug_init() {
     }
 }
 
-#define STR1(x) #x
-#define STR(x) STR1(x)
+#define STR1(m_x) #m_x
+#define STR(m_x) STR1(m_x)
 
-extern void luaG_pusherror(lua_State *L, const char *error);
+extern void luaG_pusherror(lua_State *L, const char *p_error);
 
-void LuauLanguage::lua_interrupt(lua_State *L, int gc) {
+void LuauLanguage::lua_interrupt(lua_State *L, int p_gc) {
     GDThreadData *udata = luaGD_getthreaddata(L);
 
-    if (gc < 0 && udata->interrupt_deadline > 0 && (uint64_t)(lua_clock() * 1e6) > udata->interrupt_deadline) {
+    if (p_gc < 0 && udata->interrupt_deadline > 0 && (uint64_t)(lua_clock() * 1e6) > udata->interrupt_deadline) {
         lua_checkstack(L, 1);
         luaG_pusherror(L, "thread exceeded maximum execution time (" STR(THREAD_EXECUTION_TIMEOUT) " seconds)");
         lua_error(L);

@@ -8,14 +8,14 @@
 #include "extension_api.h"
 #include "luagd.h"
 
-void luaGD_checkpermissions(lua_State *L, const char *name, BitField<ThreadPermissions> permissions) {
+void luaGD_checkpermissions(lua_State *L, const char *p_name, BitField<ThreadPermissions> p_permissions) {
     GDThreadData *udata = luaGD_getthreaddata(L);
 
-    if ((udata->permissions & permissions) != permissions) {
+    if ((udata->permissions & p_permissions) != p_permissions) {
         luaL_error(
                 L,
                 "!!! THREAD PERMISSION VIOLATION: attempted to access '%s'. needed permissions: %li, got: %li !!!",
-                name, permissions.operator int64_t(), udata->permissions.operator int64_t());
+                p_name, p_permissions.operator int64_t(), udata->permissions.operator int64_t());
     }
 }
 

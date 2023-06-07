@@ -29,43 +29,43 @@ struct ExecOutput {
 
 ExecOutput luaGD_exec(lua_State *L, const char *src);
 
-#define EVAL_THEN(L, src, expr)                \
+#define EVAL_THEN(L, m_src, m_expr)            \
     {                                          \
         int top = lua_gettop(L);               \
-        ExecOutput out = luaGD_exec(L, src);   \
+        ExecOutput out = luaGD_exec(L, m_src); \
                                                \
         if (out.status != OK)                  \
             FAIL(out.error.utf8().get_data()); \
                                                \
-        expr;                                  \
+        m_expr;                                \
                                                \
         lua_settop(L, top);                    \
     }
 
-#define ASSERT_EVAL_EQ(L, src, type, value)             \
-    EVAL_THEN(L, src, {                                 \
-        CHECK(LuaStackOp<type>::check(L, -1) == value); \
+#define ASSERT_EVAL_EQ(L, m_src, m_type, m_value)           \
+    EVAL_THEN(L, m_src, {                                   \
+        CHECK(LuaStackOp<m_type>::check(L, -1) == m_value); \
     })
 
-#define ASSERT_EVAL_OK(L, src) EVAL_THEN(L, src, {})
+#define ASSERT_EVAL_OK(L, m_src) EVAL_THEN(L, m_src, {})
 
-#define ASSERT_EVAL_FAIL(L, src, err)        \
-    {                                        \
-        ExecOutput out = luaGD_exec(L, src); \
-                                             \
-        REQUIRE(out.status != OK);           \
-        INFO(out.error.utf8().get_data());   \
-        REQUIRE(out.error == err);           \
+#define ASSERT_EVAL_FAIL(L, m_src, m_err)      \
+    {                                          \
+        ExecOutput out = luaGD_exec(L, m_src); \
+                                               \
+        REQUIRE(out.status != OK);             \
+        INFO(out.error.utf8().get_data());     \
+        REQUIRE(out.error == m_err);           \
     }
 
-#define LOAD_SCRIPT_FILE_BASE(name, path, expr)                          \
-    Ref<LuauScript> name;                                                \
-    {                                                                    \
-        Error error;                                                     \
-        name = luau_cache.get_script("res://test_scripts/" path, error); \
-        REQUIRE(error == OK);                                            \
-        expr                                                             \
+#define LOAD_SCRIPT_FILE_BASE(m_name, m_path, m_expr)                        \
+    Ref<LuauScript> m_name;                                                  \
+    {                                                                        \
+        Error error;                                                         \
+        m_name = luau_cache.get_script("res://test_scripts/" m_path, error); \
+        REQUIRE(error == OK);                                                \
+        m_expr;                                                              \
     }
 
-#define LOAD_SCRIPT_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, { REQUIRE(name->_is_valid()); })
-#define LOAD_SCRIPT_MOD_FILE(name, path) LOAD_SCRIPT_FILE_BASE(name, path, {})
+#define LOAD_SCRIPT_FILE(m_name, m_path) LOAD_SCRIPT_FILE_BASE(m_name, m_path, { REQUIRE(m_name->_is_valid()); })
+#define LOAD_SCRIPT_MOD_FILE(m_name, m_path) LOAD_SCRIPT_FILE_BASE(m_name, m_path, {})

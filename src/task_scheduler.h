@@ -32,7 +32,7 @@ public:
     virtual bool is_complete() = 0;
     virtual bool should_resume() { return true; }
     virtual int push_results(lua_State *L) = 0;
-    virtual void update(double delta) = 0;
+    virtual void update(double p_delta) = 0;
 
     ScheduledTask(lua_State *L);
     virtual ~ScheduledTask();
@@ -47,9 +47,9 @@ class WaitTask : public ScheduledTask {
 public:
     bool is_complete() override;
     int push_results(lua_State *L) override;
-    void update(double delta) override;
+    void update(double p_delta) override;
 
-    WaitTask(lua_State *L, double duration_secs);
+    WaitTask(lua_State *L, double p_duration_secs);
 };
 
 class SignalWaiter : public RefCounted {
@@ -83,7 +83,7 @@ public:
     int push_results(lua_State *L) override;
     void update(double delta) override;
 
-    WaitSignalTask(lua_State *L, Signal signal, double timeout_secs);
+    WaitSignalTask(lua_State *L, Signal p_signal, double p_timeout_secs);
 };
 
 typedef List<Pair<lua_State *, ScheduledTask *>> TaskList;
@@ -97,6 +97,6 @@ class TaskScheduler {
     int32_t gc_rate[GDLuau::VM_MAX] = { 0 };
 
 public:
-    void frame(double delta);
-    void register_task(lua_State *L, ScheduledTask *task);
+    void frame(double p_delta);
+    void register_task(lua_State *L, ScheduledTask *p_task);
 };

@@ -15,17 +15,17 @@ using namespace godot;
 
 #define LOG(...) UtilityFunctions::print_verbose("[extension_api] ", __VA_ARGS__)
 #define LOG_PROGRESS LOG(idx, " out of ", api_bin_length, " bytes loaded...")
-#define LOG_LEN(len, what) LOG("found ", len, " ", what)
+#define LOG_LEN(m_len, m_what) LOG("found ", m_len, " ", m_what)
 
 //////////////////////////////
 // Reading from the bin/inc //
 //////////////////////////////
 
-static void get_variant_const(GDExtensionVariantType type, LuauVariant &out, int32_t idx) {
-    const Variant &value = get_variant_value(idx);
+static void get_variant_const(GDExtensionVariantType p_type, LuauVariant &r_out, int32_t p_idx) {
+    const Variant &value = get_variant_value(p_idx);
 
-    out.initialize(type);
-    out.assign_variant(value);
+    r_out.initialize(p_type);
+    r_out.assign_variant(value);
 }
 
 template <typename T>
@@ -90,7 +90,7 @@ static ApiArgumentNoDefault read_arg_no_default(uint64_t &idx) {
     };
 }
 
-static ApiVariantMethod read_builtin_method(GDExtensionVariantType type, uint64_t &idx) {
+static ApiVariantMethod read_builtin_method(GDExtensionVariantType p_type, uint64_t &idx) {
     ApiVariantMethod method;
     method.name = read_string(idx);
     method.gd_name = read_string(idx);
@@ -101,7 +101,7 @@ static ApiVariantMethod read_builtin_method(GDExtensionVariantType type, uint64_
     method.is_const = read<uint8_t>(idx);
 
     uint32_t hash = read<uint32_t>(idx);
-    method.func = internal::gde_interface->variant_get_ptr_builtin_method(type, &method.gd_name, hash);
+    method.func = internal::gde_interface->variant_get_ptr_builtin_method(p_type, &method.gd_name, hash);
 
     uint64_t num_arguments = read<uint64_t>(idx);
     method.arguments.resize(num_arguments);
@@ -153,7 +153,7 @@ static ApiClassArgument read_class_arg(uint64_t &idx) {
     return arg;
 }
 
-static ApiClassMethod read_class_method(uint64_t &idx, const char *class_name) {
+static ApiClassMethod read_class_method(uint64_t &idx, const char *p_class_name) {
     ApiClassMethod method;
 
     method.name = read_string(idx);
@@ -167,7 +167,7 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *class_name) {
     method.is_vararg = read<uint8_t>(idx);
 
     uint32_t hash = read<uint32_t>(idx);
-    StringName class_sn = class_name;
+    StringName class_sn = p_class_name;
     StringName gd_sn = method.gd_name;
     method.bind = internal::gde_interface->classdb_get_method_bind(&class_sn, &gd_sn, hash);
 

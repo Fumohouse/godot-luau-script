@@ -32,8 +32,8 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
     LuauVariant::_register_types();
 
 #ifdef DEBUG_ENABLED
-    Luau::assertHandler() = [](const char *expr, const char *file, int line, const char *function) -> int {
-        UtilityFunctions::print("LUAU ASSERT FAILED: ", expr, " in file ", file, " at line ", line);
+    Luau::assertHandler() = [](const char *p_expr, const char *p_file, int p_line, const char *p_function) -> int {
+        UtilityFunctions::print("LUAU ASSERT FAILED: ", p_expr, " in file ", p_file, " at line ", p_line);
         return 1;
     };
 #endif // DEBUG_ENABLED

@@ -85,7 +85,7 @@ class LuauScript : public ScriptExtension {
     void compile();
     Error try_load(lua_State *L, String *r_err = nullptr);
 
-    void update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values);
+    void update_exports_values(List<GDProperty> &r_properties, HashMap<StringName, Variant> &r_values);
     bool update_exports_internal(PlaceHolderScriptInstance *p_instance_to_update);
 
     Error reload_defs();
@@ -130,7 +130,7 @@ public:
     bool has_property(const StringName &p_name) const;
     const GDClassProperty &get_property(const StringName &p_name) const;
 
-    bool _has_script_signal(const StringName &signal) const override;
+    bool _has_script_signal(const StringName &p_signal) const override;
     TypedArray<Dictionary> _get_script_signal_list() const override;
 
     Variant _get_rpc_config() const override;
@@ -160,7 +160,7 @@ public:
     /* MISC (NON OVERRIDE) */
     static int luascript_require(lua_State *L);
     Error load_definition(GDLuau::VMType p_vm_type, bool p_force = false);
-    void unref_definition(GDLuau::VMType vm);
+    void unref_definition(GDLuau::VMType p_vm);
 
     const LuauData &get_luau_data() const { return luau_data; }
     Ref<LuauScript> get_base() const { return base; }
@@ -186,20 +186,20 @@ class ScriptInstance {
 protected:
     // allocates list with an int at the front saying how long it is
     template <typename T>
-    static T *alloc_with_len(int size) {
-        uint64_t list_size = sizeof(T) * size;
+    static T *alloc_with_len(int p_size) {
+        uint64_t list_size = sizeof(T) * p_size;
         void *ptr = memalloc(list_size + sizeof(int));
 
-        *((int *)ptr) = size;
+        *((int *)ptr) = p_size;
 
         return (T *)((int *)ptr + 1);
     }
 
-    static int get_len_from_ptr(const void *ptr);
-    static void free_with_len(void *ptr);
+    static int get_len_from_ptr(const void *p_ptr);
+    static void free_with_len(void *p_ptr);
 
-    static void copy_prop(const GDProperty &src, GDExtensionPropertyInfo &dst);
-    static void free_prop(const GDExtensionPropertyInfo &prop);
+    static void copy_prop(const GDProperty &p_src, GDExtensionPropertyInfo &p_dst);
+    static void free_prop(const GDExtensionPropertyInfo &p_prop);
 
 public:
     static void init_script_instance_info_common(GDExtensionScriptInstanceInfo &p_info);
@@ -245,7 +245,7 @@ class LuauScriptInstance : public ScriptInstance {
     int thread_ref;
     lua_State *T;
 
-    int call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret);
+    int call_internal(const StringName &p_method, lua_State *ET, int p_nargs, int p_nret);
 
 public:
     static const GDExtensionScriptInstanceInfo INSTANCE_INFO;
@@ -368,14 +368,14 @@ class LuauLanguage : public ScriptLanguageExtension {
     } debug;
 
     void debug_init();
-    static void lua_interrupt(lua_State *L, int gc);
+    static void lua_interrupt(lua_State *L, int p_gc);
 
     static bool ar_to_si(lua_Debug &p_ar, DebugInfo::StackInfo &p_si);
 
     bool finalized = false;
     void finalize();
 
-    void discover_core_scripts(const String &path = "res://");
+    void discover_core_scripts(const String &p_path = "res://");
 
     List<Ref<LuauScript>> get_scripts() const;
 

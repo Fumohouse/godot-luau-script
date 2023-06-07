@@ -49,12 +49,12 @@ static const luaL_Reg test_lib[] = {
     { nullptr, nullptr }
 };
 
-static ExecOutput runConformance(const char *name) {
+static ExecOutput run_conformance(const char *p_name) {
     // Borrowed from Luau (license information in README.md).
     std::string path = std::string("../") + __FILE__;
     path.erase(path.find_last_of("\\/"));
     path += "/conformance/";
-    path += name;
+    path += p_name;
 
     std::ifstream stream(path, std::ios::in | std::ios::binary);
     REQUIRE(stream);
@@ -77,14 +77,14 @@ static ExecOutput runConformance(const char *name) {
     return luaGD_exec(T, buffer.str().c_str());
 }
 
-#define CONFORMANCE_TEST(name, file)           \
-    TEST_CASE("conformance: " name) {          \
-        GDLuau gd_luau;                        \
-        LuauCache luau_cache;                  \
-                                               \
-        ExecOutput out = runConformance(file); \
-        if (out.status != OK)                  \
-            FAIL(out.error.utf8().get_data()); \
+#define CONFORMANCE_TEST(m_name, m_file)         \
+    TEST_CASE("conformance: " m_name) {          \
+        GDLuau gd_luau;                          \
+        LuauCache luau_cache;                    \
+                                                 \
+        ExecOutput out = run_conformance(m_file); \
+        if (out.status != OK)                    \
+            FAIL(out.error.utf8().get_data());   \
     }
 
 CONFORMANCE_TEST("class bindings", "ClassBindings.lua")

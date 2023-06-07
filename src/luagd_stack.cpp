@@ -20,13 +20,13 @@
 
 using namespace godot;
 
-bool luaGD_metatables_match(lua_State *L, int index, const char *metatable_name) {
-    if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
+bool luaGD_metatables_match(lua_State *L, int p_index, const char *p_metatable_name) {
+    if (lua_type(L, p_index) != LUA_TUSERDATA || !lua_getmetatable(L, p_index))
         return false;
 
-    luaL_getmetatable(L, metatable_name);
+    luaL_getmetatable(L, p_metatable_name);
     if (lua_isnil(L, -1))
-        luaL_error(L, "Metatable not found: %s", metatable_name);
+        luaL_error(L, "Metatable not found: %s", p_metatable_name);
 
     bool result = lua_equal(L, -1, -2);
     lua_pop(L, 2);
@@ -36,11 +36,11 @@ bool luaGD_metatables_match(lua_State *L, int index, const char *metatable_name)
 
 /* BASIC TYPES */
 
-#define BASIC_STACK_OP_IMPL(type, op_name, is_name)                                                              \
-    void LuaStackOp<type>::push(lua_State *L, const type &value) { lua_push##op_name(L, value); }                \
-    type LuaStackOp<type>::get(lua_State *L, int index) { return static_cast<type>(lua_to##op_name(L, index)); } \
-    bool LuaStackOp<type>::is(lua_State *L, int index) { return lua_is##is_name(L, index); }                     \
-    type LuaStackOp<type>::check(lua_State *L, int index) { return static_cast<type>(luaL_check##op_name(L, index)); }
+#define BASIC_STACK_OP_IMPL(m_type, m_op_name, m_is_name)                                                                \
+    void LuaStackOp<m_type>::push(lua_State *L, const m_type &value) { lua_push##m_op_name(L, value); }                  \
+    m_type LuaStackOp<m_type>::get(lua_State *L, int index) { return static_cast<m_type>(lua_to##m_op_name(L, index)); } \
+    bool LuaStackOp<m_type>::is(lua_State *L, int index) { return lua_is##m_is_name(L, index); }                         \
+    m_type LuaStackOp<m_type>::check(lua_State *L, int index) { return static_cast<m_type>(luaL_check##m_op_name(L, index)); }
 
 BASIC_STACK_OP_IMPL(bool, boolean, boolean);
 BASIC_STACK_OP_IMPL(int, integer, number);
@@ -57,20 +57,20 @@ BASIC_STACK_OP_IMPL(int64_t, number, number);
 
 /* STRING */
 
-void LuaStackOp<String>::push(lua_State *L, const String &value) {
-    lua_pushstring(L, value.utf8().get_data());
+void LuaStackOp<String>::push(lua_State *L, const String &p_value) {
+    lua_pushstring(L, p_value.utf8().get_data());
 }
 
-String LuaStackOp<String>::get(lua_State *L, int index) {
-    return String::utf8(lua_tostring(L, index));
+String LuaStackOp<String>::get(lua_State *L, int p_index) {
+    return String::utf8(lua_tostring(L, p_index));
 }
 
-bool LuaStackOp<String>::is(lua_State *L, int index) {
-    return lua_isstring(L, index);
+bool LuaStackOp<String>::is(lua_State *L, int p_index) {
+    return lua_isstring(L, p_index);
 }
 
-String LuaStackOp<String>::check(lua_State *L, int index) {
-    return String::utf8(luaL_checkstring(L, index));
+String LuaStackOp<String>::check(lua_State *L, int p_index) {
+    return String::utf8(luaL_checkstring(L, p_index));
 }
 
 /* OBJECTS */
@@ -80,13 +80,13 @@ struct ObjectUdata {
     bool is_namecall = true;
 };
 
-static void luaGD_object_init(GDExtensionObjectPtr obj) {
-    if (GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(obj))
+static void luaGD_object_init(GDExtensionObjectPtr p_obj) {
+    if (GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(p_obj))
         nb::RefCounted(rc).init_ref();
 }
 
-static void luaGD_object_dtor(void *ptr) {
-    ObjectUdata *udata = reinterpret_cast<ObjectUdata *>(ptr);
+static void luaGD_object_dtor(void *p_ptr) {
+    ObjectUdata *udata = reinterpret_cast<ObjectUdata *>(p_ptr);
     if (udata->id == 0)
         return;
 
@@ -97,8 +97,8 @@ static void luaGD_object_dtor(void *ptr) {
 
 #define LUAGD_OBJ_CACHE_TABLE "_OBJECTS"
 
-void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
-    if (value) {
+void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr p_value) {
+    if (p_value) {
         lua_getfield(L, LUA_REGISTRYINDEX, LUAGD_OBJ_CACHE_TABLE);
 
         // Lazy initialize table
@@ -117,7 +117,7 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
             lua_setmetatable(L, -2);
         }
 
-        nb::Object obj = value;
+        nb::Object obj = p_value;
         ObjectUdata *udata = nullptr;
         uint64_t id = obj.get_instance_id();
         // Prevent loss of precision (vs casting)
@@ -170,7 +170,7 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
             curr_class = Utils::get_parent_class(curr_class);
         }
 
-        luaGD_object_init(value);
+        luaGD_object_init(p_value);
         udata->id = id;
 
         // Shouldn't be possible
@@ -188,15 +188,15 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr value) {
     }
 }
 
-void LuaStackOp<Object *>::push(lua_State *L, Object *value) {
-    LuaStackOp<Object *>::push(L, value ? value->_owner : nullptr);
+void LuaStackOp<Object *>::push(lua_State *L, Object *p_value) {
+    LuaStackOp<Object *>::push(L, p_value ? p_value->_owner : nullptr);
 }
 
-bool LuaStackOp<Object *>::is(lua_State *L, int index) {
-    if (lua_isnil(L, index))
+bool LuaStackOp<Object *>::is(lua_State *L, int p_index) {
+    if (lua_isnil(L, p_index))
         return true;
 
-    if (lua_type(L, index) != LUA_TUSERDATA || !lua_getmetatable(L, index))
+    if (lua_type(L, p_index) != LUA_TUSERDATA || !lua_getmetatable(L, p_index))
         return false;
 
     lua_getfield(L, -1, MT_CLASS_TYPE);
@@ -207,55 +207,55 @@ bool LuaStackOp<Object *>::is(lua_State *L, int index) {
     return is_obj;
 }
 
-GDObjectInstanceID *LuaStackOp<Object *>::get_id(lua_State *L, int index) {
-    return &reinterpret_cast<ObjectUdata *>(lua_touserdata(L, index))->id;
+GDObjectInstanceID *LuaStackOp<Object *>::get_id(lua_State *L, int p_index) {
+    return &reinterpret_cast<ObjectUdata *>(lua_touserdata(L, p_index))->id;
 }
 
-GDExtensionObjectPtr LuaStackOp<Object *>::get(lua_State *L, int index) {
-    if (!LuaStackOp<Object *>::is(L, index))
+GDExtensionObjectPtr LuaStackOp<Object *>::get(lua_State *L, int p_index) {
+    if (!LuaStackOp<Object *>::is(L, p_index))
         return nullptr;
 
-    GDObjectInstanceID *udata = LuaStackOp<Object *>::get_id(L, index);
+    GDObjectInstanceID *udata = LuaStackOp<Object *>::get_id(L, p_index);
     if (!udata || *udata == 0)
         return nullptr;
 
     return internal::gde_interface->object_get_instance_from_id(*udata);
 }
 
-GDExtensionObjectPtr LuaStackOp<Object *>::check(lua_State *L, int index) {
-    if (!LuaStackOp<Object *>::is(L, index))
-        luaL_typeerrorL(L, index, "Object");
+GDExtensionObjectPtr LuaStackOp<Object *>::check(lua_State *L, int p_index) {
+    if (!LuaStackOp<Object *>::is(L, p_index))
+        luaL_typeerrorL(L, p_index, "Object");
 
-    return LuaStackOp<Object *>::get(L, index);
+    return LuaStackOp<Object *>::get(L, p_index);
 }
 
 /* VARIANT */
 
-void LuaStackOp<Variant>::push(lua_State *L, const Variant &value) {
+void LuaStackOp<Variant>::push(lua_State *L, const Variant &p_value) {
     LuauVariant lv;
 
-    lv.initialize(GDExtensionVariantType(value.get_type()));
-    lv.assign_variant(value);
+    lv.initialize(GDExtensionVariantType(p_value.get_type()));
+    lv.assign_variant(p_value);
     lv.lua_push(L);
 }
 
-Variant LuaStackOp<Variant>::get(lua_State *L, int index) {
-    int type = LuaStackOp<Variant>::get_type(L, index);
+Variant LuaStackOp<Variant>::get(lua_State *L, int p_index) {
+    int type = LuaStackOp<Variant>::get_type(L, p_index);
     if (type == -1)
         return Variant();
 
     LuauVariant lv;
-    lv.lua_check(L, index, GDExtensionVariantType(type));
+    lv.lua_check(L, p_index, GDExtensionVariantType(type));
 
     return lv.to_variant();
 }
 
-bool LuaStackOp<Variant>::is(lua_State *L, int index) {
-    return LuaStackOp<Variant>::get_type(L, index) != -1;
+bool LuaStackOp<Variant>::is(lua_State *L, int p_index) {
+    return LuaStackOp<Variant>::get_type(L, p_index) != -1;
 }
 
-int LuaStackOp<Variant>::get_type(lua_State *L, int index) {
-    switch (lua_type(L, index)) {
+int LuaStackOp<Variant>::get_type(lua_State *L, int p_index) {
+    switch (lua_type(L, p_index)) {
         case LUA_TNIL:
             return GDEXTENSION_VARIANT_TYPE_NIL;
 
@@ -264,7 +264,7 @@ int LuaStackOp<Variant>::get_type(lua_State *L, int index) {
 
         case LUA_TNUMBER: {
             // Somewhat frail...
-            double value = lua_tonumber(L, index);
+            double value = lua_tonumber(L, p_index);
             double int_part;
 
             if (std::modf(value, &int_part) == 0.0)
@@ -278,7 +278,7 @@ int LuaStackOp<Variant>::get_type(lua_State *L, int index) {
 
         case LUA_TUSERDATA:
             // Pass through to below with metatable on stack
-            if (!lua_getmetatable(L, index))
+            if (!lua_getmetatable(L, p_index))
                 return -1;
 
             break;
@@ -298,54 +298,54 @@ int LuaStackOp<Variant>::get_type(lua_State *L, int index) {
     return type;
 }
 
-Variant LuaStackOp<Variant>::check(lua_State *L, int index) {
-    int type = LuaStackOp<Variant>::get_type(L, index);
+Variant LuaStackOp<Variant>::check(lua_State *L, int p_index) {
+    int type = LuaStackOp<Variant>::get_type(L, p_index);
     if (type == -1)
-        luaL_typeerrorL(L, index, "Variant");
+        luaL_typeerrorL(L, p_index, "Variant");
 
     LuauVariant lv;
-    lv.lua_check(L, index, GDExtensionVariantType(type));
+    lv.lua_check(L, p_index, GDExtensionVariantType(type));
 
     return lv.to_variant();
 }
 
 /* STRING COERCION */
 
-#define STR_STACK_OP_IMPL(type)                                                                   \
-    UDATA_ALLOC(type, BUILTIN_MT_NAME(type), DTOR(type))                                          \
-                                                                                                  \
-    void LuaStackOp<type>::push(lua_State *L, const type &value, bool force_type) {               \
-        if (force_type) {                                                                         \
-            type *udata = LuaStackOp<type>::alloc(L);                                             \
-            *udata = value;                                                                       \
-        } else {                                                                                  \
-            LuaStackOp<String>::push(L, String(value));                                           \
-        }                                                                                         \
-    }                                                                                             \
-                                                                                                  \
-    bool LuaStackOp<type>::is(lua_State *L, int index) {                                          \
-        return lua_isstring(L, index) || luaGD_metatables_match(L, index, BUILTIN_MT_NAME(type)); \
-    }                                                                                             \
-                                                                                                  \
-    UDATA_GET_PTR(type, BUILTIN_MT_NAME(type))                                                    \
-                                                                                                  \
-    type LuaStackOp<type>::get(lua_State *L, int index) {                                         \
-        if (luaGD_metatables_match(L, index, BUILTIN_MT_NAME(type)))                              \
-            return *LuaStackOp<type>::get_ptr(L, index);                                          \
-                                                                                                  \
-        return type(lua_tostring(L, index));                                                      \
-    }                                                                                             \
-                                                                                                  \
-    UDATA_CHECK_PTR(type, BUILTIN_MT_NAME(type))                                                  \
-                                                                                                  \
-    type LuaStackOp<type>::check(lua_State *L, int index) {                                       \
-        if (lua_isstring(L, index))                                                               \
-            return type(lua_tostring(L, index));                                                  \
-                                                                                                  \
-        if (luaGD_metatables_match(L, index, BUILTIN_MT_NAME(type)))                              \
-            return *LuaStackOp<type>::get_ptr(L, index);                                          \
-                                                                                                  \
-        luaL_typeerrorL(L, index, #type " or string");                                            \
+#define STR_STACK_OP_IMPL(m_type)                                                                       \
+    UDATA_ALLOC(m_type, BUILTIN_MT_NAME(m_type), DTOR(m_type))                                          \
+                                                                                                        \
+    void LuaStackOp<m_type>::push(lua_State *L, const m_type &p_value, bool p_force_type) {             \
+        if (p_force_type) {                                                                             \
+            m_type *udata = LuaStackOp<m_type>::alloc(L);                                               \
+            *udata = p_value;                                                                           \
+        } else {                                                                                        \
+            LuaStackOp<String>::push(L, String(p_value));                                               \
+        }                                                                                               \
+    }                                                                                                   \
+                                                                                                        \
+    bool LuaStackOp<m_type>::is(lua_State *L, int p_index) {                                            \
+        return lua_isstring(L, p_index) || luaGD_metatables_match(L, p_index, BUILTIN_MT_NAME(m_type)); \
+    }                                                                                                   \
+                                                                                                        \
+    UDATA_GET_PTR(m_type, BUILTIN_MT_NAME(m_type))                                                      \
+                                                                                                        \
+    m_type LuaStackOp<m_type>::get(lua_State *L, int p_index) {                                         \
+        if (luaGD_metatables_match(L, p_index, BUILTIN_MT_NAME(m_type)))                                \
+            return *LuaStackOp<m_type>::get_ptr(L, p_index);                                            \
+                                                                                                        \
+        return m_type(lua_tostring(L, p_index));                                                        \
+    }                                                                                                   \
+                                                                                                        \
+    UDATA_CHECK_PTR(m_type, BUILTIN_MT_NAME(m_type))                                                    \
+                                                                                                        \
+    m_type LuaStackOp<m_type>::check(lua_State *L, int p_index) {                                       \
+        if (lua_isstring(L, p_index))                                                                   \
+            return m_type(lua_tostring(L, p_index));                                                    \
+                                                                                                        \
+        if (luaGD_metatables_match(L, p_index, BUILTIN_MT_NAME(m_type)))                                \
+            return *LuaStackOp<m_type>::get_ptr(L, p_index);                                            \
+                                                                                                        \
+        luaL_typeerrorL(L, p_index, #m_type " or string");                                              \
     }
 
 STR_STACK_OP_IMPL(StringName)
@@ -353,24 +353,24 @@ STR_STACK_OP_IMPL(NodePath)
 
 /* ARRAY */
 
-bool luaGD_isarray(lua_State *L, int index, const char *metatable_name, Variant::Type type, const String &class_name) {
-    if (luaGD_metatables_match(L, index, metatable_name))
+bool luaGD_isarray(lua_State *L, int p_index, const char *p_metatable_name, Variant::Type p_type, const String &p_class_name) {
+    if (luaGD_metatables_match(L, p_index, p_metatable_name))
         return true;
 
-    if (!lua_istable(L, index))
+    if (!lua_istable(L, p_index))
         return false;
 
-    if (type == Variant::NIL)
+    if (p_type == Variant::NIL)
         return true;
 
-    index = lua_absindex(L, index);
+    p_index = lua_absindex(L, p_index);
 
-    int len = lua_objlen(L, index);
+    int len = lua_objlen(L, p_index);
     for (int i = 1; i <= len; i++) {
         lua_pushinteger(L, i);
-        lua_gettable(L, index);
+        lua_gettable(L, p_index);
 
-        if (!LuauVariant::lua_is(L, -1, (GDExtensionVariantType)type, class_name))
+        if (!LuauVariant::lua_is(L, -1, (GDExtensionVariantType)p_type, p_class_name))
             return false;
 
         lua_pop(L, 1);
@@ -383,20 +383,20 @@ bool luaGD_isarray(lua_State *L, int index, const char *metatable_name, Variant:
 
 UDATA_PUSH(Array);
 
-static void array_set(Array &array, int index, Variant elem) {
-    array[index] = elem;
+static void array_set(Array &p_array, int p_index, Variant p_elem) {
+    p_array[p_index] = p_elem;
 }
 
-Array LuaStackOp<Array>::get(lua_State *L, int index) {
-    return luaGD_getarray<Array>(L, index, ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
+Array LuaStackOp<Array>::get(lua_State *L, int p_index) {
+    return luaGD_getarray<Array>(L, p_index, ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
 }
 
-bool LuaStackOp<Array>::is(lua_State *L, int index) {
-    return luaGD_isarray(L, index, ARRAY_METATABLE_NAME, Variant::NIL, "");
+bool LuaStackOp<Array>::is(lua_State *L, int p_index) {
+    return luaGD_isarray(L, p_index, ARRAY_METATABLE_NAME, Variant::NIL, "");
 }
 
-Array LuaStackOp<Array>::check(lua_State *L, int index) {
-    return luaGD_checkarray<Array>(L, index, ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
+Array LuaStackOp<Array>::check(lua_State *L, int p_index) {
+    return luaGD_checkarray<Array>(L, p_index, ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
 }
 
 UDATA_ALLOC(Array, ARRAY_METATABLE_NAME, DTOR(Array))

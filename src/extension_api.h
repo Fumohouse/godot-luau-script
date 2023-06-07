@@ -233,6 +233,6 @@ struct ExtensionApi {
 const ExtensionApi &get_extension_api();
 
 // Corresponding definitions are generated.
-extern const Variant &get_variant_value(int idx);
+extern const Variant &get_variant_value(int p_idx);
 extern const uint8_t api_bin[];
 extern const uint64_t api_bin_length;

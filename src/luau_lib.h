@@ -97,13 +97,13 @@ struct GDClassDefinition {
 
     bool is_readonly = false;
 
-    int set_prop(const String &name, const GDClassProperty &prop);
+    int set_prop(const String &p_name, const GDClassProperty &p_prop);
 };
 
 STACK_OP_PTR_DEF(GDClassDefinition)
 
-void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, LuauScript *&r_script);
-String luascript_get_scriptname_or_type(lua_State *L, int index, LuauScript **r_script = nullptr);
+void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, LuauScript *&r_script);
+String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **r_script = nullptr);
 
-GDProperty luascript_read_property(lua_State *L, int idx);
+GDProperty luascript_read_property(lua_State *L, int p_idx);
 void luascript_openlibs(lua_State *L);

@@ -14,27 +14,27 @@
 #include "wrapped_no_binding.h"
 
 struct VariantMethods {
-    virtual void initialize(LuauVariant &self) const = 0;
-    virtual void destroy(LuauVariant &self) const {}
+    virtual void initialize(LuauVariant &p_self) const = 0;
+    virtual void destroy(LuauVariant &p_self) const {}
 
-    virtual void *get(LuauVariant &self, bool is_arg) const = 0;
-    virtual const void *get(const LuauVariant &self) const = 0;
+    virtual void *get(LuauVariant &p_self, bool p_is_arg) const = 0;
+    virtual const void *get(const LuauVariant &p_self) const = 0;
 
-    virtual bool is(lua_State *L, int idx, const String &type_name) const = 0;
-    virtual bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const = 0;
-    virtual void push(const LuauVariant &self, lua_State *L) const = 0;
+    virtual bool is(lua_State *L, int p_idx, const String &p_type_name) const = 0;
+    virtual bool check(LuauVariant &p_self, lua_State *L, int p_idx, const String &p_type_name) const = 0;
+    virtual void push(const LuauVariant &p_self, lua_State *L) const = 0;
 
-    virtual void copy(LuauVariant &self, const LuauVariant &other) const = 0;
+    virtual void copy(LuauVariant &p_self, const LuauVariant &p_other) const = 0;
 };
 
 template <typename T>
 struct VariantMethodsBase : public VariantMethods {
-    virtual bool is(lua_State *L, int idx, const String &type_name) const override {
-        return LuaStackOp<T>::is(L, idx);
+    virtual bool is(lua_State *L, int p_idx, const String &) const override {
+        return LuaStackOp<T>::is(L, p_idx);
     }
 
-    virtual void push(const LuauVariant &self, lua_State *L) const override {
-        LuaStackOp<T>::push(L, *(const T *)get(self));
+    virtual void push(const LuauVariant &p_self, lua_State *L) const override {
+        LuaStackOp<T>::push(L, *(const T *)get(p_self));
     }
 };
 
@@ -44,35 +44,35 @@ template <typename T>
 struct VariantAssignMethods : public VariantMethodsBase<T> {
     static_assert(sizeof(T) <= DATA_SIZE, "this type should not be assigned directly to _opaque");
 
-    virtual void initialize(LuauVariant &self) const override {
-        memnew_placement(self._data._opaque, T);
+    virtual void initialize(LuauVariant &p_self) const override {
+        memnew_placement(p_self._data._opaque, T);
     }
 
-    virtual void *get(LuauVariant &self, bool is_arg) const override {
-        return self._data._opaque;
+    virtual void *get(LuauVariant &p_self, bool) const override {
+        return p_self._data._opaque;
     }
 
-    virtual const void *get(const LuauVariant &self) const override {
-        return self._data._opaque;
+    virtual const void *get(const LuauVariant &p_self) const override {
+        return p_self._data._opaque;
     }
 
-    virtual bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
-        initialize(self);
-        *(T *)self._data._opaque = LuaStackOp<T>::check(L, idx);
+    virtual bool check(LuauVariant &p_self, lua_State *L, int p_idx, const String &) const override {
+        initialize(p_self);
+        *(T *)p_self._data._opaque = LuaStackOp<T>::check(L, p_idx);
         return false;
     }
 
-    virtual void copy(LuauVariant &self, const LuauVariant &other) const override {
-        initialize(self);
-        *(T *)self._data._opaque = *(T *)other._data._opaque;
+    virtual void copy(LuauVariant &p_self, const LuauVariant &p_other) const override {
+        initialize(p_self);
+        *(T *)p_self._data._opaque = *(T *)p_other._data._opaque;
     }
 };
 
 // Assigns value to _opaque. Runs destructor.
 template <typename T>
 struct VariantAssignMethodsDtor : public VariantAssignMethods<T> {
-    virtual void destroy(LuauVariant &self) const override {
-        ((T *)self._data._opaque)->~T();
+    virtual void destroy(LuauVariant &p_self) const override {
+        ((T *)p_self._data._opaque)->~T();
     }
 };
 
@@ -80,31 +80,31 @@ struct VariantAssignMethodsDtor : public VariantAssignMethods<T> {
 // Used for any type bound to a userdata.
 template <typename T>
 struct VariantUserdataMethods : public VariantAssignMethods<T> {
-    virtual void *get(LuauVariant &self, bool is_arg) const override {
-        if (self.is_from_luau())
-            return self._data._ptr;
+    virtual void *get(LuauVariant &p_self, bool) const override {
+        if (p_self.is_from_luau())
+            return p_self._data._ptr;
         else
-            return self._data._opaque;
+            return p_self._data._opaque;
     }
 
-    virtual const void *get(const LuauVariant &self) const override {
-        if (self.is_from_luau())
-            return self._data._ptr;
+    virtual const void *get(const LuauVariant &p_self) const override {
+        if (p_self.is_from_luau())
+            return p_self._data._ptr;
         else
-            return self._data._opaque;
+            return p_self._data._opaque;
     }
 
-    virtual bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
-        self._data._ptr = LuaStackOp<T>::check_ptr(L, idx);
+    virtual bool check(LuauVariant &p_self, lua_State *L, int p_idx, const String &) const override {
+        p_self._data._ptr = LuaStackOp<T>::check_ptr(L, p_idx);
         return true;
     }
 
-    virtual void copy(LuauVariant &self, const LuauVariant &other) const override {
-        if (other.is_from_luau()) {
-            self._data._ptr = other._data._ptr;
+    virtual void copy(LuauVariant &p_self, const LuauVariant &p_other) const override {
+        if (p_other.is_from_luau()) {
+            p_self._data._ptr = p_other._data._ptr;
         } else {
-            this->initialize(self);
-            *(T *)self._data._opaque = *(T *)other._data._opaque;
+            this->initialize(p_self);
+            *(T *)p_self._data._opaque = *(T *)p_other._data._opaque;
         }
     }
 };
@@ -113,42 +113,42 @@ struct VariantUserdataMethods : public VariantAssignMethods<T> {
 // Used for String and Array types.
 template <typename T>
 struct VariantCoercedMethods : public VariantUserdataMethods<T> {
-    bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
-        if (T *ptr = LuaStackOp<T>::get_ptr(L, idx)) {
-            self._data._ptr = ptr;
+    bool check(LuauVariant &p_self, lua_State *L, int p_idx, const String &) const override {
+        if (T *ptr = LuaStackOp<T>::get_ptr(L, p_idx)) {
+            p_self._data._ptr = ptr;
             return true;
         }
 
-        this->initialize(self);
-        *(T *)self._data._opaque = LuaStackOp<T>::check(L, idx);
+        this->initialize(p_self);
+        *(T *)p_self._data._opaque = LuaStackOp<T>::check(L, p_idx);
         return false;
     }
 };
 
 template <typename T>
 struct VariantPtrMethodsBase : public VariantMethodsBase<T> {
-    virtual void initialize(LuauVariant &self) const override {
-        self._data._ptr = memnew(T);
+    virtual void initialize(LuauVariant &p_self) const override {
+        p_self._data._ptr = memnew(T);
     }
 
-    virtual void destroy(LuauVariant &self) const override {
-        memdelete((T *)self._data._ptr);
+    virtual void destroy(LuauVariant &p_self) const override {
+        memdelete((T *)p_self._data._ptr);
     }
 
-    virtual void *get(LuauVariant &self, bool is_arg) const override {
-        return self._data._ptr;
+    virtual void *get(LuauVariant &p_self, bool) const override {
+        return p_self._data._ptr;
     }
 
-    virtual const void *get(const LuauVariant &self) const override {
-        return self._data._ptr;
+    virtual const void *get(const LuauVariant &p_self) const override {
+        return p_self._data._ptr;
     }
 
-    virtual void copy(LuauVariant &self, const LuauVariant &other) const override {
-        if (other.is_from_luau()) {
-            self._data._ptr = other._data._ptr;
+    virtual void copy(LuauVariant &p_self, const LuauVariant &p_other) const override {
+        if (p_other.is_from_luau()) {
+            p_self._data._ptr = p_other._data._ptr;
         } else {
-            initialize(self);
-            *(T *)self._data._ptr = *(T *)other._data._ptr;
+            initialize(p_self);
+            *(T *)p_self._data._ptr = *(T *)p_other._data._ptr;
         }
     }
 };
@@ -157,8 +157,8 @@ struct VariantPtrMethodsBase : public VariantMethodsBase<T> {
 // Used for types that are larger than DATA_SIZE, like Transforms, Projection, AABB, Basis
 template <typename T>
 struct VariantPtrMethods : public VariantPtrMethodsBase<T> {
-    virtual bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
-        self._data._ptr = LuaStackOp<T>::check_ptr(L, idx);
+    virtual bool check(LuauVariant &p_self, lua_State *L, int p_idx, const String &) const override {
+        p_self._data._ptr = LuaStackOp<T>::check_ptr(L, p_idx);
         return true;
     }
 };
@@ -167,20 +167,20 @@ struct VariantPtrMethods : public VariantPtrMethodsBase<T> {
 // Special case of NIL type must be handled: LuauVariant and LuaStackOp<Variant> depend on each other
 // and NIL will result in an infinite loop if not handled.
 struct VariantVariantMethods : public VariantPtrMethodsBase<Variant> {
-    bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
-        initialize(self);
+    bool check(LuauVariant &p_self, lua_State *L, int p_idx, const String &) const override {
+        initialize(p_self);
 
-        if (lua_isnil(L, idx)) {
-            *(Variant *)self._data._ptr = Variant();
+        if (lua_isnil(L, p_idx)) {
+            *(Variant *)p_self._data._ptr = Variant();
         } else {
-            *(Variant *)self._data._ptr = LuaStackOp<Variant>::check(L, idx);
+            *(Variant *)p_self._data._ptr = LuaStackOp<Variant>::check(L, p_idx);
         }
 
         return false;
     }
 
-    virtual void push(const LuauVariant &self, lua_State *L) const override {
-        const Variant &val = *(const Variant *)self._data._ptr;
+    virtual void push(const LuauVariant &p_self, lua_State *L) const override {
+        const Variant &val = *(const Variant *)p_self._data._ptr;
 
         if (val.get_type() == Variant::NIL) {
             lua_pushnil(L);
@@ -192,11 +192,11 @@ struct VariantVariantMethods : public VariantPtrMethodsBase<Variant> {
 
 // Class type handling, null handling for Object type.
 struct VariantObjectMethods : public VariantMethods {
-    void initialize(LuauVariant &self) const override {
-        self._data._ptr = nullptr;
+    void initialize(LuauVariant &p_self) const override {
+        p_self._data._ptr = nullptr;
     }
 
-    void *get(LuauVariant &self, bool is_arg) const override {
+    void *get(LuauVariant &p_self, bool p_is_arg) const override {
         // TODO: 2023-01-09: This may change. Tracking https://github.com/godotengine/godot/issues/61967.
         // Special case. Object pointers are treated as GodotObject * when passing to Godot,
         // and GodotObject ** when returning from Godot.
@@ -207,48 +207,48 @@ struct VariantObjectMethods : public VariantMethods {
         // - _arg is never needed for values which will never be Object
 
         // This is a mess. Hopefully it gets fixed at some point.
-        if (is_arg)
-            return self._data._ptr;
+        if (p_is_arg)
+            return p_self._data._ptr;
         else
-            return &self._data._ptr;
+            return &p_self._data._ptr;
     }
 
-    const void *get(const LuauVariant &self) const override {
-        return &self._data._ptr;
+    const void *get(const LuauVariant &p_self) const override {
+        return &p_self._data._ptr;
     }
 
-    bool is(lua_State *L, int idx, const String &type_name) const override {
-        if (!LuaStackOp<Object *>::is(L, idx))
+    bool is(lua_State *L, int p_idx, const String &p_type_name) const override {
+        if (!LuaStackOp<Object *>::is(L, p_idx))
             return false;
 
-        GDExtensionObjectPtr obj = LuaStackOp<Object *>::get(L, idx);
+        GDExtensionObjectPtr obj = LuaStackOp<Object *>::get(L, p_idx);
         if (!obj)
             // Null object
             return true;
 
-        return type_name.is_empty() || nb::Object(obj).is_class(type_name);
+        return p_type_name.is_empty() || nb::Object(obj).is_class(p_type_name);
     }
 
-    bool check(LuauVariant &self, lua_State *L, int idx, const String &type_name) const override {
-        GDExtensionObjectPtr obj = LuaStackOp<Object *>::check(L, idx);
+    bool check(LuauVariant &p_self, lua_State *L, int p_idx, const String &p_type_name) const override {
+        GDExtensionObjectPtr obj = LuaStackOp<Object *>::check(L, p_idx);
         if (!obj) {
-            self._data._ptr = nullptr;
+            p_self._data._ptr = nullptr;
             return false;
         }
 
-        if (!type_name.is_empty() && !nb::Object(obj).is_class(type_name))
-            luaL_typeerrorL(L, idx, type_name.utf8().get_data());
+        if (!p_type_name.is_empty() && !nb::Object(obj).is_class(p_type_name))
+            luaL_typeerrorL(L, p_idx, p_type_name.utf8().get_data());
 
-        self._data._ptr = obj;
+        p_self._data._ptr = obj;
         return false;
     }
 
-    void push(const LuauVariant &self, lua_State *L) const override {
-        LuaStackOp<Object *>::push(L, self._data._ptr);
+    void push(const LuauVariant &p_self, lua_State *L) const override {
+        LuaStackOp<Object *>::push(L, p_self._data._ptr);
     }
 
-    void copy(LuauVariant &self, const LuauVariant &other) const override {
-        self._data._ptr = other._data._ptr;
+    void copy(LuauVariant &p_self, const LuauVariant &p_other) const override {
+        p_self._data._ptr = p_other._data._ptr;
     }
 };
 
@@ -257,13 +257,13 @@ static GDExtensionTypeFromVariantConstructorFunc from_variant_ctors[GDEXTENSION_
 static VariantMethods *type_methods[GDEXTENSION_VARIANT_TYPE_VARIANT_MAX] = { nullptr };
 
 template <typename T>
-void register_type(GDExtensionVariantType type) {
+void register_type(GDExtensionVariantType p_type) {
     static T methods;
-    type_methods[type] = &methods;
+    type_methods[p_type] = &methods;
 
-    if (type != GDEXTENSION_VARIANT_TYPE_NIL) {
-        to_variant_ctors[type] = internal::gde_interface->get_variant_from_type_constructor(type);
-        from_variant_ctors[type] = internal::gde_interface->get_variant_to_type_constructor(type);
+    if (p_type != GDEXTENSION_VARIANT_TYPE_NIL) {
+        to_variant_ctors[p_type] = internal::gde_interface->get_variant_from_type_constructor(p_type);
+        from_variant_ctors[p_type] = internal::gde_interface->get_variant_to_type_constructor(p_type);
     }
 }
 
@@ -329,10 +329,10 @@ const void *LuauVariant::get_opaque_pointer() const {
     return type_methods[type]->get(*this);
 }
 
-void LuauVariant::initialize(GDExtensionVariantType init_type) {
+void LuauVariant::initialize(GDExtensionVariantType p_init_type) {
     clear();
-    type_methods[init_type]->initialize(*this);
-    type = init_type;
+    type_methods[p_init_type]->initialize(*this);
+    type = p_init_type;
 }
 
 void LuauVariant::clear() {
@@ -345,18 +345,18 @@ void LuauVariant::clear() {
     type = -1;
 }
 
-bool LuauVariant::lua_is(lua_State *L, int idx, GDExtensionVariantType required_type, const String &type_name) {
-    return type_methods[required_type]->is(L, idx, type_name);
+bool LuauVariant::lua_is(lua_State *L, int p_idx, GDExtensionVariantType p_required_type, const String &p_type_name) {
+    return type_methods[p_required_type]->is(L, p_idx, p_type_name);
 }
 
-void LuauVariant::lua_check(lua_State *L, int idx, GDExtensionVariantType required_type, const String &type_name) {
+void LuauVariant::lua_check(lua_State *L, int p_idx, GDExtensionVariantType p_required_type, const String &p_type_name) {
     // This means that the type will get reinitialized every time `check` is run, even if this variant
     // is already initialized to the same type. This, for now, is probably a non-issue as lua_check
     // is rarely run on an already-initialized object where the type is the same.
     clear();
 
-    type = required_type;
-    from_luau = type_methods[required_type]->check(*this, L, idx, type_name);
+    type = p_required_type;
+    from_luau = type_methods[p_required_type]->check(*this, L, p_idx, p_type_name);
 }
 
 void LuauVariant::lua_push(lua_State *L) const {
@@ -364,18 +364,18 @@ void LuauVariant::lua_push(lua_State *L) const {
     type_methods[type]->push(*this, L);
 }
 
-void LuauVariant::assign_variant(const Variant &val) {
+void LuauVariant::assign_variant(const Variant &p_val) {
     if (type == -1)
         return;
 
     // A NIL constructor doesn't exist
     if (type == GDEXTENSION_VARIANT_TYPE_NIL) {
-        *get_ptr<Variant>() = val;
+        *get_ptr<Variant>() = p_val;
         return;
     }
 
     // Godot will not modify the value, so getting rid of const should be ok.
-    from_variant_ctors[type](get_opaque_pointer(), (Variant *)&val);
+    from_variant_ctors[type](get_opaque_pointer(), (Variant *)&p_val);
 }
 
 Variant LuauVariant::to_variant() {
@@ -391,36 +391,36 @@ Variant LuauVariant::to_variant() {
     return ret;
 }
 
-Variant LuauVariant::default_variant(GDExtensionVariantType type) {
+Variant LuauVariant::default_variant(GDExtensionVariantType p_type) {
     Variant ret;
     GDExtensionCallError err;
-    internal::gde_interface->variant_construct(type, &ret, nullptr, 0, &err);
+    internal::gde_interface->variant_construct(p_type, &ret, nullptr, 0, &err);
     ERR_FAIL_COND_V(err.error != GDEXTENSION_CALL_OK, Variant());
 
     return ret;
 }
 
-void LuauVariant::copy_variant(LuauVariant &to, const LuauVariant &from) {
-    if (from.type != -1) {
-        type_methods[from.type]->copy(to, from);
+void LuauVariant::copy_variant(LuauVariant &p_to, const LuauVariant &p_from) {
+    if (p_from.type != -1) {
+        type_methods[p_from.type]->copy(p_to, p_from);
     }
 
-    to.type = from.type;
-    to.from_luau = from.from_luau;
+    p_to.type = p_from.type;
+    p_to.from_luau = p_from.from_luau;
 }
 
 // Inherit from the original constructor to initialize type and from_luau.
 // Safeguards against unintended behavior if these values are uninitialized (i.e. random).
-LuauVariant::LuauVariant(const LuauVariant &from) :
+LuauVariant::LuauVariant(const LuauVariant &p_from) :
         LuauVariant() {
-    copy_variant(*this, from);
+    copy_variant(*this, p_from);
 }
 
-LuauVariant &LuauVariant::operator=(const LuauVariant &from) {
-    if (this == &from)
+LuauVariant &LuauVariant::operator=(const LuauVariant &p_from) {
+    if (this == &p_from)
         return *this;
 
-    copy_variant(*this, from);
+    copy_variant(*this, p_from);
     return *this;
 }
 

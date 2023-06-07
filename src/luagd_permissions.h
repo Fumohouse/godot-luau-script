@@ -19,5 +19,5 @@ enum ThreadPermissions {
     PERMISSION_HTTP = 1 << 3
 };
 
-void luaGD_checkpermissions(lua_State *L, const char *name, BitField<ThreadPermissions> permissions);
+void luaGD_checkpermissions(lua_State *L, const char *p_name, BitField<ThreadPermissions> p_permissions);
 const ApiEnum &get_permissions_enum();

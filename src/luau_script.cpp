@@ -249,16 +249,16 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
     return ERR_COMPILATION_FAILED;
 }
 
-void LuauScript::unref_definition(GDLuau::VMType vm) {
-    if (vm_defs_valid[vm] && vm_defs[vm].table_ref != -1) {
-        lua_State *L = GDLuau::get_singleton()->get_vm(vm);
+void LuauScript::unref_definition(GDLuau::VMType p_vm) {
+    if (vm_defs_valid[p_vm] && vm_defs[p_vm].table_ref != -1) {
+        lua_State *L = GDLuau::get_singleton()->get_vm(p_vm);
 
         // See ~LuauScriptInstance
         if (L && luaGD_getthreaddata(L)) {
             LUAU_LOCK(L);
 
-            lua_unref(L, vm_defs[vm].table_ref);
-            vm_defs_valid[vm] = false;
+            lua_unref(L, vm_defs[p_vm].table_ref);
+            vm_defs_valid[p_vm] = false;
         }
     }
 }
@@ -484,8 +484,8 @@ const GDClassProperty &LuauScript::get_property(const StringName &p_name) const 
     return get_definition().properties[get_definition().property_indices[p_name]];
 }
 
-bool LuauScript::_has_script_signal(const StringName &signal) const {
-    return get_definition().signals.has(signal);
+bool LuauScript::_has_script_signal(const StringName &p_signal) const {
+    return get_definition().signals.has(p_signal);
 }
 
 TypedArray<Dictionary> LuauScript::_get_script_signal_list() const {
@@ -664,7 +664,7 @@ LuauScript::~LuauScript() {
 // SCRIPT INSTANCE COMMON //
 ////////////////////////////
 
-#define COMMON_SELF ((ScriptInstance *)self)
+#define COMMON_SELF ((ScriptInstance *)p_self)
 
 void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceInfo &p_info) {
     // Must initialize potentially unused struct fields to nullptr
@@ -685,51 +685,51 @@ void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceI
     p_info.set_fallback_func = nullptr;
     p_info.get_fallback_func = nullptr;
 
-    p_info.set_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) -> GDExtensionBool {
+    p_info.set_func = [](void *p_self, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) -> GDExtensionBool {
         return COMMON_SELF->set(*(const StringName *)p_name, *(const Variant *)p_value);
     };
 
-    p_info.get_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool {
+    p_info.get_func = [](void *p_self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool {
         return COMMON_SELF->get(*(const StringName *)p_name, *(Variant *)r_ret);
     };
 
-    p_info.get_property_list_func = [](void *self, uint32_t *r_count) -> const GDExtensionPropertyInfo * {
+    p_info.get_property_list_func = [](void *p_self, uint32_t *r_count) -> const GDExtensionPropertyInfo * {
         return COMMON_SELF->get_property_list(r_count);
     };
 
-    p_info.free_property_list_func = [](void *self, const GDExtensionPropertyInfo *p_list) {
+    p_info.free_property_list_func = [](void *p_self, const GDExtensionPropertyInfo *p_list) {
         COMMON_SELF->free_property_list(p_list);
     };
 
-    p_info.get_owner_func = [](void *self) {
+    p_info.get_owner_func = [](void *p_self) {
         return COMMON_SELF->get_owner()->_owner;
     };
 
-    p_info.get_property_state_func = [](void *self, GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata) {
+    p_info.get_property_state_func = [](void *p_self, GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata) {
         COMMON_SELF->get_property_state(p_add_func, p_userdata);
     };
 
-    p_info.get_method_list_func = [](void *self, uint32_t *r_count) -> const GDExtensionMethodInfo * {
+    p_info.get_method_list_func = [](void *p_self, uint32_t *r_count) -> const GDExtensionMethodInfo * {
         return COMMON_SELF->get_method_list(r_count);
     };
 
-    p_info.free_method_list_func = [](void *self, const GDExtensionMethodInfo *p_list) {
+    p_info.free_method_list_func = [](void *p_self, const GDExtensionMethodInfo *p_list) {
         COMMON_SELF->free_method_list(p_list);
     };
 
-    p_info.get_property_type_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionBool *r_is_valid) -> GDExtensionVariantType {
+    p_info.get_property_type_func = [](void *p_self, GDExtensionConstStringNamePtr p_name, GDExtensionBool *r_is_valid) -> GDExtensionVariantType {
         return (GDExtensionVariantType)COMMON_SELF->get_property_type(*(const StringName *)p_name, (bool *)r_is_valid);
     };
 
-    p_info.has_method_func = [](void *self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool {
+    p_info.has_method_func = [](void *p_self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool {
         return COMMON_SELF->has_method(*(const StringName *)p_name);
     };
 
-    p_info.get_script_func = [](void *self) {
+    p_info.get_script_func = [](void *p_self) {
         return COMMON_SELF->get_script().ptr()->_owner;
     };
 
-    p_info.get_language_func = [](void *self) {
+    p_info.get_language_func = [](void *p_self) {
         return COMMON_SELF->get_language()->_owner;
     };
 }
@@ -748,28 +748,28 @@ static StringName *stringname_alloc(const String &p_str) {
     return ptr;
 }
 
-int ScriptInstance::get_len_from_ptr(const void *ptr) {
-    return *((int *)ptr - 1);
+int ScriptInstance::get_len_from_ptr(const void *p_ptr) {
+    return *((int *)p_ptr - 1);
 }
 
-void ScriptInstance::free_with_len(void *ptr) {
-    memfree((int *)ptr - 1);
+void ScriptInstance::free_with_len(void *p_ptr) {
+    memfree((int *)p_ptr - 1);
 }
 
-void ScriptInstance::copy_prop(const GDProperty &src, GDExtensionPropertyInfo &dst) {
-    dst.type = src.type;
-    dst.name = stringname_alloc(src.name);
-    dst.class_name = stringname_alloc(src.class_name);
-    dst.hint = src.hint;
-    dst.hint_string = string_alloc(src.hint_string);
-    dst.usage = src.usage;
+void ScriptInstance::copy_prop(const GDProperty &p_src, GDExtensionPropertyInfo &p_dst) {
+    p_dst.type = p_src.type;
+    p_dst.name = stringname_alloc(p_src.name);
+    p_dst.class_name = stringname_alloc(p_src.class_name);
+    p_dst.hint = p_src.hint;
+    p_dst.hint_string = string_alloc(p_src.hint_string);
+    p_dst.usage = p_src.usage;
 }
 
-void ScriptInstance::free_prop(const GDExtensionPropertyInfo &prop) {
+void ScriptInstance::free_prop(const GDExtensionPropertyInfo &p_prop) {
     // smelly
-    memdelete((StringName *)prop.name);
-    memdelete((StringName *)prop.class_name);
-    memdelete((String *)prop.hint_string);
+    memdelete((StringName *)p_prop.name);
+    memdelete((StringName *)p_prop.class_name);
+    memdelete((String *)p_prop.hint_string);
 }
 
 void ScriptInstance::get_property_state(GDExtensionScriptInstancePropertyStateAdd p_add_func, void *p_userdata) {
@@ -909,37 +909,37 @@ ScriptLanguage *ScriptInstance::get_language() const {
 // SCRIPT INSTANCE //
 /////////////////////
 
-#define INSTANCE_SELF ((LuauScriptInstance *)self)
+#define INSTANCE_SELF ((LuauScriptInstance *)p_self)
 
 static GDExtensionScriptInstanceInfo init_script_instance_info() {
     GDExtensionScriptInstanceInfo info;
     ScriptInstance::init_script_instance_info_common(info);
 
-    info.property_can_revert_func = [](void *self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool {
+    info.property_can_revert_func = [](void *p_self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool {
         return INSTANCE_SELF->property_can_revert(*((StringName *)p_name));
     };
 
-    info.property_get_revert_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool {
+    info.property_get_revert_func = [](void *p_self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool {
         return INSTANCE_SELF->property_get_revert(*((StringName *)p_name), (Variant *)r_ret);
     };
 
-    info.call_func = [](void *self, GDExtensionConstStringNamePtr p_method, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argument_count, GDExtensionVariantPtr r_return, GDExtensionCallError *r_error) {
+    info.call_func = [](void *p_self, GDExtensionConstStringNamePtr p_method, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argument_count, GDExtensionVariantPtr r_return, GDExtensionCallError *r_error) {
         return INSTANCE_SELF->call(*((StringName *)p_method), (const Variant **)p_args, p_argument_count, (Variant *)r_return, r_error);
     };
 
-    info.notification_func = [](void *self, int32_t p_what) {
+    info.notification_func = [](void *p_self, int32_t p_what) {
         INSTANCE_SELF->notification(p_what);
     };
 
-    info.to_string_func = [](void *self, GDExtensionBool *r_is_valid, GDExtensionStringPtr r_out) {
+    info.to_string_func = [](void *p_self, GDExtensionBool *r_is_valid, GDExtensionStringPtr r_out) {
         INSTANCE_SELF->to_string(r_is_valid, (String *)r_out);
     };
 
-    info.free_func = [](void *self) {
+    info.free_func = [](void *p_self) {
         memdelete(INSTANCE_SELF);
     };
 
-    info.refcount_decremented_func = [](void *self) -> GDExtensionBool {
+    info.refcount_decremented_func = [](void *) -> GDExtensionBool {
         // If false (default), object cannot die
         return true;
     };
@@ -949,7 +949,7 @@ static GDExtensionScriptInstanceInfo init_script_instance_info() {
 
 const GDExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
-int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int nargs, int nret) {
+int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int p_nargs, int p_nret) {
     LUAU_LOCK(ET);
 
     const LuauScript *s = script.ptr();
@@ -964,13 +964,13 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
                 return -1;
             }
 
-            lua_insert(ET, -nargs - 1);
+            lua_insert(ET, -p_nargs - 1);
 
             LuaStackOp<Object *>::push(ET, owner);
-            lua_insert(ET, -nargs - 1);
+            lua_insert(ET, -p_nargs - 1);
 
             INIT_TIMEOUT(ET)
-            int status = lua_resume(ET, nullptr, nargs + 1);
+            int status = lua_resume(ET, nullptr, p_nargs + 1);
 
             if (status != LUA_OK && status != LUA_YIELD) {
                 s->error("LuauScriptInstance::call_internal", LuaStackOp<String>::get(ET, -1));
@@ -979,7 +979,7 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
                 return status;
             }
 
-            lua_settop(ET, nret);
+            lua_settop(ET, p_nret);
             return status;
         }
 
@@ -1259,8 +1259,8 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
                             for (int i = 1; i <= sz; i++) {
                                 lua_rawgeti(FL, 1, i);
 
-                                GDProperty *ret = reinterpret_cast<GDProperty *>(lua_newuserdatadtor(FL, sizeof(GDProperty), [](void *ptr) {
-                                    ((GDProperty *)ptr)->~GDProperty();
+                                GDProperty *ret = reinterpret_cast<GDProperty *>(lua_newuserdatadtor(FL, sizeof(GDProperty), [](void *p_ptr) {
+                                    ((GDProperty *)p_ptr)->~GDProperty();
                                 }));
 
                                 new (ret) GDProperty();
@@ -1578,20 +1578,20 @@ bool LuauScriptInstance::table_get(lua_State *T) const {
     return true;
 }
 
-#define DEF_GETTER(type, method_name, def_key)                                                     \
-    const type *LuauScriptInstance::get_##method_name(const StringName &p_name) const {            \
-        const LuauScript *s = script.ptr();                                                        \
-                                                                                                   \
-        while (s) {                                                                                \
-            HashMap<StringName, type>::ConstIterator E = s->get_definition().def_key.find(p_name); \
-                                                                                                   \
-            if (E)                                                                                 \
-                return &E->value;                                                                  \
-                                                                                                   \
-            s = s->base.ptr();                                                                     \
-        }                                                                                          \
-                                                                                                   \
-        return nullptr;                                                                            \
+#define DEF_GETTER(m_type, m_method_name, m_def_key)                                                   \
+    const m_type *LuauScriptInstance::get_##m_method_name(const StringName &p_name) const {            \
+        const LuauScript *s = script.ptr();                                                            \
+                                                                                                       \
+        while (s) {                                                                                    \
+            HashMap<StringName, m_type>::ConstIterator E = s->get_definition().m_def_key.find(p_name); \
+                                                                                                       \
+            if (E)                                                                                     \
+                return &E->value;                                                                      \
+                                                                                                       \
+            s = s->base.ptr();                                                                         \
+        }                                                                                              \
+                                                                                                       \
+        return nullptr;                                                                                \
     }
 
 DEF_GETTER(GDMethod, method, methods)
@@ -1741,15 +1741,15 @@ LuauLanguage::~LuauLanguage() {
     singleton = nullptr;
 }
 
-void LuauLanguage::discover_core_scripts(const String &path) {
+void LuauLanguage::discover_core_scripts(const String &p_path) {
     // Will be scanned on Windows
-    if (path == "res://.godot") {
+    if (p_path == "res://.godot") {
         return;
     }
 
-    UtilityFunctions::print_verbose("Searching for core scripts in ", path, "...");
+    UtilityFunctions::print_verbose("Searching for core scripts in ", p_path, "...");
 
-    Ref<DirAccess> dir = DirAccess::open(path);
+    Ref<DirAccess> dir = DirAccess::open(p_path);
     ERR_FAIL_COND_MSG(!dir.is_valid(), "Failed to open directory");
 
     Error err = dir->list_dir_begin();
@@ -1758,7 +1758,7 @@ void LuauLanguage::discover_core_scripts(const String &path) {
     String file_name = dir->get_next();
 
     while (!file_name.is_empty()) {
-        String file_name_full = path.path_join(file_name);
+        String file_name_full = p_path.path_join(file_name);
 
         if (dir->current_is_dir()) {
             discover_core_scripts(file_name_full);

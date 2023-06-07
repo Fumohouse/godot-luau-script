@@ -30,7 +30,7 @@ public:
     static GDLuau *get_singleton() { return singleton; }
 
     lua_State *get_vm(VMType p_type);
-    void gc_step(const uint32_t *p_step, double delta);
+    void gc_step(const uint32_t *p_step, double p_delta);
     void gc_size(int32_t *r_buffer);
 
     GDLuau();

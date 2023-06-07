@@ -71,23 +71,23 @@ static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause r
 
 // Getters for argument types
 template <typename T>
-_FORCE_INLINE_ static GDExtensionVariantType get_arg_type(const T &arg) { return arg.type; }
+_FORCE_INLINE_ static GDExtensionVariantType get_arg_type(const T &p_arg) { return p_arg.type; }
 
 template <>
-_FORCE_INLINE_ GDExtensionVariantType get_arg_type<ApiClassArgument>(const ApiClassArgument &arg) { return (GDExtensionVariantType)arg.type.type; }
+_FORCE_INLINE_ GDExtensionVariantType get_arg_type<ApiClassArgument>(const ApiClassArgument &p_arg) { return (GDExtensionVariantType)p_arg.type.type; }
 
 template <typename T>
-_FORCE_INLINE_ static String get_arg_type_name(const T &arg) { return String(); }
+_FORCE_INLINE_ static String get_arg_type_name(const T &) { return String(); }
 
 template <>
-_FORCE_INLINE_ String get_arg_type_name<ApiClassArgument>(const ApiClassArgument &arg) { return arg.type.type_name; }
+_FORCE_INLINE_ String get_arg_type_name<ApiClassArgument>(const ApiClassArgument &p_arg) { return p_arg.type.type_name; }
 
 template <>
-_FORCE_INLINE_ String get_arg_type_name<GDProperty>(const GDProperty &arg) { return arg.class_name; }
+_FORCE_INLINE_ String get_arg_type_name<GDProperty>(const GDProperty &p_arg) { return p_arg.class_name; }
 
 // Getters for method types
 template <typename T>
-_FORCE_INLINE_ static bool is_method_static(const T &method) { return method.is_static; }
+_FORCE_INLINE_ static bool is_method_static(const T &p_method) { return p_method.is_static; }
 
 template <>
 _FORCE_INLINE_ bool is_method_static<ApiUtilityFunction>(const ApiUtilityFunction &) { return true; }
@@ -96,21 +96,21 @@ template <>
 _FORCE_INLINE_ bool is_method_static<GDMethod>(const GDMethod &) { return false; }
 
 template <typename T>
-_FORCE_INLINE_ static bool is_method_vararg(const T &method) { return method.is_vararg; }
+_FORCE_INLINE_ static bool is_method_vararg(const T &p_method) { return p_method.is_vararg; }
 
 template <>
-_FORCE_INLINE_ bool is_method_vararg<GDMethod>(const GDMethod &method) { return true; }
+_FORCE_INLINE_ bool is_method_vararg<GDMethod>(const GDMethod &) { return true; }
 
 // From stack
 template <typename T>
-_FORCE_INLINE_ static void get_argument(lua_State *L, int idx, const T &arg, LuauVariant &out) {
-    out.lua_check(L, idx, arg.type);
+_FORCE_INLINE_ static void get_argument(lua_State *L, int p_idx, const T &p_arg, LuauVariant &r_out) {
+    r_out.lua_check(L, p_idx, p_arg.type);
 }
 
 template <>
-_FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &arg, LuauVariant &out) {
-    const ApiClassType &type = arg.type;
-    out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
+_FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &p_arg, LuauVariant &r_out) {
+    const ApiClassType &type = p_arg.type;
+    r_out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
 }
 
 // Defaults
@@ -121,9 +121,9 @@ template <>
 struct has_default_value_trait<ApiArgumentNoDefault> : std::false_type {};
 
 template <typename TMethod, typename TArg>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, LocalVector<const void *> *pargs, const TMethod &method, std::true_type const &) {
-    for (int i = nargs; i < method.arguments.size(); i++) {
-        const TArg &arg = method.arguments[i];
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int p_nargs, LocalVector<const void *> *pargs, const TMethod &p_method, std::true_type const &) {
+    for (int i = p_nargs; i < p_method.arguments.size(); i++) {
+        const TArg &arg = p_method.arguments[i];
 
         if (arg.has_default_value) {
             // Special case: null Object default value
@@ -139,82 +139,82 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int na
             }
         } else {
             LuauVariant dummy;
-            get_argument(L, i + 1 + arg_offset, arg, dummy);
+            get_argument(L, i + 1 + p_arg_offset, arg, dummy);
         }
     }
 }
 
 template <>
 _FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
-        lua_State *L, int arg_offset, int nargs, LocalVector<const void *> *pargs, const GDMethod &method, std::true_type const &) {
-    int args_allowed = method.arguments.size();
-    int args_default = method.default_arguments.size();
+        lua_State *L, int p_arg_offset, int p_nargs, LocalVector<const void *> *pargs, const GDMethod &p_method, std::true_type const &) {
+    int args_allowed = p_method.arguments.size();
+    int args_default = p_method.default_arguments.size();
     int args_required = args_allowed - args_default;
 
-    for (int i = nargs; i < args_allowed; i++) {
-        const GDProperty &arg = method.arguments[i];
+    for (int i = p_nargs; i < args_allowed; i++) {
+        const GDProperty &arg = p_method.arguments[i];
 
         if (i >= args_required) {
-            pargs->ptr()[i] = &method.default_arguments[i - args_required];
+            pargs->ptr()[i] = &p_method.default_arguments[i - args_required];
         } else {
             LuauVariant dummy;
-            get_argument(L, i + 1 + arg_offset, arg, dummy);
+            get_argument(L, i + 1 + p_arg_offset, arg, dummy);
         }
     }
 }
 
 template <typename TMethod, typename>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int arg_offset, int nargs, LocalVector<const void *> *pargs, const TMethod &method, std::false_type const &) {
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int p_nargs, LocalVector<const void *> *pargs, const TMethod &p_method, std::false_type const &) {
     LuauVariant dummy;
-    get_argument(L, nargs + 1 + arg_offset, method.arguments[nargs], dummy);
+    get_argument(L, p_nargs + 1 + p_arg_offset, p_method.arguments[p_nargs], dummy);
 }
 
 // this is magic
 template <typename T, typename TArg>
 static int get_arguments(lua_State *L,
-        const char *method_name,
-        LocalVector<Variant> *varargs,
-        LocalVector<LuauVariant> *args,
-        LocalVector<const void *> *pargs,
-        const T &method) {
+        const char *p_method_name,
+        LocalVector<Variant> *r_varargs,
+        LocalVector<LuauVariant> *r_args,
+        LocalVector<const void *> *r_pargs,
+        const T &p_method) {
     // arg 1 is self for instance methods
-    int arg_offset = is_method_static(method) ? 0 : 1;
+    int arg_offset = is_method_static(p_method) ? 0 : 1;
     int nargs = lua_gettop(L) - arg_offset;
 
-    if (method.arguments.size() > nargs)
-        pargs->resize(method.arguments.size());
+    if (p_method.arguments.size() > nargs)
+        r_pargs->resize(p_method.arguments.size());
     else
-        pargs->resize(nargs);
+        r_pargs->resize(nargs);
 
-    if (is_method_vararg(method)) {
-        varargs->resize(nargs);
+    if (is_method_vararg(p_method)) {
+        r_varargs->resize(nargs);
 
         LuauVariant arg;
 
         for (int i = 0; i < nargs; i++) {
-            if (i < method.arguments.size()) {
-                get_argument(L, i + 1 + arg_offset, method.arguments[i], arg);
-                varargs->ptr()[i] = arg.to_variant();
+            if (i < p_method.arguments.size()) {
+                get_argument(L, i + 1 + arg_offset, p_method.arguments[i], arg);
+                r_varargs->ptr()[i] = arg.to_variant();
             } else {
-                varargs->ptr()[i] = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
+                r_varargs->ptr()[i] = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
             }
 
-            pargs->ptr()[i] = &varargs->ptr()[i];
+            r_pargs->ptr()[i] = &r_varargs->ptr()[i];
         }
     } else {
-        args->resize(nargs);
+        r_args->resize(nargs);
 
-        if (nargs > method.arguments.size())
-            luaL_error(L, "too many arguments to '%s' (expected at most %d)", method_name, method.arguments.size());
+        if (nargs > p_method.arguments.size())
+            luaL_error(L, "too many arguments to '%s' (expected at most %d)", p_method_name, p_method.arguments.size());
 
         for (int i = 0; i < nargs; i++) {
-            get_argument(L, i + 1 + arg_offset, method.arguments[i], args->ptr()[i]);
-            pargs->ptr()[i] = args->ptr()[i].get_opaque_pointer_arg();
+            get_argument(L, i + 1 + arg_offset, p_method.arguments[i], r_args->ptr()[i]);
+            r_pargs->ptr()[i] = r_args->ptr()[i].get_opaque_pointer_arg();
         }
     }
 
-    if (nargs < method.arguments.size())
-        get_default_args<T, TArg>(L, arg_offset, nargs, pargs, method, has_default_value_trait<TArg>());
+    if (nargs < p_method.arguments.size())
+        get_default_args<T, TArg>(L, arg_offset, nargs, r_pargs, p_method, has_default_value_trait<TArg>());
 
     return nargs;
 }
@@ -238,43 +238,43 @@ static int luaGD_variant_tostring(lua_State *L) {
     return 1;
 }
 
-static void luaGD_initmetatable(lua_State *L, int idx, GDExtensionVariantType variant_type, const char *global_name) {
-    idx = lua_absindex(L, idx);
+static void luaGD_initmetatable(lua_State *L, int p_idx, GDExtensionVariantType p_variant_type, const char *p_global_name) {
+    p_idx = lua_absindex(L, p_idx);
 
     // for typeof and type errors
-    lua_pushstring(L, global_name);
-    lua_setfield(L, idx, "__type");
+    lua_pushstring(L, p_global_name);
+    lua_setfield(L, p_idx, "__type");
 
     lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
-    lua_setfield(L, idx, "__tostring");
+    lua_setfield(L, p_idx, "__tostring");
 
     // Variant type ID
-    lua_pushinteger(L, variant_type);
-    lua_setfield(L, idx, MT_VARIANT_TYPE);
+    lua_pushinteger(L, p_variant_type);
+    lua_setfield(L, p_idx, MT_VARIANT_TYPE);
 }
 
-static void luaGD_initglobaltable(lua_State *L, int idx, const char *global_name) {
-    idx = lua_absindex(L, idx);
+static void luaGD_initglobaltable(lua_State *L, int p_idx, const char *p_global_name) {
+    p_idx = lua_absindex(L, p_idx);
 
-    lua_pushvalue(L, idx);
-    lua_setglobal(L, global_name);
+    lua_pushvalue(L, p_idx);
+    lua_setglobal(L, p_global_name);
 
     lua_createtable(L, 0, 2);
 
-    lua_pushstring(L, global_name);
+    lua_pushstring(L, p_global_name);
     lua_setfield(L, -2, MT_CLASS_GLOBAL);
 
-    lua_pushstring(L, global_name);
+    lua_pushstring(L, p_global_name);
     lua_pushcclosure(L, luaGD_global_index, "_G.__index", 1); // TODO: name
     lua_setfield(L, -2, "__index");
 
     lua_setreadonly(L, -1, true);
 
-    lua_setmetatable(L, idx);
+    lua_setmetatable(L, p_idx);
 }
 
-static ThreadPermissions get_method_permissions(const ApiClass &g_class, const ApiClassMethod &method) {
-    return method.permissions != PERMISSION_INHERIT ? method.permissions : g_class.default_permissions;
+static ThreadPermissions get_method_permissions(const ApiClass &p_class, const ApiClassMethod &p_method) {
+    return p_method.permissions != PERMISSION_INHERIT ? p_method.permissions : p_class.default_permissions;
 }
 
 //////////////
@@ -324,21 +324,21 @@ struct ArrayTypeInfo {
     lua_CFunction iter_next;
 };
 
-#define ARRAY_INFO(type, elem_type)             \
-    {                                           \
-        static const ArrayTypeInfo type##_info{ \
-            BUILTIN_MT_NAME(type) ".__len",     \
-            luaGD_array_len<type>,              \
-            BUILTIN_MT_NAME(type) ".next",      \
-            luaGD_array_next<type, elem_type>   \
-        };                                      \
-                                                \
-        return &type##_info;                    \
+#define ARRAY_INFO(m_type, m_elem_type)           \
+    {                                             \
+        static const ArrayTypeInfo type##_info{   \
+            BUILTIN_MT_NAME(m_type) ".__len",     \
+            luaGD_array_len<m_type>,              \
+            BUILTIN_MT_NAME(m_type) ".next",      \
+            luaGD_array_next<m_type, m_elem_type> \
+        };                                        \
+                                                  \
+        return &type##_info;                      \
     }
 
 // ! sync with any new arrays
-static const ArrayTypeInfo *get_array_type_info(GDExtensionVariantType type) {
-    switch (type) {
+static const ArrayTypeInfo *get_array_type_info(GDExtensionVariantType p_type) {
+    switch (p_type) {
         case GDEXTENSION_VARIANT_TYPE_ARRAY:
             ARRAY_INFO(Array, Variant)
         case GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY:
@@ -539,36 +539,36 @@ static int luaGD_builtin_index(lua_State *L) {
     luaGD_indexerror(L, key.utf8().get_data(), builtin_class->name);
 }
 
-static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_class, const ApiVariantMethod &method) {
+static int call_builtin_method(lua_State *L, const ApiBuiltinClass &p_builtin_class, const ApiVariantMethod &p_method) {
     LocalVector<Variant> varargs;
     LocalVector<LuauVariant> args;
     LocalVector<const void *> pargs;
 
-    get_arguments<ApiVariantMethod, ApiArgument>(L, method.name, &varargs, &args, &pargs, method);
+    get_arguments<ApiVariantMethod, ApiArgument>(L, p_method.name, &varargs, &args, &pargs, p_method);
 
-    if (method.is_vararg) {
+    if (p_method.is_vararg) {
         Variant ret;
 
-        if (method.is_static) {
+        if (p_method.is_static) {
             SET_CALL_STACK(L);
-            internal::gde_interface->variant_call_static(builtin_class.type, &method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+            internal::gde_interface->variant_call_static(p_builtin_class.type, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
             CLEAR_CALL_STACK;
         } else {
             Variant self = LuaStackOp<Variant>::check(L, 1);
             SET_CALL_STACK(L);
-            internal::gde_interface->variant_call(&self, &method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+            internal::gde_interface->variant_call(&self, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
             CLEAR_CALL_STACK;
 
             // HACK: since the value in self is copied,
             // it's necessary to manually assign the changed value back to Luau
-            if (!method.is_const) {
+            if (!p_method.is_const) {
                 LuauVariant lua_self;
-                lua_self.lua_check(L, 1, builtin_class.type);
+                lua_self.lua_check(L, 1, p_builtin_class.type);
                 lua_self.assign_variant(self);
             }
         }
 
-        if (method.return_type != GDEXTENSION_VARIANT_TYPE_NIL) {
+        if (p_method.return_type != GDEXTENSION_VARIANT_TYPE_NIL) {
             LuaStackOp<Variant>::push(L, ret);
             return 1;
         }
@@ -578,26 +578,26 @@ static int call_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_clas
         LuauVariant self;
         void *self_ptr;
 
-        if (method.is_static) {
+        if (p_method.is_static) {
             self_ptr = nullptr;
         } else {
-            self.lua_check(L, 1, builtin_class.type);
+            self.lua_check(L, 1, p_builtin_class.type);
             self_ptr = self.get_opaque_pointer();
         }
 
-        if (method.return_type != -1) {
+        if (p_method.return_type != -1) {
             LuauVariant ret;
-            ret.initialize((GDExtensionVariantType)method.return_type);
+            ret.initialize((GDExtensionVariantType)p_method.return_type);
 
             SET_CALL_STACK(L);
-            method.func(self_ptr, pargs.ptr(), ret.get_opaque_pointer(), pargs.size());
+            p_method.func(self_ptr, pargs.ptr(), ret.get_opaque_pointer(), pargs.size());
             CLEAR_CALL_STACK;
 
             ret.lua_push(L);
             return 1;
         } else {
             SET_CALL_STACK(L);
-            method.func(self_ptr, pargs.ptr(), nullptr, pargs.size());
+            p_method.func(self_ptr, pargs.ptr(), nullptr, pargs.size());
             CLEAR_CALL_STACK;
             return 0;
         }
@@ -611,10 +611,10 @@ static int luaGD_builtin_method(lua_State *L) {
     return call_builtin_method(L, *builtin_class, *method);
 }
 
-static void push_builtin_method(lua_State *L, const ApiBuiltinClass &builtin_class, const ApiVariantMethod &method) {
-    lua_pushlightuserdata(L, (void *)&builtin_class);
-    lua_pushlightuserdata(L, (void *)&method);
-    lua_pushcclosure(L, luaGD_builtin_method, method.debug_name, 2);
+static void push_builtin_method(lua_State *L, const ApiBuiltinClass &p_builtin_class, const ApiVariantMethod &p_method) {
+    lua_pushlightuserdata(L, (void *)&p_builtin_class);
+    lua_pushlightuserdata(L, (void *)&p_method);
+    lua_pushcclosure(L, luaGD_builtin_method, p_method.debug_name, 2);
 }
 
 static int luaGD_builtin_namecall(lua_State *L) {
@@ -741,17 +741,17 @@ static int luaGD_builtin_operator(lua_State *L) {
     luaL_error(L, "no operator matched");
 }
 
-static void luaGD_builtin_unbound(lua_State *L, GDExtensionVariantType variant_type, const char *type_name, const char *metatable_name) {
-    luaL_newmetatable(L, metatable_name);
+static void luaGD_builtin_unbound(lua_State *L, GDExtensionVariantType p_variant_type, const char *p_type_name, const char *p_metatable_name) {
+    luaL_newmetatable(L, p_metatable_name);
 
-    lua_pushstring(L, type_name);
+    lua_pushstring(L, p_type_name);
     lua_setfield(L, -2, "__type");
 
     lua_pushcfunction(L, luaGD_variant_tostring, VARIANT_TOSTRING_DEBUG_NAME);
     lua_setfield(L, -2, "__tostring");
 
     // Variant type ID
-    lua_pushinteger(L, variant_type);
+    lua_pushinteger(L, p_variant_type);
     lua_setfield(L, -2, MT_VARIANT_TYPE);
 
     lua_setreadonly(L, -1, true);
@@ -920,42 +920,42 @@ static int luaGD_class_ctor(lua_State *L) {
     else                                                     \
         break;
 
-static void handle_object_returned(GDExtensionObjectPtr obj) {
+static void handle_object_returned(GDExtensionObjectPtr p_obj) {
     // if Godot returns a RefCounted from a method, it is always in the form of a Ref.
     // as such, the RefCounted we receive will be initialized at a refcount of 1
     // and is considered "initialized" (first Ref already made).
     // we need to decrement the refcount by 1 after pushing to Luau to avoid leak.
-    if (GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(obj))
+    if (GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(p_obj))
         nb::RefCounted(rc).unreference();
 }
 
-static int call_class_method(lua_State *L, const ApiClass &g_class, const ApiClassMethod &method) {
-    luaGD_checkpermissions(L, method.debug_name, get_method_permissions(g_class, method));
+static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiClassMethod &p_method) {
+    luaGD_checkpermissions(L, p_method.debug_name, get_method_permissions(p_class, p_method));
 
     LocalVector<Variant> varargs;
     LocalVector<LuauVariant> args;
     LocalVector<const void *> pargs;
 
-    get_arguments<ApiClassMethod, ApiClassArgument>(L, method.name, &varargs, &args, &pargs, method);
+    get_arguments<ApiClassMethod, ApiClassArgument>(L, p_method.name, &varargs, &args, &pargs, p_method);
 
     GDExtensionObjectPtr self = nullptr;
 
-    if (!method.is_static) {
+    if (!p_method.is_static) {
         LuauVariant self_var;
-        self_var.lua_check(L, 1, GDEXTENSION_VARIANT_TYPE_OBJECT, g_class.name);
+        self_var.lua_check(L, 1, GDEXTENSION_VARIANT_TYPE_OBJECT, p_class.name);
 
         self = *self_var.get_ptr<GDExtensionObjectPtr>();
     }
 
-    if (method.is_vararg) {
+    if (p_method.is_vararg) {
         Variant ret;
         GDExtensionCallError error;
 
         SET_CALL_STACK(L);
-        internal::gde_interface->object_method_bind_call(method.bind, self, pargs.ptr(), pargs.size(), &ret, &error);
+        internal::gde_interface->object_method_bind_call(p_method.bind, self, pargs.ptr(), pargs.size(), &ret, &error);
         CLEAR_CALL_STACK;
 
-        if (method.return_type.type != -1) {
+        if (p_method.return_type.type != -1) {
             LuaStackOp<Variant>::push(L, ret);
 
             if (ret.get_type() == Variant::OBJECT) {
@@ -971,13 +971,13 @@ static int call_class_method(lua_State *L, const ApiClass &g_class, const ApiCla
         LuauVariant ret;
         void *ret_ptr = nullptr;
 
-        if (method.return_type.type != -1) {
-            ret.initialize((GDExtensionVariantType)method.return_type.type);
+        if (p_method.return_type.type != -1) {
+            ret.initialize((GDExtensionVariantType)p_method.return_type.type);
             ret_ptr = ret.get_opaque_pointer();
         }
 
         SET_CALL_STACK(L);
-        internal::gde_interface->object_method_bind_ptrcall(method.bind, self, pargs.ptr(), ret_ptr);
+        internal::gde_interface->object_method_bind_ptrcall(p_method.bind, self, pargs.ptr(), ret_ptr);
         CLEAR_CALL_STACK;
 
         if (ret.get_type() != -1) {
@@ -1001,10 +1001,10 @@ static int luaGD_class_method(lua_State *L) {
     return call_class_method(L, *g_class, *method);
 }
 
-static void push_class_method(lua_State *L, const ApiClass &g_class, const ApiClassMethod &method) {
-    lua_pushlightuserdata(L, (void *)&g_class);
-    lua_pushlightuserdata(L, (void *)&method);
-    lua_pushcclosure(L, luaGD_class_method, method.debug_name, 2);
+static void push_class_method(lua_State *L, const ApiClass &p_class, const ApiClassMethod &p_method) {
+    lua_pushlightuserdata(L, (void *)&p_class);
+    lua_pushlightuserdata(L, (void *)&p_method);
+    lua_pushcclosure(L, luaGD_class_method, p_method.debug_name, 2);
 }
 
 #define FREE_NAME "Free"
@@ -1124,27 +1124,27 @@ static int luaGD_class_namecall(lua_State *L) {
     luaGD_nonamecallatomerror(L);
 }
 
-static int call_property_setget(lua_State *L, int class_idx, const ApiClassProperty &property, const String &method) {
-    if (property.index != -1) {
-        lua_pushinteger(L, property.index);
+static int call_property_setget(lua_State *L, int p_class_idx, const ApiClassProperty &p_property, const String &p_method) {
+    if (p_property.index != -1) {
+        lua_pushinteger(L, p_property.index);
         lua_insert(L, 2);
     }
 
     const Vector<ApiClass> &classes = get_extension_api().classes;
 
-    while (class_idx != -1) {
-        const ApiClass &current_class = classes[class_idx];
+    while (p_class_idx != -1) {
+        const ApiClass &current_class = classes[p_class_idx];
 
-        HashMap<String, ApiClassMethod>::ConstIterator E = current_class.methods.find(method);
+        HashMap<String, ApiClassMethod>::ConstIterator E = current_class.methods.find(p_method);
 
         if (E) {
             return call_class_method(L, current_class, E->value);
         }
 
-        class_idx = current_class.parent_idx;
+        p_class_idx = current_class.parent_idx;
     }
 
-    luaL_error(L, "setter/getter '%s' was not found", method.utf8().get_data());
+    luaL_error(L, "setter/getter '%s' was not found", p_method.utf8().get_data());
 }
 
 struct CrossVMMethod {
@@ -1431,9 +1431,9 @@ void luaGD_openclasses(lua_State *L) {
 
         // Overridden Object methods
         if (strcmp(g_class.name, "Object") == 0) {
-#define CUSTOM_OBJ_METHOD(method, name, dbg_name) \
-    lua_pushcfunction(L, method, dbg_name);       \
-    lua_setfield(L, -2, name);
+#define CUSTOM_OBJ_METHOD(m_method, m_name, m_dbg_name) \
+    lua_pushcfunction(L, m_method, m_dbg_name);         \
+    lua_setfield(L, -2, m_name);
 
             CUSTOM_OBJ_METHOD(luaGD_class_free, FREE_NAME, FREE_DBG_NAME)
             CUSTOM_OBJ_METHOD(luaGD_class_isa, ISA_NAME, ISA_DBG_NAME)

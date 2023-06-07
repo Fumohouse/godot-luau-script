@@ -22,9 +22,9 @@ LuauFixture::~LuauFixture() {
     }
 }
 
-ExecOutput luaGD_exec(lua_State *L, const char *src) {
+ExecOutput luaGD_exec(lua_State *L, const char *p_src) {
     Luau::CompileOptions opts;
-    std::string bytecode = Luau::compile(src, opts);
+    std::string bytecode = Luau::compile(p_src, opts);
 
     ExecOutput output;
 

@@ -50,14 +50,14 @@ void LuauScript::_update_exports() {
     }
 }
 
-void LuauScript::update_exports_values(List<GDProperty> &properties, HashMap<StringName, Variant> &values) {
+void LuauScript::update_exports_values(List<GDProperty> &r_properties, HashMap<StringName, Variant> &r_values) {
     if (base.is_valid() && base->_is_valid()) {
-        base->update_exports_values(properties, values);
+        base->update_exports_values(r_properties, r_values);
     }
 
     for (const GDClassProperty &prop : get_definition().properties) {
-        properties.push_back(prop.property);
-        values[prop.property.name] = prop.default_value;
+        r_properties.push_back(prop.property);
+        r_values[prop.property.name] = prop.default_value;
     }
 }
 
@@ -136,15 +136,15 @@ Ref<Script> LuauLanguage::_make_template(const String &p_template, const String 
 
 // Sort such that base scripts and modules come first.
 struct LuauScriptDepSort {
-    bool operator()(const Ref<LuauScript> &a, const Ref<LuauScript> &b) const {
-        if (a == b) {
+    bool operator()(const Ref<LuauScript> &p_a, const Ref<LuauScript> &p_b) const {
+        if (p_a == p_b) {
             return false;
         }
 
-        const LuauScript *s = b.ptr();
+        const LuauScript *s = p_b.ptr();
 
         while (s) {
-            if (s->has_dependency(a))
+            if (s->has_dependency(p_a))
                 return true;
 
             s = s->get_base().ptr();
@@ -357,7 +357,7 @@ Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
 // Implementation mostly mirrors Godot's implementation.
 // See license information in README.md.
 
-#define PLACEHOLDER_SELF ((PlaceHolderScriptInstance *)self)
+#define PLACEHOLDER_SELF ((PlaceHolderScriptInstance *)p_self)
 
 static GDExtensionScriptInstanceInfo init_placeholder_instance_info() {
     // Methods which essentially have no utility (e.g. call) are implemented here instead of in the class.
@@ -373,7 +373,7 @@ static GDExtensionScriptInstanceInfo init_placeholder_instance_info() {
         return false;
     };
 
-    info.call_func = [](void *self, GDExtensionConstStringNamePtr p_method, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argument_count, GDExtensionVariantPtr r_return, GDExtensionCallError *r_error) {
+    info.call_func = [](void *p_self, GDExtensionConstStringNamePtr p_method, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argument_count, GDExtensionVariantPtr r_return, GDExtensionCallError *r_error) {
         r_error->error = GDEXTENSION_CALL_ERROR_INVALID_METHOD;
         *(Variant *)r_return = Variant();
     };
@@ -382,15 +382,15 @@ static GDExtensionScriptInstanceInfo init_placeholder_instance_info() {
         return true;
     };
 
-    info.set_fallback_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) -> GDExtensionBool {
+    info.set_fallback_func = [](void *p_self, GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value) -> GDExtensionBool {
         return PLACEHOLDER_SELF->property_set_fallback(*(const StringName *)p_name, *(const Variant *)p_value);
     };
 
-    info.get_fallback_func = [](void *self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool {
+    info.get_fallback_func = [](void *p_self, GDExtensionConstStringNamePtr p_name, GDExtensionVariantPtr r_ret) -> GDExtensionBool {
         return PLACEHOLDER_SELF->property_get_fallback(*(const StringName *)p_name, *(Variant *)r_ret);
     };
 
-    info.free_func = [](void *self) {
+    info.free_func = [](void *p_self) {
         memdelete(PLACEHOLDER_SELF);
     };
 

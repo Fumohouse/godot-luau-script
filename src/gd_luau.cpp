@@ -55,10 +55,10 @@ lua_State *GDLuau::get_vm(VMType p_type) {
     return vms[p_type];
 }
 
-void GDLuau::gc_step(const uint32_t *p_step, double delta) {
+void GDLuau::gc_step(const uint32_t *p_step, double p_delta) {
     for (int i = 0; i < VM_MAX; i++) {
         lua_State *L = get_vm(VMType(i));
-        lua_gc(L, LUA_GCSTEP, p_step[i] * delta);
+        lua_gc(L, LUA_GCSTEP, p_step[i] * p_delta);
     }
 }
 

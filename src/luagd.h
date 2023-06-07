@@ -22,8 +22,8 @@ struct GDThreadData {
     uint64_t interrupt_deadline = 0;
 };
 
-lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> base_permissions);
-lua_State *luaGD_newthread(lua_State *L, BitField<ThreadPermissions> permissions);
+lua_State *luaGD_newstate(GDLuau::VMType p_vm_type, BitField<ThreadPermissions> p_base_permissions);
+lua_State *luaGD_newthread(lua_State *L, BitField<ThreadPermissions> p_permissions);
 void luaGD_close(lua_State *L);
 
 GDThreadData *luaGD_getthreaddata(lua_State *L);

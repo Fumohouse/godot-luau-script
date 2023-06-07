@@ -104,16 +104,16 @@ GDRpc::operator Variant() const {
     return operator Dictionary();
 }
 
-int GDClassDefinition::set_prop(const String &name, const GDClassProperty &prop) {
-    HashMap<StringName, uint64_t>::ConstIterator E = property_indices.find(name);
+int GDClassDefinition::set_prop(const String &p_name, const GDClassProperty &p_prop) {
+    HashMap<StringName, uint64_t>::ConstIterator E = property_indices.find(p_name);
 
     if (E) {
-        properties.set(E->value, prop);
+        properties.set(E->value, p_prop);
         return E->value;
     } else {
         int index = properties.size();
-        property_indices[name] = index;
-        properties.push_back(prop);
+        property_indices[p_name] = index;
+        properties.push_back(p_prop);
 
         return index;
     }
@@ -121,37 +121,37 @@ int GDClassDefinition::set_prop(const String &name, const GDClassProperty &prop)
 
 /* PROPERTY */
 
-GDProperty luascript_read_property(lua_State *L, int idx) {
-    if (!lua_istable(L, idx))
+GDProperty luascript_read_property(lua_State *L, int p_idx) {
+    if (!lua_istable(L, p_idx))
         luaL_error(L, "expected table type for GDProperty value");
 
     GDProperty property;
 
-    if (luaGD_getfield(L, idx, "type"))
+    if (luaGD_getfield(L, p_idx, "type"))
         property.type = static_cast<GDExtensionVariantType>(luaGD_checkvaluetype<uint32_t>(L, -1, "type", LUA_TNUMBER));
 
-    if (luaGD_getfield(L, idx, "name"))
+    if (luaGD_getfield(L, p_idx, "name"))
         property.name = luaGD_checkvaluetype<String>(L, -1, "name", LUA_TSTRING);
 
-    if (luaGD_getfield(L, idx, "hint"))
+    if (luaGD_getfield(L, p_idx, "hint"))
         property.hint = static_cast<PropertyHint>(luaGD_checkvaluetype<uint32_t>(L, -1, "hint", LUA_TNUMBER));
 
-    if (luaGD_getfield(L, idx, "hintString"))
+    if (luaGD_getfield(L, p_idx, "hintString"))
         property.hint_string = luaGD_checkvaluetype<String>(L, -1, "hintString", LUA_TSTRING);
 
-    if (luaGD_getfield(L, idx, "usage"))
+    if (luaGD_getfield(L, p_idx, "usage"))
         property.usage = luaGD_checkvaluetype<uint32_t>(L, -1, "usage", LUA_TNUMBER);
 
-    if (luaGD_getfield(L, idx, "className"))
+    if (luaGD_getfield(L, p_idx, "className"))
         property.class_name = luaGD_checkvaluetype<String>(L, -1, "className", LUA_TSTRING);
 
     return property;
 }
 
-static GDRpc luascript_read_rpc(lua_State *L, int idx) {
+static GDRpc luascript_read_rpc(lua_State *L, int p_idx) {
     GDRpc rpc;
 
-    if (luaGD_getfield(L, idx, "rpcMode")) {
+    if (luaGD_getfield(L, p_idx, "rpcMode")) {
         if (!lua_isnumber(L, -1))
             luaGD_valueerror(L, "rpcMode", luaL_typename(L, -1), "MultiplayerAPI.RPCMode");
 
@@ -159,7 +159,7 @@ static GDRpc luascript_read_rpc(lua_State *L, int idx) {
         lua_pop(L, 1);
     }
 
-    if (luaGD_getfield(L, idx, "transferMode")) {
+    if (luaGD_getfield(L, p_idx, "transferMode")) {
         if (!lua_isnumber(L, -1))
             luaGD_valueerror(L, "rpcMode", luaL_typename(L, -1), "MultiplayerPeer.TransferMode");
 
@@ -167,10 +167,10 @@ static GDRpc luascript_read_rpc(lua_State *L, int idx) {
         lua_pop(L, 1);
     }
 
-    if (luaGD_getfield(L, idx, "callLocal"))
+    if (luaGD_getfield(L, p_idx, "callLocal"))
         rpc.call_local = luaGD_checkvaluetype<bool>(L, -1, "callLocal", LUA_TBOOLEAN);
 
-    if (luaGD_getfield(L, idx, "channel"))
+    if (luaGD_getfield(L, p_idx, "channel"))
         rpc.channel = luaGD_checkvaluetype<int>(L, -1, "channel", LUA_TNUMBER);
 
     return rpc;
@@ -328,13 +328,13 @@ static int luascript_gdclass_namecall(lua_State *L) {
         }
 
         // Helpers
-#define PROPERTY_HELPER(func_name, prop_usage)         \
-    if (strcmp(key, func_name) == 0) {                 \
+#define PROPERTY_HELPER(m_func_name, m_prop_usage)     \
+    if (strcmp(key, m_func_name) == 0) {               \
         String name = LuaStackOp<String>::check(L, 2); \
                                                        \
         GDClassProperty prop;                          \
         prop.property.name = name;                     \
-        prop.property.usage = prop_usage;              \
+        prop.property.usage = m_prop_usage;            \
                                                        \
         def->set_prop(name, prop);                     \
                                                        \
@@ -431,13 +431,13 @@ static int luascript_method_namecall(lua_State *L) {
     luaGD_nonamecallatomerror(L);
 }
 
-#define luascript_hinterror(L, kind, non) luaL_error(L, "cannot set %s hint on non-%s property", kind, non)
+#define luascript_hinterror(L, p_kind, p_non) luaL_error(L, "cannot set %s hint on non-%s property", p_kind, p_non)
 
-static String luascript_stringhintlist(lua_State *L, int start_index) {
-    String hint_string = LuaStackOp<String>::check(L, start_index);
+static String luascript_stringhintlist(lua_State *L, int p_start_index) {
+    String hint_string = LuaStackOp<String>::check(L, p_start_index);
 
     int top = lua_gettop(L);
-    for (int i = start_index + 1; i <= top; i++)
+    for (int i = p_start_index + 1; i <= top; i++)
         hint_string = hint_string + "," + LuaStackOp<String>::check(L, i);
 
     return hint_string;
@@ -799,11 +799,11 @@ static const luaL_Reg global_funcs[] = {
 
 #define luascript_classglobal_error(L) luaL_error(L, "table argument to gdclass must be a class global (i.e. metatable containing the " MT_CLASS_GLOBAL " field)")
 
-void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, LuauScript *&r_script) {
-    if (lua_isstring(L, index)) {
-        r_type = lua_tostring(L, index);
-    } else if (lua_istable(L, index)) {
-        if (!lua_getmetatable(L, index))
+void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, LuauScript *&r_script) {
+    if (lua_isstring(L, p_index)) {
+        r_type = lua_tostring(L, p_index);
+    } else if (lua_istable(L, p_index)) {
+        if (!lua_getmetatable(L, p_index))
             luascript_classglobal_error(L);
 
         lua_getfield(L, -1, MT_CLASS_GLOBAL);
@@ -813,21 +813,21 @@ void luascript_get_classdef_or_type(lua_State *L, int index, String &r_type, Lua
         r_type = lua_tostring(L, -1);
 
         lua_pop(L, 2); // value, metatable
-    } else if (LuaStackOp<GDClassDefinition>::is(L, index)) {
-        const GDClassDefinition *other_def = LuaStackOp<GDClassDefinition>::get_ptr(L, index);
+    } else if (LuaStackOp<GDClassDefinition>::is(L, p_index)) {
+        const GDClassDefinition *other_def = LuaStackOp<GDClassDefinition>::get_ptr(L, p_index);
         if (!other_def->script)
             luaL_error(L, "could not determine script from class definition");
 
         r_script = other_def->script;
     } else {
-        luaL_typeerrorL(L, index, "string, GDClassDefinition, or ClassGlobal");
+        luaL_typeerrorL(L, p_index, "string, GDClassDefinition, or ClassGlobal");
     }
 }
 
-String luascript_get_scriptname_or_type(lua_State *L, int index, LuauScript **r_script) {
+String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **r_script) {
     String type;
     LuauScript *script = nullptr;
-    luascript_get_classdef_or_type(L, index, type, script);
+    luascript_get_classdef_or_type(L, p_index, type, script);
 
     if (!type.is_empty()) {
         return type;

@@ -13,16 +13,16 @@
 using namespace godot;
 
 // Based on the default implementation seen in the Lua 5.1 reference
-static void *luaGD_alloc(void *, void *ptr, size_t, size_t nsize) {
-    if (nsize == 0) {
+static void *luaGD_alloc(void *, void *p_ptr, size_t, size_t p_nsize) {
+    if (p_nsize == 0) {
         // Lua assumes free(NULL) is ok. For Godot it is not.
-        if (ptr)
-            memfree(ptr);
+        if (p_ptr)
+            memfree(p_ptr);
 
         return nullptr;
     }
 
-    return memrealloc(ptr, nsize);
+    return memrealloc(p_ptr, p_nsize);
 }
 
 static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
@@ -52,7 +52,7 @@ static void luaGD_userthread(lua_State *LP, lua_State *L) {
     }
 }
 
-lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> base_permissions) {
+lua_State *luaGD_newstate(GDLuau::VMType p_vm_type, BitField<ThreadPermissions> p_base_permissions) {
     lua_State *L = lua_newstate(luaGD_alloc, nullptr);
 
     luaL_openlibs(L);
@@ -61,8 +61,8 @@ lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> ba
     luaGD_openglobals(L);
 
     GDThreadData *udata = luaGD_initthreaddata(nullptr, L);
-    udata->vm_type = vm_type;
-    udata->permissions = base_permissions;
+    udata->vm_type = p_vm_type;
+    udata->permissions = p_base_permissions;
     udata->lock.instantiate();
 
     lua_Callbacks *callbacks = lua_callbacks(L);
@@ -71,11 +71,11 @@ lua_State *luaGD_newstate(GDLuau::VMType vm_type, BitField<ThreadPermissions> ba
     return L;
 }
 
-lua_State *luaGD_newthread(lua_State *L, BitField<ThreadPermissions> permissions) {
+lua_State *luaGD_newthread(lua_State *L, BitField<ThreadPermissions> p_permissions) {
     lua_State *T = lua_newthread(L);
 
     GDThreadData *udata = luaGD_getthreaddata(T);
-    udata->permissions = permissions;
+    udata->permissions = p_permissions;
 
     return T;
 }
