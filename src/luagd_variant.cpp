@@ -17,7 +17,7 @@ struct VariantMethods {
     virtual void initialize(LuauVariant &p_self) const = 0;
     virtual void destroy(LuauVariant &p_self) const {}
 
-    virtual void *get(LuauVariant &p_self, bool p_is_arg) const = 0;
+    virtual void *get(LuauVariant &p_self) const = 0;
     virtual const void *get(const LuauVariant &p_self) const = 0;
 
     virtual bool is(lua_State *L, int p_idx, const String &p_type_name) const = 0;
@@ -48,7 +48,7 @@ struct VariantAssignMethods : public VariantMethodsBase<T> {
         memnew_placement(p_self._data._opaque, T);
     }
 
-    virtual void *get(LuauVariant &p_self, bool) const override {
+    virtual void *get(LuauVariant &p_self) const override {
         return p_self._data._opaque;
     }
 
@@ -80,7 +80,7 @@ struct VariantAssignMethodsDtor : public VariantAssignMethods<T> {
 // Used for any type bound to a userdata.
 template <typename T>
 struct VariantUserdataMethods : public VariantAssignMethods<T> {
-    virtual void *get(LuauVariant &p_self, bool) const override {
+    virtual void *get(LuauVariant &p_self) const override {
         if (p_self.is_from_luau())
             return p_self._data._ptr;
         else
@@ -135,7 +135,7 @@ struct VariantPtrMethodsBase : public VariantMethodsBase<T> {
         memdelete((T *)p_self._data._ptr);
     }
 
-    virtual void *get(LuauVariant &p_self, bool) const override {
+    virtual void *get(LuauVariant &p_self) const override {
         return p_self._data._ptr;
     }
 
@@ -196,21 +196,8 @@ struct VariantObjectMethods : public VariantMethods {
         p_self._data._ptr = nullptr;
     }
 
-    void *get(LuauVariant &p_self, bool p_is_arg) const override {
-        // TODO: 2023-01-09: This may change. Tracking https://github.com/godotengine/godot/issues/61967.
-        // Special case. Object pointers are treated as GodotObject * when passing to Godot,
-        // and GodotObject ** when returning from Godot.
-
-        // Current understanding of the situation:
-        // - Use _arg for all arguments
-        // - _arg is never needed for return values or builtin/class `self`
-        // - _arg is never needed for values which will never be Object
-
-        // This is a mess. Hopefully it gets fixed at some point.
-        if (p_is_arg)
-            return p_self._data._ptr;
-        else
-            return &p_self._data._ptr;
+    void *get(LuauVariant &p_self) const override {
+        return &p_self._data._ptr;
     }
 
     const void *get(const LuauVariant &p_self) const override {
@@ -262,8 +249,8 @@ void register_type(GDExtensionVariantType p_type) {
     type_methods[p_type] = &methods;
 
     if (p_type != GDEXTENSION_VARIANT_TYPE_NIL) {
-        to_variant_ctors[p_type] = internal::gde_interface->get_variant_from_type_constructor(p_type);
-        from_variant_ctors[p_type] = internal::gde_interface->get_variant_to_type_constructor(p_type);
+        to_variant_ctors[p_type] = internal::gdextension_interface_get_variant_from_type_constructor(p_type);
+        from_variant_ctors[p_type] = internal::gdextension_interface_get_variant_to_type_constructor(p_type);
     }
 }
 
@@ -317,12 +304,8 @@ void LuauVariant::_register_types() {
 #endif // DEBUG_ENABLED
 }
 
-void *LuauVariant::get_opaque_pointer_arg() {
-    return type_methods[type]->get(*this, true);
-}
-
 void *LuauVariant::get_opaque_pointer() {
-    return type_methods[type]->get(*this, false);
+    return type_methods[type]->get(*this);
 }
 
 const void *LuauVariant::get_opaque_pointer() const {
@@ -394,7 +377,7 @@ Variant LuauVariant::to_variant() {
 Variant LuauVariant::default_variant(GDExtensionVariantType p_type) {
     Variant ret;
     GDExtensionCallError err;
-    internal::gde_interface->variant_construct(p_type, &ret, nullptr, 0, &err);
+    internal::gdextension_interface_variant_construct(p_type, &ret, nullptr, 0, &err);
     ERR_FAIL_COND_V(err.error != GDEXTENSION_CALL_OK, Variant());
 
     return ret;

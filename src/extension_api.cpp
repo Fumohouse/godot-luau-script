@@ -101,7 +101,7 @@ static ApiVariantMethod read_builtin_method(GDExtensionVariantType p_type, uint6
     method.is_const = read<uint8_t>(idx);
 
     uint32_t hash = read<uint32_t>(idx);
-    method.func = internal::gde_interface->variant_get_ptr_builtin_method(p_type, &method.gd_name, hash);
+    method.func = internal::gdextension_interface_variant_get_ptr_builtin_method(p_type, &method.gd_name, hash);
 
     uint64_t num_arguments = read<uint64_t>(idx);
     method.arguments.resize(num_arguments);
@@ -169,7 +169,7 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *p_class_name)
     uint32_t hash = read<uint32_t>(idx);
     StringName class_sn = p_class_name;
     StringName gd_sn = method.gd_name;
-    method.bind = internal::gde_interface->classdb_get_method_bind(&class_sn, &gd_sn, hash);
+    method.bind = internal::gdextension_interface_classdb_get_method_bind(&class_sn, &gd_sn, hash);
 
     uint64_t num_args = read<uint64_t>(idx);
     method.arguments.resize(num_args);
@@ -243,7 +243,7 @@ const ExtensionApi &get_extension_api() {
                 func.is_print_func = read<uint8_t>(idx);
 
                 uint32_t hash = read<uint32_t>(idx);
-                func.func = internal::gde_interface->variant_get_ptr_utility_function(&gd_name, hash);
+                func.func = internal::gdextension_interface_variant_get_ptr_utility_function(&gd_name, hash);
 
                 uint64_t num_args = read<uint64_t>(idx);
                 func.arguments.resize(num_args);
@@ -279,9 +279,9 @@ const ExtensionApi &get_extension_api() {
                 bool is_keyed = read<uint8_t>(idx);
 
                 if (is_keyed) {
-                    new_class.keyed_setter = internal::gde_interface->variant_get_ptr_keyed_setter(new_class.type);
-                    new_class.keyed_getter = internal::gde_interface->variant_get_ptr_keyed_getter(new_class.type);
-                    new_class.keyed_checker = internal::gde_interface->variant_get_ptr_keyed_checker(new_class.type);
+                    new_class.keyed_setter = internal::gdextension_interface_variant_get_ptr_keyed_setter(new_class.type);
+                    new_class.keyed_getter = internal::gdextension_interface_variant_get_ptr_keyed_getter(new_class.type);
+                    new_class.keyed_checker = internal::gdextension_interface_variant_get_ptr_keyed_checker(new_class.type);
                 }
 
                 // Indexed setget
@@ -291,9 +291,9 @@ const ExtensionApi &get_extension_api() {
                     new_class.indexing_return_type = (GDExtensionVariantType)indexing_return_type;
 
                     if (String(new_class.name).ends_with("Array"))
-                        new_class.indexed_setter = internal::gde_interface->variant_get_ptr_indexed_setter(new_class.type);
+                        new_class.indexed_setter = internal::gdextension_interface_variant_get_ptr_indexed_setter(new_class.type);
 
-                    new_class.indexed_getter = internal::gde_interface->variant_get_ptr_indexed_getter(new_class.type);
+                    new_class.indexed_getter = internal::gdextension_interface_variant_get_ptr_indexed_getter(new_class.type);
                 }
 
                 // Enums
@@ -317,7 +317,7 @@ const ExtensionApi &get_extension_api() {
                     constant.name = read_string(idx);
 
                     StringName constant_name = constant.name;
-                    internal::gde_interface->variant_get_constant_value(new_class.type, &constant_name, &constant.value);
+                    internal::gdextension_interface_variant_get_constant_value(new_class.type, &constant_name, &constant.value);
                 }
 
                 // Constructors
@@ -337,7 +337,7 @@ const ExtensionApi &get_extension_api() {
                     for (int k = 0; k < num_args; k++)
                         args[k] = read_arg_no_default(idx);
 
-                    constructor.func = internal::gde_interface->variant_get_ptr_constructor(new_class.type, j);
+                    constructor.func = internal::gdextension_interface_variant_get_ptr_constructor(new_class.type, j);
                 }
 
                 if (num_constructors > 0) {
@@ -357,7 +357,7 @@ const ExtensionApi &get_extension_api() {
                     member.type = read_uenum<GDExtensionVariantType>(idx);
 
                     StringName member_name = name;
-                    member.getter = internal::gde_interface->variant_get_ptr_getter(new_class.type, &member_name);
+                    member.getter = internal::gdextension_interface_variant_get_ptr_getter(new_class.type, &member_name);
 
                     new_class.members.insert(member.name, member);
                 }
@@ -401,7 +401,7 @@ const ExtensionApi &get_extension_api() {
                     for (int k = 0; k < num_operators; k++) {
                         ops_ptr[k].right_type = read_uenum<GDExtensionVariantType>(idx);
                         ops_ptr[k].return_type = read_uenum<GDExtensionVariantType>(idx);
-                        ops_ptr[k].eval = internal::gde_interface->variant_get_ptr_operator_evaluator(op, new_class.type, ops_ptr[k].right_type);
+                        ops_ptr[k].eval = internal::gdextension_interface_variant_get_ptr_operator_evaluator(op, new_class.type, ops_ptr[k].right_type);
                     }
 
                     new_class.operators.insert(op, operators);
@@ -524,7 +524,7 @@ const ExtensionApi &get_extension_api() {
                 // Singleton
                 StringName singleton_name = read_string(idx);
                 if (!singleton_name.is_empty())
-                    new_class.singleton = internal::gde_interface->global_get_singleton(&singleton_name);
+                    new_class.singleton = internal::gdextension_interface_global_get_singleton(&singleton_name);
             }
         }
 

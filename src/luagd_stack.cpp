@@ -90,9 +90,9 @@ static void luaGD_object_dtor(void *p_ptr) {
     if (udata->id == 0)
         return;
 
-    GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(internal::gde_interface->object_get_instance_from_id(udata->id));
+    GDExtensionObjectPtr rc = Utils::cast_obj<RefCounted>(internal::gdextension_interface_object_get_instance_from_id(udata->id));
     if (rc && nb::RefCounted(rc).unreference())
-        internal::gde_interface->object_destroy(rc);
+        internal::gdextension_interface_object_destroy(rc);
 }
 
 #define LUAGD_OBJ_CACHE_TABLE "_OBJECTS"
@@ -223,7 +223,7 @@ GDExtensionObjectPtr LuaStackOp<Object *>::get(lua_State *L, int p_index) {
     if (!udata || *udata == 0)
         return nullptr;
 
-    return internal::gde_interface->object_get_instance_from_id(*udata);
+    return internal::gdextension_interface_object_get_instance_from_id(*udata);
 }
 
 GDExtensionObjectPtr LuaStackOp<Object *>::check(lua_State *L, int p_index) {

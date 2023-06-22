@@ -209,7 +209,7 @@ static int get_arguments(lua_State *L,
 
         for (int i = 0; i < nargs; i++) {
             get_argument(L, i + 1 + arg_offset, p_method.arguments[i], r_args->ptr()[i]);
-            r_pargs->ptr()[i] = r_args->ptr()[i].get_opaque_pointer_arg();
+            r_pargs->ptr()[i] = r_args->ptr()[i].get_opaque_pointer();
         }
     }
 
@@ -439,7 +439,7 @@ static int luaGD_builtin_ctor(lua_State *L) {
             }
 
             args[i].lua_check(L, i + 1, type);
-            pargs[i] = args[i].get_opaque_pointer_arg();
+            pargs[i] = args[i].get_opaque_pointer();
         }
 
         if (!valid)
@@ -551,12 +551,12 @@ static int call_builtin_method(lua_State *L, const ApiBuiltinClass &p_builtin_cl
 
         if (p_method.is_static) {
             SET_CALL_STACK(L);
-            internal::gde_interface->variant_call_static(p_builtin_class.type, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+            internal::gdextension_interface_variant_call_static(p_builtin_class.type, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
             CLEAR_CALL_STACK;
         } else {
             Variant self = LuaStackOp<Variant>::check(L, 1);
             SET_CALL_STACK(L);
-            internal::gde_interface->variant_call(&self, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+            internal::gdextension_interface_variant_call(&self, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
             CLEAR_CALL_STACK;
 
             // HACK: since the value in self is copied,
@@ -900,7 +900,7 @@ void luaGD_openbuiltins(lua_State *L) {
 static int luaGD_class_ctor(lua_State *L) {
     StringName class_name = lua_tostring(L, lua_upvalueindex(1));
 
-    GDExtensionObjectPtr obj = internal::gde_interface->classdb_construct_object(&class_name);
+    GDExtensionObjectPtr obj = internal::gdextension_interface_classdb_construct_object(&class_name);
     LuaStackOp<Object *>::push(L, obj);
     return 1;
 }
@@ -952,7 +952,7 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
         GDExtensionCallError error;
 
         SET_CALL_STACK(L);
-        internal::gde_interface->object_method_bind_call(p_method.bind, self, pargs.ptr(), pargs.size(), &ret, &error);
+        internal::gdextension_interface_object_method_bind_call(p_method.bind, self, pargs.ptr(), pargs.size(), &ret, &error);
         CLEAR_CALL_STACK;
 
         if (p_method.return_type.type != -1) {
@@ -977,7 +977,7 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
         }
 
         SET_CALL_STACK(L);
-        internal::gde_interface->object_method_bind_ptrcall(p_method.bind, self, pargs.ptr(), ret_ptr);
+        internal::gdextension_interface_object_method_bind_ptrcall(p_method.bind, self, pargs.ptr(), ret_ptr);
         CLEAR_CALL_STACK;
 
         if (ret.get_type() != -1) {
@@ -1020,7 +1020,7 @@ static int luaGD_class_free(lua_State *L) {
     // Zero out the object to prevent segfaults
     *LuaStackOp<Object *>::get_id(L, 1) = 0;
 
-    internal::gde_interface->object_destroy(self);
+    internal::gdextension_interface_object_destroy(self);
     return 0;
 }
 

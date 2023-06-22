@@ -140,7 +140,7 @@ static int luascript_gdclass_new(lua_State *L) {
 
     StringName class_name = script->_get_instance_base_type();
 
-    GDExtensionObjectPtr ptr = internal::gde_interface->classdb_construct_object(&class_name);
+    GDExtensionObjectPtr ptr = internal::gdextension_interface_classdb_construct_object(&class_name);
     nb::Object(ptr).set_script(Ref<LuauScript>(script));
 
     LuaStackOp<Object *>::push(L, ptr);

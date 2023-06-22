@@ -16,7 +16,7 @@ nb::Object Utils::class_db = nullptr;
 Object *Utils::get_class_db() {
     if (!class_db._owner) {
         StringName classdb_name = "ClassDB";
-        class_db._owner = internal::gde_interface->global_get_singleton(&classdb_name);
+        class_db._owner = internal::gdextension_interface_global_get_singleton(&classdb_name);
     }
 
     return &class_db;

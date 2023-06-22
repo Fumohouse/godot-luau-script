@@ -616,7 +616,7 @@ void *LuauScript::_instance_create(Object *p_for_object) const {
         type = GDLuau::VM_CORE;
 
     LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, GDLuau::VM_CORE));
-    return internal::gde_interface->script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
+    return internal::gdextension_interface_script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
 }
 
 bool LuauScript::instance_has(uint64_t p_obj_id) const {
@@ -678,7 +678,7 @@ void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
 
     // TODO: Switch back to script error when debugger is implemented
     /*
-    internal::gde_interface->print_script_error(
+    internal::gdextension_interface_print_script_error(
             p_msg.utf8().get_data(),
             p_method,
             file.utf8().get_data(),
@@ -1714,7 +1714,7 @@ LuauScriptInstance *LuauScriptInstance::from_object(GDExtensionObjectPtr p_objec
         return nullptr;
 
     Ref<LuauScript> script = nb::Object(p_object).get_script();
-    uint64_t id = internal::gde_interface->object_get_instance_id(p_object);
+    uint64_t id = internal::gdextension_interface_object_get_instance_id(p_object);
     if (script.is_valid() && script->instance_has(id))
         return script->instance_get(id);
 

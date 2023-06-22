@@ -24,7 +24,7 @@ public:
     static WrappedNoBinding<T> *get_singleton_nb() {
         if (!singleton._owner) {
             StringName singleton_name = T::get_class_static();
-            singleton._owner = internal::gde_interface->global_get_singleton(&singleton_name);
+            singleton._owner = internal::gdextension_interface_global_get_singleton(&singleton_name);
         }
 
         return &singleton;

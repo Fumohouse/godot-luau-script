@@ -31,7 +31,7 @@ using namespace godot;
 
 void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
     PlaceHolderScriptInstance *internal = memnew(PlaceHolderScriptInstance(Ref<LuauScript>(this), p_for_object));
-    return internal::gde_interface->script_instance_create(&PlaceHolderScriptInstance::INSTANCE_INFO, internal);
+    return internal::gdextension_interface_script_instance_create(&PlaceHolderScriptInstance::INSTANCE_INFO, internal);
 }
 
 void LuauScript::_update_exports() {

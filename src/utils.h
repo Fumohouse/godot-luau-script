@@ -20,7 +20,7 @@ class Utils {
 public:
     template <typename T>
     static GDExtensionObjectPtr cast_obj(GDExtensionObjectPtr p_ptr) {
-        return internal::gde_interface->object_cast_to(p_ptr, internal::gde_interface->classdb_get_class_tag(&T::get_class_static()));
+        return internal::gdextension_interface_object_cast_to(p_ptr, internal::gdextension_interface_classdb_get_class_tag(&T::get_class_static()));
     }
 
     static bool class_exists(const StringName &p_class_name);

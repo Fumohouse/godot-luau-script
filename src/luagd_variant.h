@@ -42,7 +42,6 @@ public:
         return (T *)get_opaque_pointer();
     }
 
-    void *get_opaque_pointer_arg();
     void *get_opaque_pointer();
     const void *get_opaque_pointer() const;
 
