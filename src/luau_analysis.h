@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Luau/Ast.h>
-#include <Luau/Lexer.h>
 #include <Luau/Location.h>
 #include <Luau/ParseResult.h>
+#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -13,11 +13,13 @@
 
 using namespace godot;
 
+class LuauScript;
+
 struct LuauComment {
     enum CommentType {
-        SINGLE_LINE,
-        SINGLE_LINE_EXCL,
-        BLOCK,
+        COMMENT_SINGLE_LINE,
+        COMMENT_SINGLE_LINE_EXCL,
+        COMMENT_BLOCK,
     };
 
     CommentType type;
@@ -25,15 +27,19 @@ struct LuauComment {
     String contents;
 };
 
-struct LuauScriptAnalysisResult {
-    Vector<LuauComment> comments;
-
-    Luau::AstLocal *definition = nullptr;
-    Luau::AstLocal *impl = nullptr;
-
-    HashMap<StringName, Luau::AstStatFunction *> methods;
+struct Annotation {
+    Luau::Location location;
+    StringName name;
+    String args;
 };
 
-bool luascript_analyze(const char *p_src, const Luau::ParseResult &p_parse_result, LuauScriptAnalysisResult &r_result);
+struct LuauScriptAnalysisResult {
+    Error error = OK;
+    String error_msg;
+    int error_line = 1;
 
-bool luascript_ast_method(const LuauScriptAnalysisResult &p_analysis, const StringName &p_method, GDMethod &r_ret);
+    Luau::AstLocal *definition = nullptr;
+    Luau::AstStatTypeAlias *class_type = nullptr;
+};
+
+LuauScriptAnalysisResult luascript_analyze(LuauScript *p_script, const char *p_src, const Luau::ParseResult &p_parse_result, GDClassDefinition &r_def);

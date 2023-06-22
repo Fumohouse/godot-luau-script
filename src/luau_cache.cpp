@@ -9,16 +9,18 @@ using namespace godot;
 
 LuauCache *LuauCache::singleton = nullptr;
 
-Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache) {
+Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool p_ignore_cache, LuauScript::LoadStage p_stage) {
     String path = p_path.simplify_path();
 
     Ref<LuauScript> script;
     r_error = OK;
 
-    if (cache.has(path)) {
-        script = cache[path];
+    HashMap<String, Ref<LuauScript>>::ConstIterator E = cache.find(path);
+    if (E) {
+        script = E->value;
 
         if (!p_ignore_cache) {
+            script->load(p_stage);
             return script;
         }
     }
@@ -31,6 +33,9 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
         // This is done for tests, as Godot is holding onto references to scripts for some reason.
         // Shouldn't really have side effects, hopefully.
         script->take_over_path(path);
+
+        // Set cache before `load` to prevent infinite recursion inside.
+        cache[path] = script;
     }
 
     if (p_ignore_cache || needs_init) {
@@ -40,14 +45,11 @@ Ref<LuauScript> LuauCache::get_script(const String &p_path, Error &r_error, bool
             return script;
     }
 
-    // Set cache before _reload to prevent infinite recursion inside.
-    cache[path] = script;
-
     if (path.ends_with(".mod.lua")) {
         script->_is_module = true;
-    } else {
-        script->_reload(true);
     }
+
+    script->load(p_stage, true);
 
     return script;
 }

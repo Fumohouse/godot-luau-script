@@ -1,5 +1,5 @@
 local Module = {
-    kBasePropertyDefault = "hello"
+    kTestConstantValue = "hello"
 }
 
 return Module

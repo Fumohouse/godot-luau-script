@@ -7,6 +7,7 @@
 - [Building and Installation](./usage/building-and-installation.md)
 - [Writing Scripts](./usage/writing-scripts/index.md)
   - [Accessing Godot APIs](./usage/writing-scripts/accessing-godot.md)
+  - [Class Registration](./usage/writing-scripts/class-registration.md)
   - [Godot Class Reference]()
   - [`godot-luau-script` API Reference](./usage/writing-scripts/luau-script-api.md)
   - [The "Idiomatic" Class](./usage/writing-scripts/idiomatic-class.md)

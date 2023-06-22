@@ -1,15 +1,12 @@
-local TestClassImpl = {}
-local TestClass = gdclass()
-    :RegisterImpl(TestClassImpl)
-
-function TestClassImpl:TestMethod()
-end
+--- @class
+local TestClass = {}
+local TestClassC = gdclass(TestClass)
 
 do
     do
         do
             -- why would you ever want to do this
-            return TestClass
+            return TestClassC
         end
     end
 end

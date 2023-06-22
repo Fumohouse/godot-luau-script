@@ -1,7 +1,13 @@
 local Base = require("Base")
 
-local Script = gdclass(nil, Base)
+--- @class
+--- @extends Base
+local Script = {}
+local ScriptC = gdclass(Script)
+
+--- @classType Script
+export type Script = Base.Base & typeof(Script)
 
 --@1
 
-return Script
+return ScriptC

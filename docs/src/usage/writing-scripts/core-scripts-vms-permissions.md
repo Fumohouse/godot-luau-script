@@ -28,11 +28,11 @@ This gives a rough notion of "public" and "private".
 As mentioned in the introduction, `godot-luau-script` was primarily created to load untrusted scripts safely.
 This means that certain Godot APIs must be locked behind special permissions, and that scripts will need to declare these permissions to receive them.
 
-The specific permission levels are listed in `definitions/luauLibTypes.part.d.lua` and in the `godot-luau-script` API Reference.
+The specific permission levels are listed [here](./class-registration.md).
 As noted there, only a core script can declare its own permissions.
 
 Certain APIs receive special perimssions, with `INTERNAL` being the default.
 Permissions are set on the thread level, and are inherited to child threads.
 If a thread ever tries to execute a method or other code of a permission level it does not have, it will cause an error.
 
-A comprehensive list of the permissions assigned to every Object class and method can be seen at `bindgen/class_permissions.toml`.
+A comprehensive list of the permissions assigned to every Object class and method can be seen at `bindgen/class_settings.toml`.

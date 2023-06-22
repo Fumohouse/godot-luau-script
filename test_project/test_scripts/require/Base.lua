@@ -1,15 +1,19 @@
 local Module = require("Module.mod")
 --@1
 
-local BaseImpl = {}
-local Base = gdclass(nil, Node)
-    :RegisterImpl(BaseImpl)
+--- @class
+--- @extends Node
+local Base = {}
+local BaseC = gdclass(Base)
 
-function BaseImpl.TestFunc()
+--- @classType Base
+export type Base = Node & typeof(Base)
+
+--- @registerConstant
+Base.TEST_CONSTANT = Module.kTestConstantValue
+
+function Base.TestFunc()
     return "what's up"
 end
 
-Base:RegisterProperty("baseProperty", Enum.VariantType.STRING)
-    :Default(Module.kBasePropertyDefault)
-
-return Base
+return BaseC

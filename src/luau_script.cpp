@@ -1,5 +1,3 @@
-#include "luau_script.h"
-
 #include <Luau/BytecodeBuilder.h>
 #include <Luau/CodeGen.h>
 #include <Luau/Compiler.h>
@@ -94,7 +92,11 @@ Error LuauScript::load_source_code(const String &p_path) {
     return OK;
 }
 
-void LuauScript::compile() {
+Error LuauScript::compile() {
+#define COMPILE_METHOD "LuauScript::compile"
+
+    dependencies.clear();
+
     static LocalVector<const char *> mutable_globals;
     static bool did_init = false;
 
@@ -125,8 +127,7 @@ void LuauScript::compile() {
     Luau::ParseResult parse_result = Luau::Parser::parse(src.get_data(), src.length() + 1, names, allocator, parse_options);
     std::string bytecode;
 
-    LuauScriptAnalysisResult analysis_result;
-    bool analysis_valid;
+    Error ret = OK;
 
     if (parse_result.errors.empty()) {
         try {
@@ -138,36 +139,112 @@ void LuauScript::compile() {
             Luau::compileOrThrow(bcb, parse_result, names, opts);
 
             bytecode = bcb.getBytecode();
-            analysis_valid = luascript_analyze(src.get_data(), parse_result, analysis_result);
         } catch (Luau::CompileError &err) {
-            std::string error = Luau::format(":%d: %s", err.getLocation().begin.line + 1, err.what());
-            bytecode = Luau::BytecodeBuilder::getError(error);
+            ret = ERR_COMPILATION_FAILED;
+            error(COMPILE_METHOD, err.what(), err.getLocation().begin.line + 1);
         }
     } else {
         const Luau::ParseError &err = parse_result.errors.front();
-        std::string error = Luau::format(":%d: %s", err.getLocation().begin.line + 1, err.what());
-        bytecode = Luau::BytecodeBuilder::getError(error);
+
+        ret = ERR_PARSE_ERROR;
+        error(COMPILE_METHOD, err.what(), err.getLocation().begin.line + 1);
     }
 
-    // tf?
+    // Ensure everything is reset
     luau_data.allocator.~Allocator();
-    new (&luau_data.allocator) Luau::Allocator(std::move(allocator));
+    new (&luau_data.allocator) Luau::Allocator(std::move(allocator)); // tf?
     luau_data.parse_result = parse_result;
     luau_data.bytecode = bytecode;
 
-    if (analysis_valid)
+    return ret;
+}
+
+Error LuauScript::analyze() {
+    LuauScriptAnalysisResult analysis_result;
+    GDClassDefinition new_definition;
+
+    analysis_result = luascript_analyze(this, source.utf8().get_data(), luau_data.parse_result, new_definition);
+
+    if (analysis_result.error == OK) {
         luau_data.analysis_result = analysis_result;
-    else
+        definition = new_definition;
+
+        return OK;
+    } else {
         luau_data.analysis_result = LuauScriptAnalysisResult();
+        definition = GDClassDefinition();
+
+        error("LuauScript::analyze", analysis_result.error_msg, analysis_result.error_line);
+        return analysis_result.error;
+    }
+}
+
+Error LuauScript::finish_load() {
+    // Load script.
+    Error err = reload_tables();
+    if (err != OK)
+        return err;
+
+    set_name(definition.name);
+
+    // Update base script.
+    base = Ref<LuauScript>(definition.base_script);
+    if (base.is_valid()) {
+        base->load(LOAD_FULL); // Ensure base script is loaded (i.e. advance from ANALYSIS)
+
+        if (!base->_is_valid())
+            return ERR_COMPILATION_FAILED;
+    }
+
+    // Build method/constant cache.
+    lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
+    LUAU_LOCK(L);
+    methods.clear();
+    constants.clear();
+
+    lua_getref(L, table_refs[GDLuau::VM_SCRIPT_LOAD]);
+
+    lua_pushnil(L);
+    while (lua_next(L, -2) != 0) {
+        if (lua_type(L, -2) == LUA_TSTRING) {
+            String key = LuaStackOp<String>::get(L, -2);
+
+            HashMap<StringName, int>::ConstIterator E = definition.constants.find(key);
+            if (E) {
+                if (LuaStackOp<Variant>::is(L, -1)) {
+                    constants.insert(key, LuaStackOp<Variant>::get(L, -1));
+                } else {
+                    error("LuauScript::finish_load", "Registered constant '" + key + "' is not a Variant", E->value);
+                    return ERR_INVALID_DECLARATION;
+                }
+            }
+
+            if (lua_isfunction(L, -1)) {
+                methods.insert(key);
+            }
+        }
+
+        lua_pop(L, 1); // value
+    }
+
+    lua_pop(L, 1); // table
+
+    return OK;
 }
 
 Error LuauScript::try_load(lua_State *L, String *r_err) {
+    if (luau_data.bytecode.empty()) {
+        Error err = compile();
+        if (err != OK) {
+            if (r_err)
+                *r_err = "Compilation failed";
+
+            return err;
+        }
+    }
+
     String chunkname = "@" + get_path();
-
-    if (get_luau_data().bytecode.empty())
-        compile();
-
-    const std::string &bytecode = get_luau_data().bytecode;
+    const std::string &bytecode = luau_data.bytecode;
 
     Error ret = luau_load(L, chunkname.utf8().get_data(), bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
     if (Luau::CodeGen::isSupported())
@@ -175,6 +252,7 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
 
     if (ret != OK) {
         String err = LuaStackOp<String>::get(L, -1);
+        lua_pop(L, 1); // error
         error("LuauScript::try_load", err);
 
         if (r_err)
@@ -184,14 +262,24 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
     return ret;
 }
 
-Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
+String LuauScript::resolve_path(const String &p_relative_path, String &r_error) const {
+    String script_path = get_path();
+    if (script_path.is_empty()) {
+        r_error = "failed to resolve path: script path is empty";
+        return "";
+    }
+
+    return script_path.get_base_dir().path_join(p_relative_path);
+}
+
+Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
 #define LOAD_DEF_METHOD "LuauScript::load_definition"
 
-    if (vm_defs_valid[p_vm_type]) {
+    if (table_refs[p_vm_type]) {
         if (!p_force)
             return OK;
 
-        unref_definition(p_vm_type);
+        unref_table(p_vm_type);
     }
 
     // TODO: error line numbers?
@@ -215,29 +303,25 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
         int status = lua_resume(T, nullptr, 0);
 
         if (status == LUA_YIELD || status == LUA_BREAK) {
-            error(LOAD_DEF_METHOD, "script unexpectedly yielded during definition load.", 1);
+            error(LOAD_DEF_METHOD, "script unexpectedly yielded during table load.", 1);
             lua_pop(L, 1); // thread
+            _is_loading = false;
             return ERR_COMPILATION_FAILED;
         } else if (status != LUA_OK) {
             error(LOAD_DEF_METHOD, LuaStackOp<String>::get(T, -1));
             lua_pop(L, 1); // thread
-            return ERR_COMPILATION_FAILED;
-        }
-
-        if (lua_isnil(T, 1) || !LuaStackOp<GDClassDefinition>::is(T, 1)) {
-            lua_pop(L, 1); // thread
-            error(LOAD_DEF_METHOD, "script did not return a valid class definition.", 1);
-
             _is_loading = false;
             return ERR_COMPILATION_FAILED;
         }
 
-        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::get_ptr(T, -1);
-        def->script = this;
-        def->is_readonly = true;
+        if (luascript_class_table_get_script(T, 1) != this) {
+            error(LOAD_DEF_METHOD, "script did not return a valid class table. did you return a table processed by `gdclass`?", 1);
+            lua_pop(L, 1); // thread
+            _is_loading = false;
+            return ERR_COMPILATION_FAILED;
+        }
 
-        vm_defs[p_vm_type] = *def;
-        vm_defs_valid[p_vm_type] = true;
+        table_refs[p_vm_type] = lua_ref(T, 1);
 
         lua_pop(L, 1); // thread
         _is_loading = false;
@@ -249,30 +333,78 @@ Error LuauScript::load_definition(GDLuau::VMType p_vm_type, bool p_force) {
     return ERR_COMPILATION_FAILED;
 }
 
-void LuauScript::unref_definition(GDLuau::VMType p_vm) {
-    if (vm_defs_valid[p_vm] && vm_defs[p_vm].table_ref != -1) {
-        lua_State *L = GDLuau::get_singleton()->get_vm(p_vm);
+void LuauScript::unref_table(GDLuau::VMType p_vm) {
+    if (!table_refs[p_vm])
+        return;
 
-        // See ~LuauScriptInstance
-        if (L && luaGD_getthreaddata(L)) {
-            LUAU_LOCK(L);
+    lua_State *L = GDLuau::get_singleton()->get_vm(p_vm);
 
-            lua_unref(L, vm_defs[p_vm].table_ref);
-            vm_defs_valid[p_vm] = false;
-        }
+    // See ~LuauScriptInstance
+    if (L && luaGD_getthreaddata(L)) {
+        LUAU_LOCK(L);
+
+        lua_unref(L, table_refs[p_vm]);
+        table_refs[p_vm] = 0;
     }
 }
 
-Error LuauScript::reload_defs() {
+Error LuauScript::reload_tables() {
     for (int i = 0; i < GDLuau::VM_MAX; i++) {
-        if (i != GDLuau::VM_SCRIPT_LOAD && !vm_defs_valid[i])
+        if (i != GDLuau::VM_SCRIPT_LOAD && !table_refs[i])
             continue;
 
-        Error err = load_definition(GDLuau::VMType(i), true);
+        Error err = load_table(GDLuau::VMType(i), true);
         if (err != OK)
             return err;
     }
 
+    return OK;
+}
+
+Error LuauScript::load(LoadStage p_load_stage, bool p_force) {
+    int current_stage;
+
+    if (p_force) {
+        current_stage = LOAD_NONE;
+    } else {
+        current_stage = load_stage;
+
+        if (!valid)
+            return ERR_COMPILATION_FAILED;
+    }
+
+    Error err = OK;
+
+    while (++current_stage <= p_load_stage) {
+        switch (current_stage) {
+            case LOAD_COMPILE:
+                err = compile();
+                break;
+
+            case LOAD_ANALYZE:
+                if (!_is_module)
+                    err = analyze();
+
+                break;
+
+            case LOAD_FULL:
+                if (!_is_module)
+                    err = finish_load();
+
+                break;
+
+            default:
+                break; // unreachable
+        }
+
+        if (err != OK) {
+            valid = false;
+            return err;
+        }
+    }
+
+    load_stage = static_cast<LoadStage>(current_stage);
+    valid = true;
     return OK;
 }
 
@@ -285,45 +417,7 @@ Error LuauScript::_reload(bool p_keep_state) {
         ERR_FAIL_COND_V(!p_keep_state && instances.size() > 0, ERR_ALREADY_IN_USE);
     }
 
-    dependencies.clear();
-
-    // Load script.
-    compile(); // Always recompile on reload.
-
-    valid = false;
-    Error err = reload_defs();
-    if (err != OK)
-        return err;
-
-    const GDClassDefinition &def = get_definition();
-
-    set_name(def.name);
-
-    // Update base script.
-    base = Ref<LuauScript>(def.base_script);
-    valid = !base.is_valid() || base->_is_valid(); // Already known that this script is valid
-
-    // Build method cache.
-    lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_SCRIPT_LOAD);
-    LUAU_LOCK(L);
-    methods.clear();
-
-    if (def.table_ref != -1) {
-        lua_getref(L, def.table_ref);
-
-        lua_pushnil(L);
-        while (lua_next(L, -2) != 0) {
-            if (lua_type(L, -2) == LUA_TSTRING && lua_isfunction(L, -1)) {
-                methods.insert(lua_tostring(L, -2));
-            }
-
-            lua_pop(L, 1); // value
-        }
-
-        lua_pop(L, 1); // table
-    }
-
-    return OK;
+    return load(LOAD_FULL, true);
 }
 
 ScriptLanguage *LuauScript::_get_language() const {
@@ -341,11 +435,11 @@ bool LuauScript::_can_instantiate() const {
 }
 
 bool LuauScript::_is_tool() const {
-    return get_definition().is_tool;
+    return definition.is_tool;
 }
 
 StringName LuauScript::_get_instance_base_type() const {
-    StringName extends = StringName(get_definition().extends);
+    StringName extends = StringName(definition.extends);
 
     if (extends != StringName() && Utils::class_exists(extends)) {
         return extends;
@@ -385,7 +479,7 @@ StringName LuauScript::_get_global_name() const {
 TypedArray<Dictionary> LuauScript::_get_script_method_list() const {
     TypedArray<Dictionary> methods;
 
-    for (const KeyValue<StringName, GDMethod> &pair : get_definition().methods)
+    for (const KeyValue<StringName, GDMethod> &pair : definition.methods)
         methods.push_back(pair.value);
 
     return methods;
@@ -396,12 +490,12 @@ bool LuauScript::_has_method(const StringName &p_method) const {
 }
 
 bool LuauScript::has_method(const StringName &p_method, StringName *r_actual_name) const {
-    if (get_definition().methods.has(p_method))
+    if (definition.methods.has(p_method))
         return true;
 
     StringName pascal_name = Utils::to_pascal_case(p_method);
 
-    if (get_definition().methods.has(pascal_name)) {
+    if (definition.methods.has(pascal_name)) {
         if (r_actual_name)
             *r_actual_name = pascal_name;
 
@@ -412,12 +506,12 @@ bool LuauScript::has_method(const StringName &p_method, StringName *r_actual_nam
 }
 
 Dictionary LuauScript::_get_method_info(const StringName &p_method) const {
-    HashMap<StringName, GDMethod>::ConstIterator E = get_definition().methods.find(p_method);
+    HashMap<StringName, GDMethod>::ConstIterator E = definition.methods.find(p_method);
 
     if (E)
         return E->value;
 
-    E = get_definition().methods.find(Utils::to_pascal_case(p_method));
+    E = definition.methods.find(Utils::to_pascal_case(p_method));
 
     if (E)
         return E->value;
@@ -432,8 +526,8 @@ TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
 
     while (s) {
         // Reverse to add properties from base scripts first.
-        for (int i = get_definition().properties.size() - 1; i >= 0; i--) {
-            const GDClassProperty &prop = get_definition().properties[i];
+        for (int i = definition.properties.size() - 1; i >= 0; i--) {
+            const GDClassProperty &prop = definition.properties[i];
             properties.push_front(prop.property.operator Dictionary());
         }
 
@@ -446,16 +540,16 @@ TypedArray<Dictionary> LuauScript::_get_script_property_list() const {
 TypedArray<StringName> LuauScript::_get_members() const {
     TypedArray<StringName> members;
 
-    for (const GDClassProperty &prop : get_definition().properties)
+    for (const GDClassProperty &prop : definition.properties)
         members.push_back(prop.property.name);
 
     return members;
 }
 
 bool LuauScript::_has_property_default_value(const StringName &p_property) const {
-    HashMap<StringName, uint64_t>::ConstIterator E = get_definition().property_indices.find(p_property);
+    HashMap<StringName, uint64_t>::ConstIterator E = definition.property_indices.find(p_property);
 
-    if (E && get_definition().properties[E->value].default_value != Variant())
+    if (E && definition.properties[E->value].default_value != Variant())
         return true;
 
     if (base.is_valid())
@@ -465,10 +559,10 @@ bool LuauScript::_has_property_default_value(const StringName &p_property) const
 }
 
 Variant LuauScript::_get_property_default_value(const StringName &p_property) const {
-    HashMap<StringName, uint64_t>::ConstIterator E = get_definition().property_indices.find(p_property);
+    HashMap<StringName, uint64_t>::ConstIterator E = definition.property_indices.find(p_property);
 
-    if (E && get_definition().properties[E->value].default_value != Variant())
-        return get_definition().properties[E->value].default_value;
+    if (E && definition.properties[E->value].default_value != Variant())
+        return definition.properties[E->value].default_value;
 
     if (base.is_valid())
         return base->_get_property_default_value(p_property);
@@ -477,21 +571,21 @@ Variant LuauScript::_get_property_default_value(const StringName &p_property) co
 }
 
 bool LuauScript::has_property(const StringName &p_name) const {
-    return get_definition().property_indices.has(p_name);
+    return definition.property_indices.has(p_name);
 }
 
 const GDClassProperty &LuauScript::get_property(const StringName &p_name) const {
-    return get_definition().properties[get_definition().property_indices[p_name]];
+    return definition.properties[definition.property_indices[p_name]];
 }
 
 bool LuauScript::_has_script_signal(const StringName &p_signal) const {
-    return get_definition().signals.has(p_signal);
+    return definition.signals.has(p_signal);
 }
 
 TypedArray<Dictionary> LuauScript::_get_script_signal_list() const {
     TypedArray<Dictionary> signals;
 
-    for (const KeyValue<StringName, GDMethod> &pair : get_definition().signals)
+    for (const KeyValue<StringName, GDMethod> &pair : definition.signals)
         signals.push_back(pair.value);
 
     return signals;
@@ -500,19 +594,19 @@ TypedArray<Dictionary> LuauScript::_get_script_signal_list() const {
 Variant LuauScript::_get_rpc_config() const {
     Dictionary rpcs;
 
-    for (const KeyValue<StringName, GDRpc> &pair : get_definition().rpcs)
+    for (const KeyValue<StringName, GDRpc> &pair : definition.rpcs)
         rpcs[pair.key] = pair.value;
 
     return rpcs;
 }
 
 Dictionary LuauScript::_get_constants() const {
-    Dictionary constants;
+    Dictionary constants_dict;
 
-    for (const KeyValue<StringName, Variant> &pair : get_definition().constants)
-        constants[pair.key] = pair.value;
+    for (const KeyValue<StringName, Variant> &pair : constants)
+        constants_dict[pair.key] = pair.value;
 
-    return constants;
+    return constants_dict;
 }
 
 void *LuauScript::_instance_create(Object *p_for_object) const {
@@ -539,13 +633,13 @@ LuauScriptInstance *LuauScript::instance_get(uint64_t p_obj_id) const {
     return instances.get(p_obj_id);
 }
 
-void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
-    lua_State *L = GDLuau::get_singleton()->get_vm(p_vm_type);
-    ERR_FAIL_COND_MSG(lua_mainthread(L) != lua_mainthread(T), "cannot push definition table to a thread from a different VM than the one being queried");
-    LUAU_LOCK(L);
+void LuauScript::def_table_get(lua_State *T) const {
+    GDThreadData *udata = luaGD_getthreaddata(T);
+    ERR_FAIL_COND_MSG(udata->vm_type >= GDLuau::VM_MAX, "vm has an invalid type");
+    LUAU_LOCK(T);
 
-    int table_ref = vm_defs[p_vm_type].table_ref;
-    if (table_ref == -1) {
+    int table_ref = table_refs[udata->vm_type];
+    if (!table_ref) {
         lua_pushnil(T);
         return;
     }
@@ -556,12 +650,13 @@ void LuauScript::def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const {
     lua_remove(T, -2);
 }
 
-const GDClassDefinition &LuauScript::get_definition(GDLuau::VMType p_vm_type) const {
-    return vm_defs[p_vm_type];
-}
-
 bool LuauScript::has_dependency(const Ref<LuauScript> &p_script) const {
     return dependencies.has(p_script);
+}
+
+bool LuauScript::add_dependency(const Ref<LuauScript> &p_script) {
+    dependencies.insert(p_script);
+    return !p_script->has_dependency(this);
 }
 
 void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
@@ -595,9 +690,9 @@ void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
 
 // Based on Luau Repl implementation.
 void LuauScript::load_module(lua_State *L) {
-    // Use main thread to avoid inheriting L's environment.
     _is_loading = true;
 
+    // Use main thread to avoid inheriting L's environment.
     lua_State *GL = lua_mainthread(L);
     lua_State *ML = lua_newthread(GL);
     luaL_sandboxthread(ML);
@@ -649,13 +744,11 @@ LuauScript::LuauScript() :
 LuauScript::~LuauScript() {
     if (GDLuau::get_singleton()) {
         for (int i = 0; i < GDLuau::VM_MAX; i++) {
-            if (!vm_defs_valid[i])
+            if (!table_refs[i])
                 continue;
 
-            if (vm_defs[i].table_ref != -1)
-                unref_definition(GDLuau::VMType(i));
-
-            vm_defs_valid[i] = false;
+            unref_table(GDLuau::VMType(i));
+            table_refs[i] = 0;
         }
     }
 }
@@ -957,7 +1050,7 @@ int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET,
     while (s) {
         if (s->methods.has(p_method)) {
             LuaStackOp<String>::push(ET, p_method);
-            s->def_table_get(vm_type, ET);
+            s->def_table_get(ET);
 
             if (!lua_isfunction(ET, -1)) {
                 lua_pop(ET, 1);
@@ -1610,7 +1703,11 @@ const GDClassProperty *LuauScriptInstance::get_property(const StringName &p_name
 }
 
 DEF_GETTER(GDMethod, signal, signals)
-DEF_GETTER(Variant, constant, constants)
+
+const Variant *LuauScriptInstance::get_constant(const StringName &p_name) const {
+    HashMap<StringName, Variant>::ConstIterator E = script->constants.find(p_name);
+    return E ? &E->value : nullptr;
+}
 
 LuauScriptInstance *LuauScriptInstance::from_object(GDExtensionObjectPtr p_object) {
     if (!p_object)
@@ -1675,11 +1772,11 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
         }
 
         // Run _Init for each script
-        Error method_err = scr->load_definition(p_vm_type);
+        Error method_err = scr->load_table(p_vm_type);
 
         if (method_err == OK) {
             LuaStackOp<String>::push(T, "_Init");
-            scr->def_table_get(vm_type, T);
+            scr->def_table_get(T);
 
             if (lua_isfunction(T, -1)) {
                 // This object can be considered as the full script instance (minus some initialized values) because Object sets its script
@@ -1807,6 +1904,11 @@ static void run_tests() {
 #endif // TESTS_ENABLED
 
 void LuauLanguage::_init() {
+    UtilityFunctions::print_verbose("======== Discovering core scripts ========");
+    discover_core_scripts();
+    UtilityFunctions::print_verbose("Done! ", core_scripts.size(), " core scripts discovered.");
+    UtilityFunctions::print_verbose("==========================================");
+
 #ifdef TESTS_ENABLED
     // Tests are run at this stage (before GDLuau and LuauCache are initialized and after _init is called)
     // in order to ensure singletons/methods are all registered and available for immediate retrieval.
@@ -1815,11 +1917,6 @@ void LuauLanguage::_init() {
 
     luau = memnew(GDLuau);
     cache = memnew(LuauCache);
-
-    UtilityFunctions::print_verbose("======== Discovering core scripts ========");
-    discover_core_scripts();
-    UtilityFunctions::print_verbose("Done! ", core_scripts.size(), " core scripts discovered.");
-    UtilityFunctions::print_verbose("==========================================");
 
     // TODO: Only if EngineDebugger is active
     // if (nb::EngineDebugger::get_singleton_nb()->is_active())

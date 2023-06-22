@@ -16,11 +16,12 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd_permissions.h"
-#include "luagd_stack.h"
+#include "utils.h"
 
 using namespace godot;
 
 #define LUASCRIPT_MODULE_TABLE "_MODULES"
+#define LUASCRIPT_MT_SCRIPT "__script"
 
 struct lua_State;
 
@@ -36,6 +37,37 @@ struct GDProperty {
 
     operator Dictionary() const;
     operator Variant() const;
+
+    void set_variant_type() {
+        type = GDEXTENSION_VARIANT_TYPE_NIL;
+        usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT;
+    }
+
+    void set_object_type(const String &p_type) {
+        type = GDEXTENSION_VARIANT_TYPE_OBJECT;
+
+        if (Utils::is_parent_class(p_type, "Resource")) {
+            hint = PROPERTY_HINT_RESOURCE_TYPE;
+            hint_string = p_type;
+        } else {
+            class_name = p_type;
+        }
+    }
+
+    void set_typed_array_type(const GDProperty &p_type) {
+        type = GDEXTENSION_VARIANT_TYPE_ARRAY;
+        hint = PROPERTY_HINT_ARRAY_TYPE;
+
+        if (p_type.type == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+            if (p_type.hint == PROPERTY_HINT_RESOURCE_TYPE) {
+                hint_string = Utils::resource_type_hint(p_type.hint_string);
+            } else {
+                hint_string = p_type.class_name;
+            }
+        } else {
+            hint_string = Variant::get_type_name(Variant::Type(p_type.type));
+        }
+    }
 };
 
 struct GDClassProperty {
@@ -53,8 +85,6 @@ struct GDMethod {
     BitField<MethodFlags> flags = METHOD_FLAGS_DEFAULT;
     Vector<GDProperty> arguments;
     Vector<Variant> default_arguments;
-
-    bool is_signal = false;
 
     operator Dictionary() const;
     operator Variant() const;
@@ -75,9 +105,6 @@ struct GDRpc {
 class LuauScript;
 
 struct GDClassDefinition {
-    LuauScript *script = nullptr;
-    int table_ref = -1;
-
     String name;
     String extends = "RefCounted";
     LuauScript *base_script = nullptr;
@@ -93,17 +120,17 @@ struct GDClassDefinition {
     Vector<GDClassProperty> properties;
     HashMap<StringName, GDMethod> signals;
     HashMap<StringName, GDRpc> rpcs;
-    HashMap<StringName, Variant> constants;
-
-    bool is_readonly = false;
+    HashMap<StringName, int> constants;
 
     int set_prop(const String &p_name, const GDClassProperty &p_prop);
 };
 
-STACK_OP_PTR_DEF(GDClassDefinition)
+class LuauScript;
 
 void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, LuauScript *&r_script);
 String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **r_script = nullptr);
 
 GDProperty luascript_read_property(lua_State *L, int p_idx);
 void luascript_openlibs(lua_State *L);
+
+LuauScript *luascript_class_table_get_script(lua_State *L, int p_i);

@@ -1,10 +1,17 @@
 local Base = require("Base")
 
-local Script = gdclass(nil, Base)
+--- @class
+--- @extends Base
+local Script = {}
+local ScriptC = gdclass(Script)
 
---@1
+--- @classType Script
+export type Script = Base.Base & typeof(Script) & {
+    --- @property
+    --- @default 4.25
+    testProperty: number,
 
-Script:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
-    :Default(4.25)
+    --@1
+}
 
-return Script
+return ScriptC

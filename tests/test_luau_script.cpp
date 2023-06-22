@@ -3,6 +3,7 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
+#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
@@ -28,7 +29,7 @@ TEST_CASE("luau script: script load") {
 
     SECTION("method methods") {
         REQUIRE(script->is_tool());
-        REQUIRE(script->get_script_method_list().size() == 2);
+        REQUIRE(script->get_script_method_list().size() == 3);
         REQUIRE(script->_has_method("TestMethod"));
         REQUIRE(script->_get_method_info("TestMethod") == GDMethod({ "TestMethod" }).operator Dictionary());
 
@@ -94,7 +95,7 @@ TEST_CASE("luau script: instance") {
         uint32_t count;
         GDExtensionMethodInfo *methods = inst->get_method_list(&count);
 
-        REQUIRE(count == 5);
+        REQUIRE(count == 7);
 
         bool m1_found = false;
         bool m2_found = false;
@@ -355,7 +356,8 @@ TEST_CASE("luau script: instance") {
     }
 
     SECTION("instantiation") {
-        LuaStackOp<GDClassDefinition>::push(T, script->get_definition());
+        REQUIRE(script->load_table(GDLuau::VM_CORE) == OK);
+        lua_getref(T, script->get_table_ref(GDLuau::VM_CORE));
         lua_setglobal(T, "classDef");
 
         EVAL_THEN(T, "return classDef.new()", {
@@ -412,14 +414,16 @@ TEST_CASE("luau script: inheritance") {
 
     SECTION("IsScript") {
         SECTION("direct") {
-            LuaStackOp<GDClassDefinition>::push(T, script->get_definition());
+            REQUIRE(script->load_table(GDLuau::VM_CORE) == OK);
+            lua_getref(T, script->get_table_ref(GDLuau::VM_CORE));
             lua_setglobal(T, "scriptDef");
 
             ASSERT_EVAL_EQ(T, "return obj:IsA(scriptDef)", bool, true)
         }
 
         SECTION("base") {
-            LuaStackOp<GDClassDefinition>::push(T, base->get_definition());
+            REQUIRE(base->load_table(GDLuau::VM_CORE) == OK);
+            lua_getref(T, base->get_table_ref(GDLuau::VM_CORE));
             lua_setglobal(T, "baseDef");
 
             ASSERT_EVAL_EQ(T, "return obj:IsA(baseDef)", bool, true)
@@ -502,8 +506,9 @@ TEST_CASE("luau script: placeholders") {
 
         SECTION("script change") {
             String new_src = script->_get_source_code().replace("--@1", R"ASDF(
-                    Script:RegisterProperty("testProperty2", Enum.VariantType.VECTOR3)
-                        :Default(Vector3.new(1, 2, 3))
+                    --- @property
+                    --- @default Vector3(1, 2, 3)
+                    testProperty2: Vector3,
                 )ASDF");
             script->_set_source_code(new_src);
             script->_update_exports();
@@ -559,11 +564,11 @@ TEST_CASE("luau script: require") {
     LOAD_SCRIPT_MOD_FILE(module2, "require/Module2.mod.lua")
 
     SECTION("requiring a class") {
-        REQUIRE(script->get_property("baseMsg").default_value == Variant("what's up"));
+        REQUIRE(script->_get_constants()["BASE_MSG"] == Variant("what's up"));
     }
 
     SECTION("requiring a dedicated module") {
-        REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hello"));
+        REQUIRE(script_base->_get_constants()["TEST_CONSTANT"] == Variant("hello"));
     }
 
     SECTION("cyclic dependencies") {
@@ -616,8 +621,9 @@ TEST_CASE("luau script: reloading at runtime") {
 
     SECTION("reload") {
         String new_src = script->_get_source_code().replace("--@1", R"ASDF(
-            Script:RegisterProperty("testProperty2", Enum.VariantType.FLOAT)
-                :Default(1.25)
+            --- @property
+            --- @default 1.25
+            testProperty2: number,
         )ASDF");
         script->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script, false);
@@ -629,8 +635,9 @@ TEST_CASE("luau script: reloading at runtime") {
 
     SECTION("reload base reloads inherited") {
         String new_src = script_base->_get_source_code().replace("--@1", R"ASDF(
-            Base:RegisterProperty("baseProperty2", Enum.VariantType.FLOAT)
-                :Default(1.5)
+            --- @property
+            --- @default 1.5
+            baseProperty2: number,
         )ASDF");
         script_base->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(script_base, false);
@@ -660,14 +667,14 @@ TEST_CASE("luau script: reloading at runtime") {
         inst = script->instance_get(obj->get_instance_id());
     }
 
-    SECTION("reload module reloads dependencies") {
-        REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hello"));
+    SECTION("reload module reloads dependents") {
+        REQUIRE(script_base->_get_constants()["TEST_CONSTANT"] == Variant("hello"));
 
         String new_src = module->_get_source_code().replace("hello", "hey there");
         module->_set_source_code(new_src);
         LuauLanguage::get_singleton()->_reload_tool_script(module, false);
 
-        REQUIRE(script_base->get_property("baseProperty").default_value == Variant("hey there"));
+        REQUIRE(script_base->_get_constants()["TEST_CONSTANT"] == Variant("hey there"));
 
         inst_base = script_base->instance_get(base_obj->get_instance_id());
         inst = script->instance_get(obj->get_instance_id());

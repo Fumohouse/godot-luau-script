@@ -201,14 +201,18 @@ bool LuaStackOp<Object *>::is(lua_State *L, int p_index) {
 
     lua_getfield(L, -1, MT_CLASS_TYPE);
 
-    bool is_obj = lua_isnumber(L, -1);
+    bool is_obj = lua_type(L, -1) == LUA_TNUMBER;
     lua_pop(L, 2); // value, metatable
 
     return is_obj;
 }
 
 GDObjectInstanceID *LuaStackOp<Object *>::get_id(lua_State *L, int p_index) {
-    return &reinterpret_cast<ObjectUdata *>(lua_touserdata(L, p_index))->id;
+    ObjectUdata *udata = reinterpret_cast<ObjectUdata *>(lua_touserdata(L, p_index));
+    if (!udata)
+        return nullptr;
+
+    return &udata->id;
 }
 
 GDExtensionObjectPtr LuaStackOp<Object *>::get(lua_State *L, int p_index) {

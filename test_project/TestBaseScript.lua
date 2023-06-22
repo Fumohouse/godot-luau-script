@@ -1,14 +1,17 @@
-local TestBaseScriptImpl = {}
-local TestBaseScript = gdclass(nil, Node3D)
-	:RegisterImpl(TestBaseScriptImpl)
+--- @class
+local TestBaseScript = {}
+local TestBaseScriptC = gdclass(TestBaseScript)
 
-function TestBaseScriptImpl:TestMethod()
+--- @classType TestBaseScript
+export type TestBaseScript = RefCounted & typeof(TestBaseScript) & {
+	--- @property
+	--- @default "hi"
+	baseProperty: string,
+}
+
+--- @registerMethod
+function TestBaseScript:TestMethod()
 	print("TestBaseScript: TestMethod")
 end
 
-TestBaseScript:RegisterMethod("TestMethod")
-
-TestBaseScript:RegisterProperty("baseProperty", Enum.VariantType.STRING)
-	:Default("hi")
-
-return TestBaseScript
+return TestBaseScriptC

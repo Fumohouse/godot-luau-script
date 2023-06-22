@@ -1,24 +1,137 @@
 local TestBaseScript = require("TestBaseScript")
 local TestModule = require("TestModule.mod")
 
-local TestClassImpl = {}
-local TestClass = gdclass(nil, TestBaseScript)
-    :Tool(true) -- For custom properties in editor
-    :Permissions(Enum.Permissions.INTERNAL)
-    :RegisterImpl(TestClassImpl)
+--- @class
+--- @extends TestBaseScript
+--- @tool
+--- @permissions INTERNAL
+local TestClass = {}
+local TestClassC = gdclass(TestClass)
 
-function TestClassImpl:Counter()
+--- @classType TestClass
+export type TestClass = TestBaseScript.TestBaseScript & typeof(TestClass) & {
+    --- @property
+    --- @default 1.5
+    testProperty: number,
+
+    --- @propertyGroup Helper Test Properties
+    --- @propertySubgroup Range
+    --- @property
+    --- @range 0 10 1
+    testRange: integer,
+
+    --- @property
+    --- @range 0 10 0.5
+    testRangeF: number,
+
+    --- @propertySubgroup Enums
+    --- @property
+    --- @enum One Two Three
+    testEnumInt: integer,
+
+    --- @property
+    --- @enum One Two Three
+    --- @default "Two"
+    testEnumString: string,
+
+    --- @property
+    --- @suggestion One Two Three
+    testSuggestion: string,
+
+    --- @property
+    --- @flags One Two Three
+    --- @default 2
+    testFlags: integer,
+
+    --- @propertySubgroup File
+    --- @property
+    --- @file *.png *.pdf
+    testFile: string,
+
+    --- @property
+    --- @file global *.png *.svg
+    testFileG: string,
+
+    --- @property
+    --- @dir
+    testDir: string,
+
+    --- @property
+    --- @dir global
+    testDirG: string,
+
+    --- @propertySubgroup String
+    --- @property
+    --- @multiline
+    testMultiline: string,
+
+    --- @property
+    --- @placeholderText Placeholder!
+    testPlaceholder: string,
+
+    --- @propertySubgroup Layers
+    --- @property
+    --- @flags2DRenderLayers
+    testFlags2DRender: integer,
+
+    --- @property
+    --- @flags2DPhysicsLayers
+    testFlags2DPhysics: integer,
+
+    --- @property
+    --- @flags2DNavigationLayers
+    testFlags2DNavigation: integer,
+
+    --- @property
+    --- @flags3DRenderLayers
+    testFlags3DRender: integer,
+
+    --- @property
+    --- @flags3DPhysicsLayers
+    testFlags3DPhysics: integer,
+
+    --- @property
+    --- @flags3DNavigationLayers
+    testFlags3DNavigation: integer,
+
+    --- @propertySubgroup Other
+    --- @property
+    --- @expEasing
+    testExpEasing: number,
+
+    --- @property
+    --- @noAlpha
+    testColorNoAlpha: Color,
+
+    --- @property
+    testTypedArray: TypedArray<Vector2>,
+
+    --- @property
+    testResource: Texture2D,
+
+    --- @property
+    --- @propertyGroup
+    testNodePath: NodePathConstrained<Node3D>,
+
+    --- @propertyCategory Test Category
+    --- @property
+    --- @default "hey!"
+    inCategory: string,
+}
+
+function TestClass:Counter()
     for i = 3, 1, -1 do
         print(i.."!")
         wait(1)
     end
 end
 
-function TestClassImpl:_Init()
+function TestClass:_Init()
     self.customProperty = "hey"
 end
 
-function TestClassImpl:_Ready()
+--- @registerMethod
+function TestClass:_Ready()
     print("TestScript: Ready!")
 
     self:TestMethod()
@@ -37,12 +150,7 @@ function TestClassImpl:_Ready()
     end
 end
 
-TestClass:RegisterMethod("_Ready")
-
-TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
-    :Default(1.5)
-
-function TestClassImpl:_GetPropertyList()
+function TestClass:_GetPropertyList()
     return {
         { name = "Custom Property", usage = Enum.PropertyUsageFlags.GROUP },
         { name = "customProperty", type = Enum.VariantType.STRING },
@@ -50,7 +158,7 @@ function TestClassImpl:_GetPropertyList()
     }
 end
 
-function TestClassImpl:_PropertyCanRevert(property)
+function TestClass:_PropertyCanRevert(property)
     if property == "customProperty" then
         return true
     end
@@ -58,7 +166,7 @@ function TestClassImpl:_PropertyCanRevert(property)
     return false
 end
 
-function TestClassImpl:_PropertyGetRevert(property)
+function TestClass:_PropertyGetRevert(property)
     if property == "customProperty" then
         return "hey"
     end
@@ -66,7 +174,7 @@ function TestClassImpl:_PropertyGetRevert(property)
     return nil
 end
 
-function TestClassImpl:_Set(property, value)
+function TestClass:_Set(property, value)
     if property == "customProperty" then
         self.customProperty = value
         return true
@@ -75,7 +183,7 @@ function TestClassImpl:_Set(property, value)
     return false
 end
 
-function TestClassImpl:_Get(property)
+function TestClass:_Get(property)
     if property == "customProperty" then
         return self.customProperty
     end
@@ -83,108 +191,4 @@ function TestClassImpl:_Get(property)
     return nil
 end
 
---
--- TEST HELPERS
---
-
--- Group
-TestClass:PropertyGroup("Helper Test Properties")
-
--- Subgroup
-TestClass:PropertySubgroup("Range")
-
--- Range
-TestClass:RegisterProperty("testRange", Enum.VariantType.INT)
-    :Range(0, 10, 1)
-
-TestClass:RegisterProperty("testRangeF", Enum.VariantType.FLOAT)
-    :Range(0, 10, 0.5)
-
--- Enums
-TestClass:PropertySubgroup("Enums")
-TestClass:RegisterProperty("testEnumInt", Enum.VariantType.INT)
-    :Enum("One", "Two", "Three")
-
-TestClass:RegisterProperty("testEnumString", Enum.VariantType.STRING)
-    :Enum("One", "Two", "Three")
-    :Default("Two")
-
-TestClass:RegisterProperty("testSuggestion", Enum.VariantType.STRING)
-    :Suggestion("One", "Two", "Three")
-
-TestClass:RegisterProperty("testFlags", Enum.VariantType.INT)
-    :Flags("One", "Two", "Three")
-    :Default(2)
-
--- File & Dir
-TestClass:PropertySubgroup("File")
-TestClass:RegisterProperty("testFile", Enum.VariantType.STRING)
-    :File(false, "*.png,*.pdf")
-
-TestClass:RegisterProperty("testFileG", Enum.VariantType.STRING)
-    :File(true, "*.png,*.svg")
-
-TestClass:RegisterProperty("testDir", Enum.VariantType.STRING)
-    :Dir()
-
-TestClass:RegisterProperty("testDirG", Enum.VariantType.STRING)
-    :Dir(true)
-
--- String
-TestClass:PropertySubgroup("String")
-TestClass:RegisterProperty("testMultiline", Enum.VariantType.STRING)
-    :Multiline()
-
-TestClass:RegisterProperty("testPlaceholder", Enum.VariantType.STRING)
-    :TextPlaceholder("Placeholder!")
-
--- Layers
-TestClass:PropertySubgroup("Layers")
-TestClass:RegisterProperty("testFlags2DRender", Enum.VariantType.INT)
-    :Flags2DRenderLayers()
-
-TestClass:RegisterProperty("testFlags2DPhysics", Enum.VariantType.INT)
-    :Flags2DPhysicsLayers()
-
-TestClass:RegisterProperty("testFlags2DNavigation", Enum.VariantType.INT)
-    :Flags2DNavigationLayers()
-
-TestClass:RegisterProperty("testFlags3DRender", Enum.VariantType.INT)
-    :Flags3DRenderLayers()
-
-TestClass:RegisterProperty("testFlags3DPhysics", Enum.VariantType.INT)
-    :Flags3DPhysicsLayers()
-
-TestClass:RegisterProperty("testFlags3DNavigation", Enum.VariantType.INT)
-    :Flags3DNavigationLayers()
-
--- Easing
-TestClass:PropertySubgroup("Other")
-TestClass:RegisterProperty("testExpEasing", Enum.VariantType.FLOAT)
-    :ExpEasing()
-    :Default(0.5)
-
--- Color
-TestClass:RegisterProperty("testColorNoAlpha", Enum.VariantType.COLOR)
-    :NoAlpha()
-
--- Array
-TestClass:RegisterProperty("testTypedArray", Enum.VariantType.ARRAY)
-    :TypedArray(RID)
-
--- Resource
-TestClass:RegisterProperty("testResource", Enum.VariantType.OBJECT)
-    :Resource(Texture2D)
-
--- NodePath
-TestClass:RegisterProperty("testNodePath", Enum.VariantType.NODE_PATH)
-    :NodePath(Node3D)
-
-TestClass:PropertyGroup("")
-
--- Category
-TestClass:PropertyCategory("Test Category")
-TestClass:RegisterProperty("inCategory", Enum.VariantType.STRING)
-    :Default("hey!")
-
-return TestClass
+return TestClassC

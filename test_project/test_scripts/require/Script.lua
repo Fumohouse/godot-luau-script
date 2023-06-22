@@ -1,12 +1,19 @@
 local Base = require("Base")
 --@1
 
-local Script = gdclass(nil, Base)
+--- @class
+--- @extends Base
+local Script = {}
+local ScriptC = gdclass(Script)
 
-Script:RegisterProperty("baseMsg", Enum.VariantType.STRING)
-    :Default(Base.TestFunc())
+--- @classType Script
+export type Script = Base.Base & typeof(Script) & {
+    --- @property
+    --- @default 4.25
+    testProperty: number,
+}
 
-Script:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
-    :Default(4.25)
+--- @registerConstant
+Script.BASE_MSG = Base.TestFunc()
 
-return Script
+return ScriptC

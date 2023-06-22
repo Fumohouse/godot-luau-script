@@ -1190,7 +1190,7 @@ static int luaGD_class_index(lua_State *L) {
 
             while (s) {
                 lua_pushstring(L, key);
-                s->def_table_get(udata->vm_type, L);
+                s->def_table_get(L);
 
                 if (!lua_isnil(L, -1))
                     return 1;
@@ -1524,9 +1524,6 @@ void luaGD_openglobals(lua_State *L) {
         push_enum(L, global_enum);
         lua_setfield(L, -2, global_enum.name);
     }
-
-    push_enum(L, get_permissions_enum());
-    lua_setfield(L, -2, get_permissions_enum().name);
 
     lua_createtable(L, 0, 1);
 

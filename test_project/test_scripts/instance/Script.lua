@@ -1,111 +1,93 @@
-local TestClassImpl = {}
-local TestClass = gdclass("TestClass")
-    :RegisterImpl(TestClassImpl)
+--- @class TestClass
+local TestClass = {}
+local TestClassC = gdclass(TestClass)
 
-TestClass:RegisterSignal("testSignal")
-    :Args(
-        { name = "arg1", type = Enum.VariantType.FLOAT }
-    )
+--- @classType TestClass
+export type TestClass = RefCounted & typeof(TestClass) & {
+    --- @signal
+    testSignal: SignalWithArgs<(arg1: number) -> ()>,
 
-TestClass:RegisterConstant("TEST_CONSTANT", Vector2.new(1, 2))
+    --- @property
+    --- @set SetTestProperty
+    --- @get GetTestProperty
+    --- @default 5.5
+    testProperty: number,
 
-function TestClassImpl:NonRegisteredMethod()
+    --- @property
+    --- @get GetTestProperty2
+    --- @default "hey"
+    testProperty2: string,
+
+    --- @property
+    --- @set SetTestProperty3
+    --- @default "hey"
+    testProperty3: string,
+
+    --- @property
+    --- @default "hey"
+    testProperty4: string,
+}
+
+--- @registerConstant
+TestClass.TEST_CONSTANT = Vector2.new(1, 2)
+
+function TestClass:NonRegisteredMethod()
     return "what's up"
 end
 
-function TestClassImpl:_Init()
+function TestClass:_Init()
     self.notifHits = 0
     self.testField = 1
     self._testProperty = 3.25
     self.customTestPropertyValue = 1.25
 end
 
-function TestClassImpl:_Ready()
+--- @registerMethod
+function TestClass:_Ready()
 end
 
-TestClass:RegisterMethod("_Ready")
-
-function TestClassImpl:_Notification(what)
+function TestClass:_Notification(what)
     if what == 42 then
         self.notifHits += 1
     end
 end
 
-TestClass:RegisterMethod("_Notification")
-
-function TestClassImpl:_ToString()
+function TestClass:_ToString()
     return "my awesome class"
 end
 
-TestClass:RegisterMethod("_ToString")
-
-function TestClassImpl:TestMethod(arg1, arg2)
+--- @registerMethod
+--- @defaultArgs ["hi"]
+function TestClass:TestMethod(arg1: number, arg2: string): string
     return string.format("%.1f, %s", arg1, arg2)
 end
 
-TestClass:RegisterMethod("TestMethod")
-    :Args(
-        {
-            name = "arg1",
-            type = Enum.VariantType.FLOAT
-        },
-        {
-            name = "arg2",
-            type = Enum.VariantType.STRING
-        }
-    )
-    :DefaultArgs("hi")
-    :ReturnVal({ type = Enum.VariantType.STRING })
-
-function TestClassImpl:TestMethod2(arg1, arg2)
+--- @registerMethod
+--- @defaultArgs ["godot", 1]
+function TestClass:TestMethod2(arg1: string, arg2: integer): number
     return 3.14
 end
 
-TestClass:RegisterMethod("TestMethod2")
-    :Args(
-        {
-            name = "arg1",
-            type = Enum.VariantType.STRING
-        },
-        {
-            name = "arg2",
-            type = Enum.VariantType.INT
-        }
-    )
-    :DefaultArgs("godot", 1)
-    :ReturnVal({ type = Enum.VariantType.FLOAT })
-
-function TestClassImpl:GetTestProperty()
+--- @registerMethod
+function TestClass:GetTestProperty()
     return 2 * self._testProperty
 end
 
-function TestClassImpl:SetTestProperty(val)
+--- @registerMethod
+function TestClass:SetTestProperty(val: number)
     self._testProperty = val
 end
 
-TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
-    :SetGet("SetTestProperty", "GetTestProperty")
-    :Default(5.5)
-
-function TestClassImpl:GetTestProperty2()
+--- @registerMethod
+function TestClass:GetTestProperty2()
     return "hello"
 end
 
-TestClass:RegisterProperty("testProperty2", Enum.VariantType.STRING)
-    :SetGet(nil, "GetTestProperty2")
-    :Default("hey")
-
-function TestClassImpl:SetTestProperty3(val)
+--- @registerMethod
+function TestClass:SetTestProperty3(val: string)
 end
 
-TestClass:RegisterProperty("testProperty3", Enum.VariantType.STRING)
-    :SetGet("SetTestProperty3")
-    :Default("hey")
-
-TestClass:RegisterProperty("testProperty4", Enum.VariantType.STRING)
-    :Default("hey")
-
-function TestClassImpl:_GetPropertyList()
+function TestClass:_GetPropertyList(): {GDProperty}
     return {
         {
             name = "custom/testProperty",
@@ -114,7 +96,7 @@ function TestClassImpl:_GetPropertyList()
     }
 end
 
-function TestClassImpl:_PropertyCanRevert(property)
+function TestClass:_PropertyCanRevert(property)
     if property == "custom/testProperty" then
         return true
     end
@@ -122,7 +104,7 @@ function TestClassImpl:_PropertyCanRevert(property)
     return false
 end
 
-function TestClassImpl:_PropertyGetRevert(property)
+function TestClass:_PropertyGetRevert(property)
     if property == "custom/testProperty" then
         return 1.25
     end
@@ -130,7 +112,7 @@ function TestClassImpl:_PropertyGetRevert(property)
     return nil
 end
 
-function TestClassImpl:_Set(property, value)
+function TestClass:_Set(property, value)
     if property == "custom/testProperty" then
         self.customTestPropertyValue = value
         return true
@@ -139,7 +121,7 @@ function TestClassImpl:_Set(property, value)
     return false
 end
 
-function TestClassImpl:_Get(property)
+function TestClass:_Get(property)
     if property == "custom/testProperty" then
         return self.customTestPropertyValue
     end
@@ -147,4 +129,4 @@ function TestClassImpl:_Get(property)
     return nil
 end
 
-return TestClass
+return TestClassC

@@ -1,25 +1,27 @@
-local BaseImpl = {}
-local Base = gdclass("Base", Object)
-    :RegisterImpl(BaseImpl)
+--- @class Base
+--- @extends Object
+local Base = {}
+local BaseC = gdclass(Base)
 
-Base:RegisterProperty("property1", Enum.VariantType.STRING)
-    :Default("hey")
+--- @classType Base
+export type Base = Object & typeof(Base) & {
+    --- @property
+    --- @default "hey"
+    property1: string,
 
-Base:RegisterProperty("property2", Enum.VariantType.STRING)
-    :Default("hi")
+    --- @property
+    --- @default "hi"
+    property2: string,
+}
 
-function BaseImpl:Method1()
+--- @registerMethod
+function Base:Method1(): string
     return "there"
 end
 
-Base:RegisterMethod("Method1")
-    :ReturnVal({ type = Enum.VariantType.STRING })
-
-function BaseImpl:Method2()
+--- @registerMethod
+function Base:Method2(): string
     return "world"
 end
 
-Base:RegisterMethod("Method2")
-    :ReturnVal({ type = Enum.VariantType.STRING })
-
-return Base
+return BaseC

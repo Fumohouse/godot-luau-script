@@ -1,19 +1,24 @@
 local Base = require("Base")
 
-local ScriptImpl = {}
-local Script = gdclass("Script", Base)
-    :RegisterImpl(ScriptImpl)
+--- @class Script
+--- @extends Base
+local Script = {}
+local ScriptC = gdclass(Script)
 
-function ScriptImpl:GetProperty2()
+--- @classType Script
+export type Script = Base.Base & typeof(Script) & {
+    --- @property
+    --- @get GetProperty2
+    property2: string,
+}
+
+--- @registerMethod
+function Script:GetProperty2(): string
     return "hihi"
 end
 
-Script:RegisterProperty("property2", Enum.VariantType.STRING)
-    :SetGet(nil, "GetProperty2")
-    :Default("hi")
-
-function ScriptImpl:Method2()
+function Script:Method2()
     return "guy"
 end
 
-return Script
+return ScriptC

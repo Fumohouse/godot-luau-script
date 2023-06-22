@@ -1,6 +1,13 @@
-local TestResource = gdclass("TestResource", Resource)
+--- @class TestResource
+--- @extends Resource
+local TestResource = {}
+local TestResourceC = gdclass(TestResource)
 
-TestResource:RegisterProperty("testProperty", Enum.VariantType.STRING)
-	:Multiline()
+--- @classType TestResource
+export type TestResource = Resource & typeof(TestResource) & {
+	--- @property
+	--- @multiline
+	testProperty: string,
+}
 
-return TestResource
+return TestResourceC

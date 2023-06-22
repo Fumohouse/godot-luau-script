@@ -12,7 +12,7 @@ gd_luau_type_map = {
 
 def get_luau_type(type_string, api, is_ret=False, is_obj_nullable=True):
     if type_string in ["StringName", "NodePath"]:
-        return "string" if is_ret else f"string | {type_string}"
+        return "string" if is_ret else f"string | {type_string}N"
 
     if type_string in gd_luau_type_map:
         return gd_luau_type_map[type_string]
@@ -292,7 +292,7 @@ def generate_class(src, g_class, api, class_settings):
         append(src, 1, """\
 function Set(self, key: string | StringName, value: Variant)
 function Get(self, key: string | StringName): Variant
-function IsA(self, type: string | GDClassDefinition | ClassGlobal): boolean
+function IsA(self, type: string | GDClass | ClassGlobal): boolean
 function Free(self)\
 """)
 
@@ -412,8 +412,6 @@ def generate_typedefs(defs_dir, api, class_settings, lib_types):
     for name, type_name, internal_type_name in global_enums:
         append(src, 1, f"{name}: {internal_type_name},")
 
-    append(src, 1, "Permissions: EnumPermissions_INTERNAL")
-
     src.append("}\n")
 
     # Global constants
@@ -529,11 +527,15 @@ declare class ClassGlobal end
 
     # TODO: better way?
     src.append("""\
+export type SignalWithArgs<T> = Signal
 export type TypedArray<T> = Array
 export type integer = number
 
-declare class StringName end
-declare class NodePath end
+declare class StringNameN end
+declare class NodePathN end
+export type StringName = string
+export type NodePath = string
+export type NodePathConstrained<T...> = NodePath
 """)
 
     # luau_lib types

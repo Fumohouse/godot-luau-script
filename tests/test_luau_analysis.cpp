@@ -2,16 +2,18 @@
 
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/global_constants.hpp>
+#include <godot_cpp/classes/multiplayer_api.hpp>
+#include <godot_cpp/classes/multiplayer_peer.hpp>
+#include <godot_cpp/variant/node_path.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
 #include "gd_luau.h"
-#include "luau_analysis.h"
+#include "luagd_permissions.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
 #include "test_utils.h"
-#include "utils.h"
 
-TEST_CASE("luau analysis: base analysis") {
+TEST_CASE("luau analysis") {
     GDLuau gd_luau;
     LuauCache luau_cache;
 
@@ -19,23 +21,106 @@ TEST_CASE("luau analysis: base analysis") {
         LOAD_SCRIPT_FILE(script, "analysis/Idiomatic.lua")
 
         const LuauScriptAnalysisResult &res = script->get_luau_data().analysis_result;
-
         REQUIRE(res.definition);
-        REQUIRE(res.definition != res.impl);
+        REQUIRE(res.class_type);
 
-        REQUIRE(res.methods.has("TestMethod"));
+        const GDClassDefinition &def = script->get_definition();
 
-        SECTION("comments") {
-            REQUIRE(res.comments.size() == 3);
+        SECTION("base definition") {
+            REQUIRE(def.name == "TestClass");
+            REQUIRE(def.is_tool);
+            REQUIRE(def.permissions == (PERMISSION_INTERNAL | PERMISSION_OS));
+            REQUIRE(def.base_script);
+            REQUIRE(def.base_script->get_path() == "res://test_scripts/analysis/Base.lua");
+        }
 
-            REQUIRE(res.comments[0].type == LuauComment::BLOCK);
-            REQUIRE(res.comments[0].contents == "--[[\n    block comment\n]]");
+        SECTION("method registration") {
+            REQUIRE(def.methods.size() == 1);
 
-            REQUIRE(res.comments[1].type == LuauComment::SINGLE_LINE_EXCL);
-            REQUIRE(res.comments[1].contents == "-- comment");
+            REQUIRE(def.methods.has("TestMethod"));
+            const GDMethod &method = def.methods["TestMethod"];
 
-            REQUIRE(res.comments[2].type == LuauComment::SINGLE_LINE);
-            REQUIRE(res.comments[2].contents == "-- comment 2");
+            REQUIRE(method.arguments.size() == 5);
+
+            REQUIRE(method.arguments[0].name == "p1");
+            REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_BOOL);
+
+            REQUIRE(method.arguments[1].name == "p2");
+            REQUIRE(method.arguments[1].type == GDEXTENSION_VARIANT_TYPE_OBJECT);
+            REQUIRE(method.arguments[1].class_name == StringName("Node3D"));
+
+            REQUIRE(method.arguments[2].name == "p3");
+            REQUIRE(method.arguments[2].type == GDEXTENSION_VARIANT_TYPE_NIL);
+            REQUIRE(method.arguments[2].usage == (PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT));
+
+            REQUIRE(method.arguments[3].name == "p4");
+            REQUIRE(method.arguments[3].type == GDEXTENSION_VARIANT_TYPE_OBJECT);
+            REQUIRE(method.arguments[3].class_name == StringName("Base"));
+
+            REQUIRE(method.arguments[4].name == "p5");
+            REQUIRE(method.arguments[4].type == GDEXTENSION_VARIANT_TYPE_ARRAY);
+            REQUIRE(method.arguments[4].hint == PROPERTY_HINT_ARRAY_TYPE);
+            REQUIRE(method.arguments[4].hint_string == StringName("Base"));
+
+            REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_NIL);
+            REQUIRE(method.return_val.usage == (PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT));
+
+            REQUIRE(method.flags == (METHOD_FLAGS_DEFAULT | METHOD_FLAG_VARARG));
+        }
+
+        SECTION("rpc registration") {
+            REQUIRE(def.rpcs.has("TestMethod"));
+            const GDRpc &rpc = def.rpcs["TestMethod"];
+
+            REQUIRE(rpc.name == "TestMethod");
+            REQUIRE(rpc.rpc_mode == MultiplayerAPI::RPC_MODE_AUTHORITY);
+            REQUIRE(rpc.transfer_mode == MultiplayerPeer::TRANSFER_MODE_RELIABLE);
+            REQUIRE(rpc.call_local);
+            REQUIRE(rpc.channel == 3);
+        }
+
+        SECTION("constant registration") {
+            REQUIRE(def.constants.has("TEST_CONSTANT"));
+        }
+
+        SECTION("signal registration") {
+            REQUIRE(def.signals.has("testSignal1"));
+            const GDMethod &signal1 = def.signals["testSignal1"];
+
+            REQUIRE(signal1.name == "testSignal1");
+            REQUIRE(signal1.arguments.size() == 0);
+
+            REQUIRE(def.signals.has("testSignal2"));
+            const GDMethod &signal2 = def.signals["testSignal2"];
+
+            REQUIRE(signal2.name == "testSignal2");
+            REQUIRE(signal2.arguments.size() == 2);
+            REQUIRE(signal2.arguments[0].name == "argName1");
+            REQUIRE(signal2.arguments[0].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
+            REQUIRE(signal2.arguments[1].name == "arg2");
+            REQUIRE(signal2.arguments[1].type == GDEXTENSION_VARIANT_TYPE_VECTOR2);
+
+            REQUIRE(signal2.flags == (METHOD_FLAGS_DEFAULT | METHOD_FLAG_VARARG));
+        }
+
+        SECTION("property registration") {
+            REQUIRE(def.properties.size() == 3);
+
+            REQUIRE(def.properties[0].property.name == "TestGroup");
+            REQUIRE(def.properties[0].property.usage == PROPERTY_USAGE_GROUP);
+
+            REQUIRE(def.properties[1].property.name == "testProperty1");
+            REQUIRE(def.properties[1].property.type == GDEXTENSION_VARIANT_TYPE_NODE_PATH);
+            REQUIRE(def.properties[1].property.hint == PROPERTY_HINT_NODE_PATH_VALID_TYPES);
+            REQUIRE(def.properties[1].property.hint_string == "Camera3D,Camera2D");
+            REQUIRE(def.properties[1].default_value == NodePath("Node3D/"));
+            REQUIRE(def.properties[1].setter == StringName("setTestProperty1"));
+            REQUIRE(def.properties[1].getter == StringName("getTestProperty1"));
+
+            REQUIRE(def.properties[2].property.name == "testProperty2");
+            REQUIRE(def.properties[2].property.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
+            REQUIRE(def.properties[2].property.hint == PROPERTY_HINT_RANGE);
+            REQUIRE(def.properties[2].property.hint_string == "0,100,3");
         }
     }
 
@@ -43,73 +128,6 @@ TEST_CASE("luau analysis: base analysis") {
         LOAD_SCRIPT_FILE(script, "analysis/Odd.lua")
 
         const LuauScriptAnalysisResult &res = script->get_luau_data().analysis_result;
-
         REQUIRE(res.definition);
-        REQUIRE(res.definition != res.impl);
-
-        REQUIRE(res.methods.has("TestMethod"));
-    }
-}
-
-TEST_CASE("luau analysis: method registration") {
-    GDLuau gd_luau;
-    LuauCache luau_cache;
-
-    LOAD_SCRIPT_FILE(script, "analysis/Methods.lua")
-
-    const GDClassDefinition &def = script->get_definition();
-
-    SECTION("with self; basic definition") {
-        const GDMethod &method = def.methods["WithSelf"];
-
-        REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_STRING);
-
-        REQUIRE(method.arguments.size() == 1);
-        REQUIRE(method.arguments[0].name == "arg1");
-        REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
-    }
-
-    SECTION("without self") {
-        const GDMethod &method = def.methods["WithoutSelf"];
-
-        REQUIRE(method.arguments.size() == 1);
-        REQUIRE(method.arguments[0].name == "arg1");
-        REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
-    }
-
-    SECTION("special arguments") {
-        const GDMethod &method = def.methods["SpecialArg"];
-
-        REQUIRE(method.arguments.size() == 4);
-
-        REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_OBJECT);
-        REQUIRE(method.arguments[0].class_name == StringName("Node3D"));
-
-        REQUIRE(method.arguments[1].type == GDEXTENSION_VARIANT_TYPE_OBJECT);
-        REQUIRE(method.arguments[1].hint == PROPERTY_HINT_RESOURCE_TYPE);
-        REQUIRE(method.arguments[1].hint_string == "Texture2D");
-
-        REQUIRE(method.arguments[2].type == GDEXTENSION_VARIANT_TYPE_ARRAY);
-        REQUIRE(method.arguments[2].hint == PROPERTY_HINT_ARRAY_TYPE);
-        REQUIRE(method.arguments[2].hint_string == Utils::resource_type_hint("Texture2D"));
-
-        REQUIRE(method.arguments[3].type == GDEXTENSION_VARIANT_TYPE_COLOR);
-    }
-
-    SECTION("variant handling") {
-        const GDMethod &method = def.methods["Variant"];
-
-        REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_NIL);
-        REQUIRE(method.return_val.usage & PROPERTY_USAGE_NIL_IS_VARIANT);
-
-        REQUIRE(method.arguments.size() == 1);
-        REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_NIL);
-        REQUIRE(method.arguments[0].usage & PROPERTY_USAGE_NIL_IS_VARIANT);
-    }
-
-    SECTION("vararg") {
-        const GDMethod &method = def.methods["Vararg"];
-        REQUIRE(method.arguments.size() == 1);
-        REQUIRE(method.flags & METHOD_FLAG_VARARG);
     }
 }

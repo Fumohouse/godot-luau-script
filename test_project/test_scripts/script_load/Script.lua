@@ -1,31 +1,29 @@
-local TestClassImpl = {}
-local TestClass = gdclass("TestClass")
-    :Tool(true)
-    :RegisterImpl(TestClassImpl)
+--- @class TestClass
+--- @tool
+local TestClass = {}
+local TestClassC = gdclass(TestClass)
 
-TestClass:RegisterSignal("testSignal")
-    :Args(
-        { name = "arg1", type = Enum.VariantType.FLOAT }
-    )
+--- @classType TestClass
+export type TestClass = RefCounted & typeof(TestClass) & {
+    --- @signal
+    testSignal: SignalWithArgs<(number) -> ()>,
 
-TestClass:RegisterRpc("TestRpc", {
-    rpcMode = MultiplayerAPI.RPCMode.ANY_PEER,
-    transferMode = MultiplayerPeer.TransferMode.RELIABLE,
-    callLocal = true,
-    channel = 4
-})
+    --- @property
+    --- @default 5.5
+    testProperty: number,
+}
 
-function TestClassImpl:TestMethod()
+--- @registerMethod
+--- @rpc anyPeer reliable callLocal 4
+function TestClass:TestRpc()
 end
 
-TestClass:RegisterMethod("TestMethod")
-
-function TestClassImpl:__WeirdMethodName()
+--- @registerMethod
+function TestClass:TestMethod()
 end
 
-TestClass:RegisterMethod("__WeirdMethodName")
+--- @registerMethod
+function TestClass:__WeirdMethodName()
+end
 
-TestClass:RegisterProperty("testProperty", Enum.VariantType.FLOAT)
-    :Default(5.5)
-
-return TestClass
+return TestClassC

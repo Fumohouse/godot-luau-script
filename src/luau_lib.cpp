@@ -6,13 +6,11 @@
 #include <string.h>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
-#include <godot_cpp/classes/multiplayer_api.hpp>
-#include <godot_cpp/classes/multiplayer_peer.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/core/memory.hpp>
+#include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/char_string.hpp>
-#include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "luagd.h"
@@ -20,27 +18,11 @@
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_stack.h"
 #include "luagd_utils.h"
-#include "luagd_variant.h"
-#include "luau_analysis.h"
 #include "luau_cache.h"
 #include "luau_script.h"
-#include "task_scheduler.h"
-#include "utils.h"
 #include "wrapped_no_binding.h"
 
 using namespace godot;
-
-#define CLASS_MT_NAME "Luau.GDClassDefinition"
-#define CLASS_PROPERTY_MT_NAME "Luau.GDClassProperty"
-#define METHOD_MT_NAME "Luau.GDMethod"
-
-UDATA_STACK_OP_IMPL(GDClassDefinition, CLASS_MT_NAME, DTOR(GDClassDefinition))
-
-PTR_OP_DEF(GDClassProperty)
-PTR_STACK_OP_IMPL(GDClassProperty, CLASS_PROPERTY_MT_NAME)
-
-PTR_OP_DEF(GDMethod)
-PTR_STACK_OP_IMPL(GDMethod, METHOD_MT_NAME)
 
 /* STRUCTS */
 
@@ -148,524 +130,73 @@ GDProperty luascript_read_property(lua_State *L, int p_idx) {
     return property;
 }
 
-static GDRpc luascript_read_rpc(lua_State *L, int p_idx) {
-    GDRpc rpc;
-
-    if (luaGD_getfield(L, p_idx, "rpcMode")) {
-        if (!lua_isnumber(L, -1))
-            luaGD_valueerror(L, "rpcMode", luaL_typename(L, -1), "MultiplayerAPI.RPCMode");
-
-        rpc.rpc_mode = (MultiplayerAPI::RPCMode)lua_tointeger(L, -1);
-        lua_pop(L, 1);
-    }
-
-    if (luaGD_getfield(L, p_idx, "transferMode")) {
-        if (!lua_isnumber(L, -1))
-            luaGD_valueerror(L, "rpcMode", luaL_typename(L, -1), "MultiplayerPeer.TransferMode");
-
-        rpc.transfer_mode = (MultiplayerPeer::TransferMode)lua_tointeger(L, -1);
-        lua_pop(L, 1);
-    }
-
-    if (luaGD_getfield(L, p_idx, "callLocal"))
-        rpc.call_local = luaGD_checkvaluetype<bool>(L, -1, "callLocal", LUA_TBOOLEAN);
-
-    if (luaGD_getfield(L, p_idx, "channel"))
-        rpc.channel = luaGD_checkvaluetype<int>(L, -1, "channel", LUA_TNUMBER);
-
-    return rpc;
-}
-
 /* CLASS */
 
-static int luascript_gdclass(lua_State *L) {
-    GDClassDefinition def;
-    def.name = luaL_optstring(L, 1, "");
-
-    if (lua_gettop(L) > 1) {
-        luascript_get_classdef_or_type(L, 2, def.extends, def.base_script);
-
-        if (def.base_script) {
-            def.extends = "";
-        }
-    }
-
-    LuaStackOp<GDClassDefinition>::push(L, def);
-    return 1;
-}
-
-#define luascript_gdclass_readonly_error(L) luaL_error(L, "this definition is read-only")
-
-static int luascript_gdclass_namecall(lua_State *L) {
-    if (const char *key = lua_namecallatom(L, nullptr)) {
-        GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
-        if (def->is_readonly)
-            luascript_gdclass_readonly_error(L);
-
-        GDThreadData *udata = luaGD_getthreaddata(L);
-
-        // Chaining functions
-        if (strcmp(key, "Tool") == 0) {
-            def->is_tool = LuaStackOp<bool>::check(L, 2);
-
-            lua_settop(L, 1); // return def
-            return 1;
-        }
-
-        if (strcmp(key, "Permissions") == 0) {
-            int32_t permissions = LuaStackOp<int32_t>::check(L, 2);
-
-            String path = udata->script->get_path();
-            if (path.is_empty() || !LuauLanguage::get_singleton()->is_core_script(path))
-                luaL_error(L, "!!! cannot set permissions on a non-core script !!!");
-
-            def->permissions = static_cast<ThreadPermissions>(permissions);
-
-            lua_settop(L, 1); // return def
-            return 1;
-        }
-
-        if (strcmp(key, "IconPath") == 0) {
-            def->icon_path = LuaStackOp<String>::check(L, 2);
-
-            lua_settop(L, 1); // return def
-            return 1;
-        }
-
-        if (strcmp(key, "RegisterImpl") == 0) {
-            if (def->table_ref != -1)
-                lua_unref(L, def->table_ref);
-
-            luaL_checktype(L, 2, LUA_TTABLE);
-            def->table_ref = lua_ref(L, 2);
-
-            lua_settop(L, 1); // return def
-            return 1;
-        }
-
-        // "Raw" functions
-        if (strcmp(key, "RegisterMethod") == 0) {
-            StringName name = LuaStackOp<StringName>::check(L, 2);
-
-            GDMethod method;
-            method.name = name;
-            def->methods[name] = method;
-
-            LuaStackOp<GDMethod *>::push(L, &def->methods[name]);
-            return 1;
-        }
-
-        if (strcmp(key, "RegisterMethodAST") == 0) {
-            StringName name = LuaStackOp<StringName>::check(L, 2);
-
-            GDMethod method;
-            if (!luascript_ast_method(udata->script->get_luau_data().analysis_result, name, method)) {
-                luaL_error(L, "failed to register method with AST - check that you have met necessary conventions");
-            }
-
-            def->methods[name] = method;
-
-            LuaStackOp<GDMethod *>::push(L, &def->methods[name]);
-            return 1;
-        }
-
-        if (strcmp(key, "RegisterProperty") == 0) {
-            StringName name = LuaStackOp<StringName>::check(L, 2);
-
-            GDClassProperty class_prop;
-
-            int type = lua_type(L, 3);
-            if (type == LUA_TTABLE) {
-                class_prop.property = luascript_read_property(L, 3);
-            } else if (type == LUA_TNUMBER) {
-                class_prop.property.type = static_cast<GDExtensionVariantType>(lua_tointeger(L, 3));
-            }
-
-            class_prop.property.name = name;
-
-            // Godot will not provide a sensible default value by default.
-            class_prop.default_value = LuauVariant::default_variant(class_prop.property.type);
-
-            int idx = def->set_prop(name, class_prop);
-
-            LuaStackOp<GDClassProperty *>::push(L, &def->properties.ptrw()[idx]);
-            return 1;
-        }
-
-        if (strcmp(key, "RegisterSignal") == 0) {
-            StringName name = LuaStackOp<StringName>::check(L, 2);
-
-            // Signals are stored as methods with only name and arguments
-            GDMethod signal;
-            signal.name = name;
-            signal.is_signal = true;
-
-            def->signals[name] = signal;
-
-            LuaStackOp<GDMethod *>::push(L, &def->signals[name]);
-            return 1;
-        }
-
-        if (strcmp(key, "RegisterRpc") == 0) {
-            StringName name = LuaStackOp<StringName>::check(L, 2);
-            luaL_checktype(L, 3, LUA_TTABLE);
-
-            GDRpc rpc = luascript_read_rpc(L, 3);
-            rpc.name = name;
-
-            def->rpcs[name] = rpc;
-
-            return 0;
-        }
-
-        if (strcmp(key, "RegisterConstant") == 0) {
-            StringName name = LuaStackOp<StringName>::check(L, 2);
-            Variant value = LuaStackOp<Variant>::check(L, 3);
-
-            def->constants[name] = value;
-
-            return 0;
-        }
-
-        // Helpers
-#define PROPERTY_HELPER(m_func_name, m_prop_usage)     \
-    if (strcmp(key, m_func_name) == 0) {               \
-        String name = LuaStackOp<String>::check(L, 2); \
-                                                       \
-        GDClassProperty prop;                          \
-        prop.property.name = name;                     \
-        prop.property.usage = m_prop_usage;            \
-                                                       \
-        def->set_prop(name, prop);                     \
-                                                       \
-        return 0;                                      \
-    }
-
-        PROPERTY_HELPER("PropertyGroup", PROPERTY_USAGE_GROUP)
-        PROPERTY_HELPER("PropertySubgroup", PROPERTY_USAGE_SUBGROUP)
-        PROPERTY_HELPER("PropertyCategory", PROPERTY_USAGE_CATEGORY)
-
-        luaGD_nomethoderror(L, key, "GDClassDefinition");
-    }
-
-    luaGD_nonamecallatomerror(L);
-}
-
-static int luascript_gdclass_newindex(lua_State *L) {
-    luaGD_readonlyerror(L, "GDClassDefinition");
-}
-
 static int luascript_gdclass_new(lua_State *L) {
-    GDClassDefinition *def = luaGD_lightudataup<GDClassDefinition>(L, 1);
+    LuauScript *script = luaGD_lightudataup<LuauScript>(L, 1);
 
-    if (!def->script)
-        luaL_error(L, "cannot instantiate: script is unknown");
-
-    if (def->script->is_loading())
+    if (script->is_loading())
         luaL_error(L, "cannot instantiate: script is loading");
 
-    StringName class_name = def->script->_get_instance_base_type();
+    StringName class_name = script->_get_instance_base_type();
 
     GDExtensionObjectPtr ptr = internal::gde_interface->classdb_construct_object(&class_name);
-    nb::Object(ptr).set_script(Ref<LuauScript>(def->script));
+    nb::Object(ptr).set_script(Ref<LuauScript>(script));
 
     LuaStackOp<Object *>::push(L, ptr);
     return 1;
 }
 
-static int luascript_gdclass_index(lua_State *L) {
-    GDClassDefinition *def = LuaStackOp<GDClassDefinition>::check_ptr(L, 1);
-    const char *key = luaL_checkstring(L, 2);
+static int luascript_gdclass(lua_State *L) {
+    luaL_checktype(L, 1, LUA_TTABLE);
 
-    if (strcmp(key, "new") == 0) {
-        lua_pushlightuserdata(L, def);
-        lua_pushcclosure(L, luascript_gdclass_new, "GDClassDefinition.new", 1);
-        return 1;
+    if (lua_getmetatable(L, 1)) {
+        luaL_error(L, "custom metatables are not supported on class definitions");
     }
 
-    if (def->table_ref == -1) {
-        luaL_error(L, "failed to get method on class definition: table ref is invalid");
+    lua_createtable(L, 0, 3);
+
+    lua_pushstring(L, "This metatable is locked.");
+    lua_setfield(L, -2, "__metatable");
+
+    GDThreadData *udata = luaGD_getthreaddata(L);
+    LuaStackOp<Object *>::push(L, udata->script.ptr());
+    lua_setfield(L, -2, LUASCRIPT_MT_SCRIPT);
+
+    {
+        lua_createtable(L, 0, 1);
+
+        lua_pushlightuserdata(L, udata->script.ptr());
+        lua_pushcclosure(L, luascript_gdclass_new, "GDClass.new", 1);
+        lua_setfield(L, -2, "new");
+
+        lua_setreadonly(L, -1, true);
+        lua_setfield(L, -2, "__index");
     }
 
-    lua_getref(L, def->table_ref);
-    lua_getfield(L, -1, key);
+    lua_setreadonly(L, -1, true);
+    lua_setmetatable(L, -2);
 
     return 1;
 }
 
-/* CHAINING METAMETHODS */
+LuauScript *luascript_class_table_get_script(lua_State *L, int p_i) {
+    if (!lua_istable(L, p_i))
+        return nullptr;
 
-static int luascript_method_namecall(lua_State *L) {
-    GDMethod *method = LuaStackOp<GDMethod *>::check(L, 1);
+    if (!lua_getmetatable(L, p_i))
+        return nullptr;
 
-    if (const char *key = lua_namecallatom(L, nullptr)) {
-        if (strcmp(key, "Args") == 0) {
-            int top = lua_gettop(L);
-            method->arguments.resize(top - 1);
+    lua_getfield(L, -1, LUASCRIPT_MT_SCRIPT);
 
-            for (int i = 2; i <= top; i++) {
-                method->arguments.set(i - 2, luascript_read_property(L, i));
-            }
-        } else if (method->is_signal) {
-            // Signal does not get any of the rest of the methods
-            luaGD_nomethoderror(L, key, "GDMethod (Signal)");
-        } else if (strcmp(key, "DefaultArgs") == 0) {
-            int top = lua_gettop(L);
-            method->default_arguments.resize(top - 1);
-
-            for (int i = 2; i <= top; i++) {
-                method->default_arguments.set(i - 2, LuaStackOp<Variant>::check(L, i));
-            }
-        } else if (strcmp(key, "ReturnVal") == 0) {
-            method->return_val = luascript_read_property(L, 2);
-        } else if (strcmp(key, "Flags") == 0) {
-            method->flags = LuaStackOp<uint32_t>::check(L, 2);
-        } else {
-            luaGD_nomethoderror(L, key, "GDMethod");
-        }
-
-        lua_settop(L, 1); // return method
-        return 1;
+    if (!lua_isnil(L, -1) && LuaStackOp<Object *>::is(L, -1)) {
+        Object *obj = ObjectDB::get_instance(*LuaStackOp<Object *>::get_id(L, -1));
+        lua_pop(L, 2); // metatable, value
+        return Object::cast_to<LuauScript>(obj);
     }
 
-    luaGD_nonamecallatomerror(L);
-}
-
-#define luascript_hinterror(L, p_kind, p_non) luaL_error(L, "cannot set %s hint on non-%s property", p_kind, p_non)
-
-static String luascript_stringhintlist(lua_State *L, int p_start_index) {
-    String hint_string = LuaStackOp<String>::check(L, p_start_index);
-
-    int top = lua_gettop(L);
-    for (int i = p_start_index + 1; i <= top; i++)
-        hint_string = hint_string + "," + LuaStackOp<String>::check(L, i);
-
-    return hint_string;
-}
-
-static int luascript_classprop_namecall(lua_State *L) {
-    GDClassProperty *prop = LuaStackOp<GDClassProperty *>::check(L, 1);
-
-    if (const char *key = lua_namecallatom(L, nullptr)) {
-        if (strcmp(key, "Default") == 0) {
-            // NIL type means value must be nil. Godot does not support setting the value of a NIL property.
-            if (prop->property.type == GDEXTENSION_VARIANT_TYPE_NIL) {
-                luaL_checktype(L, 2, LUA_TNIL);
-                prop->default_value = Variant();
-            } else {
-                if (!LuauVariant::lua_is(L, 2, prop->property.type, prop->property.class_name)) {
-                    String type_name;
-                    if (prop->property.class_name.is_empty()) {
-                        type_name = Variant::get_type_name((Variant::Type)prop->property.type);
-                    } else {
-                        type_name = prop->property.class_name;
-                    }
-
-                    luaL_typeerror(L, 2, type_name.utf8().get_data());
-                }
-
-                prop->default_value = LuaStackOp<Variant>::check(L, 2);
-            }
-        } else if (strcmp(key, "SetGet") == 0) {
-            prop->setter = luaL_optstring(L, 2, "");
-            prop->getter = luaL_optstring(L, 3, "");
-
-            // HELPERS
-        } else if (strcmp(key, "Range") == 0) {
-            Array hint_values;
-            hint_values.resize(3);
-
-            if (prop->property.type == GDEXTENSION_VARIANT_TYPE_INT) {
-                int min = luaL_checkinteger(L, 2);
-                int max = luaL_checkinteger(L, 3);
-                int step = luaL_optinteger(L, 4, 1);
-
-                hint_values[0] = min;
-                hint_values[1] = max;
-                hint_values[2] = step;
-            } else if (prop->property.type == GDEXTENSION_VARIANT_TYPE_FLOAT) {
-                double min = luaL_checknumber(L, 2);
-                double max = luaL_checknumber(L, 3);
-                double step = luaL_optnumber(L, 4, 1.0);
-
-                hint_values[0] = min;
-                hint_values[1] = max;
-                hint_values[2] = step;
-            } else {
-                luascript_hinterror(L, "range", "numeric");
-            }
-
-            prop->property.hint = PROPERTY_HINT_RANGE;
-            prop->property.hint_string = String("{0},{1},{2}").format(hint_values);
-        } else if (strcmp(key, "Enum") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING &&
-                    prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "enum", "string/integer");
-
-            String hint_string = luascript_stringhintlist(L, 2);
-
-            prop->property.hint = PROPERTY_HINT_ENUM;
-            prop->property.hint_string = hint_string;
-        } else if (strcmp(key, "Suggestion") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luascript_hinterror(L, "suggestion", "string");
-
-            String hint_string = luascript_stringhintlist(L, 2);
-
-            prop->property.hint = PROPERTY_HINT_ENUM_SUGGESTION;
-            prop->property.hint_string = hint_string;
-        } else if (strcmp(key, "Flags") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "flags", "integer");
-
-            String hint_string = luascript_stringhintlist(L, 2);
-
-            prop->property.hint = PROPERTY_HINT_FLAGS;
-            prop->property.hint_string = hint_string;
-        } else if (strcmp(key, "File") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luascript_hinterror(L, "file", "string");
-
-            bool is_global = luaL_optboolean(L, 2, false);
-
-            if (LuaStackOp<String>::is(L, 3))
-                prop->property.hint_string = luascript_stringhintlist(L, 3);
-
-            prop->property.hint = is_global ? PROPERTY_HINT_GLOBAL_FILE : PROPERTY_HINT_FILE;
-        } else if (strcmp(key, "Dir") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luascript_hinterror(L, "directory", "string");
-
-            bool is_global = luaL_optboolean(L, 2, false);
-
-            prop->property.hint = is_global ? PROPERTY_HINT_GLOBAL_DIR : PROPERTY_HINT_DIR;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "Multiline") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luascript_hinterror(L, "multiline text", "string");
-
-            prop->property.hint = PROPERTY_HINT_MULTILINE_TEXT;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "TextPlaceholder") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_STRING)
-                luascript_hinterror(L, "placeholder text", "string");
-
-            String placeholder = LuaStackOp<String>::check(L, 2);
-
-            prop->property.hint = PROPERTY_HINT_PLACEHOLDER_TEXT;
-            prop->property.hint_string = placeholder;
-        } else if (strcmp(key, "Flags2DRenderLayers") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "2D render layers", "integer");
-
-            prop->property.hint = PROPERTY_HINT_LAYERS_2D_RENDER;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "Flags2DPhysicsLayers") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "2D physics layers", "integer");
-
-            prop->property.hint = PROPERTY_HINT_LAYERS_2D_PHYSICS;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "Flags2DNavigationLayers") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "2D navigation layers", "integer");
-
-            prop->property.hint = PROPERTY_HINT_LAYERS_2D_NAVIGATION;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "Flags3DRenderLayers") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "3D render layers", "integer");
-
-            prop->property.hint = PROPERTY_HINT_LAYERS_3D_RENDER;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "Flags3DPhysicsLayers") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "3D physics layers", "integer");
-
-            prop->property.hint = PROPERTY_HINT_LAYERS_3D_PHYSICS;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "Flags3DNavigationLayers") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_INT)
-                luascript_hinterror(L, "3D navigation layers", "integer");
-
-            prop->property.hint = PROPERTY_HINT_LAYERS_3D_NAVIGATION;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "ExpEasing") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_FLOAT)
-                luascript_hinterror(L, "exp easing", "float");
-
-            const char *hint_string = luaL_optstring(L, 2, "");
-            if (strcmp(hint_string, "") != 0 &&
-                    strcmp(hint_string, "attenuation") != 0 &&
-                    strcmp(hint_string, "positive_only") != 0)
-                luaL_error(L, "ExpEasing expects a hint value of either \"attenuation\" or \"positive_only\"");
-
-            prop->property.hint = PROPERTY_HINT_EXP_EASING;
-            prop->property.hint_string = hint_string;
-        } else if (strcmp(key, "NoAlpha") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_COLOR)
-                luascript_hinterror(L, "no alpha", "color");
-
-            prop->property.hint = PROPERTY_HINT_COLOR_NO_ALPHA;
-            prop->property.hint_string = String();
-        } else if (strcmp(key, "TypedArray") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_ARRAY)
-                luascript_hinterror(L, "typed array", "array");
-
-            LuauScript *script = nullptr;
-            String type = luascript_get_scriptname_or_type(L, 2, &script);
-
-            bool is_resource = false;
-            if (script) {
-                is_resource = Utils::is_parent_class(script->_get_instance_base_type(), "Resource");
-            } else if (Utils::class_exists(type)) {
-                is_resource = Utils::is_parent_class(type, "Resource");
-            }
-
-            prop->property.hint = PROPERTY_HINT_ARRAY_TYPE;
-
-            if (is_resource) {
-                prop->property.hint_string = Utils::resource_type_hint(type);
-            } else {
-                prop->property.hint_string = type;
-            }
-        } else if (strcmp(key, "Resource") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_OBJECT)
-                luascript_hinterror(L, "resource type", "object");
-
-            String type = luascript_get_scriptname_or_type(L, 2);
-
-            prop->property.hint = PROPERTY_HINT_RESOURCE_TYPE;
-            prop->property.hint_string = type;
-        } else if (strcmp(key, "NodePath") == 0) {
-            if (prop->property.type != GDEXTENSION_VARIANT_TYPE_NODE_PATH)
-                luascript_hinterror(L, "node path valid types", "node path");
-
-            int top = lua_gettop(L);
-            if (top < 2)
-                luaL_error(L, "NodePath requires at least one type");
-
-            String hint_string;
-
-            for (int i = 2; i <= top; i++) {
-                String type = luascript_get_scriptname_or_type(L, i);
-                hint_string += type;
-
-                if (i != top)
-                    hint_string += ", ";
-            }
-
-            prop->property.hint = PROPERTY_HINT_NODE_PATH_VALID_TYPES;
-            prop->property.hint_string = hint_string;
-        } else {
-            luaGD_nomethoderror(L, key, "GDClassProperty");
-        }
-
-        lua_settop(L, 1); // return prop
-        return 1;
-    }
-
-    luaGD_nonamecallatomerror(L);
+    lua_pop(L, 2); // metatable, value
+    return nullptr;
 }
 
 /* LIBRARY */
@@ -679,18 +210,18 @@ static int finishrequire(lua_State *L) {
     return 1;
 }
 
-int LuauScript::luascript_require(lua_State *L) {
+static int luascript_require(lua_State *L) {
     String path = LuaStackOp<String>::check(L, 1);
     GDThreadData *udata = luaGD_getthreaddata(L);
 
     luaL_findtable(L, LUA_REGISTRYINDEX, LUASCRIPT_MODULE_TABLE, 1);
 
     // Get full path.
-    String script_path = udata->script->get_path();
-    if (script_path.is_empty())
-        luaL_error(L, "require failed: could not find current script directory");
-
-    String full_path = script_path.get_base_dir().path_join(path);
+    String path_err;
+    String full_path = udata->script->resolve_path(path, path_err);
+    if (!path_err.is_empty()) {
+        luaL_error(L, "require failed: %s", path_err.utf8().get_data());
+    }
 
     // Checks.
     if (udata->script->get_path() == full_path)
@@ -708,16 +239,12 @@ int LuauScript::luascript_require(lua_State *L) {
     Error err;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err);
 
-    if (udata->script->is_loading()) {
-        // Dependencies are, for the most part, not of any concern if they aren't part of the load stage.
-        // (i.e. requires processed after initial script load should not write or check dependencies)
-        udata->script->dependencies.insert(script);
-
-        if (script->has_dependency(udata->script)) {
-            luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
-                    udata->script->get_path().utf8().get_data(),
-                    full_path_utf8.get_data());
-        }
+    // Dependencies are, for the most part, not of any concern if they aren't part of the load stage.
+    // (i.e. requires processed after initial script load should not write or check dependencies)
+    if (udata->script->is_loading() && !udata->script->add_dependency(script)) {
+        luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
+                udata->script->get_path().utf8().get_data(),
+                full_path_utf8.get_data());
     }
 
     // Return from cache.
@@ -737,8 +264,8 @@ int LuauScript::luascript_require(lua_State *L) {
             luaL_error(L, "could not get class definition: unknown VM");
         }
 
-        if (script->load_definition(udata->vm_type) == OK) {
-            LuaStackOp<GDClassDefinition>::push(L, script->get_definition(udata->vm_type));
+        if (script->load_table(udata->vm_type) == OK) {
+            lua_getref(L, script->get_table_ref(udata->vm_type));
         } else {
             LuaStackOp<String>::push(L, "could not get class definition for script at " + script->get_path());
         }
@@ -785,7 +312,7 @@ static int luascript_gdglobal(lua_State *L) {
 static const luaL_Reg global_funcs[] = {
     { "gdclass", luascript_gdclass },
 
-    { "require", LuauScript::luascript_require },
+    { "require", luascript_require },
 
     { "wait", luascript_wait },
     { "wait_signal", luascript_wait_signal },
@@ -797,11 +324,13 @@ static const luaL_Reg global_funcs[] = {
 
 /* EXPOSED FUNCTIONS */
 
-#define luascript_classglobal_error(L) luaL_error(L, "table argument to gdclass must be a class global (i.e. metatable containing the " MT_CLASS_GLOBAL " field)")
+#define luascript_classglobal_error(L) luaL_error(L, "expected a class global (i.e. metatable containing the " MT_CLASS_GLOBAL " field)")
 
 void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, LuauScript *&r_script) {
     if (lua_isstring(L, p_index)) {
         r_type = lua_tostring(L, p_index);
+    } else if (LuauScript *script = luascript_class_table_get_script(L, p_index)) {
+        r_script = script;
     } else if (lua_istable(L, p_index)) {
         if (!lua_getmetatable(L, p_index))
             luascript_classglobal_error(L);
@@ -813,12 +342,6 @@ void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, L
         r_type = lua_tostring(L, -1);
 
         lua_pop(L, 2); // value, metatable
-    } else if (LuaStackOp<GDClassDefinition>::is(L, p_index)) {
-        const GDClassDefinition *other_def = LuaStackOp<GDClassDefinition>::get_ptr(L, p_index);
-        if (!other_def->script)
-            luaL_error(L, "could not determine script from class definition");
-
-        r_script = other_def->script;
     } else {
         luaL_typeerrorL(L, p_index, "string, GDClassDefinition, or ClassGlobal");
     }
@@ -846,47 +369,5 @@ String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **
 }
 
 void luascript_openlibs(lua_State *L) {
-    // Class
-    {
-        luaL_newmetatable(L, CLASS_MT_NAME);
-
-        lua_pushcfunction(L, luascript_gdclass_namecall, CLASS_MT_NAME ".__namecall");
-        lua_setfield(L, -2, "__namecall");
-
-        lua_pushcfunction(L, luascript_gdclass_newindex, CLASS_MT_NAME ".__newindex");
-        lua_setfield(L, -2, "__newindex");
-
-        lua_pushcfunction(L, luascript_gdclass_index, CLASS_MT_NAME ".__index");
-        lua_setfield(L, -2, "__index");
-
-        lua_setreadonly(L, -1, true);
-        lua_pop(L, 1);
-
-        lua_pushcfunction(L, luascript_gdclass, "_G.gdclass");
-        lua_setglobal(L, "gdclass");
-    }
-
-    // Method
-    {
-        luaL_newmetatable(L, METHOD_MT_NAME);
-
-        lua_pushcfunction(L, luascript_method_namecall, METHOD_MT_NAME ".__namecall");
-        lua_setfield(L, -2, "__namecall");
-
-        lua_setreadonly(L, -1, true);
-        lua_pop(L, 1);
-    }
-
-    // Class property
-    {
-        luaL_newmetatable(L, CLASS_PROPERTY_MT_NAME);
-
-        lua_pushcfunction(L, luascript_classprop_namecall, CLASS_PROPERTY_MT_NAME ".__namecall");
-        lua_setfield(L, -2, "__namecall");
-
-        lua_setreadonly(L, -1, true);
-        lua_pop(L, 1);
-    }
-
     luaL_register(L, "_G", global_funcs);
 }

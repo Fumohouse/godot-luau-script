@@ -14,7 +14,7 @@ Cyclic requires may also be caused by a base class requiring a script that inher
 
 ## Module scripts
 
-`require` can require a script (class) file, in which case it will return the `GDClassDefinition` of the class.
+`require` can require a script (class) file, in which case it will return the output of `gdclass` for the class.
 
 However, you may want to create your own Lua types which don't need to be accessible to Godot.
 To do this in a dedicated file, create a file with the extension `.mod.lua` which returns a function or a table.

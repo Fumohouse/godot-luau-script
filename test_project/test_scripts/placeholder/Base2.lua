@@ -1,8 +1,13 @@
-local Base2 = gdclass(nil, Node)
+--- @class
+--- @extends Node
+local Base2 = {}
+local Base2C = gdclass(Base2)
 
---@1
+--- @classType Base2
+export type Base2 = Node & typeof(Base2) & {
+    --- @property
+    --- @default Vector2(1, 2)
+    baseProperty2: Vector2,
+}
 
-Base2:RegisterProperty("baseProperty2", Enum.VariantType.VECTOR2)
-    :Default(Vector2.new(1, 2))
-
-return Base2
+return Base2C

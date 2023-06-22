@@ -1,9 +1,11 @@
-local Script = gdclass()
+--- @class
+local Script = {}
+local ScriptC = gdclass(Script)
 
-Script:RegisterSignal("testSignal")
-    :Args(
-        { name = "arg1", type = Enum.VariantType.FLOAT },
-        { name = "arg2", type = Enum.VariantType.STRING }
-    )
+--- @classType Script
+export type Script = RefCounted & typeof(Script) & {
+    --- @signal
+    testSignal: SignalWithArgs<(number, string) -> ()>,
+}
 
-return Script
+return ScriptC

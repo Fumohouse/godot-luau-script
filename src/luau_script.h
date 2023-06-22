@@ -59,6 +59,15 @@ class LuauScript : public ScriptExtension {
     friend class LuauScriptInstance;
     friend class PlaceHolderScriptInstance;
 
+public:
+    enum LoadStage {
+        LOAD_NONE,
+        LOAD_COMPILE,
+        LOAD_ANALYZE,
+        LOAD_FULL
+    };
+
+private:
     SelfList<LuauScript> script_list;
 
     Ref<LuauScript> base;
@@ -74,21 +83,25 @@ class LuauScript : public ScriptExtension {
     HashMap<uint64_t, PlaceHolderScriptInstance *> placeholders;
 
     bool _is_loading = false;
-    bool valid;
-    GDClassDefinition vm_defs[GDLuau::VM_MAX];
-    bool vm_defs_valid[GDLuau::VM_MAX] = { false };
+    bool valid = false;
+    GDClassDefinition definition;
+    int table_refs[GDLuau::VM_MAX] = { 0 };
 
     HashSet<String> methods;
+    HashMap<StringName, Variant> constants;
 
-    bool placeholder_fallback_enabled;
+    bool placeholder_fallback_enabled = false;
 
-    void compile();
+    LoadStage load_stage = LOAD_NONE;
+    Error compile();
+    Error analyze();
+    Error finish_load();
     Error try_load(lua_State *L, String *r_err = nullptr);
 
     void update_exports_values(List<GDProperty> &r_properties, HashMap<StringName, Variant> &r_values);
     bool update_exports_internal(PlaceHolderScriptInstance *p_instance_to_update);
 
-    Error reload_defs();
+    Error reload_tables();
 
 #ifdef TESTS_ENABLED
 public:
@@ -103,6 +116,8 @@ public:
     String _get_source_code() const override;
     void _set_source_code(const String &p_code) override;
     Error load_source_code(const String &p_path);
+
+    Error load(LoadStage p_load_stage, bool p_force = false);
     Error _reload(bool p_keep_state) override;
 
     ScriptLanguage *_get_language() const override;
@@ -158,20 +173,22 @@ public:
     TypedArray<Dictionary> _get_documentation() const override { return TypedArray<Dictionary>(); }
 
     /* MISC (NON OVERRIDE) */
-    static int luascript_require(lua_State *L);
-    Error load_definition(GDLuau::VMType p_vm_type, bool p_force = false);
-    void unref_definition(GDLuau::VMType p_vm);
+    String resolve_path(const String &p_relative_path, String &r_error) const;
+    Error load_table(GDLuau::VMType p_vm_type, bool p_force = false);
+    void unref_table(GDLuau::VMType p_vm);
+    int get_table_ref(GDLuau::VMType p_vm_type) const { return table_refs[p_vm_type]; };
 
     const LuauData &get_luau_data() const { return luau_data; }
     Ref<LuauScript> get_base() const { return base; }
 
-    void def_table_get(GDLuau::VMType p_vm_type, lua_State *T) const;
-    const GDClassDefinition &get_definition(GDLuau::VMType p_vm_type = GDLuau::VM_SCRIPT_LOAD) const;
+    void def_table_get(lua_State *T) const;
+    const GDClassDefinition &get_definition() const { return definition; }
 
     bool is_loading() const { return _is_loading; }
-
     bool is_module() const { return _is_module; }
+
     bool has_dependency(const Ref<LuauScript> &p_script) const;
+    bool add_dependency(const Ref<LuauScript> &p_script);
 
     void load_module(lua_State *L);
     void unload_module();

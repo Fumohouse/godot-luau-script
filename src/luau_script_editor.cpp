@@ -55,7 +55,7 @@ void LuauScript::update_exports_values(List<GDProperty> &r_properties, HashMap<S
         base->update_exports_values(r_properties, r_values);
     }
 
-    for (const GDClassProperty &prop : get_definition().properties) {
+    for (const GDClassProperty &prop : definition.properties) {
         r_properties.push_back(prop.property);
         r_values[prop.property.name] = prop.default_value;
     }
@@ -70,14 +70,24 @@ bool LuauScript::update_exports_internal(PlaceHolderScriptInstance *p_instance_t
         changed = true;
 
         dependencies.clear();
-
-        compile(); // Always recompile.
         unload_module();
-        Error err = load_definition(GDLuau::VM_SCRIPT_LOAD, true);
 
+        Error err = compile();
+        if (err != OK) {
+            placeholder_fallback_enabled = true;
+            return false;
+        }
+
+        err = analyze();
+        if (err != OK) {
+            placeholder_fallback_enabled = true;
+            return false;
+        }
+
+        err = load_table(GDLuau::VM_SCRIPT_LOAD, true);
         if (err == OK) {
             // Update base class
-            base = Ref<LuauScript>(get_definition().base_script);
+            base = Ref<LuauScript>(definition.base_script);
         } else {
             placeholder_fallback_enabled = true;
             return false;
@@ -340,7 +350,24 @@ Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
     ret["name"] = def.name;
 
     if (script->get_base().is_valid()) {
-        ret["base_type"] = script->get_base()->get_definition().name;
+        // C# implementation used as reference
+        bool global_base_found = false;
+        const LuauScript *s = script.ptr();
+
+        while (s) {
+            const String &name = s->get_definition().name;
+            if (!name.is_empty()) {
+                ret["base_type"] = name;
+                global_base_found = true;
+                break;
+            }
+
+            s = s->get_base().ptr();
+        }
+
+        if (!global_base_found) {
+            ret["base_type"] = script->_get_instance_base_type();
+        }
     } else {
         ret["base_type"] = def.extends;
     }

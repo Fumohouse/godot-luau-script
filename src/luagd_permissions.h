@@ -8,7 +8,7 @@ using namespace godot;
 
 class ApiEnum;
 
-// ! Must update ApiEnum and Luau type definitions whenever this is changed
+// ! Must update ApiEnum and luau_analysis whenever this is changed
 enum ThreadPermissions {
     PERMISSION_INHERIT = -1,
     PERMISSION_BASE = 0,
@@ -20,4 +20,3 @@ enum ThreadPermissions {
 };
 
 void luaGD_checkpermissions(lua_State *L, const char *p_name, BitField<ThreadPermissions> p_permissions);
-const ApiEnum &get_permissions_enum();
