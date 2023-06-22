@@ -305,6 +305,9 @@ end
 The `@registerMethod` annotation indicates a method should be accessible to
 Godot, registered based on its type annotations.
 
+If there are no type annotations, `Variant` is assumed for all arguments,
+and the return value is `Variant` if the method returns anything.
+
 #### `@param <name> [comment]`
 
 The `@param` annotation indicates a parameter's usage. It is not currently used

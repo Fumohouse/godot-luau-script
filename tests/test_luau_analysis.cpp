@@ -17,8 +17,8 @@ TEST_CASE("luau analysis") {
     GDLuau gd_luau;
     LuauCache luau_cache;
 
-    SECTION("idiomatic") {
-        LOAD_SCRIPT_FILE(script, "analysis/Idiomatic.lua")
+    SECTION("normal") {
+        LOAD_SCRIPT_FILE(script, "analysis/TestClass.lua")
 
         const LuauScriptAnalysisResult &res = script->get_luau_data().analysis_result;
         REQUIRE(res.definition);
@@ -35,8 +35,6 @@ TEST_CASE("luau analysis") {
         }
 
         SECTION("method registration") {
-            REQUIRE(def.methods.size() == 1);
-
             REQUIRE(def.methods.has("TestMethod"));
             const GDMethod &method = def.methods["TestMethod"];
 
@@ -66,6 +64,20 @@ TEST_CASE("luau analysis") {
             REQUIRE(method.return_val.usage == (PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT));
 
             REQUIRE(method.flags == (METHOD_FLAGS_DEFAULT | METHOD_FLAG_VARARG));
+        }
+
+        SECTION("no annotation method registration") {
+            REQUIRE(def.methods.has("TestMethodNoAnnotation"));
+            const GDMethod &method = def.methods["TestMethodNoAnnotation"];
+
+            REQUIRE(method.arguments.size() == 1);
+
+            REQUIRE(method.arguments[0].name == "p1");
+            REQUIRE(method.arguments[0].type == GDEXTENSION_VARIANT_TYPE_NIL);
+            REQUIRE(method.arguments[0].usage == (PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT));
+
+            REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_NIL);
+            REQUIRE(method.return_val.usage == (PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT));
         }
 
         SECTION("rpc registration") {

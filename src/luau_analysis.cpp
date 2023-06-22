@@ -105,6 +105,17 @@ struct RequireFinder : public Luau::AstVisitor {
             local_name(p_local_name), line_stop(p_line_stop) {}
 };
 
+struct ReturnFinder : public Luau::AstVisitor {
+    bool return_found = false;
+
+    bool visit(Luau::AstStatReturn *p_return) override {
+        if (p_return->list.size)
+            return_found = true;
+
+        return false;
+    }
+};
+
 /* AST FUNCTIONS */
 
 static bool get_godot_type(const String &p_type_name, GDProperty &r_prop) {
@@ -291,6 +302,12 @@ static bool ast_method(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau::A
             return false;
 
         r_ret.return_val = return_val;
+    } else {
+        ReturnFinder return_finder;
+        func->body->visit(&return_finder);
+
+        if (return_finder.return_found)
+            r_ret.return_val.set_variant_type();
     }
 
     if (func->vararg)
@@ -310,8 +327,13 @@ static bool ast_method(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau::A
 
         GDProperty arg_prop;
 
-        if (!arg->annotation || !type_to_prop(p_root, p_script, arg->annotation, arg_prop))
-            return false;
+        if (arg->annotation) {
+            if (!type_to_prop(p_root, p_script, arg->annotation, arg_prop))
+                return false;
+        } else {
+            // Fall back to Variant
+            arg_prop.set_variant_type();
+        }
 
         arg_prop.name = arg->name.value;
         arg_props[i - arg_offset] = arg_prop;
@@ -1114,11 +1136,11 @@ struct ClassReader : public Luau::AstVisitor {
         annotation.name != StringName("propertySubgroup") &&            \
         annotation.name != StringName("propertyCategory"))
 
-#define PROPERTY_HELPER(m_annotation, m_prop_usage)                    \
-    GDClassProperty prop;                                              \
-    prop.property.name = annotation.args;                              \
-    prop.property.usage = m_prop_usage;                                \
-                                                                       \
+#define PROPERTY_HELPER(m_annotation, m_prop_usage) \
+    GDClassProperty prop;                           \
+    prop.property.name = annotation.args;           \
+    prop.property.usage = m_prop_usage;             \
+                                                    \
     class_definition.set_prop(annotation.args, prop);
 
                 if (annotation.name == StringName("property")) {

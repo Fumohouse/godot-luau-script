@@ -31,7 +31,7 @@ export type TestClass = Base.Base & typeof(TestClass) & {
 --- @registerConstant
 TestClass.TEST_CONSTANT = Vector3.new(1, 2, 3)
 
---- @registerMethod ast
+--- @registerMethod
 --- @param p1 Comment 1
 --- @param p2 Comment 2
 --- @param p3 Comment 3
@@ -40,6 +40,11 @@ TestClass.TEST_CONSTANT = Vector3.new(1, 2, 3)
 --- @rpc authority reliable callLocal 3
 function TestClass:TestMethod(p1: boolean, p2: Node3D, p3: Variant, p4: Base.Base, p5: TypedArray<Base.Base>, ...: Variant): number?
     return 3.14
+end
+
+--- @registerMethod
+function TestClass:TestMethodNoAnnotation(p1)
+    return 1
 end
 
 return TestClassC
