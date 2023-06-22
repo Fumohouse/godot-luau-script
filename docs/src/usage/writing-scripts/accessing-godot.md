@@ -1,13 +1,16 @@
 # Accessing Godot APIs
 
-The majority of builtin and `Object` classes are bound from Godot to Luau.
-A selection of utility functions from Godot are also available.
+The majority of builtin and `Object` classes are bound from Godot to Luau. A
+selection of utility functions from Godot are also available.
 
-To find out what APIs are exposed, you can refer to the `definitions/luauScriptTypes.gen.d.lua` file after building (beware: this file is large!)
-or rely on autocomplete to tell you (after setting that up).
+To find out what APIs are exposed, you can refer to the
+`definitions/luauScriptTypes.gen.d.lua` file after building (beware: this file
+is large!) or rely on [autocomplete](./typechecking-autocomplete.md) to tell you
+(after setting that up).
 
-For the most part, you can refer to [Godot's documentation](https://docs.godotengine.org/en/latest/) to discover the API.
-After learning the rules below, this should become relatively intuitive.
+For the most part, you can refer to [Godot's documentation](https://docs.godotengine.org/en/latest/)
+to discover the API. After learning the rules below, this should become
+relatively intuitive.
 
 ## Renaming rules
 
@@ -22,8 +25,10 @@ Most members are renamed from their Godot names to the following convention:
 | Methods            | `snake_case`              | `PascalCase`                           |
 | Properties/signals | `snake_case`              | `camelCase`                            |
 
-*: e.g. for the `PropertyUsage` enum, the prefix on all values is `PROPERTY_USAGE_`; this is removed.
-Additionally, if an enum name begins with a number after renaming (e.g. `KEY_9` with prefix `KEY_` -> `9`), an `N` will be prepended to the name -> `N9`.
+*: e.g. for the `PropertyUsage` enum, the prefix on all values is
+`PROPERTY_USAGE_`; this is removed. Additionally, if an enum name begins with a
+number after renaming (e.g. `KEY_9` with prefix `KEY_` -> `9`), an `N` will be
+prepended to the name -> `N9`.
 
 ## Accessible APIs
 
@@ -56,12 +61,24 @@ Additionally, if an enum name begins with a number after renaming (e.g. `KEY_9` 
 | Variant type operators        | `<A> <Op> <B>`/`<Unary><A>`   | *unchanged* \*\*\*                     | `v1 == v2`              | *unchanged*                |
 | Variant/Object to string      | `str(<Instance>)`             | `tostring(<Instance>)`                 |
 
-*: Variant type properties (e.g. `Vector2.x`) **cannot be set** because Luau does not support copy on assign (as C++ and GDScript do). You must construct a new object instead. \
-**: Iterators do not support modification during iteration. Doing so may cause errors or for items to be skipped. \
-***: Some Godot operators are not supported as they do not exist in Luau. Also, `==` comparison is not allowed between two different types in Luau, so these operators do not work.
+*: Variant type properties (e.g. `Vector2.x`) **cannot be set** because Luau
+does not support copy on assign (as C++ and GDScript do). You must construct a
+new object instead. \
+**: Iterators do not support modification during iteration. Doing so may cause
+errors or for items to be skipped. \
+***: Some Godot operators are not supported as they do not exist in Luau. Also,
+`==` comparison is not allowed between two different types in Luau, so these
+operators do not work.
 
 ### Odd exceptions
 
-- For security (permissions) reasons, the only supported `Callable` constructor is `Callable.new(object: Object, methodName: string | StringName)`.
-- `String`, `StringName`, and `NodePath` are not bound to Luau as Luau's builtin `string` suffices in the vast majority of cases. `StringName` and `NodePath` can be constructed manually if needed (e.g. if a `String` type would be inferred over the other two types) by using the `SN` or `NP` global functions respectively.
-  - The intention with these constructors is to use them like a prefix you would find in other languages, e.g. `SN"testStringName"`. This is valid because of Lua's lenient parsing rules.
+- For security (permissions) reasons, the only supported `Callable` constructor
+  is `Callable.new(object: Object, methodName: string | StringName)`.
+- `String`, `StringName`, and `NodePath` are not bound to Luau as Luau's builtin
+  `string` suffices in the vast majority of cases. `StringName` and `NodePath`
+  can be constructed manually if needed (e.g. if a `String` type would be
+  inferred over the other two types) by using the `SN` or `NP` global functions
+  respectively.
+  - The intention with these constructors is to use them like a prefix you would
+    find in other languages, e.g. `SN"testStringName"`. This is valid because
+    of Lua's lenient parsing rules.

@@ -68,11 +68,12 @@ return gdclass(MyClass) -- INVALID: The class parser will not trace this return
 
 Key:
 
-* `[]` denotes an optional argument
-* `<>` denotes a required argument
-* `...` means an argument can be supplied multiple times
-* `|` means 'or'
-* `''` denotes a literal argument supplied to the annotation without quotes
+- `[]` denotes an optional argument
+- `<>` denotes a required argument
+- `...` means an argument can be supplied multiple times
+- `|` means 'or'
+- `''` denotes a literal argument supplied to the annotation without quotes
+- `{}` denotes multiple choices at any given location
 
 ### Class definition
 
@@ -114,12 +115,12 @@ The `@permissions` annotation declares the script's permissions (see
 
 The following permissions flags are accepted:
 
-* `BASE`: Used for functionality that is available to all scripts by default.
-* `INTERNAL`: Used for functionality that is not part of any special permission
+- `BASE`: Used for functionality that is available to all scripts by default.
+- `INTERNAL`: Used for functionality that is not part of any special permission
   level or `BASE`.
-* `OS`: Used for the `OS` singleton.
-* `FILE`: Used for any filesystem functionality.
-* `HTTP`: Used for any functionality allowing HTTP listen/requests.
+- `OS`: Used for the `OS` singleton.
+- `FILE`: Used for any filesystem functionality.
+- `HTTP`: Used for any functionality allowing HTTP listen/requests.
 
 #### `@iconPath <absolute svg path>`
 
@@ -272,10 +273,8 @@ Godot editor that the color should not have an editable alpha channel.
 
 #### `@signal`
 
-The `@signal` annotation indicates a property with the `Signal` type should be
-registered as signal.
-
-For registering signal parameters, see [`SignalWithArgs<F>`](#signalwithargsf).
+The `@signal` annotation indicates a property with the `Signal` or
+[`SignalWithArgs<F>`](#signalwithargsf) type should be registered as a signal.
 
 ### Methods
 
@@ -360,8 +359,8 @@ registers a constant value with Godot.
 type annotations. However, it may fail under some circumstances. Here are a few
 things to note:
 
-* Aliasing Godot types (e.g. `type D = Dictionary`) is not currently supported.
-* Using the `?` syntax (e.g. `number?`) will tell Godot that any `Variant` type
+- Aliasing Godot types (e.g. `type D = Dictionary`) is not currently supported.
+- Using the `?` syntax (e.g. `number?`) will tell Godot that any `Variant` type
   is acceptable. This is because the only Godot type that accepts a value and
   `null` is `Variant`. As such, it's recommended to implement your methods such
   that this is not necessary.
