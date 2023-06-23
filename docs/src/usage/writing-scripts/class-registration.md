@@ -207,7 +207,7 @@ The `@set` and `@get` annotations register a property's setter and getter,
 respectively. The supplied method name should be a method on this class
 registered to Godot.
 
-##### `@range <min> <max> [step]`
+##### `@range <min> <max> [step] [...'orGreater'|'orLess'|'hideSlider'|'radians'|'degrees'|'exp'|'suffix:'<suffix>]`
 
 The `@range` annotation, valid only for `integer` and `number` properties,
 defines the range (and optional step) for a numeric value in the Godot editor.

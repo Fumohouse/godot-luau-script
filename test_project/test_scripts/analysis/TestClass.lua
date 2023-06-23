@@ -22,7 +22,7 @@ export type TestClass = Base.Base & typeof(TestClass) & {
     testProperty1: NodePathConstrained<Camera3D, Camera2D>,
 
     --- @property
-    --- @range 0.0 100.0 3.0
+    --- @range 0.0 100.0 3.0 degrees
     testProperty2: number,
 
     field: number,

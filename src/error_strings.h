@@ -59,6 +59,7 @@
 
 #define RANGE_ARG_ERR "@range requires at least two arguments for min and max values"
 #define RANGE_ARG_TYPE_ERR "@range requires arguments to be of correct type (float for float properties, int for int properties)"
+#define RANGE_SPECIAL_OPT_ERR "Invalid option for @range; expected one of 'orGreater', 'orLess', 'hideSlider', 'radians', 'degrees', 'exp', or 'suffix:<keyword>'"
 
 #define FILE_ARG_ERR "Arguments to @file should either be 'global' or an extension in the format *.ext"
 #define DIR_ARG_ERR "Only acceptable argument to @dir is 'global'"

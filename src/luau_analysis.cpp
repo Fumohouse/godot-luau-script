@@ -963,8 +963,33 @@ struct ClassReader : public Luau::AstVisitor {
         hint_values[1] = max;
         hint_values[2] = step;
 
+        String hint_string = String("{0},{1},{2}").format(hint_values);
+
+        while (*ptr) {
+            String option = read_until_whitespace(ptr);
+
+            if (option == "orGreater") {
+                hint_string += ",or_greater";
+            } else if (option == "orLess") {
+                hint_string += ",or_less";
+            } else if (option == "hideSlider") {
+                hint_string += ",hide_slider";
+            } else if (option == "radians") {
+                hint_string += ",radians";
+            } else if (option == "degrees") {
+                hint_string += ",degrees";
+            } else if (option == "exp") {
+                hint_string += ",exp";
+            } else if (option.begins_with("suffix:")) {
+                hint_string += "," + option;
+            } else {
+                _error(RANGE_SPECIAL_OPT_ERR, p_annotation.location);
+                return;
+            }
+        }
+
         property.hint = PROPERTY_HINT_RANGE;
-        property.hint_string = String("{0},{1},{2}").format(hint_values);
+        property.hint_string = hint_string;
     }
 
     void handle_range(const Annotation &p_annotation, GDProperty &property) {
