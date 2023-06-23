@@ -231,20 +231,25 @@ static bool type_to_prop(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau:
     if (!type_ref)
         return false;
 
-    if (was_conditional) {
-        // Assume Variant if nil is an accepted type
-        r_prop.set_variant_type();
-        return true;
-    }
-
-    const char *type_name = type_ref->name.value;
-
+    // For Objects, nil is okay without assuming Variant
     if (type_ref->prefix.has_value()) {
         return get_module_type(p_root, p_script, type_ref, r_prop);
     }
 
     if (!type_ref->hasParameterList) {
-        return get_godot_type(type_name, r_prop);
+        GDProperty godot_type; // Avoid polluting r_prop if was_conditional
+        bool godot_type_valid = get_godot_type(type_ref->name.value, godot_type);
+
+        if ((godot_type_valid && godot_type.type == GDEXTENSION_VARIANT_TYPE_OBJECT) || !was_conditional) {
+            r_prop = godot_type;
+            return godot_type_valid;
+        }
+    }
+
+    // Otherwise, Assume Variant if nil is an accepted type
+    if (was_conditional) {
+        r_prop.set_variant_type();
+        return true;
     }
 
     if (type_ref->name == "TypedArray") {
@@ -1155,12 +1160,13 @@ struct ClassReader : public Luau::AstVisitor {
                     }
 
                     GDClassProperty new_prop;
-                    new_prop.property.name = prop.name.value;
 
                     if (!type_to_prop(root, script, prop.type, new_prop.property)) {
                         _error(PROP_INVALID_TYPE_ERR, annotation.location);
                         return;
                     }
+
+                    new_prop.property.name = prop.name.value;
 
                     // Godot will not provide a sensible default value by default.
                     new_prop.default_value = LuauVariant::default_variant(new_prop.property.type);

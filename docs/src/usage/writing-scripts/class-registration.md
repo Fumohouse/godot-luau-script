@@ -364,9 +364,9 @@ things to note:
 
 - Aliasing Godot types (e.g. `type D = Dictionary`) is not currently supported.
 - Using the `?` syntax (e.g. `number?`) will tell Godot that any `Variant` type
-  is acceptable. This is because the only Godot type that accepts a value and
-  `null` is `Variant`. As such, it's recommended to implement your methods such
-  that this is not necessary.
+  is acceptable unless the type extends `Object`. This is because the only Godot
+  type that accepts a value and `null` is `Variant`. As such, it's recommended
+  to implement your methods such that this is not necessary.
 
 ## Special types
 

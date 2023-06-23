@@ -80,6 +80,14 @@ TEST_CASE("luau analysis") {
             REQUIRE(method.return_val.usage == (PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT));
         }
 
+        SECTION("nullable object return value") {
+            REQUIRE(def.methods.has("TestMethodNullableObjectReturn"));
+            const GDMethod &method = def.methods["TestMethodNullableObjectReturn"];
+
+            REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_OBJECT);
+            REQUIRE(method.return_val.class_name == StringName("Node3D"));
+        }
+
         SECTION("rpc registration") {
             REQUIRE(def.rpcs.has("TestMethod"));
             const GDRpc &rpc = def.rpcs["TestMethod"];
