@@ -38,7 +38,7 @@ TestClass.TEST_CONSTANT = Vector3.new(1, 2, 3)
 --- @param p4 Comment 4
 --- @param p5 Comment 5
 --- @rpc authority reliable callLocal 3
-function TestClass:TestMethod(p1: boolean, p2: Node3D, p3: Variant, p4: Base.Base, p5: TypedArray<Base.Base>, ...: Variant): number?
+function TestClass:TestMethod(p1: boolean?, p2: Node3D, p3: Variant, p4: Base.Base, p5: TypedArray<Base.Base>, ...: Variant): number?
     return 3.14
 end
 

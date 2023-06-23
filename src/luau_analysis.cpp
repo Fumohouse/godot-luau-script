@@ -225,7 +225,7 @@ static Luau::AstTypeReference *get_suitable_type_ref(Luau::AstType *p_type, bool
     return nullptr;
 }
 
-static bool type_to_prop(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau::AstType *p_type, GDProperty &r_prop) {
+static bool type_to_prop(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau::AstType *p_type, GDProperty &r_prop, bool p_nullable_is_variant = true) {
     bool was_conditional;
     Luau::AstTypeReference *type_ref = get_suitable_type_ref(p_type, was_conditional);
     if (!type_ref)
@@ -240,14 +240,14 @@ static bool type_to_prop(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau:
         GDProperty godot_type; // Avoid polluting r_prop if was_conditional
         bool godot_type_valid = get_godot_type(type_ref->name.value, godot_type);
 
-        if ((godot_type_valid && godot_type.type == GDEXTENSION_VARIANT_TYPE_OBJECT) || !was_conditional) {
+        if (!p_nullable_is_variant || !was_conditional || (godot_type_valid && godot_type.type == GDEXTENSION_VARIANT_TYPE_OBJECT)) {
             r_prop = godot_type;
             return godot_type_valid;
         }
     }
 
-    // Otherwise, Assume Variant if nil is an accepted type
-    if (was_conditional) {
+    // Otherwise, assume Variant if desired and nil is an accepted type
+    if (p_nullable_is_variant && was_conditional) {
         r_prop.set_variant_type();
         return true;
     }
@@ -333,7 +333,7 @@ static bool ast_method(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau::A
         GDProperty arg_prop;
 
         if (arg->annotation) {
-            if (!type_to_prop(p_root, p_script, arg->annotation, arg_prop))
+            if (!type_to_prop(p_root, p_script, arg->annotation, arg_prop, false))
                 return false;
         } else {
             // Fall back to Variant
@@ -951,10 +951,10 @@ struct ClassReader : public Luau::AstVisitor {
         }
 
         T step = 1;
+        const char *ptr_back = ptr;
 
         if (*ptr && !read_number<T>(ptr, step)) {
-            _error(RANGE_ARG_TYPE_ERR, p_annotation.location);
-            return;
+            ptr = ptr_back;
         }
 
         Array hint_values;

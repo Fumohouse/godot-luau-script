@@ -403,7 +403,7 @@ Error LuauScript::load(LoadStage p_load_stage, bool p_force) {
         }
     }
 
-    load_stage = static_cast<LoadStage>(current_stage);
+    load_stage = p_load_stage;
     valid = true;
     return OK;
 }

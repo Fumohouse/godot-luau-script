@@ -362,11 +362,22 @@ registers a constant value with Godot.
 type annotations. However, it may fail under some circumstances. Here are a few
 things to note:
 
+### Nullable (`?` or `| nil`) types
+
+When annotating a method argument with a nullable type, the argument will be
+registered to Godot as non-nullable (i.e. `number?` -> `FLOAT`). If you want to
+have the argument be optional on the Godot side,
+[register default arguments](#defaultargs-array).
+
+When annotating anything else (properties, return types, etc.), using a nullable
+type will cause the type to be registered with Godot as `Variant` unless the
+type extends `Object`. This is because the only Godot type that accepts both
+a value and `null` is `Variant`. If you encounter this, it's recommended to
+reimplement your logic such that using a nullable is not necessary.
+
+### Other potential issues
+
 - Aliasing Godot types (e.g. `type D = Dictionary`) is not currently supported.
-- Using the `?` syntax (e.g. `number?`) will tell Godot that any `Variant` type
-  is acceptable unless the type extends `Object`. This is because the only Godot
-  type that accepts a value and `null` is `Variant`. As such, it's recommended
-  to implement your methods such that this is not necessary.
 
 ## Special types
 
