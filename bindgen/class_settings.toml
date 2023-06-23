@@ -31422,8 +31422,9 @@ permissions = "INHERIT" #
 #############################
 
 [Script]
+# Prevent users from changing source code and reloading, etc.
 inherits = "Resource"
-default_permissions = "BASE" #
+default_permissions = "INTERNAL"
 
 [Script.methods]
 
@@ -31536,8 +31537,9 @@ ret_nullable = true #
 #############################
 
 [ScriptExtension]
+# See Script
 inherits = "Script"
-default_permissions = "BASE" #
+default_permissions = "INTERNAL"
 
 [ScriptExtension.methods]
 
