@@ -16,12 +16,12 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <type_traits>
 
+#include "error_strings.h"
 #include "extension_api.h"
 #include "luagd.h"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
-#include "luagd_utils.h"
 #include "luagd_variant.h"
 #include "luau_lib.h"
 #include "luau_script.h"
@@ -130,7 +130,7 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int 
             if (get_arg_type(arg) == GDEXTENSION_VARIANT_TYPE_OBJECT) {
                 if (*arg.default_value.template get_ptr<GDExtensionObjectPtr>()) {
                     // Should never happen
-                    ERR_PRINT("could not set non-null object argument default value");
+                    ERR_PRINT(NON_NULL_OBJ_DEFAULT_ARG_ERR);
                 }
 
                 pargs->ptr()[i] = nullptr;
@@ -205,7 +205,7 @@ static int get_arguments(lua_State *L,
         r_args->resize(nargs);
 
         if (nargs > p_method.arguments.size())
-            luaL_error(L, "too many arguments to '%s' (expected at most %d)", p_method_name, p_method.arguments.size());
+            luaGD_toomanyargserror(L, p_method_name, p_method.arguments.size());
 
         for (int i = 0; i < nargs; i++) {
             get_argument(L, i + 1 + arg_offset, p_method.arguments[i], r_args->ptr()[i]);
@@ -401,7 +401,7 @@ static int luaGD_dict_next(lua_State *L) {
         return 2;
     }
 
-    luaL_error(L, "could not find previous key in dictionary: did you erase its value during iteration?");
+    luaL_error(L, DICT_ITER_PREV_KEY_MISSING_ERR);
 }
 
 static int luaGD_dict_iter(lua_State *L) {
@@ -648,7 +648,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
                 return 0;
             }
 
-            luaL_error(L, "class %s does not have any indexed or keyed setter", builtin_class->name);
+            luaL_error(L, NO_INDEXED_KEYED_SETTER_ERR, builtin_class->name);
         }
 
         if (strcmp(name, "Get") == 0) {
@@ -683,11 +683,11 @@ static int luaGD_builtin_namecall(lua_State *L) {
                     LuaStackOp<Variant>::push(L, ret);
                     return 1;
                 } else {
-                    luaL_error(L, "this %s does not have key '%s'", builtin_class->name, key.stringify().utf8().get_data());
+                    luaGD_keyindexerror(L, builtin_class->name, key.stringify().utf8().get_data());
                 }
             }
 
-            luaL_error(L, "class %s does not have any indexed or keyed getter", builtin_class->name);
+            luaL_error(L, NO_INDEXED_KEYED_SETTER_ERR, builtin_class->name);
         }
 
         if (builtin_class->methods.has(name))
@@ -738,7 +738,7 @@ static int luaGD_builtin_operator(lua_State *L) {
     }
 
     // TODO: say something better here
-    luaL_error(L, "no operator matched");
+    luaL_error(L, NO_OP_MATCHED_ERR);
 }
 
 static void luaGD_builtin_unbound(lua_State *L, GDExtensionVariantType p_variant_type, const char *p_type_name, const char *p_metatable_name) {
@@ -819,7 +819,7 @@ void luaGD_openbuiltins(lua_State *L) {
                         break;
 
                     default:
-                        ERR_FAIL_MSG("variant operator not handled");
+                        ERR_FAIL_MSG(OP_NOT_HANDLED_ERR);
                 }
 
                 lua_setfield(L, -2, op_mt_name);
@@ -1015,7 +1015,7 @@ static int luaGD_class_free(lua_State *L) {
         luaGD_objnullerror(L, 1);
 
     if (nb::Object(self).is_class(RefCounted::get_class_static()))
-        luaL_error(L, "cannot free a RefCounted object");
+        luaL_error(L, REFCOUNTED_FREE_ERR);
 
     // Zero out the object to prevent segfaults
     *LuaStackOp<Object *>::get_id(L, 1) = 0;
@@ -1144,7 +1144,7 @@ static int call_property_setget(lua_State *L, int p_class_idx, const ApiClassPro
         p_class_idx = current_class.parent_idx;
     }
 
-    luaL_error(L, "setter/getter '%s' was not found", p_method.utf8().get_data());
+    luaL_error(L, SETGET_NOT_FOUND_ERR, p_method.utf8().get_data());
 }
 
 struct CrossVMMethod {
@@ -1206,7 +1206,7 @@ static int luaGD_class_index(lua_State *L) {
             return 1;
         } else if (const GDClassProperty *prop = inst->get_property(key)) {
             if (prop->setter != StringName() && prop->getter == StringName())
-                luaL_error(L, "property '%s' is write-only", key);
+                luaGD_propwriteonlyerror(L, key);
 
             Variant ret;
             LuauScriptInstance::PropertySetGetError err;
@@ -1215,10 +1215,11 @@ static int luaGD_class_index(lua_State *L) {
             if (is_valid) {
                 LuaStackOp<Variant>::push(L, ret);
                 return 1;
-            } else if (err == LuauScriptInstance::PROP_GET_FAILED)
-                luaL_error(L, "failed to get property '%s'; see previous errors for more information", key);
-            else
-                luaL_error(L, "failed to get property '%s': unknown error", key); // due to the checks above, this should hopefully never happen
+            } else if (err == LuauScriptInstance::PROP_GET_FAILED) {
+                luaL_error(L, PROP_GET_FAILED_PREV_ERR, key);
+            } else {
+                luaL_error(L, PROP_GET_FAILED_UNK_ERR, key); // due to the checks above, this should hopefully never happen
+            }
         } else if (const GDMethod *signal = inst->get_signal(key)) {
             nb::Object self_obj = self;
             LuaStackOp<Signal>::push(L, Signal(&self_obj, key));
@@ -1257,7 +1258,7 @@ static int luaGD_class_index(lua_State *L) {
             lua_remove(L, 2); // key
 
             if (F->value.getter == "")
-                luaL_error(L, "property '%s' is write-only", key);
+                luaGD_propwriteonlyerror(L, key);
 
             return call_property_setget(L, class_idx, F->value, F->value.getter);
         }
@@ -1281,8 +1282,6 @@ static int luaGD_class_index(lua_State *L) {
     luaGD_indexerror(L, key, current_class->name);
 }
 
-#define SIGNAL_ASSIGN_ERROR luaL_error(L, "cannot assign to signal '%s'", key)
-
 static int luaGD_class_newindex(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
@@ -1293,7 +1292,7 @@ static int luaGD_class_newindex(lua_State *L) {
     if (inst) {
         if (const GDClassProperty *prop = inst->get_property(key)) {
             if (prop->getter != StringName() && prop->setter == StringName())
-                luaL_error(L, "property '%s' is read-only", key);
+                luaGD_propreadonlyerror(L, key);
 
             LuauScriptInstance::PropertySetGetError err;
             LuauVariant val;
@@ -1301,20 +1300,21 @@ static int luaGD_class_newindex(lua_State *L) {
 
             bool is_valid = inst->set(key, val.to_variant(), &err);
 
-            if (is_valid)
+            if (is_valid) {
                 return 0;
-            else if (err == LuauScriptInstance::PROP_WRONG_TYPE)
+            } else if (err == LuauScriptInstance::PROP_WRONG_TYPE) {
                 luaGD_valueerror(L, key,
                         luaL_typename(L, 3),
                         Variant::get_type_name((Variant::Type)prop->property.type).utf8().get_data());
-            else if (err == LuauScriptInstance::PROP_SET_FAILED)
-                luaL_error(L, "failed to set property '%s'; see previous errors for more information", key);
-            else
-                luaL_error(L, "failed to set property '%s': unknown error", key); // should never happen
+            } else if (err == LuauScriptInstance::PROP_SET_FAILED) {
+                luaL_error(L, PROP_SET_FAILED_PREV_ERR, key);
+            } else {
+                luaL_error(L, PROP_SET_FAILED_UNK_ERR, key); // should never happen
+            }
         } else if (inst->get_signal(key)) {
-            SIGNAL_ASSIGN_ERROR;
+            luaL_error(L, SIGNAL_READ_ONLY_ERR, key);
         } else if (inst->get_constant(key)) {
-            luaL_error(L, "cannot assign to constant '%s'", key);
+            luaGD_constassignerror(L, key);
         }
     }
 
@@ -1325,13 +1325,13 @@ static int luaGD_class_newindex(lua_State *L) {
             lua_remove(L, 2); // key
 
             if (E->value.setter == "")
-                luaL_error(L, "property '%s' is read-only", key);
+                luaGD_propreadonlyerror(L, key);
 
             return call_property_setget(L, class_idx, E->value, E->value.setter);
         }
 
         if (current_class->signals.has(key))
-            SIGNAL_ASSIGN_ERROR;
+            luaL_error(L, SIGNAL_READ_ONLY_ERR, key);
 
         INHERIT_OR_BREAK
     }

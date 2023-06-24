@@ -9,6 +9,8 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <new>
 
+#include "error_strings.h"
+
 using namespace godot;
 
 template <typename T>
@@ -108,7 +110,7 @@ bool luaGD_metatables_match(lua_State *L, int p_index, const char *p_metatable_n
                                                                                                     \
         luaL_getmetatable(L, m_metatable_name);                                                     \
         if (lua_isnil(L, -1))                                                                       \
-            luaL_error(L, "Metatable not found: " m_metatable_name);                                \
+            luaGD_mtnotfounderror(L, m_metatable_name);                                             \
                                                                                                     \
         lua_setmetatable(L, -2);                                                                    \
                                                                                                     \
@@ -246,7 +248,7 @@ TArray luaGD_checkarray(lua_State *L, int p_index, const char *p_metatable_name,
                 expected_type_name = Variant::get_type_name(p_type);
             }
 
-            luaL_error(L, "expected type %s for typed array element, got %s (index %d)",
+            luaL_error(L, TYPED_ARRAY_TYPE_ERR,
                     expected_type_name.utf8().get_data(),
                     elem_type_name.utf8().get_data(),
                     i);

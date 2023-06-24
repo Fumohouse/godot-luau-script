@@ -590,7 +590,7 @@ struct ClassReader : public Luau::AstVisitor {
 
     void _error(const String &p_msg, const Luau::Location &loc, Error p_error = ERR_COMPILATION_FAILED) {
         error = p_error;
-        error_msg = "Error parsing class: " + p_msg;
+        error_msg = CLASS_PARSE_ERR(p_msg);
         error_line = loc.begin.line + 1;
     }
 
@@ -1613,7 +1613,7 @@ LuauScriptAnalysisResult luascript_analyze(LuauScript *p_script, const char *p_s
     result.definition = find_script_definition(p_parse_result.root);
     if (!result.definition) {
         result.error = ERR_COMPILATION_FAILED;
-        result.error_msg = "Failed to parse class: Could not find class table";
+        result.error_msg = NO_CLASS_TABLE_ERR;
         return result;
     }
 

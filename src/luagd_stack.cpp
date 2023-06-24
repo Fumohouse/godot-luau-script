@@ -13,6 +13,7 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
+#include "error_strings.h"
 #include "luagd_bindings.h"
 #include "luagd_variant.h"
 #include "utils.h"
@@ -26,7 +27,7 @@ bool luaGD_metatables_match(lua_State *L, int p_index, const char *p_metatable_n
 
     luaL_getmetatable(L, p_metatable_name);
     if (lua_isnil(L, -1))
-        luaL_error(L, "Metatable not found: %s", p_metatable_name);
+        luaGD_mtnotfounderror(L, p_metatable_name);
 
     bool result = lua_equal(L, -1, -2);
     lua_pop(L, 2);
@@ -175,7 +176,7 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr p_value) {
 
         // Shouldn't be possible
         if (!lua_istable(L, -1))
-            luaL_error(L, "Metatable not found for class %s", obj.get_class().utf8().get_data());
+            luaL_error(L, CLASS_MT_NOT_FOUND_ERR, obj.get_class().utf8().get_data());
 
         lua_setmetatable(L, -2);
 

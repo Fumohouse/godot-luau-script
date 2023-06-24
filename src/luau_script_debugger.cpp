@@ -5,6 +5,7 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 
+#include "error_strings.h"
 #include "gd_luau.h"
 #include "luagd.h"
 
@@ -36,7 +37,7 @@ void LuauLanguage::lua_interrupt(lua_State *L, int p_gc) {
 
     if (p_gc < 0 && udata->interrupt_deadline > 0 && (uint64_t)(lua_clock() * 1e6) > udata->interrupt_deadline) {
         lua_checkstack(L, 1);
-        luaG_pusherror(L, "thread exceeded maximum execution time (" STR(THREAD_EXECUTION_TIMEOUT) " seconds)");
+        luaG_pusherror(L, EXEC_TIME_EXCEEDED_ERR(STR(THREAD_EXECUTION_TIMEOUT)));
         lua_error(L);
     }
 }

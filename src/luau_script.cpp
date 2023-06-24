@@ -35,6 +35,7 @@
 #include <utility>
 
 #include "Luau/ParseOptions.h"
+#include "error_strings.h"
 #include "extension_api.h"
 #include "gd_luau.h"
 #include "luagd.h"
@@ -77,7 +78,7 @@ void LuauScript::_set_source_code(const String &p_code) {
 
 Error LuauScript::load_source_code(const String &p_path) {
     Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::READ);
-    ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), "Failed to read file: '" + p_path + "'.");
+    ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), FILE_READ_FAILED_ERR(p_path));
 
     uint64_t len = file->get_length();
     PackedByteArray bytes = file->get_buffer(len);
@@ -214,7 +215,7 @@ Error LuauScript::finish_load() {
                 if (LuaStackOp<Variant>::is(L, -1)) {
                     constants.insert(key, LuaStackOp<Variant>::get(L, -1));
                 } else {
-                    error("LuauScript::finish_load", "Registered constant '" + key + "' is not a Variant", E->value);
+                    error("LuauScript::finish_load", CONST_NOT_VARIANT_ERR(key), E->value);
                     return ERR_INVALID_DECLARATION;
                 }
             }
@@ -237,7 +238,7 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
         Error err = compile();
         if (err != OK) {
             if (r_err)
-                *r_err = "Compilation failed";
+                *r_err = COMPILE_ERR;
 
             return err;
         }
@@ -265,7 +266,7 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
 String LuauScript::resolve_path(const String &p_relative_path, String &r_error) const {
     String script_path = get_path();
     if (script_path.is_empty()) {
-        r_error = "failed to resolve path: script path is empty";
+        r_error = RESOLVE_PATH_PATH_EMPTY_ERR;
         return "";
     }
 
@@ -284,7 +285,7 @@ Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
 
     // TODO: error line numbers?
     if (_is_loading) {
-        error(LOAD_DEF_METHOD, "cyclic dependency detected. requested script load when it was already loading.", 1);
+        error(LOAD_DEF_METHOD, ALREADY_LOADING_ERR, 1);
         return ERR_CYCLIC_LINK;
     }
     _is_loading = true;
@@ -303,7 +304,7 @@ Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
         int status = lua_resume(T, nullptr, 0);
 
         if (status == LUA_YIELD || status == LUA_BREAK) {
-            error(LOAD_DEF_METHOD, "script unexpectedly yielded during table load.", 1);
+            error(LOAD_DEF_METHOD, YIELD_DURING_LOAD_ERR, 1);
             lua_pop(L, 1); // thread
             _is_loading = false;
             return ERR_COMPILATION_FAILED;
@@ -315,7 +316,7 @@ Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
         }
 
         if (luascript_class_table_get_script(T, 1) != this) {
-            error(LOAD_DEF_METHOD, "script did not return a valid class table. did you return a table processed by `gdclass`?", 1);
+            error(LOAD_DEF_METHOD, INVALID_CLASS_TABLE_ERR, 1);
             lua_pop(L, 1); // thread
             _is_loading = false;
             return ERR_COMPILATION_FAILED;
@@ -635,7 +636,7 @@ LuauScriptInstance *LuauScript::instance_get(uint64_t p_obj_id) const {
 
 void LuauScript::def_table_get(lua_State *T) const {
     GDThreadData *udata = luaGD_getthreaddata(T);
-    ERR_FAIL_COND_MSG(udata->vm_type >= GDLuau::VM_MAX, "vm has an invalid type");
+    ERR_FAIL_COND_MSG(udata->vm_type >= GDLuau::VM_MAX, THREAD_VM_INVALID_ERR);
     LUAU_LOCK(T);
 
     int table_ref = table_refs[udata->vm_type];
@@ -669,7 +670,7 @@ void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
     } else {
         // Expect : after res, then 2 more for regular Lua error
         PackedStringArray split = p_msg.split(":");
-        ERR_FAIL_COND_MSG(split.size() < 4, "failed to parse Lua error: " + p_msg);
+        ERR_FAIL_COND_MSG(split.size() < 4, LUA_ERROR_PARSE_ERR(p_msg));
 
         file = String(":").join(split.slice(0, 2));
         line = split[2].to_int();
@@ -708,7 +709,7 @@ void LuauScript::load_module(lua_State *L) {
         int status = lua_resume(ML, nullptr, 0);
 
         if (status == LUA_YIELD || status == LUA_BREAK) {
-            lua_pushstring(L, "module unexpectedly yielded during load.");
+            lua_pushstring(L, MODULE_YIELD_ERR);
             _is_loading = false;
             return;
         } else if (status != LUA_OK) {
@@ -718,7 +719,7 @@ void LuauScript::load_module(lua_State *L) {
         }
 
         if (lua_gettop(ML) == 0 || (!lua_istable(ML, -1) && !lua_isfunction(L, -1))) {
-            lua_pushstring(L, "module must return a function or table.");
+            lua_pushstring(L, MODULE_RET_ERR);
             _is_loading = false;
             return;
         }
@@ -1135,7 +1136,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                 if (r_err)
                     *r_err = PROP_NOT_FOUND;
 
-                s->error(SET_METHOD, "setter for " + p_name + " not found", 1);
+                s->error(SET_METHOD, SETTER_NOT_FOUND_ERR(p_name), 1);
             } else {
                 if (r_err)
                     *r_err = PROP_SET_FAILED;
@@ -1168,7 +1169,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
                         *r_err = PROP_SET_FAILED;
                     }
 
-                    s->error(SET_METHOD, "expected " SET_NAME " to return a boolean", 1);
+                    s->error(SET_METHOD, EXPECTED_RET_ERR(SET_NAME, "boolean"), 1);
                     lua_pop(T, 1); // thread
                     return false;
                 }
@@ -1225,7 +1226,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
 
                     s->error(
                             GET_METHOD,
-                            prop.getter == StringName() ? "table entry for " + p_name + " is the wrong type" : "getter for " + p_name + " returned the wrong type",
+                            prop.getter == StringName() ? GET_TABLE_TYPE_ERR(p_name) : GETTER_RET_ERR(p_name),
                             1);
 
                     lua_pop(T, 1); // thread
@@ -1245,12 +1246,12 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
                 if (r_err)
                     *r_err = PROP_GET_FAILED;
 
-                s->error(GET_METHOD, "getter for " + p_name + " yielded unexpectedly", 1);
+                s->error(GET_METHOD, GETTER_YIELD_ERR(p_name), 1);
             } else if (status == -1) {
                 if (r_err)
                     *r_err = PROP_NOT_FOUND;
 
-                s->error(GET_METHOD, "getter for " + p_name + " not found", 1);
+                s->error(GET_METHOD, GETTER_NOT_FOUND_ERR(p_name), 1);
             } else {
                 if (r_err)
                     *r_err = PROP_GET_FAILED;
@@ -1284,7 +1285,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
                         *r_err = PROP_GET_FAILED;
                     }
 
-                    s->error("LuauScriptInstance::get", "expected " GET_NAME " to return a Variant", 1);
+                    s->error("LuauScriptInstance::get", EXPECTED_RET_ERR(GET_NAME, "Variant"), 1);
                     lua_pop(T, 1); // thread
                     return false;
                 }
@@ -1339,7 +1340,7 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
             }
 
             if (!lua_istable(ET, -1)) {
-                s->error(GET_PROPERTY_LIST_METHOD, "expected " GET_PROPERTY_LIST_NAME " to return a table", 1);
+                s->error(GET_PROPERTY_LIST_METHOD, EXPECTED_RET_ERR(GET_PROPERTY_LIST_NAME, "table"), 1);
                 goto next;
             }
 
@@ -1449,7 +1450,7 @@ bool LuauScriptInstance::property_can_revert(const StringName &p_name) {
             }
 
             if (lua_type(ET, -1) != LUA_TBOOLEAN) {
-                s->error("LuauScriptInstance::property_can_revert", "expected " PROPERTY_CAN_REVERT_NAME " to return a boolean", 1);
+                s->error("LuauScriptInstance::property_can_revert", EXPECTED_RET_ERR(PROPERTY_CAN_REVERT_NAME, "boolean"), 1);
                 lua_pop(T, 1); // thread
                 return false;
             }
@@ -1483,7 +1484,7 @@ bool LuauScriptInstance::property_get_revert(const StringName &p_name, Variant *
             }
 
             if (!LuaStackOp<Variant>::is(ET, -1)) {
-                s->error("LuauScriptInstance::property_get_revert", "expected " PROPERTY_GET_REVERT_NAME " to return a Variant", 1);
+                s->error("LuauScriptInstance::property_get_revert", EXPECTED_RET_ERR(PROPERTY_GET_REVERT_NAME, "Variant"), 1);
                 lua_pop(T, 1); // thread
                 return false;
             }
@@ -1577,7 +1578,7 @@ void LuauScriptInstance::call(
             } else if (status == LUA_YIELD) {
                 if (method.return_val.type != GDEXTENSION_VARIANT_TYPE_NIL) {
                     lua_pop(T, 1); // thread
-                    ERR_FAIL_MSG("non-void method yielded unexpectedly");
+                    ERR_FAIL_MSG(NON_VOID_YIELD_ERR);
                 }
 
                 *r_return = Variant();
@@ -1723,6 +1724,8 @@ LuauScriptInstance *LuauScriptInstance::from_object(GDExtensionObjectPtr p_objec
 
 LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type) :
         script(p_script), owner(p_owner), vm_type(p_vm_type) {
+#define INST_CTOR_METHOD "LuauScriptInstance::LuauScriptInstance"
+
     // this usually occurs in _instance_create, but that is marked const for ScriptExtension
     {
         MutexLock lock(*LuauLanguage::singleton->lock.ptr());
@@ -1742,7 +1745,7 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
     base_scripts.invert(); // To initialize base-first
 
     if (permissions != PERMISSION_BASE) {
-        CRASH_COND_MSG(!LuauLanguage::get_singleton()->is_core_script(p_script->get_path()), "!!! non-core script declared permissions !!!");
+        CRASH_COND_MSG(!LuauLanguage::get_singleton()->is_core_script(p_script->get_path()), NON_CORE_PERM_DECL_ERR);
         UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->get_definition().permissions);
     }
 
@@ -1787,16 +1790,16 @@ LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner
                 int status = lua_pcall(T, 1, 0, 0);
 
                 if (status == LUA_YIELD) {
-                    ERR_PRINT(scr->get_path() + ":_Init yielded unexpectedly");
+                    p_script->error(INST_CTOR_METHOD, INIT_YIELD_ERR);
                 } else if (status != LUA_OK) {
-                    ERR_PRINT(scr->get_path() + ":_Init failed: " + LuaStackOp<String>::get(T, -1));
+                    p_script->error(INST_CTOR_METHOD, INIT_ERR(LuaStackOp<String>::get(T, -1)));
                     lua_pop(T, 1);
                 }
             } else {
                 lua_pop(T, 1);
             }
         } else {
-            ERR_PRINT("Couldn't load script methods for " + scr->get_path());
+            ERR_PRINT(METHOD_LOAD_ERR(scr->get_path()));
         }
     }
 }
@@ -1847,10 +1850,10 @@ void LuauLanguage::discover_core_scripts(const String &p_path) {
     UtilityFunctions::print_verbose("Searching for core scripts in ", p_path, "...");
 
     Ref<DirAccess> dir = DirAccess::open(p_path);
-    ERR_FAIL_COND_MSG(!dir.is_valid(), "Failed to open directory");
+    ERR_FAIL_COND_MSG(!dir.is_valid(), DIR_OPEN_ERR(p_path));
 
     Error err = dir->list_dir_begin();
-    ERR_FAIL_COND_MSG(err != OK, "Failed to list directory");
+    ERR_FAIL_COND_MSG(err != OK, DIR_LIST_ERR(p_path));
 
     String file_name = dir->get_next();
 
@@ -2141,7 +2144,7 @@ Error ResourceFormatSaverLuauScript::_save(const Ref<Resource> &p_resource, cons
 
     {
         Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::WRITE);
-        ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), "Cannot save Luau script file '" + p_path + "'.");
+        ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), FILE_SAVE_FAILED_ERR(p_path));
 
         file->store_string(source);
 

@@ -125,8 +125,6 @@ struct GDClassDefinition {
     int set_prop(const String &p_name, const GDClassProperty &p_prop);
 };
 
-class LuauScript;
-
 void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, LuauScript *&r_script);
 String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **r_script = nullptr);
 
