@@ -2,7 +2,7 @@
 # Exceptions:
 #   - Spaces, not tabs
 # https://raw.githubusercontent.com/godotengine/godot/master/.clang-format
-# See README.md for license information
+# See COPYRIGHT.txt for license information
 ---
 ### General config, applies to all languages ###
 BasedOnStyle:  LLVM

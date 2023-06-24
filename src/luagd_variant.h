@@ -9,11 +9,9 @@ using namespace godot;
 
 struct lua_State;
 
-// mirrors Variant + VariantInternal.
-// see README.md for Godot Engine license
-
 #define DATA_SIZE sizeof(real_t) * 4
 
+// Mirrors Variant + VariantInternal.
 class LuauVariant
 {
     int32_t type;

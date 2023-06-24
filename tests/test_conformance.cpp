@@ -50,7 +50,7 @@ static const luaL_Reg test_lib[] = {
 };
 
 static ExecOutput run_conformance(const char *p_name) {
-    // Borrowed from Luau (license information in README.md).
+    // Borrowed from Luau (license information in COPYRIGHT.txt).
     std::string path = std::string("../") + __FILE__;
     path.erase(path.find_last_of("\\/"));
     path += "/conformance/";

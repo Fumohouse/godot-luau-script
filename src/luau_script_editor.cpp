@@ -27,7 +27,7 @@ using namespace godot;
 
 // Much of the editor-specific implementations are based heavily on the GDScript implementation
 // (especially placeholder and reloading functionality).
-// See README.md for license information.
+// See COPYRIGHT.txt for license information.
 
 void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
     PlaceHolderScriptInstance *internal = memnew(PlaceHolderScriptInstance(Ref<LuauScript>(this), p_for_object));
@@ -382,7 +382,7 @@ Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
 //////////////////////////
 
 // Implementation mostly mirrors Godot's implementation.
-// See license information in README.md.
+// See license information in COPYRIGHT.txt.
 
 #define PLACEHOLDER_SELF ((PlaceHolderScriptInstance *)p_self)
 
