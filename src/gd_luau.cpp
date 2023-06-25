@@ -5,7 +5,6 @@
 #include <lualib.h>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "luagd.h"
 #include "luagd_lib.h"
 #include "luagd_permissions.h"
 #include "luau_lib.h"

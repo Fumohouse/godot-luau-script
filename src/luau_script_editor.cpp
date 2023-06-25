@@ -19,7 +19,7 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "gd_luau.h"
-#include "luagd.h"
+#include "luagd_lib.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
 

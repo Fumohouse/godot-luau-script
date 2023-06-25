@@ -3,7 +3,7 @@
 #include <lua.h>
 
 #include "gd_luau.h"
-#include "luagd.h"
+#include "luagd_lib.h"
 #include "luagd_permissions.h"
 
 TEST_CASE("vm: permissions") {

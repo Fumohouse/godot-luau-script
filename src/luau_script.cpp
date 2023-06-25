@@ -38,7 +38,7 @@
 #include "error_strings.h"
 #include "extension_api.h"
 #include "gd_luau.h"
-#include "luagd.h"
+#include "luagd_lib.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
 #include "luagd_variant.h"

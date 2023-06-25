@@ -6,8 +6,6 @@
 
 using namespace godot;
 
-class ApiEnum;
-
 // ! Must update ApiEnum and luau_analysis whenever this is changed
 enum ThreadPermissions {
     PERMISSION_INHERIT = -1,

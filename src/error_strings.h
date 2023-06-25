@@ -16,6 +16,8 @@
 #define VAR_LUAU_PUSH_ERR "Pushing a value from Luau back to Luau is unsupported"
 #define VAR_TYPE_UNINIT_ERR "Variant type was left uninitialized"
 
+#define LANG_REG_FAILED_ERR "Failed to register LuauLanguage"
+
 /* LUAU ERRORS */
 
 // Relatively generic errors

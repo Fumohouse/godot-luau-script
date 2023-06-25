@@ -14,11 +14,10 @@
 #include <godot_cpp/variant/variant.hpp>
 
 #include "error_strings.h"
-#include "luagd.h"
 #include "luagd_bindings.h"
 #include "luagd_bindings_stack.gen.h"
+#include "luagd_lib.h"
 #include "luagd_stack.h"
-#include "luagd_utils.h"
 #include "luau_cache.h"
 #include "luau_script.h"
 #include "wrapped_no_binding.h"

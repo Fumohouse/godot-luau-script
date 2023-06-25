@@ -6,7 +6,7 @@
 #include <godot_cpp/core/type_info.hpp>
 
 #include "error_strings.h"
-#include "luagd.h"
+#include "luagd_lib.h"
 
 void luaGD_checkpermissions(lua_State *L, const char *p_name, BitField<ThreadPermissions> p_permissions) {
     GDThreadData *udata = luaGD_getthreaddata(L);

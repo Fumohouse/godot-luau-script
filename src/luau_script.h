@@ -297,8 +297,6 @@ public:
     const GDMethod *get_signal(const StringName &p_name) const;
     const Variant *get_constant(const StringName &p_name) const;
 
-    BitField<ThreadPermissions> get_permissions() const { return permissions; }
-
     static LuauScriptInstance *from_object(GDExtensionObjectPtr p_object);
 
     LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);

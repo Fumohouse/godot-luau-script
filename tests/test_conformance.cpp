@@ -9,7 +9,7 @@
 #include <string>
 
 #include "gd_luau.h"
-#include "luagd.h"
+#include "luagd_lib.h"
 #include "luagd_permissions.h"
 #include "luau_cache.h"
 #include "test_utils.h"
@@ -77,14 +77,14 @@ static ExecOutput run_conformance(const char *p_name) {
     return luaGD_exec(T, buffer.str().c_str());
 }
 
-#define CONFORMANCE_TEST(m_name, m_file)         \
-    TEST_CASE("conformance: " m_name) {          \
-        GDLuau gd_luau;                          \
-        LuauCache luau_cache;                    \
-                                                 \
+#define CONFORMANCE_TEST(m_name, m_file)          \
+    TEST_CASE("conformance: " m_name) {           \
+        GDLuau gd_luau;                           \
+        LuauCache luau_cache;                     \
+                                                  \
         ExecOutput out = run_conformance(m_file); \
-        if (out.status != OK)                    \
-            FAIL(out.error.utf8().get_data());   \
+        if (out.status != OK)                     \
+            FAIL(out.error.utf8().get_data());    \
     }
 
 CONFORMANCE_TEST("class bindings", "ClassBindings.lua")

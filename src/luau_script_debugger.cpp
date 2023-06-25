@@ -7,7 +7,7 @@
 
 #include "error_strings.h"
 #include "gd_luau.h"
-#include "luagd.h"
+#include "luagd_lib.h"
 
 LuauLanguage::DebugInfo::StackInfo::operator Dictionary() const {
     Dictionary d;
