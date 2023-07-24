@@ -160,7 +160,10 @@ static bool get_godot_type(const String &p_type_name, GDProperty &r_prop) {
 }
 
 static bool get_module_type(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau::AstTypeReference *p_type, GDProperty &r_prop) {
-    const char *prefix = p_type->prefix.value().value;
+    if (!p_type->prefix.has_value())
+        return false;
+
+    const char *prefix = p_type->prefix->value;
 
     RequireFinder require_finder(prefix, p_type->location.end.line);
     p_root->visit(&require_finder);
@@ -172,7 +175,7 @@ static bool get_module_type(Luau::AstStatBlock *p_root, LuauScript *p_script, Lu
     if (!resolve_err.is_empty())
         return false;
 
-    Error err;
+    Error err = OK;
     Ref<LuauScript> required_script = LuauCache::get_singleton()->get_script(full_require_path, err, LuauScript::LOAD_ANALYZE);
     if (err != OK || required_script->is_module())
         return false;
@@ -226,7 +229,7 @@ static Luau::AstTypeReference *get_suitable_type_ref(Luau::AstType *p_type, bool
 }
 
 static bool type_to_prop(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau::AstType *p_type, GDProperty &r_prop, bool p_nullable_is_variant = true) {
-    bool was_conditional;
+    bool was_conditional = false;
     Luau::AstTypeReference *type_ref = get_suitable_type_ref(p_type, was_conditional);
     if (!type_ref)
         return false;
@@ -594,7 +597,7 @@ struct ClassReader : public Luau::AstVisitor {
         error_line = loc.begin.line + 1;
     }
 
-    bool try_add_dependency(Ref<LuauScript> p_script, const Annotation &p_annotation) {
+    bool try_add_dependency(const Ref<LuauScript> &p_script, const Annotation &p_annotation) {
         if (p_script->is_module()) {
             _error(DEP_ADD_FAILED_ERR(p_script->get_path()), p_annotation.location);
             return false;
@@ -638,7 +641,7 @@ struct ClassReader : public Luau::AstVisitor {
                     return;
                 }
 
-                Error err;
+                Error err = OK;
                 Ref<LuauScript> base_script = LuauCache::get_singleton()->get_script(script_path, err, false, LuauScript::LOAD_ANALYZE);
 
                 if (err != OK) {
@@ -877,7 +880,7 @@ struct ClassReader : public Luau::AstVisitor {
                             continue;
                         }
 
-                        args[i].name = func_type->argNames.data[i]->first.value;
+                        args[i].name = func_type->argNames.data[i]->first.value; // NOLINT(bugprone-unchecked-optional-access): wrong
                     }
 
                     if (Luau::AstTypePack *arg_tail = func_type->argTypes.tailType) {

@@ -235,7 +235,7 @@ static int luascript_require(lua_State *L) {
     CharString full_path_utf8 = full_path.utf8();
 
     // Load and write dependency.
-    Error err;
+    Error err = OK;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err);
 
     // Dependencies are, for the most part, not of any concern if they aren't part of the load stage.
@@ -348,16 +348,14 @@ String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **
     LuauScript *script = nullptr;
     luascript_get_classdef_or_type(L, p_index, type, script);
 
-    if (!type.is_empty()) {
-        return type;
+    if (script) {
+        type = script->get_definition().name;
+        if (type.is_empty())
+            luaL_error(L, SCRIPT_UNNAMED_ERR, script->get_path().utf8().get_data());
+
+        if (r_script)
+            *r_script = script;
     }
-
-    type = script->get_definition().name;
-    if (type.is_empty())
-        luaL_error(L, SCRIPT_UNNAMED_ERR, script->get_path().utf8().get_data());
-
-    if (r_script)
-        *r_script = script;
 
     return type;
 }

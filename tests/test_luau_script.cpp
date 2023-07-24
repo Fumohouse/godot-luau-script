@@ -92,7 +92,7 @@ TEST_CASE("luau script: instance") {
         REQUIRE(inst->has_method("TestMethod"));
         REQUIRE(inst->has_method("TestMethod2"));
 
-        uint32_t count;
+        uint32_t count = 0;
         GDExtensionMethodInfo *methods = inst->get_method_list(&count);
 
         REQUIRE(count == 7);
@@ -122,7 +122,7 @@ TEST_CASE("luau script: instance") {
 
     SECTION("property methods") {
         SECTION("get_property_type") {
-            bool is_valid;
+            bool is_valid = false;
             Variant::Type type = inst->get_property_type("testProperty", &is_valid);
 
             REQUIRE(is_valid);
@@ -130,7 +130,7 @@ TEST_CASE("luau script: instance") {
         }
 
         SECTION("get_property_list") {
-            uint32_t count;
+            uint32_t count = 0;
             GDExtensionPropertyInfo *properties = inst->get_property_list(&count);
 
             REQUIRE(count == 5);
@@ -287,13 +287,13 @@ TEST_CASE("luau script: instance") {
     SECTION("setget") {
         SECTION("set") {
             SECTION("with wrong type") {
-                LuauScriptInstance::PropertySetGetError err;
+                LuauScriptInstance::PropertySetGetError err = LuauScriptInstance::PROP_OK;
                 REQUIRE(!inst->set("testProperty", "asdf", &err));
                 REQUIRE(err == LuauScriptInstance::PROP_WRONG_TYPE);
             }
 
             SECTION("read-only") {
-                LuauScriptInstance::PropertySetGetError err;
+                LuauScriptInstance::PropertySetGetError err = LuauScriptInstance::PROP_OK;
                 REQUIRE(!inst->set("testProperty2", "hey there", &err));
                 REQUIRE(err == LuauScriptInstance::PROP_READ_ONLY);
             }
@@ -301,7 +301,7 @@ TEST_CASE("luau script: instance") {
 
         SECTION("get") {
             SECTION("write-only") {
-                LuauScriptInstance::PropertySetGetError err;
+                LuauScriptInstance::PropertySetGetError err = LuauScriptInstance::PROP_OK;
                 Variant val;
                 REQUIRE(!inst->get("testProperty3", val, &err));
                 REQUIRE(err == LuauScriptInstance::PROP_WRITE_ONLY);
@@ -382,8 +382,6 @@ TEST_CASE("luau script: inheritance") {
     // Instance
     Object *obj = memnew(Object);
     obj->set_script(script);
-
-    LuauScriptInstance *inst = script->instance_get(obj->get_instance_id());
 
     lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
     lua_State *T = lua_newthread(L);

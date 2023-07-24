@@ -20,6 +20,10 @@ def write_int32(io, i):
     io.write(struct.pack("<i", i))
 
 
+def write_size(io, i):
+    write_int32(io, i)
+
+
 def write_uint32(io, i):
     io.write(struct.pack("<I", i))
 
@@ -178,7 +182,7 @@ def generate_enum(io, enum):
     write_bool(io, is_bitfield)  # bool is_bitfield
 
     values = enum["values"]
-    write_uint64(io, len(values))  # uint64_t num_values
+    write_size(io, len(values))  # size num_values
 
     for value in values:  # VALUES
         value_name = utils.get_enum_value_name(enum, value["name"])
@@ -223,12 +227,12 @@ def generate_utility_function(io, utility_function):
 
     if "arguments" in utility_function:
         arguments = utility_function["arguments"]
-        write_uint64(io, len(arguments))  # uint64_t num_args
+        write_size(io, len(arguments))  # size num_args
 
         for argument in arguments:  # ApiArgumentNoDefault args[num_args]
             generate_argument_no_default(io, argument)
     else:
-        write_uint64(io, 0)  # uint64_t num_args
+        write_size(io, 0)  # size num_args
 
     write_int32(io, get_variant_type(
         utility_function["return_type"]) if "return_type" in utility_function else -1)  # int32_t return_type
@@ -261,7 +265,7 @@ def generate_builtin_class_method(io, method, class_name, metatable_name, varian
 
     if "arguments" in method:
         arguments = method["arguments"]
-        write_uint64(io, len(arguments))  # uint64_t num_args
+        write_size(io, len(arguments))  # size num_args
 
         for argument in arguments:  # ARGUMENTS
             # ApiArgument
@@ -281,7 +285,7 @@ def generate_builtin_class_method(io, method, class_name, metatable_name, varian
             else:
                 write_int32(io, -1)  # int32_t default_variant_index
     else:
-        write_uint64(io, 0)  # uint64_t num_args
+        write_size(io, 0)  # size num_args
 
     if "return_type" in method:
         # int32_t return_type
@@ -335,17 +339,17 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
     # enums
     if "enums" in builtin_class:
         enums = builtin_class["enums"]
-        write_uint64(io, len(enums))  # uint64_t num_enums
+        write_size(io, len(enums))  # size num_enums
 
         for enum in enums:  # ApiEnum enums[num_enums]
             generate_enum(io, enum)
     else:
-        write_uint64(io, 0)  # uint64_t num_enums
+        write_size(io, 0)  # size num_enums
 
     # constants
     if "constants" in builtin_class:
         class_constants = builtin_class["constants"]
-        write_uint64(io, len(class_constants))  # uint64_t num_constants
+        write_size(io, len(class_constants))  # size num_constants
 
         # ApiVariantConstant constants[num_constants]
         for constant in class_constants:
@@ -353,12 +357,12 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
             write_string(io, constant["name"])  # String name
     else:
-        write_uint64(io, 0)  # uint64_t num_constants
+        write_size(io, 0)  # size num_constants
 
     # constructors
     if class_name != "Callable":  # Special case
         constructors = builtin_class["constructors"]
-        write_uint64(io, len(constructors))  # uint64_t num_constructors
+        write_size(io, len(constructors))  # size num_constructors
 
         # ApiVariantConstructor ctors[num_constructors]
         for constructor in constructors:
@@ -366,32 +370,32 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
             if "arguments" in constructor:
                 arguments = constructor["arguments"]
-                write_uint64(io, len(arguments))  # uint64_t num_args
+                write_size(io, len(arguments))  # size num_args
 
                 # ApiArgumentNoDefault args[num_args]
                 for argument in arguments:
                     generate_argument_no_default(io, argument)
             else:
-                write_uint64(io, 0)  # uint64_t num_args
+                write_size(io, 0)  # size num_args
 
         # String constructor_debug_name
         write_string(io, f"{class_name}.new")
         # String constructor_error_string
         write_string(io, ctor_help_string(class_name, constructors))
     else:
-        write_uint64(io, 0)  # uint64_t num_constructors
+        write_size(io, 0)  # size num_constructors
 
     # members
     if "members" in builtin_class:
         members = builtin_class["members"]
-        write_uint64(io, len(members))  # uint64_t num_members
+        write_uint32(io, len(members))  # uint32_t num_members
 
         for member in members:
             write_string(io, member["name"])  # String name
             write_uint32(io, get_variant_type(
                 member["type"]))  # Variant::Type type
     else:
-        write_uint64(io, 0)  # uint64_t num_members
+        write_uint32(io, 0)  # uint32_t num_members
 
     # String newindex_debug_name
     write_string(io, f"{metatable_name}.__newindex")
@@ -403,7 +407,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
         inst_methods, static_methods = filter_methods(methods)
 
         # instance methods
-        write_uint64(io, len(inst_methods))  # uint64_t num_instance_methods
+        write_uint32(io, len(inst_methods))  # uint32_t num_instance_methods
         # ApiVariantMethod instance_methods[num_instance_methods]
         for method in inst_methods:
             generate_builtin_class_method(
@@ -413,14 +417,14 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
         write_string(io, f"{metatable_name}.__namecall")
 
         # static methods
-        write_uint64(io, len(static_methods))  # uint64_t num_static_methods
+        write_size(io, len(static_methods))  # size num_static_methods
         # ApiVariantMethod static_methods[num_static_methods]
         for method in static_methods:
             generate_builtin_class_method(
                 io, method, class_name, metatable_name, variant_values, variant_value_map)
     else:
-        write_uint64(io, 0)  # uint64_t num_instance_methods
-        write_uint64(io, 0)  # uint64_t num_static_methods
+        write_uint32(io, 0)  # uint32_t num_instance_methods
+        write_size(io, 0)  # size num_static_methods
 
     # operators
     if "operators" in builtin_class:
@@ -446,12 +450,12 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
                 "return_type": return_type
             })
 
-        write_uint64(io, len(operators_map))  # uint64_t num_operator_types
+        write_uint32(io, len(operators_map))  # uint32_t num_operator_types
 
         for variant_op_name, ops in operators_map.items():
             # Variant::Operator op
             write_uint32(io, get_variant_op(variant_op_name))
-            write_uint64(io, len(ops))  # uint64_t num_operators
+            write_size(io, len(ops))  # size num_operators
 
             for op in ops:
                 # Variant::Type right_type
@@ -463,7 +467,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
             # String debug_name
             write_string(io, f"{metatable_name}.{op_metatable_name}")
     else:
-        write_uint64(io, 0)  # uint64_t num_operator_types
+        write_uint32(io, 0)  # uint32_t num_operator_types
 
 
 ###########
@@ -569,13 +573,13 @@ def generate_class_method(io, class_name, metatable_name, classes, settings, met
     # args
     if "arguments" in method:
         arguments = method["arguments"]
-        write_uint64(io, len(arguments))  # uint64_t num_args
+        write_size(io, len(arguments))  # size num_args
 
         for argument in arguments:  # ApiClassArgument args[num_args]
             generate_class_argument(
                 io, argument, classes, variant_values, variant_value_map)
     else:
-        write_uint64(io, 0)  # uint64_t num_args
+        write_size(io, 0)  # size num_args
 
     # return
     if "return_value" in method:
@@ -613,23 +617,23 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
     # enums
     if "enums" in g_class:
         enums = g_class["enums"]
-        write_uint64(io, len(enums))  # uint64_t num_enums
+        write_size(io, len(enums))  # size num_enums
 
         for enum in enums:  # ApiEnum enums[num_enums]
             generate_enum(io, enum)
     else:
-        write_uint64(io, 0)  # uint64_t num_enums
+        write_size(io, 0)  # size num_enums
 
     # constants
     if "constants" in g_class:
         class_constants = g_class["constants"]
-        write_uint64(io, len(class_constants))  # uint64_t num_constants
+        write_size(io, len(class_constants))  # size num_constants
 
         # ApiConstant constants[num_constants]
         for constant in class_constants:
             generate_constant(io, constant)
     else:
-        write_uint64(io, 0)  # uint64_t num_constants
+        write_size(io, 0)  # size num_constants
 
     # constructor
     is_instantiable = g_class["is_instantiable"]
@@ -643,7 +647,7 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
         inst_methods, static_methods = filter_methods(methods)
 
         # instance methods
-        write_uint64(io, len(inst_methods))  # uint64_t num_methods
+        write_uint32(io, len(inst_methods))  # uint32_t num_methods
 
         for method in inst_methods:  # ApiClassMethod methods[num_methods]
             generate_class_method(
@@ -654,20 +658,20 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
             write_string(io, f"{metatable_name}.__namecall")
 
         # static methods
-        write_uint64(io, len(static_methods))  # uint64_t num_static_methods
+        write_size(io, len(static_methods))  # size num_static_methods
 
         # ApiClassMethod static_methods[num_static_methods]
         for method in static_methods:
             generate_class_method(
                 io, class_name, metatable_name, classes, settings, method, variant_values, variant_value_map)
     else:
-        write_uint64(io, 0)  # uint64_t num_methods
-        write_uint64(io, 0)  # uint64_t num_static_methods
+        write_uint32(io, 0)  # uint32_t num_methods
+        write_size(io, 0)  # size num_static_methods
 
     # signals
     if "signals" in g_class:
         signals = g_class["signals"]
-        write_uint64(io, len(signals))  # uint64_t num_signals
+        write_uint32(io, len(signals))  # uint32_t num_signals
 
         for signal in signals:  # ApiClassSignal signals[num_signals]
             # ApiClassSignal
@@ -680,21 +684,21 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
 
             if "arguments" in signal:
                 signal_args = signal["arguments"]
-                write_uint64(io, len(signal_args))  # uint64_t num_args
+                write_size(io, len(signal_args))  # size num_args
 
                 # ApiClassArgument args[num_args]
                 for argument in signal_args:
                     generate_class_argument(
                         io, argument, classes, variant_values, variant_value_map)
             else:
-                write_uint64(io, 0)  # uint64_t num_args
+                write_size(io, 0)  # size num_args
     else:
-        write_uint64(io, 0)  # uint64_t num_signals
+        write_uint32(io, 0)  # uint32_t num_signals
 
     # properties
     if "properties" in g_class:
         properties = g_class["properties"]
-        write_uint64(io, len(properties))  # uint64_t num_properties
+        write_uint32(io, len(properties))  # uint32_t num_properties
 
         # ApiClassProperty properties[num_properties]
         for prop in properties:
@@ -705,7 +709,7 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
             write_string(io, name_luau)  # String name
 
             types = prop["type"].split(",")
-            write_uint64(io, len(types))  # uint64_t num_types
+            write_size(io, len(types))  # size num_types
             for t in types:  # ApiClassType types[num_types]
                 generate_class_type(io, t, classes)
 
@@ -726,7 +730,7 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
             index = prop["index"] if "index" in prop else -1
             write_int32(io, index)  # int32_t index
     else:
-        write_uint64(io, 0)  # uint64_t num_properties
+        write_uint32(io, 0)  # uint32_t num_properties
 
     # String newindex_debug_name
     write_string(io, f"{metatable_name}.__newindex")
@@ -760,6 +764,7 @@ def generate_api_bin(src_dir, api, class_settings):
         - uint64_t len
         - char str[len]
     - bool: uint8_t
+    - size: int32_t
     - Variant::Type: uint32_t
     - Variant::Operator: uint32_t
     - ThreadPermissions: int32_t
@@ -773,14 +778,14 @@ def generate_api_bin(src_dir, api, class_settings):
 
     # Global enums
     global_enums = api["global_enums"]
-    write_uint64(api_bin, len(global_enums))  # uint64_t num_enums
+    write_size(api_bin, len(global_enums))  # size num_enums
 
     for enum in global_enums:  # ApiEnum enums[num_enums]
         generate_enum(api_bin, enum)
 
     # Global constants
     global_constants = api["global_constants"]
-    write_uint64(api_bin, len(global_constants))  # uint64_t num_constants
+    write_size(api_bin, len(global_constants))  # size num_constants
 
     for constant in global_constants:  # ApiConstant constants[num_constants]
         generate_constant(api_bin, constant)
@@ -788,8 +793,8 @@ def generate_api_bin(src_dir, api, class_settings):
     # Utility functions
     utility_functions = [
         uf for uf in api["utility_functions"] if uf["name"] in utils.utils_to_bind]
-    # uint64_t num_utility_functions
-    write_uint64(api_bin, len(utility_functions))
+    # size num_utility_functions
+    write_size(api_bin, len(utility_functions))
 
     # ApiUtilityFunction utility_functions[num_utility_functions]
     for utility_function in utility_functions:
@@ -798,7 +803,7 @@ def generate_api_bin(src_dir, api, class_settings):
     # Builtin classes
     builtin_classes = [bc for bc in api["builtin_classes"]
                        if not utils.should_skip_class(bc["name"]) and not bc["name"] in ["StringName", "NodePath"]]
-    write_uint64(api_bin, len(builtin_classes))  # uint64_t num_builtin_classes
+    write_size(api_bin, len(builtin_classes))  # size num_builtin_classes
 
     # ApiBuiltinClasses builtin_classes[num_builtin_classes]
     for builtin_class in builtin_classes:
@@ -809,7 +814,7 @@ def generate_api_bin(src_dir, api, class_settings):
     classes = api["classes"]
     singletons = api["singletons"]
 
-    write_uint64(api_bin, len(classes))  # uint64_t num_classes
+    write_size(api_bin, len(classes))  # size num_classes
 
     for g_class in classes:
         generate_class(api_bin, g_class, classes,

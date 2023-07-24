@@ -53,7 +53,7 @@ static void variant_test(lua_State *L, GDExtensionVariantType p_type, const T &p
             REQUIRE(cmp_eq(variant, p_value));
 
             SECTION("copy") {
-                LuauVariant copy = variant;
+                LuauVariant copy = variant; // NOLINT(performance-unnecessary-copy-initialization)
                 REQUIRE(copy.get_type() == p_type);
                 REQUIRE(cmp_eq(variant, p_value));
             }
@@ -74,7 +74,7 @@ static void variant_test(lua_State *L, GDExtensionVariantType p_type, const T &p
             REQUIRE(cmp_eq(variant, p_value));
 
             SECTION("copy") {
-                LuauVariant copy = variant;
+                LuauVariant copy = variant; // NOLINT(performance-unnecessary-copy-initialization)
                 REQUIRE(copy.get_type() == p_type);
                 REQUIRE(copy.is_from_luau() == p_is_from_luau);
                 REQUIRE(cmp_eq(variant, p_value));

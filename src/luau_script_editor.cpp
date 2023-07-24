@@ -338,7 +338,7 @@ bool LuauLanguage::_handles_global_class_type(const String &p_type) const {
 }
 
 Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
-    Error err;
+    Error err = OK;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(p_path, err);
     if (err != OK)
         return Dictionary();
@@ -665,7 +665,7 @@ void PlaceHolderScriptInstance::update(const List<GDProperty> &p_properties, con
     }
 }
 
-PlaceHolderScriptInstance::PlaceHolderScriptInstance(Ref<LuauScript> p_script, Object *p_owner) :
+PlaceHolderScriptInstance::PlaceHolderScriptInstance(const Ref<LuauScript> &p_script, Object *p_owner) :
         script(p_script),
         owner(p_owner) {
     // Placeholder instance creation takes place in a const method.

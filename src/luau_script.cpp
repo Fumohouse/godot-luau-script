@@ -7,6 +7,7 @@
 #include <Luau/StringUtils.h>
 #include <gdextension_interface.h>
 #include <lua.h>
+#include <math.h>
 #include <string.h>
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/engine.hpp>
@@ -363,7 +364,7 @@ Error LuauScript::reload_tables() {
 }
 
 Error LuauScript::load(LoadStage p_load_stage, bool p_force) {
-    int current_stage;
+    int current_stage = 0;
 
     if (p_force) {
         current_stage = LOAD_NONE;
@@ -616,7 +617,7 @@ void *LuauScript::_instance_create(Object *p_for_object) const {
     if (!get_path().is_empty() && LuauLanguage::get_singleton()->is_core_script(get_path()))
         type = GDLuau::VM_CORE;
 
-    LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, GDLuau::VM_CORE));
+    LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, type));
     return internal::gdextension_interface_script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
 }
 
@@ -662,7 +663,7 @@ bool LuauScript::add_dependency(const Ref<LuauScript> &p_script) {
 
 void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
     String file;
-    int line;
+    int line = 0;
 
     if (p_line > 0) {
         file = get_path().is_empty() ? "built-in" : get_path();
@@ -870,7 +871,7 @@ void ScriptInstance::get_property_state(GDExtensionScriptInstancePropertyStateAd
     // ! refer to script_language.cpp get_property_state
     // the default implementation is not carried over to GDExtension
 
-    uint32_t count;
+    uint32_t count = 0;
     GDExtensionPropertyInfo *props = get_property_list(&count);
 
     for (int i = 0; i < count; i++) {
@@ -917,7 +918,7 @@ GDExtensionMethodInfo *ScriptInstance::get_method_list(uint32_t *r_count) const 
     const LuauScript *s = get_script().ptr();
 
     while (s) {
-        for (const KeyValue<StringName, GDMethod> pair : s->get_definition().methods) {
+        for (const KeyValue<StringName, GDMethod> &pair : s->get_definition().methods) {
             if (defined.has(pair.key))
                 continue;
 
@@ -1722,7 +1723,7 @@ LuauScriptInstance *LuauScriptInstance::from_object(GDExtensionObjectPtr p_objec
     return nullptr;
 }
 
-LuauScriptInstance::LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type) :
+LuauScriptInstance::LuauScriptInstance(const Ref<LuauScript> &p_script, Object *p_owner, GDLuau::VMType p_vm_type) :
         script(p_script), owner(p_owner), vm_type(p_vm_type) {
 #define INST_CTOR_METHOD "LuauScriptInstance::LuauScriptInstance"
 
@@ -2067,10 +2068,8 @@ void LuauLanguage::_frame() {
     uint64_t new_ticks = nb::Time::get_singleton_nb()->get_ticks_usec();
     double time_scale = nb::Engine::get_singleton_nb()->get_time_scale();
 
-    double delta;
-    if (ticks_usec == 0)
-        delta = 0;
-    else
+    double delta = 0;
+    if (ticks_usec != 0)
         delta = (new_ticks - ticks_usec) / 1e6f;
 
     task_scheduler.frame(delta * time_scale);
@@ -2113,7 +2112,7 @@ String ResourceFormatLoaderLuauScript::_get_resource_type(const String &p_path) 
 }
 
 Variant ResourceFormatLoaderLuauScript::_load(const String &p_path, const String &p_original_path, bool p_use_sub_threads, int32_t p_cache_mode) const {
-    Error err;
+    Error err = OK;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(p_path, err, p_cache_mode == CACHE_MODE_IGNORE);
 
     return script;

@@ -299,14 +299,14 @@ public:
 
     static LuauScriptInstance *from_object(GDExtensionObjectPtr p_object);
 
-    LuauScriptInstance(Ref<LuauScript> p_script, Object *p_owner, GDLuau::VMType p_vm_type);
+    LuauScriptInstance(const Ref<LuauScript> &p_script, Object *p_owner, GDLuau::VMType p_vm_type);
     ~LuauScriptInstance();
 };
 
 // ! sync with core/object/script_language
 // need to reimplement here because Godot does not expose placeholders to GDExtension.
 // doing this is okay because all Godot functions which request a placeholder instance assign it to a ScriptInstance *
-class PlaceHolderScriptInstance : public ScriptInstance {
+class PlaceHolderScriptInstance final : public ScriptInstance {
     Object *owner = nullptr;
     Ref<LuauScript> script;
 
@@ -336,7 +336,7 @@ public:
     Object *get_owner() const override { return owner; }
     Ref<LuauScript> get_script() const override { return script; }
 
-    PlaceHolderScriptInstance(Ref<LuauScript> p_script, Object *p_owner);
+    PlaceHolderScriptInstance(const Ref<LuauScript> &p_script, Object *p_owner);
     ~PlaceHolderScriptInstance();
 };
 

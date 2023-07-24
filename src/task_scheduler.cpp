@@ -8,6 +8,7 @@
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
+#include <utility>
 
 #include "gd_luau.h"
 #include "luagd_lib.h"
@@ -70,7 +71,7 @@ void SignalWaiter::_bind_methods() {
 
 void SignalWaiter::initialize(lua_State *L, Signal p_signal) {
     this->L = L;
-    signal = p_signal;
+    signal = std::move(p_signal);
 
     signal.connect(callable);
 }
@@ -128,7 +129,7 @@ WaitSignalTask::WaitSignalTask(lua_State *L, Signal p_signal, double p_timeout_s
     until_timeout = p_timeout_secs * 1e6;
 
     waiter.instantiate();
-    waiter->initialize(L, p_signal);
+    waiter->initialize(L, std::move(p_signal));
 }
 
 ///////////////

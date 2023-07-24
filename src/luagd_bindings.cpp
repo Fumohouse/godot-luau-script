@@ -576,7 +576,7 @@ static int call_builtin_method(lua_State *L, const ApiBuiltinClass &p_builtin_cl
         return 0;
     } else {
         LuauVariant self;
-        void *self_ptr;
+        void *self_ptr = nullptr;
 
         if (p_method.is_static) {
             self_ptr = nullptr;
@@ -716,7 +716,7 @@ static int luaGD_builtin_operator(lua_State *L) {
     }
 
     LuauVariant right;
-    void *right_ptr;
+    void *right_ptr = nullptr;
 
     for (const ApiVariantOperator &op : *operators) {
         if (op.right_type == GDEXTENSION_VARIANT_TYPE_NIL) {
@@ -788,7 +788,8 @@ void luaGD_openbuiltins(lua_State *L) {
                 lua_pushlightuserdata(L, (void *)&pair.value);
                 lua_pushcclosure(L, luaGD_builtin_operator, builtin_class.operator_debug_names[pair.key], 2);
 
-                const char *op_mt_name;
+                const char *op_mt_name = nullptr;
+
                 switch (pair.key) {
                     case GDEXTENSION_VARIANT_OP_EQUAL:
                         op_mt_name = "__eq";
@@ -1209,7 +1210,7 @@ static int luaGD_class_index(lua_State *L) {
                 luaGD_propwriteonlyerror(L, key);
 
             Variant ret;
-            LuauScriptInstance::PropertySetGetError err;
+            LuauScriptInstance::PropertySetGetError err = LuauScriptInstance::PROP_OK;
             bool is_valid = inst->get(key, ret, &err);
 
             if (is_valid) {
@@ -1294,7 +1295,7 @@ static int luaGD_class_newindex(lua_State *L) {
             if (prop->getter != StringName() && prop->setter == StringName())
                 luaGD_propreadonlyerror(L, key);
 
-            LuauScriptInstance::PropertySetGetError err;
+            LuauScriptInstance::PropertySetGetError err = LuauScriptInstance::PROP_OK;
             LuauVariant val;
             val.lua_check(L, 3, prop->property.type);
 

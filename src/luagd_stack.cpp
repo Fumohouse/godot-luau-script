@@ -12,6 +12,7 @@
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
+#include <utility>
 
 #include "error_strings.h"
 #include "luagd_bindings.h"
@@ -148,7 +149,6 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr p_value) {
 
         // Must search parent classes because some classes used in Godot are not registered,
         // e.g. GodotPhysicsDirectSpaceState3D -> PhysicsDirectSpaceState3D
-        bool mt_found = false;
         StringName curr_class = obj.get_class();
 
         while (!curr_class.is_empty()) {
@@ -162,7 +162,6 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr p_value) {
 
             luaL_getmetatable(L, metatable_name.utf8().get_data());
             if (!lua_isnil(L, -1)) {
-                mt_found = true;
                 break;
             }
 
@@ -270,7 +269,7 @@ int LuaStackOp<Variant>::get_type(lua_State *L, int p_index) {
         case LUA_TNUMBER: {
             // Somewhat frail...
             double value = lua_tonumber(L, p_index);
-            double int_part;
+            double int_part = 0.0;
 
             if (std::modf(value, &int_part) == 0.0)
                 return GDEXTENSION_VARIANT_TYPE_INT;
@@ -389,7 +388,7 @@ bool luaGD_isarray(lua_State *L, int p_index, const char *p_metatable_name, Vari
 UDATA_PUSH(Array);
 
 static void array_set(Array &p_array, int p_index, Variant p_elem) {
-    p_array[p_index] = p_elem;
+    p_array[p_index] = std::move(p_elem);
 }
 
 Array LuaStackOp<Array>::get(lua_State *L, int p_index) {

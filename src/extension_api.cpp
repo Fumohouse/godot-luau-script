@@ -36,6 +36,8 @@ static T read(uint64_t &idx) {
     return val;
 }
 
+typedef int32_t g_size;
+
 template <typename T>
 static T read_uenum(uint64_t &idx) {
     return (T)read<uint32_t>(idx);
@@ -62,7 +64,7 @@ static ApiEnum read_api_enum(uint64_t &idx) {
     e.name = read_string(idx);
     e.is_bitfield = read<uint8_t>(idx);
 
-    uint64_t num_values = read<uint64_t>(idx);
+    g_size num_values = read<g_size>(idx);
     e.values.resize(num_values);
 
     Pair<String, int32_t> *values = e.values.ptrw();
@@ -103,7 +105,7 @@ static ApiVariantMethod read_builtin_method(GDExtensionVariantType p_type, uint6
     uint32_t hash = read<uint32_t>(idx);
     method.func = internal::gdextension_interface_variant_get_ptr_builtin_method(p_type, &method.gd_name, hash);
 
-    uint64_t num_arguments = read<uint64_t>(idx);
+    g_size num_arguments = read<g_size>(idx);
     method.arguments.resize(num_arguments);
 
     ApiArgument *args = method.arguments.ptrw();
@@ -171,7 +173,7 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *p_class_name)
     StringName gd_sn = method.gd_name;
     method.bind = internal::gdextension_interface_classdb_get_method_bind(&class_sn, &gd_sn, hash);
 
-    uint64_t num_args = read<uint64_t>(idx);
+    g_size num_args = read<g_size>(idx);
     method.arguments.resize(num_args);
 
     ApiClassArgument *args = method.arguments.ptrw();
@@ -199,7 +201,7 @@ const ExtensionApi &get_extension_api() {
 
         // Global enums
         {
-            uint64_t num_enums = read<uint64_t>(idx);
+            g_size num_enums = read<g_size>(idx);
             LOG_LEN(num_enums, "global enum(s)");
             extension_api.global_enums.resize(num_enums);
 
@@ -213,7 +215,7 @@ const ExtensionApi &get_extension_api() {
 
         // Global constants
         {
-            uint64_t num_constants = read<uint64_t>(idx);
+            g_size num_constants = read<g_size>(idx);
             LOG_LEN(num_constants, "global constant(s)");
             extension_api.global_constants.resize(num_constants);
 
@@ -227,7 +229,7 @@ const ExtensionApi &get_extension_api() {
 
         // Utility functions
         {
-            uint64_t num_utility_functions = read<uint64_t>(idx);
+            g_size num_utility_functions = read<g_size>(idx);
             LOG_LEN(num_utility_functions, "utility function(s)");
             extension_api.utility_functions.resize(num_utility_functions);
 
@@ -245,7 +247,7 @@ const ExtensionApi &get_extension_api() {
                 uint32_t hash = read<uint32_t>(idx);
                 func.func = internal::gdextension_interface_variant_get_ptr_utility_function(&gd_name, hash);
 
-                uint64_t num_args = read<uint64_t>(idx);
+                g_size num_args = read<g_size>(idx);
                 func.arguments.resize(num_args);
 
                 ApiArgumentNoDefault *args = func.arguments.ptrw();
@@ -261,7 +263,7 @@ const ExtensionApi &get_extension_api() {
 
         // Builtin classes
         {
-            uint64_t num_builtin_classes = read<uint64_t>(idx);
+            g_size num_builtin_classes = read<g_size>(idx);
             LOG_LEN(num_builtin_classes, "builtin class(es)");
             extension_api.builtin_classes.resize(num_builtin_classes);
 
@@ -297,7 +299,7 @@ const ExtensionApi &get_extension_api() {
                 }
 
                 // Enums
-                uint64_t num_enums = read<uint64_t>(idx);
+                g_size num_enums = read<g_size>(idx);
                 new_class.enums.resize(num_enums);
 
                 ApiEnum *enums = new_class.enums.ptrw();
@@ -306,7 +308,7 @@ const ExtensionApi &get_extension_api() {
                     enums[j] = read_api_enum(idx);
 
                 // Constants
-                uint64_t num_constants = read<uint64_t>(idx);
+                g_size num_constants = read<g_size>(idx);
                 new_class.constants.resize(num_constants);
 
                 ApiVariantConstant *constants = new_class.constants.ptrw();
@@ -321,7 +323,7 @@ const ExtensionApi &get_extension_api() {
                 }
 
                 // Constructors
-                uint64_t num_constructors = read<uint64_t>(idx);
+                g_size num_constructors = read<g_size>(idx);
                 new_class.constructors.resize(num_constructors);
 
                 ApiVariantConstructor *constructors = new_class.constructors.ptrw();
@@ -329,7 +331,7 @@ const ExtensionApi &get_extension_api() {
                 for (int j = 0; j < num_constructors; j++) {
                     ApiVariantConstructor &constructor = constructors[j];
 
-                    uint64_t num_args = read<uint64_t>(idx);
+                    g_size num_args = read<g_size>(idx);
                     constructor.arguments.resize(num_args);
 
                     ApiArgumentNoDefault *args = constructor.arguments.ptrw();
@@ -346,7 +348,7 @@ const ExtensionApi &get_extension_api() {
                 }
 
                 // Members
-                uint64_t num_members = read<uint64_t>(idx);
+                uint32_t num_members = read<uint32_t>(idx);
                 new_class.members.reserve(num_members);
 
                 for (int j = 0; j < num_members; j++) {
@@ -366,7 +368,7 @@ const ExtensionApi &get_extension_api() {
                 new_class.index_debug_name = read_string(idx);
 
                 // Methods
-                uint64_t num_instance_methods = read<uint64_t>(idx);
+                uint32_t num_instance_methods = read<uint32_t>(idx);
                 new_class.methods.reserve(num_instance_methods);
 
                 for (int j = 0; j < num_instance_methods; j++) {
@@ -376,7 +378,7 @@ const ExtensionApi &get_extension_api() {
 
                 new_class.namecall_debug_name = read_string(idx);
 
-                uint64_t num_static_methods = read<uint64_t>(idx);
+                g_size num_static_methods = read<g_size>(idx);
                 new_class.static_methods.resize(num_static_methods);
 
                 ApiVariantMethod *static_methods = new_class.static_methods.ptrw();
@@ -385,7 +387,7 @@ const ExtensionApi &get_extension_api() {
                     static_methods[j] = read_builtin_method(new_class.type, idx);
 
                 // Operators
-                uint64_t num_operator_types = read<uint64_t>(idx);
+                uint32_t num_operator_types = read<uint32_t>(idx);
                 new_class.operators.reserve(num_operator_types);
                 new_class.operator_debug_names.reserve(num_operator_types);
 
@@ -393,7 +395,7 @@ const ExtensionApi &get_extension_api() {
                     GDExtensionVariantOperator op = read_uenum<GDExtensionVariantOperator>(idx);
 
                     Vector<ApiVariantOperator> operators;
-                    uint64_t num_operators = read<uint64_t>(idx);
+                    g_size num_operators = read<g_size>(idx);
                     operators.resize(num_operators);
 
                     ApiVariantOperator *ops_ptr = operators.ptrw();
@@ -414,7 +416,7 @@ const ExtensionApi &get_extension_api() {
 
         // Classes
         {
-            uint64_t num_classes = read<uint64_t>(idx);
+            g_size num_classes = read<g_size>(idx);
             LOG_LEN(num_classes, "class(es)");
             extension_api.classes.resize(num_classes);
 
@@ -429,7 +431,7 @@ const ExtensionApi &get_extension_api() {
                 new_class.default_permissions = read_enum<ThreadPermissions>(idx);
 
                 // Enums
-                uint64_t num_enums = read<uint64_t>(idx);
+                g_size num_enums = read<g_size>(idx);
                 new_class.enums.resize(num_enums);
 
                 ApiEnum *enums = new_class.enums.ptrw();
@@ -438,7 +440,7 @@ const ExtensionApi &get_extension_api() {
                     enums[j] = read_api_enum(idx);
 
                 // Constants
-                uint64_t num_constants = read<uint64_t>(idx);
+                g_size num_constants = read<g_size>(idx);
                 new_class.constants.resize(num_constants);
 
                 ApiConstant *constants = new_class.constants.ptrw();
@@ -451,7 +453,7 @@ const ExtensionApi &get_extension_api() {
                 new_class.constructor_debug_name = read_string(idx);
 
                 // Methods
-                uint64_t num_methods = read<uint64_t>(idx);
+                uint32_t num_methods = read<uint32_t>(idx);
                 new_class.methods.reserve(num_methods);
 
                 for (int j = 0; j < num_methods; j++) {
@@ -462,7 +464,7 @@ const ExtensionApi &get_extension_api() {
                 if (num_methods > 0)
                     new_class.namecall_debug_name = read_string(idx);
 
-                uint64_t num_static_methods = read<uint64_t>(idx);
+                g_size num_static_methods = read<g_size>(idx);
                 new_class.static_methods.resize(num_static_methods);
 
                 ApiClassMethod *static_methods = new_class.static_methods.ptrw();
@@ -471,7 +473,7 @@ const ExtensionApi &get_extension_api() {
                     static_methods[j] = read_class_method(idx, new_class.name);
 
                 // Signals
-                uint64_t num_signals = read<uint64_t>(idx);
+                uint32_t num_signals = read<uint32_t>(idx);
                 new_class.signals.reserve(num_signals);
 
                 for (int j = 0; j < num_signals; j++) {
@@ -480,7 +482,7 @@ const ExtensionApi &get_extension_api() {
                     signal.name = read_string(idx);
                     signal.gd_name = read_string(idx);
 
-                    uint64_t num_args = read<uint64_t>(idx);
+                    g_size num_args = read<g_size>(idx);
                     signal.arguments.resize(num_args);
 
                     ApiClassArgument *args = signal.arguments.ptrw();
@@ -492,7 +494,7 @@ const ExtensionApi &get_extension_api() {
                 }
 
                 // Properties
-                uint64_t num_properties = read<uint64_t>(idx);
+                uint32_t num_properties = read<uint32_t>(idx);
                 new_class.properties.reserve(num_properties);
 
                 for (int j = 0; j < num_properties; j++) {
@@ -501,7 +503,7 @@ const ExtensionApi &get_extension_api() {
                     prop.name = read_string(idx);
 
                     // Types
-                    uint64_t num_types = read<uint64_t>(idx);
+                    g_size num_types = read<g_size>(idx);
                     prop.type.resize(num_types);
 
                     ApiClassType *types = prop.type.ptrw();
