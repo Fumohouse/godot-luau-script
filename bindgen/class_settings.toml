@@ -5547,6 +5547,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 ret_nullable = true #
 
+[Camera3D.methods.GetCameraProjection]
+permissions = "INHERIT" #
+
 [Camera3D.methods.GetCameraRid]
 permissions = "INHERIT" #
 
@@ -20456,7 +20459,7 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationObstacle2D]
-inherits = "Node"
+inherits = "Node2D"
 default_permissions = "BASE" #
 
 [NavigationObstacle2D.methods]
@@ -20509,7 +20512,7 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationObstacle3D]
-inherits = "Node"
+inherits = "Node3D"
 default_permissions = "BASE" #
 
 [NavigationObstacle3D.methods]
@@ -29143,8 +29146,6 @@ ret_nullable = true #
 
 [RenderingServer.methods.GetRenderingInfo]
 permissions = "INHERIT" #
-
-#############################
 
 [RenderingServer.methods.GetShaderParameterList]
 permissions = "INHERIT" #

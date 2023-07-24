@@ -1,6 +1,6 @@
 # Godot luau-script
 
-[![Godot Badge](https://img.shields.io/badge/Godot-4.1--beta3-orange)](https://godotengine.org/)
+[![Godot Badge](https://img.shields.io/badge/Godot-4.1.1--stable-orange)](https://godotengine.org/)
 
 GDExtension for Godot 4 adding support for
 [Luau](https://github.com/Roblox/luau), a variant of Lua 5.1, to Godot as a
