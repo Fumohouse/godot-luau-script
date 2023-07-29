@@ -15,7 +15,9 @@ popd
 # Build
 podman_run() {
     podman run -it --rm -v ./files:/root/files:z,ro -v ./out:/root/out:z \
-        -v "./build_scripts/$1.sh":/root/build.sh "gls-$1":$tag ./build.sh
+        -v "./build_scripts/$1.sh":/root/build.sh:ro \
+        -v ./build:/root/build:z \
+        "gls-$1":$tag ./build.sh
 }
 
 for arg in "$@"
