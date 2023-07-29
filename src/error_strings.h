@@ -47,6 +47,7 @@
 #define CLASS_MT_NOT_FOUND_ERR "metatable not found for class %s" // format
 #define TYPED_ARRAY_TYPE_ERR "expected type %s for typed array element, got %s (index %d)" // format
 #define PERMISSIONS_ERR "!!! THREAD PERMISSION VIOLATION: attempted to access '%s'. needed permissions: %li, got: %li !!!" // format
+#define METHOD_NOT_BUILT_ERR "method %s::%s is not present in this Godot build" // format
 
 #define NO_INDEXED_KEYED_SETTER_ERR "class %s does not have any indexed or keyed setter" // format
 #define SETGET_NOT_FOUND_ERR "setter/getter '%s' was not found" // format

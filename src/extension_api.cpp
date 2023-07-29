@@ -10,6 +10,7 @@
 
 #include "luagd_permissions.h"
 #include "luagd_variant.h"
+#include "utils.h"
 
 using namespace godot;
 
@@ -171,7 +172,13 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *p_class_name)
     uint32_t hash = read<uint32_t>(idx);
     StringName class_sn = p_class_name;
     StringName gd_sn = method.gd_name;
-    method.bind = internal::gdextension_interface_classdb_get_method_bind(&class_sn, &gd_sn, hash);
+
+    // Handle platform-specific functionaltiy (e.g. OpenXR in 4.1.x) in a fairly naive way.
+    if (Utils::class_has_method(p_class_name, method.gd_name)) {
+        method.bind = internal::gdextension_interface_classdb_get_method_bind(&class_sn, &gd_sn, hash);
+    } else {
+        LOG("Ignoring ", p_class_name, "::", method.name, ": method does not exist in this build of Godot");
+    }
 
     g_size num_args = read<g_size>(idx);
     method.arguments.resize(num_args);

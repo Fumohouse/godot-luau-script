@@ -24,6 +24,7 @@ public:
     }
 
     static bool class_exists(const StringName &p_class_name);
+    static bool class_has_method(const StringName &p_class_name, const StringName &p_method, bool p_no_inheritance = false);
     static bool is_parent_class(const StringName &p_class_name, const StringName &p_inherits);
     static StringName get_parent_class(const StringName &p_class_name);
 

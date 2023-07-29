@@ -931,6 +931,9 @@ static void handle_object_returned(GDExtensionObjectPtr p_obj) {
 }
 
 static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiClassMethod &p_method) {
+    if (!p_method.bind)
+        luaL_error(L, METHOD_NOT_BUILT_ERR, p_class.name, p_method.name);
+
     luaGD_checkpermissions(L, p_method.debug_name, get_method_permissions(p_class, p_method));
 
     LocalVector<Variant> varargs;
