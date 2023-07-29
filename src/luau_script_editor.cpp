@@ -30,11 +30,16 @@ using namespace godot;
 // See COPYRIGHT.txt for license information.
 
 void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
+#ifdef TOOLS_ENABLED
     PlaceHolderScriptInstance *internal = memnew(PlaceHolderScriptInstance(Ref<LuauScript>(this), p_for_object));
     return internal::gdextension_interface_script_instance_create(&PlaceHolderScriptInstance::INSTANCE_INFO, internal);
+#else
+    return nullptr;
+#endif // TOOLS_ENABLED
 }
 
 void LuauScript::_update_exports() {
+#ifdef TOOLS_ENABLED
     if (_is_module)
         return;
 
@@ -48,8 +53,10 @@ void LuauScript::_update_exports() {
         if (scr->has_dependency(this) && !this->has_dependency(scr))
             scr->_update_exports();
     }
+#endif // TOOLS_ENABLED
 }
 
+#ifdef TOOLS_ENABLED
 void LuauScript::update_exports_values(List<GDProperty> &r_properties, HashMap<StringName, Variant> &r_values) {
     if (base.is_valid() && base->_is_valid()) {
         base->update_exports_values(r_properties, r_values);
@@ -122,11 +129,15 @@ bool LuauScript::update_exports_internal(PlaceHolderScriptInstance *p_instance_t
 
     return changed;
 }
+#endif // TOOLS_ENABLED
 
 void LuauScript::_placeholder_erased(void *p_placeholder) {
+#ifdef TOOLS_ENABLED
     placeholders.erase(((PlaceHolderScriptInstance *)p_placeholder)->get_owner()->get_instance_id());
+#endif // TOOLS_ENABLED
 }
 
+#ifdef TOOLS_ENABLED
 bool LuauScript::placeholder_has(Object *p_object) const {
     return placeholders.has(p_object->get_instance_id());
 }
@@ -134,16 +145,22 @@ bool LuauScript::placeholder_has(Object *p_object) const {
 PlaceHolderScriptInstance *LuauScript::placeholder_get(Object *p_object) {
     return placeholders.get(p_object->get_instance_id());
 }
+#endif // TOOLS_ENABLED
 
 Ref<Script> LuauLanguage::_make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const {
+#ifdef TOOLS_ENABLED
     Ref<LuauScript> script;
     script.instantiate();
 
     // TODO: actual template stuff
 
     return script;
+#else
+    return Ref<Script>();
+#endif // TOOLS_ENABLED
 }
 
+#ifdef TOOLS_ENABLED
 // Sort such that base scripts and modules come first.
 struct LuauScriptDepSort {
     bool operator()(const Ref<LuauScript> &p_a, const Ref<LuauScript> &p_b) const {
@@ -163,7 +180,9 @@ struct LuauScriptDepSort {
         return false;
     }
 };
+#endif // TOOLS_ENABLED
 
+#ifdef TOOLS_ENABLED
 void LuauScript::unload_module() {
     luau_data.bytecode.clear(); // Forces recompile on next load.
 
@@ -180,7 +199,9 @@ void LuauScript::unload_module() {
         lua_pop(L, 1); // MODULE_TABLE
     }
 }
+#endif // TOOLS_ENABLED
 
+#ifdef TOOLS_ENABLED
 List<Ref<LuauScript>> LuauLanguage::get_scripts() const {
     List<Ref<LuauScript>> scripts;
 
@@ -205,8 +226,10 @@ List<Ref<LuauScript>> LuauLanguage::get_scripts() const {
 
     return scripts;
 }
+#endif // TOOLS_ENABLED
 
 void LuauLanguage::_reload_all_scripts() {
+#ifdef TOOLS_ENABLED
     List<Ref<LuauScript>> scripts = get_scripts();
 
     for (Ref<LuauScript> &script : scripts) {
@@ -217,9 +240,11 @@ void LuauLanguage::_reload_all_scripts() {
         script->load_source_code(script->get_path());
         script->_reload(true);
     }
+#endif // TOOLS_ENABLED
 }
 
 void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_reload) {
+#ifdef TOOLS_ENABLED
     // Step 1: List all scripts
     List<Ref<LuauScript>> scripts = get_scripts();
 
@@ -331,13 +356,19 @@ void LuauLanguage::_reload_tool_script(const Ref<Script> &p_script, bool p_soft_
             }
         }
     }
+#endif // TOOLS_ENABLED
 }
 
 bool LuauLanguage::_handles_global_class_type(const String &p_type) const {
+#ifdef TOOLS_ENABLED
     return p_type == _get_type();
+#else
+    return false;
+#endif // TOOLS_ENABLED
 }
 
 Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
+#ifdef TOOLS_ENABLED
     Error err = OK;
     Ref<LuauScript> script = LuauCache::get_singleton()->get_script(p_path, err);
     if (err != OK)
@@ -375,6 +406,9 @@ Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
     ret["icon_path"] = def.icon_path;
 
     return ret;
+#else
+    return Dictionary();
+#endif // TOOLS_ENABLED
 }
 
 //////////////////////////
@@ -384,6 +418,7 @@ Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
 // Implementation mostly mirrors Godot's implementation.
 // See license information in COPYRIGHT.txt.
 
+#ifdef TOOLS_ENABLED
 #define PLACEHOLDER_SELF ((PlaceHolderScriptInstance *)p_self)
 
 static GDExtensionScriptInstanceInfo init_placeholder_instance_info() {
@@ -678,3 +713,4 @@ PlaceHolderScriptInstance::~PlaceHolderScriptInstance() {
         script->_placeholder_erased(this);
     }
 }
+#endif // TOOLS_ENABLED

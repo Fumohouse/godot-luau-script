@@ -48,6 +48,9 @@ env_main.Append(CPPPATH=["src/"])
 
 # Catch2
 if env["tests"]:
+    if env["target"] != "editor":
+        raise ValueError("Tests can only be enabled on the editor target")
+
     env_main.Append(CPPDEFINES="TESTS_ENABLED", CPPPATH=["extern/Catch2/extras/"])
     sources.append(File("extern/Catch2/extras/catch_amalgamated.cpp"))
 

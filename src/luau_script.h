@@ -37,7 +37,9 @@ class ScriptLanguage;
 
 using namespace godot;
 
+#ifdef TOOLS_ENABLED
 class PlaceHolderScriptInstance;
+#endif // TOOLS_ENABLED
 
 typedef HashMap<uint64_t, List<Pair<StringName, Variant>>> ScriptInstanceState;
 
@@ -57,7 +59,9 @@ class LuauScript : public ScriptExtension {
     friend class LuauLanguage;
     friend class LuauCache;
     friend class LuauScriptInstance;
+#ifdef TOOLS_ENABLED
     friend class PlaceHolderScriptInstance;
+#endif // TOOLS_ENABLED
 
 public:
     enum LoadStage {
@@ -80,7 +84,9 @@ private:
     bool source_changed_cache;
 
     HashMap<uint64_t, LuauScriptInstance *> instances;
+#ifdef TOOLS_ENABLED
     HashMap<uint64_t, PlaceHolderScriptInstance *> placeholders;
+#endif // TOOLS_ENABLED
 
     bool _is_loading = false;
     bool valid = false;
@@ -98,8 +104,10 @@ private:
     Error finish_load();
     Error try_load(lua_State *L, String *r_err = nullptr);
 
+#ifdef TOOLS_ENABLED
     void update_exports_values(List<GDProperty> &r_properties, HashMap<StringName, Variant> &r_values);
     bool update_exports_internal(PlaceHolderScriptInstance *p_instance_to_update);
+#endif // TOOLS_ENABLED
 
     Error reload_tables();
 
@@ -165,8 +173,10 @@ public:
     void _update_exports() override;
     void _placeholder_erased(void *p_placeholder) override;
 
+#ifdef TOOLS_ENABLED
     bool placeholder_has(Object *p_object) const;
     PlaceHolderScriptInstance *placeholder_get(Object *p_object);
+#endif // TOOLS_ENABLED
 
     /* TO IMPLEMENT */
     int32_t _get_member_line(const StringName &p_member) const override { return -1; }
@@ -191,7 +201,9 @@ public:
     bool add_dependency(const Ref<LuauScript> &p_script);
 
     void load_module(lua_State *L);
+#if TOOLS_ENABLED
     void unload_module();
+#endif // TOOLS_ENABLED
 
     void error(const char *p_method, String p_msg, int p_line = 0) const;
 
@@ -306,6 +318,7 @@ public:
 // ! sync with core/object/script_language
 // need to reimplement here because Godot does not expose placeholders to GDExtension.
 // doing this is okay because all Godot functions which request a placeholder instance assign it to a ScriptInstance *
+#ifdef TOOLS_ENABLED
 class PlaceHolderScriptInstance final : public ScriptInstance {
     Object *owner = nullptr;
     Ref<LuauScript> script;
@@ -339,6 +352,7 @@ public:
     PlaceHolderScriptInstance(const Ref<LuauScript> &p_script, Object *p_owner);
     ~PlaceHolderScriptInstance();
 };
+#endif // TOOLS_ENABLED
 
 #define THREAD_EXECUTION_TIMEOUT 10
 
@@ -392,7 +406,9 @@ class LuauLanguage : public ScriptLanguageExtension {
 
     void discover_core_scripts(const String &p_path = "res://");
 
+#ifdef TOOLS_ENABLED
     List<Ref<LuauScript>> get_scripts() const;
+#endif // TOOLS_ENABLED
 
 protected:
     static void _bind_methods() {}
