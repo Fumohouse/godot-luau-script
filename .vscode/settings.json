@@ -9,6 +9,7 @@
         "definitions/luauScriptTypes.gen.d.lua"
     ],
     "luau-lsp.fflags.override": {
-        "LuauRecursionLimit": "5000"
+        "LuauRecursionLimit": "5000",
+        "LuauTarjanChildLimit": "20000"
     }
 }

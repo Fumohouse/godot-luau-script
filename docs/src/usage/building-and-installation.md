@@ -1,9 +1,13 @@
 # Building and Installation
 
+Prebuilt binaries can be found on the [releases page](https://github.com/Fumohouse/godot-luau-script/releases).
+
+If you would like to build this project yourself, instructions are provided
+below.
+
 ## Building
 
-`godot-luau-script` uses [SConstruct](https://scons.org/) to build. Currently,
-no prebuilt binaries are provided.
+`godot-luau-script` uses [SConstruct](https://scons.org/) to build.
 
 ### Cloning
 
@@ -23,7 +27,7 @@ need to copy the folder (including built binaries) yourself.
 ### Supported platforms
 
 `godot-luau-script` officially supports compilation using recent versions of
-Clang, GCC, and MSVC, and building for Windows, macOS, and Linux. LLVM
+Clang, GCC, MinGW, and MSVC, and building for Windows, macOS, and Linux. LLVM
 (`clang++`, `clangd`, `clang-format`) utilities are preferred where possible.
 
 ### Building
@@ -63,3 +67,29 @@ files are provided in `bin/`; it should suffice to copy the entire folder into
 your Godot project. After reloading the project, the extension should be loaded
 and you should be able to create a Luau script through the script creation
 dialog.
+
+## Build containers
+
+`podman` build containers are provided in `build_containers/` for reproducible
+build environments on Linux, Windows, and macOS.
+
+### Usage
+
+Scripts should not be run outside the directory they are in.
+
+1. Ensure `podman` is installed
+2. Build images with `build_images.sh`
+3. Build the project with `build_gls.sh` - use arguments `linux`, `windows`, and
+   `macos` to select which platform(s) to build
+
+### Preparing `osxcross`
+
+See [tpoechtrager/osxcross](https://github.com/tpoechtrager/osxcross/tree/master).
+
+Place the SDK (expected name: `MacOSX13.3.sdk.tar.xz`) in .tar.xz format into
+`build_containers/files/`.
+
+Some workarounds may be required for the scripts to function on recent Xcode
+versions (see [this issue comment](https://github.com/tpoechtrager/osxcross/issues/383#issuecomment-1580487598)).
+
+Build was tested on Xcode 14.3.1 (SDK: macOS 13.3).

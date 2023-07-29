@@ -3,13 +3,13 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleExecutable</key>
-	<string>libluau-script.release</string>
+	<string>libluau-script.template_release</string>
 	<key>CFBundleIdentifier</key>
-	<string>xyz.voidedxd.fumohouse.libluau-script</string>
+	<string>pw.seki.fumohouse.libluau-script</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>libluau-script.macos.release</string>
+	<string>libluau-script.macos.template_release</string>
 	<key>CFBundlePackageType</key>
 	<string>FMWK</string>
 	<key>CFBundleShortVersionString</key>
