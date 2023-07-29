@@ -1101,6 +1101,8 @@ static int luaGD_class_get(lua_State *L) {
 static int luaGD_class_namecall(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
+    const char *class_name = current_class->name;
+
     if (const char *name = lua_namecallatom(L, nullptr)) {
         if (strcmp(name, FREE_NAME) == 0) {
             return luaGD_class_free(L);
@@ -1119,7 +1121,7 @@ static int luaGD_class_namecall(lua_State *L) {
             INHERIT_OR_BREAK
         }
 
-        luaGD_nomethoderror(L, name, current_class->name);
+        luaGD_nomethoderror(L, name, class_name);
     }
 
     luaGD_nonamecallatomerror(L);
@@ -1178,6 +1180,7 @@ static int luaGD_crossvm_call(lua_State *L) {
 static int luaGD_class_index(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
+    const char *class_name = current_class->name;
     const char *key = luaL_checkstring(L, 2);
 
     LuauScriptInstance *inst = LuauScriptInstance::from_object(self);
@@ -1280,12 +1283,13 @@ static int luaGD_class_index(lua_State *L) {
     if (inst && inst->table_get(L))
         return 1;
 
-    luaGD_indexerror(L, key, current_class->name);
+    luaGD_indexerror(L, key, class_name);
 }
 
 static int luaGD_class_newindex(lua_State *L) {
     LUAGD_CLASS_METAMETHOD
 
+    const char *class_name = current_class->name;
     const char *key = luaL_checkstring(L, 2);
 
     LuauScriptInstance *inst = LuauScriptInstance::from_object(self);
@@ -1342,7 +1346,7 @@ static int luaGD_class_newindex(lua_State *L) {
     if (inst && inst->table_set(L))
         return 0;
 
-    luaGD_indexerror(L, key, current_class->name);
+    luaGD_indexerror(L, key, class_name);
 }
 
 void luaGD_openclasses(lua_State *L) {

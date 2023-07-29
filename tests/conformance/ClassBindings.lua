@@ -30,6 +30,10 @@ do
     local params = PhysicsRayQueryParameters3D.new()
     assert(params:Get("collide_with_areas") == false)
 
+    asserterror(function()
+        params:NonExistentMethod()
+    end, "'NonExistentMethod' is not a valid method of PhysicsRayQueryParameters3D")
+
     -- Free
     local obj = Object.new()
     obj:Free()
@@ -81,6 +85,14 @@ do
 
     params.collideWithAreas = true
     assert(params.collideWithAreas)
+
+    asserterror(function()
+        return params.nonExistent
+    end, "'nonExistent' is not a valid member of PhysicsRayQueryParameters3D")
+
+    asserterror(function()
+        params.nonExistent = 1
+    end, "'nonExistent' is not a valid member of PhysicsRayQueryParameters3D")
 
     -- Access with index
     local styleBox = StyleBox.new()
