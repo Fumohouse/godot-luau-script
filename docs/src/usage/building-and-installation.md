@@ -49,7 +49,8 @@ are supported:
 - `generate_luau_bindings=yes`: Force regeneration of any auto-generated files
   (see `bindgen/`).
 - `cdb`: Force generation of the `compile_commands.json`, which is used by
-  language servers like `clangd` for analysis.
+  language servers like `clangd` for analysis. Does not work with
+  `use_llvm=yes`.
 
 Additionally, you may want to use the following flags from godot-cpp:
 

@@ -21,18 +21,18 @@ if not env.get("is_msvc", False):
 if env["platform"] == "macos":
     env.Append(RANLIBFLGS="-no_warning_for_no_symbols")
 
-env_base = env.Clone()
-env_base["CPPDEFINES"] = []  # irrelevant to externs
-
 # Using this option makes a warning. Too bad!
 opts = Variables([], ARGUMENTS)
 
 opts.Add(BoolVariable("generate_luau_bindings",
-         "Force generation of Luau bindings.", False))
+         "Force generation of Luau bindings", False))
 opts.Add(BoolVariable("tests", "Build tests", False))
 opts.Add(BoolVariable("iwyu", "Run include-what-you-use on main source", False))
 
 opts.Update(env)
+
+env_base = env.Clone()
+env_base["CPPDEFINES"] = []  # irrelevant to externs
 
 Export("env_base")
 SConscript("extern/SCSub_Luau.py")

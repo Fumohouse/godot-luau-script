@@ -173,7 +173,7 @@ static ApiClassMethod read_class_method(uint64_t &idx, const char *p_class_name)
     StringName class_sn = p_class_name;
     StringName gd_sn = method.gd_name;
 
-    // Handle platform-specific functionaltiy (e.g. OpenXR in 4.1.x) in a fairly naive way.
+    // Handle platform-specific functionality (e.g. OpenXR in 4.1.x) in a fairly naive way.
     if (Utils::class_has_method(p_class_name, method.gd_name)) {
         method.bind = internal::gdextension_interface_classdb_get_method_bind(&class_sn, &gd_sn, hash);
     } else {
