@@ -2,16 +2,27 @@
 
 import os
 
-env = SConscript("extern/godot-cpp/SConstruct")
-
-# Will only include files added by this project, but seems to work fine for clangd
-env = env.Clone()
-env.Tool("compilation_db")
+env = Environment(tools=["default", "compilation_db"], PLATFORM="")
 cdb = env.CompilationDatabase()
 Alias("cdb", cdb)
 
+# clang terminal colors
 if "TERM" in os.environ:
-    env["ENV"]["TERM"] = os.environ["TERM"]  # clang colors
+    env["ENV"]["TERM"] = os.environ["TERM"]
+
+Export("env")
+SConscript("extern/godot-cpp/SConstruct")
+
+# We do not want to export any symbols we don't need to.
+# Strictly speaking, only the init function must be exported.
+if not env.get("is_msvc", False):
+    env.Append(CXXFLAGS=["-fvisibility=hidden"])
+
+if env["platform"] == "macos":
+    env.Append(RANLIBFLGS="-no_warning_for_no_symbols")
+
+env_base = env.Clone()
+env_base["CPPDEFINES"] = []  # irrelevant to externs
 
 # Using this option makes a warning. Too bad!
 opts = Variables([], ARGUMENTS)
@@ -23,20 +34,11 @@ opts.Add(BoolVariable("iwyu", "Run include-what-you-use on main source", False))
 
 opts.Update(env)
 
-env_base = env.Clone()
-env_base["CPPDEFINES"] = []  # irrelevant to externs
-
-Export("env")
 Export("env_base")
 SConscript("extern/SCSub_Luau.py")
 SConscript("SCSub_bindgen.py")
 
 env_main = env.Clone()
-
-# We do not want to export any symbols we don't need to.
-# Strictly speaking, only the init function must be exported.
-if not env_main.get("is_msvc", False):
-    env_main.Append(CXXFLAGS=["-fvisibility=hidden"])
 
 if env["iwyu"]:
     env_main["CC"] = "include-what-you-use"
