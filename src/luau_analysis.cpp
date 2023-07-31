@@ -500,13 +500,12 @@ static String read_hint_list(const char *&ptr) {
     return hint_string;
 }
 
-static bool parse_comments(Luau::Location p_location, const Vector<LuauComment> &p_comments, String &r_body, Vector<Annotation> &r_annotations) {
+static void parse_comments(Luau::Location p_location, const Vector<LuauComment> &p_comments, String &r_body, Vector<Annotation> &r_annotations) {
     uint32_t check_line = p_location.begin.line;
     if (check_line == 0)
-        return false;
+        return;
 
     // Comments are processed in reverse
-    bool found_comment = false;
     bool last_line_empty = false;
     for (int i = p_comments.size() - 1; i >= 0; i--) {
         const LuauComment &comment = p_comments[i];
@@ -522,8 +521,6 @@ static bool parse_comments(Luau::Location p_location, const Vector<LuauComment> 
             // We haven't found a candidate comment yet, continue
             continue;
         }
-
-        found_comment = true;
 
         CharString contents = comment.contents.utf8();
         const char *ptr = contents.get_data() + 2; // first 2 bytes should always be "--"
@@ -561,7 +558,7 @@ static bool parse_comments(Luau::Location p_location, const Vector<LuauComment> 
 
     r_annotations.reverse(); // To be in top -> bottom order
 
-    return found_comment;
+    return;
 }
 
 static bool expr_indexes_local(Luau::AstExpr *p_expr, Luau::AstLocal *p_local, String &r_index) {
@@ -1020,11 +1017,10 @@ struct ClassReader : public Luau::AstVisitor {
 
     /* AST HANDLERS */
 
-#define PARSE_COMMENTS(m_loc)                                 \
-    String body;                                              \
-    Vector<Annotation> annotations;                           \
-    if (!parse_comments(m_loc, *comments, body, annotations)) \
-        return;
+#define PARSE_COMMENTS(m_loc)       \
+    String body;                    \
+    Vector<Annotation> annotations; \
+    parse_comments(m_loc, *comments, body, annotations);
 
     void handle_definition(Luau::AstStatLocal *p_node) {
         PARSE_COMMENTS(p_node->location)
