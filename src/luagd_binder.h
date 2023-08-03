@@ -1,6 +1,7 @@
 #pragma once
 
 #include <lua.h>
+#include <exception>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/method_ptrcall.hpp> // TODO: unused. required to prevent compile error when specializing PtrToArg.
 #include <godot_cpp/core/type_info.hpp>
@@ -51,13 +52,17 @@ public:
         return cify_lambda([=](lua_State *L) -> int {
             luaGD_checkpermissions(L, p_name, p_perms);
 
-            int stack_idx = 1;
-            if constexpr (std::is_same<R, void>()) {
-                F(check_arg<P>(L, stack_idx)...);
-                return 0;
-            } else {
-                LuaStackOp<R>::push(L, F(check_arg<P>(L, stack_idx)...));
-                return 1;
+            try {
+                int stack_idx = 1;
+                if constexpr (std::is_same<R, void>()) {
+                    F(check_arg<P>(L, stack_idx)...);
+                    return 0;
+                } else {
+                    LuaStackOp<R>::push(L, F(check_arg<P>(L, stack_idx)...));
+                    return 1;
+                }
+            } catch (std::exception &e) {
+                luaL_error(L, "%s", e.what());
             }
         });
     }
@@ -69,13 +74,17 @@ public:
 
             T *self = LuaStackOp<T>::check_ptr(L, 1);
 
-            int stack_idx = 2;
-            if constexpr (std::is_same<R, void>()) {
-                (self->*F)(check_arg<P>(L, stack_idx)...);
-                return 0;
-            } else {
-                LuaStackOp<R>::push(L, (self->*F)(check_arg<P>(L, stack_idx)...));
-                return 1;
+            try {
+                int stack_idx = 2;
+                if constexpr (std::is_same<R, void>()) {
+                    (self->*F)(check_arg<P>(L, stack_idx)...);
+                    return 0;
+                } else {
+                    LuaStackOp<R>::push(L, (self->*F)(check_arg<P>(L, stack_idx)...));
+                    return 1;
+                }
+            } catch (std::exception &e) {
+                luaL_error(L, "%s", e.what());
             }
         });
     }

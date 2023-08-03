@@ -3,6 +3,7 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/variant/string.hpp>
+#include <stdexcept>
 
 #include "luagd_binder.h"
 #include "luagd_permissions.h"
@@ -34,6 +35,10 @@ static String test_func_ret_sig(int p_x, float p_y, bool p_z) {
 }
 
 static void test_func_perms() {}
+
+static void test_func_except() {
+    throw std::runtime_error("something went wrong!");
+}
 
 TEST_CASE_METHOD(LuauFixture, "binder: basic static binding") {
     SECTION("without ret") {
@@ -69,6 +74,14 @@ TEST_CASE_METHOD(LuauFixture, "binder: basic static binding") {
 
         ASSERT_EVAL_FAIL(L, "return testFuncPerms()", "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access 'testFuncPerms'. needed permissions: 1, got: 0 !!!")
     }
+
+    SECTION("exception") {
+        const char *name = "testFuncExcept";
+        lua_pushcfunction(L, LuaGDClassBinder::bind_method_static(FID(test_func_except), name), name);
+        lua_setglobal(L, name);
+
+        ASSERT_EVAL_FAIL(L, "return testFuncExcept()", "exec:1: something went wrong!")
+    }
 }
 
 struct TestClass {
@@ -93,6 +106,10 @@ struct TestClass {
     }
 
     void test_method_perms() {
+    }
+
+    void test_method_except() {
+        throw std::runtime_error("something went wrong!");
     }
 };
 
@@ -146,5 +163,13 @@ TEST_CASE_METHOD(LuauFixture, "binder: basic instance binding") {
         lua_setglobal(L, "TestMethodPerms");
 
         ASSERT_EVAL_FAIL(L, "TestMethodPerms(testInstance)", "exec:1: !!! THREAD PERMISSION VIOLATION: attempted to access 'TestClass.TestMethodPerms'. needed permissions: 1, got: 0 !!!")
+    }
+
+    SECTION("with exception") {
+        const char *name = "TestClass.TestMethodException";
+        lua_pushcfunction(L, LuaGDClassBinder::bind_method(FID(&TestClass::test_method_except), name), name);
+        lua_setglobal(L, "TestMethodException");
+
+        ASSERT_EVAL_FAIL(L, "TestMethodException(testInstance)", "exec:1: something went wrong!")
     }
 }
