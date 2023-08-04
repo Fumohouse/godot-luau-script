@@ -1,11 +1,12 @@
 # Known Issues
 
-`godot-luau-script`, godot-cpp, Godot's GDExtension script language interface,
-and Godot 4 itself are all unstable. As such, you may experience significant
-issues when using all of these things together.
+`godot-luau-script` and Godot's GDExtension script language interface are both
+relatively unstable. As such, you may experience issues when using them
+together.
 
-## Upstream issue: Godot crashes when loading a project for the first time
+## Error: `_gdvirtual__get_language_call: Required virtual method ScriptExtension::_get_language must be overridden before calling.`
 
-This likely occurs because the `ScriptLanguage` is used before initialization
-when the extension is loaded for the first time (or, that it is used during
-asset reimport somehow).
+This is likely an upstream issue with the initialization of GDExtension classes.
+Scripts should run normally despite this error.
+
+The issue is tracked [here](https://github.com/godotengine/godot/issues/80275).
