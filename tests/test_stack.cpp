@@ -9,6 +9,7 @@
 #include <godot_cpp/variant/transform3d.hpp>
 #include <godot_cpp/variant/vector3.hpp>
 
+#include "godot_cpp/variant/dictionary.hpp"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_stack.h"
 #include "test_utils.h"
@@ -42,11 +43,11 @@ TEST_CASE_METHOD(LuauFixture, "vm: stack operations") {
     }
 }
 
-#define CHECK_ARR(m_type)                                          \
-    {                                                              \
-        REQUIRE(LuaStackOp<m_type>::is(L, -1));                    \
-        REQUIRE(LuaStackOp<m_type>::get(L, -1) == expected_arr);   \
-        REQUIRE(LuaStackOp<m_type>::check(L, -1) == expected_arr); \
+#define CHECK_OP(m_type, m_expected)                             \
+    {                                                            \
+        REQUIRE(LuaStackOp<m_type>::is(L, -1));                  \
+        REQUIRE(LuaStackOp<m_type>::get(L, -1) == m_expected);   \
+        REQUIRE(LuaStackOp<m_type>::check(L, -1) == m_expected); \
     }
 
 TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
@@ -65,14 +66,14 @@ TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
 
                 return arr
             )ASDF",
-                    CHECK_ARR(PackedStringArray));
+                    CHECK_OP(PackedStringArray, expected_arr));
         }
 
         SECTION("coerced") {
             EVAL_THEN(L, R"ASDF(
                 return { "1", "2", "3" }
             )ASDF",
-                    CHECK_ARR(PackedStringArray));
+                    CHECK_OP(PackedStringArray, expected_arr));
         }
     }
 
@@ -92,15 +93,41 @@ TEST_CASE_METHOD(LuauFixture, "vm: array stack operations") {
 
                     return arr
                 )ASDF",
-                        CHECK_ARR(Array));
+                        CHECK_OP(Array, expected_arr));
             }
 
             SECTION("coerced") {
                 EVAL_THEN(L, R"ASDF(
                     return { "1", 2.5, Vector2.new(3, 4) }
                 )ASDF",
-                        CHECK_ARR(Array));
+                        CHECK_OP(Array, expected_arr));
             }
         }
+    }
+}
+
+TEST_CASE_METHOD(LuauFixture, "vm: dictionary stack operations") {
+    Dictionary expected_dict;
+    expected_dict["one"] = 1;
+    expected_dict["two"] = 2;
+    expected_dict["three"] = 3;
+
+    SECTION("Godot") {
+        EVAL_THEN(L, R"ASDF(
+            local dict = Dictionary.new()
+            dict:Set("one", 1)
+            dict:Set("two", 2)
+            dict:Set("three", 3)
+
+            return dict
+        )ASDF",
+                CHECK_OP(Dictionary, expected_dict));
+    }
+
+    SECTION("coerced") {
+        EVAL_THEN(L, R"ASDF(
+            return { one = 1, two = 2, three = 3 }
+        )ASDF",
+                CHECK_OP(Dictionary, expected_dict));
     }
 }

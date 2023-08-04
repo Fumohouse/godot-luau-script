@@ -98,6 +98,7 @@ STACK_OP_STR_DEF(StringName)
 STACK_OP_STR_DEF(NodePath)
 
 STACK_OP_PTR_DEF(Array)
+STACK_OP_PTR_DEF(Dictionary)
 
 /* USERDATA */
 
@@ -210,12 +211,12 @@ TArray luaGD_getarray(lua_State *L, int p_index, const char *p_metatable_name, V
 }
 
 template <typename TArray>
-TArray luaGD_checkarray(lua_State *L, int p_index, const char *p_metatable_name, Variant::Type p_type, const String &p_class_name, typename ArraySetter<TArray>::ArraySet p_setter) {
+TArray luaGD_checkarray(lua_State *L, int p_index, const char *p_arr_type_name, const char *p_metatable_name, Variant::Type p_type, const String &p_class_name, typename ArraySetter<TArray>::ArraySet p_setter) {
     if (luaGD_metatables_match(L, p_index, p_metatable_name))
         return *LuaStackOp<TArray>::get_ptr(L, p_index);
 
     if (!lua_istable(L, p_index))
-        return TArray();
+        luaL_typeerrorL(L, p_index, p_arr_type_name);
 
     p_index = lua_absindex(L, p_index);
 
@@ -260,26 +261,26 @@ TArray luaGD_checkarray(lua_State *L, int p_index, const char *p_metatable_name,
     return arr;
 }
 
-#define ARRAY_STACK_OP_IMPL(m_type, m_variant_type, m_elem_type, m_metatable_name)                       \
-    static void m_type##_set(m_type &p_array, int p_index, Variant p_elem) {                             \
-        p_array[p_index] = p_elem.operator m_elem_type();                                                \
-    }                                                                                                    \
-                                                                                                         \
-    UDATA_ALLOC(m_type, m_metatable_name, DTOR(m_type))                                                  \
-    UDATA_PUSH(m_type)                                                                                   \
-                                                                                                         \
-    bool LuaStackOp<m_type>::is(lua_State *L, int p_index) {                                             \
-        return luaGD_isarray(L, p_index, m_metatable_name, m_variant_type, "");                          \
-    }                                                                                                    \
-                                                                                                         \
-    UDATA_GET_PTR(m_type, m_metatable_name)                                                              \
-                                                                                                         \
-    m_type LuaStackOp<m_type>::get(lua_State *L, int p_index) {                                          \
-        return luaGD_getarray<m_type>(L, p_index, m_metatable_name, m_variant_type, "", m_type##_set);   \
-    }                                                                                                    \
-                                                                                                         \
-    UDATA_CHECK_PTR(m_type, m_metatable_name)                                                            \
-                                                                                                         \
-    m_type LuaStackOp<m_type>::check(lua_State *L, int p_index) {                                        \
-        return luaGD_checkarray<m_type>(L, p_index, m_metatable_name, m_variant_type, "", m_type##_set); \
+#define ARRAY_STACK_OP_IMPL(m_type, m_variant_type, m_elem_type, m_metatable_name)                                \
+    static void m_type##_set(m_type &p_array, int p_index, Variant p_elem) {                                      \
+        p_array[p_index] = p_elem.operator m_elem_type();                                                         \
+    }                                                                                                             \
+                                                                                                                  \
+    UDATA_ALLOC(m_type, m_metatable_name, DTOR(m_type))                                                           \
+    UDATA_PUSH(m_type)                                                                                            \
+                                                                                                                  \
+    bool LuaStackOp<m_type>::is(lua_State *L, int p_index) {                                                      \
+        return luaGD_isarray(L, p_index, m_metatable_name, m_variant_type, "");                                   \
+    }                                                                                                             \
+                                                                                                                  \
+    UDATA_GET_PTR(m_type, m_metatable_name)                                                                       \
+                                                                                                                  \
+    m_type LuaStackOp<m_type>::get(lua_State *L, int p_index) {                                                   \
+        return luaGD_getarray<m_type>(L, p_index, m_metatable_name, m_variant_type, "", m_type##_set);            \
+    }                                                                                                             \
+                                                                                                                  \
+    UDATA_CHECK_PTR(m_type, m_metatable_name)                                                                     \
+                                                                                                                  \
+    m_type LuaStackOp<m_type>::check(lua_State *L, int p_index) {                                                 \
+        return luaGD_checkarray<m_type>(L, p_index, #m_type, m_metatable_name, m_variant_type, "", m_type##_set); \
     }

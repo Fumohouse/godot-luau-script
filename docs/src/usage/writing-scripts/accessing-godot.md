@@ -70,7 +70,7 @@ errors or for items to be skipped. \
 `==` comparison is not allowed between two different types in Luau, so these
 operators do not work.
 
-### Odd exceptions
+### Notes
 
 - For security (permissions) reasons, the only supported `Callable` constructor
   is `Callable.new(object: Object, methodName: string | StringName)`.
@@ -82,3 +82,8 @@ operators do not work.
   - The intention with these constructors is to use them like a prefix you would
     find in other languages, e.g. `SN"testStringName"`. This is valid because
     of Lua's lenient parsing rules.
+- Some Lua types are automatically converted to Godot types when necessary:
+  - `{Variant}` to `Array`
+  - `{T}` to their corresponding `Packed[T]Array` types
+  - `{[Variant]: Variant}` to `Dictionary`
+  - `string` to `String`, `NodePath`, or `StringName`

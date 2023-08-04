@@ -9,10 +9,14 @@ gd_luau_type_map = {
     "String": "string",
 }
 
+# Types which should have *Like suffix when used as an argument since it can be
+# coerced from other types
+gd_luau_arg_coerce_types = ["StringName", "NodePath", "Array", "Dictionary"]
+
 
 def get_luau_type(type_string, api, is_ret=False, is_obj_nullable=True):
-    if type_string in ["StringName", "NodePath"]:
-        return "string" if is_ret else f"string | {type_string}N"
+    if type_string in gd_luau_arg_coerce_types and not is_ret:
+        return type_string + "Like"
 
     if type_string in gd_luau_type_map:
         return gd_luau_type_map[type_string]
@@ -536,6 +540,11 @@ declare class NodePathN end
 export type StringName = string
 export type NodePath = string
 export type NodePathConstrained<T...> = NodePath
+
+export type NodePathLike = string | NodePathN
+export type StringNameLike = string | StringNameN
+export type ArrayLike = {Variant} | Array
+export type DictionaryLike = {[Variant]: Variant} | Array
 """)
 
     # luau_lib types

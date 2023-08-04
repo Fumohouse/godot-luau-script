@@ -55,4 +55,4 @@ declare function wait_signal<T...>(signal: Signal, timeout: number?): (true, T..
 
 --- Gets a global constant (e.g. AutoLoad) which was defined in the Godot editor.
 --- @param name The name of the global constant.
-declare function gdglobal(name: string | StringName): Variant
+declare function gdglobal(name: StringNameLike): Variant

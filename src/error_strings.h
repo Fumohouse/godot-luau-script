@@ -46,6 +46,7 @@
 #define REFCOUNTED_FREE_ERR "cannot free a RefCounted object"
 #define CLASS_MT_NOT_FOUND_ERR "metatable not found for class %s" // format
 #define TYPED_ARRAY_TYPE_ERR "expected type %s for typed array element, got %s (index %d)" // format
+#define DICTIONARY_TYPE_ERR "table to Dictionary conversion requires all keys and values to be Variant compatible"
 #define PERMISSIONS_ERR "!!! THREAD PERMISSION VIOLATION: attempted to access '%s'. needed permissions: %li, got: %li !!!" // format
 #define METHOD_NOT_BUILT_ERR "method %s::%s is not present in this Godot build" // format
 
