@@ -177,3 +177,7 @@
 #define PLACEHOLDER_ARG_ERR "@placeholderText requires one argument for the placeholder text"
 
 #define EXPEASING_ARG_ERR "@expEasing expects a value of either 'attenuation' or 'positiveOnly'"
+
+/* BINDER ERRORS */
+
+#define MT_ALREADY_EXISTS_ERR "metatable '%s' already exists" // format
