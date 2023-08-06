@@ -39,11 +39,11 @@ bool luaGD_metatables_match(lua_State *L, int p_index, const char *p_metatable_n
 
 /* BASIC TYPES */
 
-#define BASIC_STACK_OP_IMPL(m_type, m_op_name, m_is_name)                                                                \
-    void LuaStackOp<m_type>::push(lua_State *L, const m_type &value) { lua_push##m_op_name(L, value); }                  \
-    m_type LuaStackOp<m_type>::get(lua_State *L, int index) { return static_cast<m_type>(lua_to##m_op_name(L, index)); } \
-    bool LuaStackOp<m_type>::is(lua_State *L, int index) { return lua_is##m_is_name(L, index); }                         \
-    m_type LuaStackOp<m_type>::check(lua_State *L, int index) { return static_cast<m_type>(luaL_check##m_op_name(L, index)); }
+#define BASIC_STACK_OP_IMPL(m_type, m_op_name, m_is_name)                                                                    \
+    void LuaStackOp<m_type>::push(lua_State *L, const m_type &p_value) { lua_push##m_op_name(L, p_value); }                  \
+    m_type LuaStackOp<m_type>::get(lua_State *L, int p_index) { return static_cast<m_type>(lua_to##m_op_name(L, p_index)); } \
+    bool LuaStackOp<m_type>::is(lua_State *L, int p_index) { return lua_is##m_is_name(L, p_index); }                         \
+    m_type LuaStackOp<m_type>::check(lua_State *L, int p_index) { return static_cast<m_type>(luaL_check##m_op_name(L, p_index)); }
 
 BASIC_STACK_OP_IMPL(bool, boolean, boolean);
 BASIC_STACK_OP_IMPL(int, integer, number);

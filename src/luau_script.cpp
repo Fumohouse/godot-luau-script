@@ -46,6 +46,7 @@
 #include "luau_analysis.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
+#include "services/luau_interface.h"
 #include "utils.h"
 #include "wrapped_no_binding.h"
 
@@ -1919,6 +1920,8 @@ void LuauLanguage::_init() {
     run_tests();
 #endif // TESTS_ENABLED
 
+    // Initialize LuauInterface first, deinit last due to GDLuau dependency
+    interface = memnew(LuauInterface);
     luau = memnew(GDLuau);
     cache = memnew(LuauCache);
 
@@ -1939,6 +1942,11 @@ void LuauLanguage::finalize() {
     if (cache) {
         memdelete(cache);
         cache = nullptr;
+    }
+
+    if (interface) {
+        memdelete(interface);
+        interface = nullptr;
     }
 
     finalized = true;

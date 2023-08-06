@@ -28,6 +28,7 @@
 #include "luagd_permissions.h"
 #include "luau_analysis.h"
 #include "luau_lib.h"
+#include "services/luau_interface.h"
 #include "task_scheduler.h"
 
 namespace godot {
@@ -374,6 +375,7 @@ class LuauLanguage : public ScriptLanguageExtension {
     static LuauLanguage *singleton;
     GDLuau *luau = nullptr;
     LuauCache *cache = nullptr;
+    LuauInterface *interface = nullptr;
     TaskScheduler task_scheduler;
 
     uint64_t ticks_usec = 0;

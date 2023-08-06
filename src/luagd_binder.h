@@ -78,7 +78,7 @@ public:
             static CharString name = p_name.utf8();                                                                                                        \
             luaGD_checkpermissions(L, name.get_data(), p_perms);                                                                                           \
                                                                                                                                                            \
-            T *self = LuaStackOp<T>::check_ptr(L, 1);                                                                                                      \
+            T *self = LuaStackOp<T *>::check(L, 1);                                                                                                        \
                                                                                                                                                            \
             try {                                                                                                                                          \
                 int stack_idx = 2;                                                                                                                         \
@@ -112,8 +112,11 @@ class LuaGDClass {
         lua_CFunction getter;
     };
 
+    typedef int (*IndexOverride)(lua_State *L, const char *p_name);
+
     const char *name = nullptr;
     const char *metatable_name = nullptr;
+    IndexOverride index_override = nullptr;
 
     HashMap<String, Method> static_methods;
     HashMap<String, Method> methods;
@@ -127,6 +130,7 @@ class LuaGDClass {
 
 public:
     void set_name(const char *p_name, const char *p_metatable_name);
+    const char *get_name() const { return name; }
 
     template <typename FId>
     lua_CFunction bind_method_static(const char *p_name, FId p_func, BitField<ThreadPermissions> p_perms = PERMISSION_BASE) {
@@ -147,6 +151,8 @@ public:
     }
 
     void bind_property(const char *p_name, lua_CFunction setter, lua_CFunction getter);
+
+    void set_index_override(IndexOverride p_func);
 
     // Must be called when this LuaGDClass's pointer is stable
     void init_metatable(lua_State *L) const;

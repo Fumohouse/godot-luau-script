@@ -45,6 +45,7 @@ if env["iwyu"]:
     env_main["CXX"] = "include-what-you-use"
 
 sources = Glob("src/*.cpp")
+sources += Glob("src/services/*.cpp")
 
 env_main.Append(CPPPATH=["src/"])
 

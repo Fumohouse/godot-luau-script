@@ -8,6 +8,7 @@
 #include "luagd_lib.h"
 #include "luagd_permissions.h"
 #include "luau_lib.h"
+#include "services/luau_interface.h"
 
 using namespace godot;
 
@@ -17,6 +18,12 @@ void GDLuau::init_vm(VMType p_type) {
     lua_State *L = luaGD_newstate(p_type, PERMISSION_BASE);
     luaGD_openlibs(L);
     luascript_openlibs(L);
+
+    if (LuauInterface::get_singleton()) {
+        LuauInterface::get_singleton()->register_metatables(L);
+        LuauInterface::get_singleton()->lua_push(L);
+        lua_setglobal(L, LuauInterface::get_singleton()->get_name());
+    }
 
     // Seal main global state
     luaL_sandbox(L);

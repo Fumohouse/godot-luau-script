@@ -10,6 +10,7 @@
 #include "luagd_lib.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
+#include "services/luau_interface.h"
 #include "test_utils.h"
 
 using namespace godot;
@@ -115,14 +116,15 @@ struct TestClass {
     }
 };
 
-STACK_OP_PTR_DEF(TestClass)
-UDATA_STACK_OP_IMPL(TestClass, "Tests.TestClass", DTOR(TestClass))
+STACK_OP_SVC_DEF(TestClass)
+SVC_STACK_OP_IMPL(TestClass, "Tests.TestClass")
 
 TEST_CASE_METHOD(LuauFixture, "binder: basic instance binding") {
     luaL_newmetatable(L, "Tests.TestClass");
     lua_pop(L, 1);
 
-    LuaStackOp<TestClass>::push(L, TestClass());
+    TestClass test_instance;
+    LuaStackOp<TestClass *>::push(L, &test_instance);
     lua_setglobal(L, "testInstance");
 
     SECTION("no ret") {
@@ -131,13 +133,10 @@ TEST_CASE_METHOD(LuauFixture, "binder: basic instance binding") {
         lua_setglobal(L, "TestMethod");
 
         EVAL_THEN(L, "return TestMethod(testInstance, 'test', 0.25, false)", {
-            lua_getglobal(L, "testInstance");
-            TestClass *x = LuaStackOp<TestClass>::check_ptr(L, -1);
-
-            REQUIRE(x->L == L);
-            REQUIRE(x->x == "test");
-            REQUIRE(x->y == 0.25);
-            REQUIRE(!x->z);
+            REQUIRE(test_instance.L == L);
+            REQUIRE(test_instance.x == "test");
+            REQUIRE(test_instance.y == 0.25);
+            REQUIRE(!test_instance.z);
         })
 
         ASSERT_EVAL_FAIL(L, "TestMethod(testInstance)", "exec:1: missing argument #2 to 'TestClass.TestMethod' (string expected)")
@@ -208,8 +207,8 @@ struct TestFullClass {
     }
 };
 
-STACK_OP_PTR_DEF(TestFullClass)
-UDATA_STACK_OP_IMPL(TestFullClass, "Tests.TestFullClass", DTOR(TestFullClass))
+STACK_OP_SVC_DEF(TestFullClass)
+SVC_STACK_OP_IMPL(TestFullClass, "Tests.TestFullClass")
 
 TEST_CASE_METHOD(LuauFixture, "binder: class binding") {
     LuaGDClass test_class;
@@ -230,7 +229,8 @@ TEST_CASE_METHOD(LuauFixture, "binder: class binding") {
 
     test_class.init_metatable(L);
 
-    LuaStackOp<TestFullClass>::push(L, TestFullClass());
+    TestFullClass test_instance;
+    LuaStackOp<TestFullClass *>::push(L, &test_instance);
     lua_setglobal(L, "testInstance");
 
     GDThreadData *udata = luaGD_getthreaddata(L);
@@ -246,11 +246,8 @@ TEST_CASE_METHOD(LuauFixture, "binder: class binding") {
     SECTION("instance method") {
         udata->permissions = PERMISSION_INTERNAL;
         EVAL_THEN(L, "testInstance:TestMethod(1, true)", {
-            lua_getglobal(L, "testInstance");
-            TestFullClass *inst = LuaStackOp<TestFullClass>::check_ptr(L, -1);
-
-            REQUIRE(inst->x == 1);
-            REQUIRE(inst->y);
+            REQUIRE(test_instance.x == 1);
+            REQUIRE(test_instance.y);
         })
 
         udata->permissions = PERMISSION_BASE;
@@ -270,10 +267,7 @@ TEST_CASE_METHOD(LuauFixture, "binder: class binding") {
 
         SECTION("write-only") {
             EVAL_THEN(L, "testInstance.testWriteonly = 2", {
-                lua_getglobal(L, "testInstance");
-                TestFullClass *inst = LuaStackOp<TestFullClass>::check_ptr(L, -1);
-
-                REQUIRE(inst->x == 4);
+                REQUIRE(test_instance.x == 4);
             })
 
             ASSERT_EVAL_FAIL(L, "return testInstance.testWriteonly", "exec:1: property 'testWriteonly' is write-only");

@@ -45,6 +45,12 @@ int LuaGDClass::lua_index(lua_State *L) {
     const char *name = luaL_checkstring(L, 2);
     lua_remove(L, 2); // not used further
 
+    if (l_class->index_override) {
+        if (int nret = l_class->index_override(L, name)) {
+            return nret;
+        }
+    }
+
     HashMap<String, Property>::ConstIterator E = l_class->properties.find(name);
     if (E) {
         if (!E->value.getter) {
@@ -78,6 +84,10 @@ void LuaGDClass::set_name(const char *p_name, const char *p_metatable_name) {
 
 void LuaGDClass::bind_property(const char *p_name, lua_CFunction setter, lua_CFunction getter) {
     properties.insert(p_name, { setter, getter });
+}
+
+void LuaGDClass::set_index_override(IndexOverride p_func) {
+    index_override = p_func;
 }
 
 void LuaGDClass::init_metatable(lua_State *L) const {
