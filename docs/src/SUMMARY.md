@@ -15,6 +15,7 @@
   - ["Core Scripts", VMs, and Permissions](./usage/writing-scripts/core-scripts-vms-permissions.md)
   - [Modules](./usage/writing-scripts/modules.md)
   - [The Task Scheduler](./usage/writing-scripts/task-scheduler.md)
+  - [init.lua](./usage/writing-scripts/init-file.md)
   - [Typechecking and Autocomplete](./usage/writing-scripts/typechecking-autocomplete.md)
 - [Known Issues](./usage/known-issues.md)
 

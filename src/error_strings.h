@@ -65,6 +65,7 @@
 
 /* LUAU_LIB ERRORS */
 
+#define SCRIPT_THREAD_ERR "this function can only be run from a script thread"
 #define GDPROPERTY_TYPE_ERR "expected table type for GDProperty value"
 #define NEW_DURING_LOAD_ERR "cannot instantiate: script is loading"
 #define GDCLASS_CUSTOM_MT_ERR "custom metatables are not supported on class definitions"
@@ -90,6 +91,7 @@
 #define EXPECTED_RET_ERR(m_name, m_type) "Expected " m_name " to return a " m_type
 #define NON_VOID_YIELD_ERR "Non-void method yielded unexpectedly"
 #define NON_CORE_PERM_DECL_ERR "!!! Non-core script declared permissions !!!"
+#define INIT_FILE_YIELD_ERR "init.lua yielded unexpectedly"
 
 #define DEP_ADD_FAILED_ERR(m_path) ("Cannot add module at " + m_path + " as dependency") // String
 #define CYCLIC_SCRIPT_REF_ERR(m_dep, m_to) ("Cyclic reference detected; cannot add script at " + m_dep + " as dependency for script at " + m_to) // String

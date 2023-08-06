@@ -47,6 +47,8 @@ typedef HashMap<uint64_t, List<Pair<StringName, Variant>>> ScriptInstanceState;
 class LuauCache;
 class LuauScriptInstance;
 
+#define INIT_LUA_PATH "res://init.lua"
+
 struct LuauData {
     Luau::Allocator allocator;
     Luau::ParseResult parse_result;
@@ -206,7 +208,7 @@ public:
     void unload_module();
 #endif // TOOLS_ENABLED
 
-    void error(const char *p_method, String p_msg, int p_line = 0) const;
+    void error(const char *p_method, const String &p_msg, int p_line = 0) const;
 
     LuauScript();
     ~LuauScript();
@@ -409,6 +411,8 @@ class LuauLanguage : public ScriptLanguageExtension {
     void discover_core_scripts(const String &p_path = "res://");
 
 #ifdef TOOLS_ENABLED
+    bool tests_running = false;
+
     List<Ref<LuauScript>> get_scripts() const;
 #endif // TOOLS_ENABLED
 

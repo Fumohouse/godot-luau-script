@@ -1,22 +1,22 @@
+#include "luau_script.h"
+
 #include <Luau/BytecodeBuilder.h>
 #include <Luau/CodeGen.h>
 #include <Luau/Compiler.h>
 #include <Luau/Lexer.h>
+#include <Luau/ParseOptions.h>
 #include <Luau/ParseResult.h>
 #include <Luau/Parser.h>
 #include <Luau/StringUtils.h>
 #include <gdextension_interface.h>
 #include <lua.h>
-#include <math.h>
-#include <string.h>
+#include <cstring>
 #include <godot_cpp/classes/dir_access.hpp>
-#include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/script_language.hpp>
-#include <godot_cpp/classes/time.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -25,6 +25,7 @@
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
+#include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>
@@ -35,9 +36,7 @@
 #include <string>
 #include <utility>
 
-#include "Luau/ParseOptions.h"
 #include "error_strings.h"
-#include "extension_api.h"
 #include "gd_luau.h"
 #include "luagd_lib.h"
 #include "luagd_permissions.h"
@@ -51,12 +50,8 @@
 #include "wrapped_no_binding.h"
 
 #ifdef TESTS_ENABLED
-#include <vector>
-
-#include <godot_cpp/classes/os.hpp>
-#include <godot_cpp/variant/char_string.hpp>
-
 #include <catch_amalgamated.hpp>
+#include <vector>
 #endif // TESTS_ENABLED
 
 using namespace godot;
@@ -79,19 +74,12 @@ void LuauScript::_set_source_code(const String &p_code) {
 }
 
 Error LuauScript::load_source_code(const String &p_path) {
-    Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::READ);
-    ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), FILE_READ_FAILED_ERR(p_path));
-
-    uint64_t len = file->get_length();
-    PackedByteArray bytes = file->get_buffer(len);
-    bytes.resize(len + 1);
-    bytes[len] = 0; // EOF
-
     String src;
-    src.parse_utf8(reinterpret_cast<const char *>(bytes.ptr()));
+    Error err = Utils::load_file(p_path, src);
+    if (err != OK)
+        return err;
 
     _set_source_code(src);
-
     return OK;
 }
 
@@ -99,25 +87,6 @@ Error LuauScript::compile() {
 #define COMPILE_METHOD "LuauScript::compile"
 
     dependencies.clear();
-
-    static LocalVector<const char *> mutable_globals;
-    static bool did_init = false;
-
-    if (!did_init) {
-        for (const ApiClass &g_class : get_extension_api().classes) {
-            if (!g_class.singleton || g_class.properties.size() == 0)
-                continue;
-
-            for (const KeyValue<String, ApiClassProperty> &E : g_class.properties) {
-                if (!E.value.setter.is_empty()) {
-                    mutable_globals.push_back(g_class.name);
-                    break;
-                }
-            }
-        }
-
-        mutable_globals.push_back(nullptr);
-    }
 
     // See Luau Compiler.cpp
     CharString src = source.utf8();
@@ -134,12 +103,8 @@ Error LuauScript::compile() {
 
     if (parse_result.errors.empty()) {
         try {
-            Luau::CompileOptions opts;
-            // Prevents Luau from optimizing the value such that it (seemingly) won't ever change
-            opts.mutableGlobals = mutable_globals.ptr();
-
             Luau::BytecodeBuilder bcb;
-            Luau::compileOrThrow(bcb, parse_result, names, opts);
+            Luau::compileOrThrow(bcb, parse_result, names, luaGD_compileopts());
 
             bytecode = bcb.getBytecode();
         } catch (Luau::CompileError &err) {
@@ -662,33 +627,8 @@ bool LuauScript::add_dependency(const Ref<LuauScript> &p_script) {
     return !p_script->has_dependency(this);
 }
 
-void LuauScript::error(const char *p_method, String p_msg, int p_line) const {
-    String file;
-    int line = 0;
-
-    if (p_line > 0) {
-        file = get_path().is_empty() ? "built-in" : get_path();
-        line = p_line;
-    } else {
-        // Expect : after res, then 2 more for regular Lua error
-        PackedStringArray split = p_msg.split(":");
-        ERR_FAIL_COND_MSG(split.size() < 4, LUA_ERROR_PARSE_ERR(p_msg));
-
-        file = String(":").join(split.slice(0, 2));
-        line = split[2].to_int();
-        p_msg = String(":").join(split.slice(3)).substr(1);
-    }
-
-    // TODO: Switch back to script error when debugger is implemented
-    /*
-    internal::gdextension_interface_print_script_error(
-            p_msg.utf8().get_data(),
-            p_method,
-            file.utf8().get_data(),
-            line,
-            false);
-    */
-    _err_print_error(p_method, file.utf8().get_data(), line, p_msg);
+void LuauScript::error(const char *p_method, const String &p_msg, int p_line) const {
+    luaGD_gderror(p_method, get_path(), p_msg, p_line);
 }
 
 // Based on Luau Repl implementation.
@@ -1909,21 +1849,53 @@ static void run_tests() {
 #endif // TESTS_ENABLED
 
 void LuauLanguage::_init() {
-    UtilityFunctions::print_verbose("======== Discovering core scripts ========");
-    discover_core_scripts();
-    UtilityFunctions::print_verbose("Done! ", core_scripts.size(), " core scripts discovered.");
-    UtilityFunctions::print_verbose("==========================================");
+#define INIT_METHOD "LuauLanguage::_init"
 
 #ifdef TESTS_ENABLED
     // Tests are run at this stage (before GDLuau and LuauCache are initialized and after _init is called)
     // in order to ensure singletons/methods are all registered and available for immediate retrieval.
+    tests_running = true;
     run_tests();
+    tests_running = false;
 #endif // TESTS_ENABLED
 
     // Initialize LuauInterface first, deinit last due to GDLuau dependency
     interface = memnew(LuauInterface);
     luau = memnew(GDLuau);
     cache = memnew(LuauCache);
+
+    UtilityFunctions::print_verbose("======== Discovering core scripts ========");
+    discover_core_scripts();
+    UtilityFunctions::print_verbose("Done! ", core_scripts.size(), " core scripts discovered.");
+    UtilityFunctions::print_verbose("==========================================");
+
+    if (FileAccess::file_exists(INIT_LUA_PATH)) {
+        String src;
+        Error err = Utils::load_file(INIT_LUA_PATH, src);
+
+        if (err == OK) {
+            std::string bytecode = Luau::compile(src.utf8().get_data(), luaGD_compileopts());
+            lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
+            lua_State *T = lua_newthread(L);
+
+            GDThreadData *udata = luaGD_getthreaddata(T);
+            udata->permissions = PERMISSIONS_ALL;
+
+            if (luau_load(T, "@" INIT_LUA_PATH, bytecode.data(), bytecode.size(), 0) == 0) {
+                int status = lua_resume(T, nullptr, 0);
+
+                if (status == LUA_YIELD) {
+                    luaGD_gderror(INIT_METHOD, INIT_LUA_PATH, INIT_FILE_YIELD_ERR, 1);
+                } else if (status != LUA_OK) {
+                    luaGD_gderror(INIT_METHOD, INIT_LUA_PATH, LuaStackOp<String>::get(T, -1));
+                }
+            } else {
+                luaGD_gderror(INIT_METHOD, INIT_LUA_PATH, LuaStackOp<String>::get(T, -1));
+            }
+
+            lua_pop(L, 1); // thread
+        }
+    }
 
     // TODO: Only if EngineDebugger is active
     // if (nb::EngineDebugger::get_singleton_nb()->is_active())
@@ -2091,6 +2063,12 @@ bool LuauLanguage::_has_named_classes() const {
 }
 
 bool LuauLanguage::is_core_script(const String &p_path) const {
+#ifdef TESTS_ENABLED
+    // Core scripts will not be scanned before tests.
+    if (tests_running)
+        return true;
+#endif // TESTS_ENABLED
+
     return core_scripts.has(p_path);
 }
 
@@ -2112,6 +2090,10 @@ bool ResourceFormatLoaderLuauScript::_handles_type(const StringName &p_type) con
 }
 
 String ResourceFormatLoaderLuauScript::get_resource_type(const String &p_path) {
+    // Special case
+    if (p_path == INIT_LUA_PATH)
+        return "";
+
     return p_path.get_extension().to_lower() == "lua" ? LuauLanguage::get_singleton()->_get_type() : "";
 }
 

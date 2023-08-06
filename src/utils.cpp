@@ -1,11 +1,14 @@
 #include "utils.h"
 
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/file_access.hpp>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/array.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
+#include "error_strings.h"
 #include "wrapped_no_binding.h"
 
 using namespace godot;
@@ -68,4 +71,18 @@ static bool variant_types_compatible_internal(Variant::Type p_t1, Variant::Type 
 
 bool Utils::variant_types_compatible(Variant::Type p_t1, Variant::Type p_t2) {
     return p_t1 == p_t2 || variant_types_compatible_internal(p_t1, p_t2) || variant_types_compatible_internal(p_t2, p_t1);
+}
+
+Error Utils::load_file(const String &p_path, String &r_out) {
+    Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::READ);
+    ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), FILE_READ_FAILED_ERR(p_path));
+
+    uint64_t len = file->get_length();
+    PackedByteArray bytes = file->get_buffer(len);
+    bytes.resize(len + 1);
+    bytes[len] = 0; // EOF
+
+    r_out.parse_utf8(reinterpret_cast<const char *>(bytes.ptr()));
+
+    return OK;
 }

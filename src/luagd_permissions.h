@@ -14,7 +14,9 @@ enum ThreadPermissions {
     PERMISSION_INTERNAL = 1 << 0,
     PERMISSION_OS = 1 << 1,
     PERMISSION_FILE = 1 << 2,
-    PERMISSION_HTTP = 1 << 3
+    PERMISSION_HTTP = 1 << 3,
+
+    PERMISSIONS_ALL = PERMISSION_BASE | PERMISSION_INTERNAL | PERMISSION_OS | PERMISSION_FILE | PERMISSION_HTTP
 };
 
 void luaGD_checkpermissions(lua_State *L, const char *p_name, BitField<ThreadPermissions> p_permissions);

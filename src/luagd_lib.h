@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Luau/Compiler.h>
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/classes/mutex.hpp>
@@ -44,5 +45,8 @@ T luaGD_checkvaluetype(lua_State *L, int p_index, const char *p_key, lua_Type p_
     lua_pop(L, 1);
     return val;
 }
+
+void luaGD_gderror(const char *p_method, const String &p_path, String p_msg, int p_line = 0);
+const Luau::CompileOptions &luaGD_compileopts();
 
 void luaGD_openlibs(lua_State *L);

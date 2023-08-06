@@ -148,6 +148,10 @@ static int luascript_gdclass_new(lua_State *L) {
 }
 
 static int luascript_gdclass(lua_State *L) {
+    GDThreadData *udata = luaGD_getthreaddata(L);
+    if (udata->script.is_null())
+        luaL_error(L, SCRIPT_THREAD_ERR);
+
     luaL_checktype(L, 1, LUA_TTABLE);
 
     if (lua_getmetatable(L, 1))
@@ -158,7 +162,6 @@ static int luascript_gdclass(lua_State *L) {
     lua_pushstring(L, MT_LOCKED_MSG);
     lua_setfield(L, -2, "__metatable");
 
-    GDThreadData *udata = luaGD_getthreaddata(L);
     LuaStackOp<Object *>::push(L, udata->script.ptr());
     lua_setfield(L, -2, LUASCRIPT_MT_SCRIPT);
 
@@ -210,8 +213,11 @@ static int finishrequire(lua_State *L) {
 }
 
 static int luascript_require(lua_State *L) {
-    String path = LuaStackOp<String>::check(L, 1);
     GDThreadData *udata = luaGD_getthreaddata(L);
+    if (udata->script.is_null())
+        luaL_error(L, SCRIPT_THREAD_ERR);
+
+    String path = LuaStackOp<String>::check(L, 1);
 
     luaL_findtable(L, LUA_REGISTRYINDEX, LUASCRIPT_MODULE_TABLE, 1);
 

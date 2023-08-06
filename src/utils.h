@@ -31,4 +31,6 @@ public:
     static String to_pascal_case(const String &p_input);
     static String resource_type_hint(const String &p_type);
     static bool variant_types_compatible(Variant::Type p_t1, Variant::Type p_t2);
+
+    static Error load_file(const String &p_path, String &r_out);
 };

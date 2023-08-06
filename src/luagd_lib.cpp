@@ -1,5 +1,6 @@
 #include "luagd_lib.h"
 
+#include <Luau/Compiler.h>
 #include <lua.h>
 #include <lualib.h>
 #include <cstddef>
@@ -8,11 +9,13 @@
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/type_info.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/variant/node_path.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
+#include "extension_api.h"
 #include "gd_luau.h"
 #include "luagd_bindings.h"
 #include "luagd_permissions.h"
@@ -149,6 +152,62 @@ static int luaGD_gdtypeof(lua_State *L) {
     }
 
     return 1;
+}
+
+void luaGD_gderror(const char *p_method, const String &p_path, String p_msg, int p_line) {
+    String file;
+    int line = 0;
+
+    if (p_line > 0) {
+        file = p_path.is_empty() ? "built-in" : p_path;
+        line = p_line;
+    } else {
+        // Expect : after res, then 2 more for regular Lua error
+        PackedStringArray split = p_msg.split(":");
+        ERR_FAIL_COND_MSG(split.size() < 4, LUA_ERROR_PARSE_ERR(p_msg));
+
+        file = String(":").join(split.slice(0, 2));
+        line = split[2].to_int();
+        p_msg = String(":").join(split.slice(3)).substr(1);
+    }
+
+    // TODO: Switch back to script error when debugger is implemented
+    /*
+    internal::gdextension_interface_print_script_error(
+            p_msg.utf8().get_data(),
+            p_method,
+            file.utf8().get_data(),
+            line,
+            false);
+    */
+    _err_print_error(p_method, file.utf8().get_data(), line, p_msg);
+}
+
+const Luau::CompileOptions &luaGD_compileopts() {
+    static LocalVector<const char *> mutable_globals;
+    static Luau::CompileOptions opts;
+    static bool did_init = false;
+
+    if (!did_init) {
+        for (const ApiClass &g_class : get_extension_api().classes) {
+            if (!g_class.singleton || g_class.properties.size() == 0)
+                continue;
+
+            for (const KeyValue<String, ApiClassProperty> &E : g_class.properties) {
+                if (!E.value.setter.is_empty()) {
+                    mutable_globals.push_back(g_class.name);
+                    break;
+                }
+            }
+        }
+
+        mutable_globals.push_back(nullptr);
+
+        // Prevents Luau from optimizing the value such that it (seemingly) won't ever change
+        opts.mutableGlobals = mutable_globals.ptr();
+    }
+
+    return opts;
 }
 
 static const luaL_Reg global_funcs[] = {
