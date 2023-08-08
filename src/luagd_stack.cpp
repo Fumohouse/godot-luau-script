@@ -281,6 +281,15 @@ int LuaStackOp<Variant>::get_type(lua_State *L, int p_index) {
         case LUA_TSTRING:
             return GDEXTENSION_VARIANT_TYPE_STRING;
 
+        case LUA_TTABLE:
+            if (LuaStackOp<Array>::is(L, p_index))
+                return GDEXTENSION_VARIANT_TYPE_ARRAY;
+
+            if (LuaStackOp<Dictionary>::is(L, p_index))
+                return GDEXTENSION_VARIANT_TYPE_DICTIONARY;
+
+            return -1;
+
         case LUA_TUSERDATA:
             // Pass through to below with metatable on stack
             if (!lua_getmetatable(L, p_index))

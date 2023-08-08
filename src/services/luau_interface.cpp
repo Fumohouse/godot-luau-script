@@ -7,6 +7,7 @@
 
 #include "luagd_binder.h"
 #include "luagd_stack.h"
+#include "services/sandbox_service.h"
 
 /* Service */
 
@@ -22,10 +23,6 @@ SVC_STACK_OP_IMPL(LuauInterface, LUAU_INTERFACE_MT_NAME)
 
 LuauInterface *LuauInterface::singleton = nullptr;
 
-void LuauInterface::lua_push(lua_State *L) {
-    LuaStackOp<LuauInterface *>::push(L, this);
-}
-
 const LuaGDClass &LuauInterface::get_lua_class() const {
     static LuaGDClass lua_class;
     static bool did_init = false;
@@ -40,8 +37,16 @@ const LuaGDClass &LuauInterface::get_lua_class() const {
     return lua_class;
 }
 
+void LuauInterface::lua_push(lua_State *L) {
+    LuaStackOp<LuauInterface *>::push(L, this);
+}
+
 void LuauInterface::register_metatables(lua_State *L) {
     Service::register_metatables(L);
+
+    for (const KeyValue<String, Service *> &E : services) {
+        E.value->register_metatables(L);
+    }
 }
 
 int LuauInterface::index_override(lua_State *L, const char *p_name) {
@@ -59,6 +64,7 @@ void LuauInterface::register_service(Service *p_svc) {
 }
 
 void LuauInterface::init_services() {
+    register_service(memnew(SandboxService));
 }
 
 void LuauInterface::deinit_services() {

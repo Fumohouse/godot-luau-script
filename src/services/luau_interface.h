@@ -54,6 +54,8 @@ public:
 
     virtual void lua_push(lua_State *L) = 0;
     virtual void register_metatables(lua_State *L);
+
+    virtual ~Service() {}
 };
 
 class LuauInterface : public Service {
@@ -69,10 +71,10 @@ class LuauInterface : public Service {
     static int index_override(lua_State *L, const char *p_name);
 
 public:
-    virtual void lua_push(lua_State *L) override;
-    virtual void register_metatables(lua_State *L) override;
-
     static LuauInterface *get_singleton() { return singleton; }
+
+    void lua_push(lua_State *L) override;
+    void register_metatables(lua_State *L) override;
 
     LuauInterface();
     ~LuauInterface();

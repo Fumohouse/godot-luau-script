@@ -26,6 +26,7 @@
 #include "luau_cache.h"
 #include "luau_lib.h"
 #include "luau_script.h"
+#include "services/sandbox_service.h"
 #include "utils.h"
 
 using namespace godot;
@@ -676,7 +677,7 @@ struct ClassReader : public Luau::AstVisitor {
         }
 
         String path = script->get_path();
-        if (path.is_empty() || !LuauLanguage::get_singleton()->is_core_script(path)) {
+        if (path.is_empty() || (SandboxService::get_singleton() && !SandboxService::get_singleton()->is_core_script(path))) {
             _error(PERMISSIONS_NON_CORE_ERR, p_annotation.location);
             return;
         }

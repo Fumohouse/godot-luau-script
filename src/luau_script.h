@@ -383,7 +383,6 @@ class LuauLanguage : public ScriptLanguageExtension {
     uint64_t ticks_usec = 0;
 
     SelfList<LuauScript>::List script_list;
-    HashSet<String> core_scripts;
 
     HashMap<StringName, Variant> global_constants;
 
@@ -408,11 +407,7 @@ class LuauLanguage : public ScriptLanguageExtension {
     bool finalized = false;
     void finalize();
 
-    void discover_core_scripts(const String &p_path = "res://");
-
 #ifdef TOOLS_ENABLED
-    bool tests_running = false;
-
     List<Ref<LuauScript>> get_scripts() const;
 #endif // TOOLS_ENABLED
 
@@ -515,7 +510,6 @@ public:
     int64_t _profiling_get_frame_data(ScriptLanguageExtensionProfilingInfo *info_array, int64_t info_max);
     */
 
-    bool is_core_script(const String &p_path) const;
     const HashMap<StringName, Variant> &get_global_constants() const { return global_constants; }
     TaskScheduler &get_task_scheduler() { return task_scheduler; }
 

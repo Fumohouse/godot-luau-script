@@ -18,9 +18,9 @@ using namespace godot;
 // (https://github.com/godotengine/godot/blob/master/core/variant/binder_common.h)
 
 class LuaGDClassBinder {
-    template <typename P>
-    static P check_arg(lua_State *L, int &p_idx) {
-        return LuaStackOp<P>::check(L, p_idx++);
+    template <typename P, typename Pc = std::remove_const_t<std::remove_reference_t<P>>>
+    static Pc check_arg(lua_State *L, int &p_idx) {
+        return LuaStackOp<Pc>::check(L, p_idx++);
     }
 
     template <>

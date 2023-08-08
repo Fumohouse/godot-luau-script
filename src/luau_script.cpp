@@ -46,6 +46,7 @@
 #include "luau_cache.h"
 #include "luau_lib.h"
 #include "services/luau_interface.h"
+#include "services/sandbox_service.h"
 #include "utils.h"
 #include "wrapped_no_binding.h"
 
@@ -580,7 +581,7 @@ Dictionary LuauScript::_get_constants() const {
 void *LuauScript::_instance_create(Object *p_for_object) const {
     GDLuau::VMType type = GDLuau::VM_USER;
 
-    if (!get_path().is_empty() && LuauLanguage::get_singleton()->is_core_script(get_path()))
+    if (!get_path().is_empty() && (!SandboxService::get_singleton() || SandboxService::get_singleton()->is_core_script(get_path())))
         type = GDLuau::VM_CORE;
 
     LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, type));
@@ -1687,7 +1688,7 @@ LuauScriptInstance::LuauScriptInstance(const Ref<LuauScript> &p_script, Object *
     base_scripts.invert(); // To initialize base-first
 
     if (permissions != PERMISSION_BASE) {
-        CRASH_COND_MSG(!LuauLanguage::get_singleton()->is_core_script(p_script->get_path()), NON_CORE_PERM_DECL_ERR);
+        CRASH_COND_MSG(SandboxService::get_singleton() && !SandboxService::get_singleton()->is_core_script(p_script->get_path()), NON_CORE_PERM_DECL_ERR);
         UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->get_definition().permissions);
     }
 
@@ -1783,40 +1784,6 @@ LuauLanguage::~LuauLanguage() {
     singleton = nullptr;
 }
 
-void LuauLanguage::discover_core_scripts(const String &p_path) {
-    // Will be scanned on Windows
-    if (p_path == "res://.godot") {
-        return;
-    }
-
-    UtilityFunctions::print_verbose("Searching for core scripts in ", p_path, "...");
-
-    Ref<DirAccess> dir = DirAccess::open(p_path);
-    ERR_FAIL_COND_MSG(!dir.is_valid(), DIR_OPEN_ERR(p_path));
-
-    Error err = dir->list_dir_begin();
-    ERR_FAIL_COND_MSG(err != OK, DIR_LIST_ERR(p_path));
-
-    String file_name = dir->get_next();
-
-    while (!file_name.is_empty()) {
-        String file_name_full = p_path.path_join(file_name);
-
-        if (dir->current_is_dir()) {
-            discover_core_scripts(file_name_full);
-        } else {
-            String res_type = ResourceFormatLoaderLuauScript::get_resource_type(file_name_full);
-
-            if (res_type == LuauLanguage::get_singleton()->_get_type()) {
-                UtilityFunctions::print_verbose("Discovered core script: ", file_name_full);
-                core_scripts.insert(file_name_full);
-            }
-        }
-
-        file_name = dir->get_next();
-    }
-}
-
 #ifdef TESTS_ENABLED
 static void run_tests() {
     if (!nb::OS::get_singleton_nb()->get_cmdline_args().has("--luau-tests"))
@@ -1854,20 +1821,13 @@ void LuauLanguage::_init() {
 #ifdef TESTS_ENABLED
     // Tests are run at this stage (before GDLuau and LuauCache are initialized and after _init is called)
     // in order to ensure singletons/methods are all registered and available for immediate retrieval.
-    tests_running = true;
     run_tests();
-    tests_running = false;
 #endif // TESTS_ENABLED
 
     // Initialize LuauInterface first, deinit last due to GDLuau dependency
     interface = memnew(LuauInterface);
     luau = memnew(GDLuau);
     cache = memnew(LuauCache);
-
-    UtilityFunctions::print_verbose("======== Discovering core scripts ========");
-    discover_core_scripts();
-    UtilityFunctions::print_verbose("Done! ", core_scripts.size(), " core scripts discovered.");
-    UtilityFunctions::print_verbose("==========================================");
 
     if (FileAccess::file_exists(INIT_LUA_PATH)) {
         String src;
@@ -2060,16 +2020,6 @@ void LuauLanguage::_frame() {
 bool LuauLanguage::_has_named_classes() const {
     // not true for any of Godot's built in languages. why
     return false;
-}
-
-bool LuauLanguage::is_core_script(const String &p_path) const {
-#ifdef TESTS_ENABLED
-    // Core scripts will not be scanned before tests.
-    if (tests_running)
-        return true;
-#endif // TESTS_ENABLED
-
-    return core_scripts.has(p_path);
 }
 
 //////////////

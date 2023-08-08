@@ -61,6 +61,30 @@ declare function gdglobal(name: StringNameLike): Variant
 -- SERVICES --
 --------------
 
+--- Service handling script sandboxing
+declare class SandboxService
+    --- Returns whether a script is a core script.
+    --- @param path The path to query.
+    function IsCoreScript(self, path: string): boolean
+
+    --- Initiates core script discovery from the project root. By default, any
+    --- files present at this time will be considered core scripts.
+    function DiscoverCoreScripts(self)
+
+    --- Ignores a path from core script discovery. Any file paths starting with
+    --- the given path will be ignored.
+    --- @param path The path to ignore.
+    function CoreScriptIgnore(self, path: string)
+
+    --- Adds a script path as a core script.
+    --- @param path The path to add.
+    function CoreScriptAdd(self, path: string)
+
+    --- Returns an array of all core scripts.
+    function CoreScriptList(self): Array
+end
+
 --- The main service through which all services are found.
 declare LuauInterface: {
+    SandboxService: SandboxService,
 }
