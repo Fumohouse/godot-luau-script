@@ -28,6 +28,10 @@ const LuaGDClass &SandboxService::get_lua_class() const {
         lua_class.bind_method("CoreScriptAdd", FID(&SandboxService::core_script_add), PERMISSION_INTERNAL);
         lua_class.bind_method("CoreScriptList", FID(&SandboxService::core_script_list), PERMISSION_INTERNAL);
 
+        lua_class.bind_method("ResourceAddPathRW", FID(&SandboxService::resource_add_path_rw), PERMISSION_INTERNAL);
+        lua_class.bind_method("ResourceAddPathRO", FID(&SandboxService::resource_add_path_ro), PERMISSION_INTERNAL);
+        lua_class.bind_method("ResourceRemovePath", FID(&SandboxService::resource_remove_path), PERMISSION_INTERNAL);
+
         did_init = true;
     }
 
@@ -37,6 +41,8 @@ const LuaGDClass &SandboxService::get_lua_class() const {
 void SandboxService::lua_push(lua_State *L) {
     LuaStackOp<SandboxService *>::push(L, this);
 }
+
+/* CORE SCRIPTS */
 
 bool SandboxService::is_core_script(const String &p_path) const {
     return core_scripts.has(p_path);
@@ -112,6 +118,39 @@ Array SandboxService::core_script_list() const {
     }
 
     return a;
+}
+
+/* RESOURCES */
+
+void SandboxService::resource_add_path_rw(const String &p_path) {
+    resource_paths.push_back({ p_path.simplify_path(), RESOURCE_READ_WRITE });
+}
+
+void SandboxService::resource_add_path_ro(const String &p_path) {
+    resource_paths.push_back({ p_path.simplify_path(), RESOURCE_READ_ONLY });
+}
+
+void SandboxService::resource_remove_path(const String &p_path) {
+    String path = p_path.simplify_path();
+
+    for (int i = resource_paths.size() - 1; i >= 0; i--) {
+        const ResourcePath &res_path = resource_paths[i];
+
+        if (res_path.path == path) {
+            resource_paths.remove_at(i);
+        }
+    }
+}
+
+bool SandboxService::resource_has_access(const String &p_path, ResourcePermissions p_permissions) const {
+    String path = p_path.simplify_path();
+
+    for (const ResourcePath &E : resource_paths) {
+        if (p_permissions <= E.permissions && path.begins_with(E.path))
+            return true;
+    }
+
+    return false;
 }
 
 SandboxService::SandboxService() {

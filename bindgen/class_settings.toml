@@ -30158,7 +30158,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceLoader]
-# TODO: Reading arbitrary resources in the user directory is potentially insecure
 inherits = "Object"
 default_permissions = "INTERNAL" #
 
@@ -30168,33 +30167,33 @@ default_permissions = "INTERNAL" #
 permissions = "INHERIT" #
 
 [ResourceLoader.methods.Exists]
-permissions = "BASE"
+permissions = "INHERIT" #
 
 [ResourceLoader.methods.GetDependencies]
-permissions = "BASE"
+permissions = "INHERIT" #
 
 [ResourceLoader.methods.GetRecognizedExtensionsForType]
 permissions = "BASE"
 
 [ResourceLoader.methods.GetResourceUid]
-permissions = "BASE"
+permissions = "INHERIT" #
 
 [ResourceLoader.methods.HasCached]
-permissions = "BASE"
+permissions = "INHERIT" #
 
 [ResourceLoader.methods.Load]
-permissions = "BASE"
+permissions = "INHERIT" #
 ret_nullable = true #
 
 [ResourceLoader.methods.LoadThreadedGet]
-permissions = "BASE"
+permissions = "INHERIT" #
 ret_nullable = true #
 
 [ResourceLoader.methods.LoadThreadedGetStatus]
-permissions = "BASE"
+permissions = "INHERIT" #
 
 [ResourceLoader.methods.LoadThreadedRequest]
-permissions = "BASE"
+permissions = "INHERIT" #
 
 [ResourceLoader.methods.RemoveResourceFormatLoader]
 permissions = "INHERIT" #
@@ -30232,7 +30231,6 @@ permissions = "INHERIT" #
 #############################
 
 [ResourceSaver]
-# TODO: Writing arbitrary resources in the user directory is potentially insecure
 inherits = "Object"
 default_permissions = "INTERNAL" #
 
@@ -30242,13 +30240,13 @@ default_permissions = "INTERNAL" #
 permissions = "INHERIT" #
 
 [ResourceSaver.methods.GetRecognizedExtensions]
-permissions = "INHERIT" #
+permissions = "BASE"
 
 [ResourceSaver.methods.RemoveResourceFormatSaver]
 permissions = "INHERIT" #
 
 [ResourceSaver.methods.Save]
-permissions = "BASE"
+permissions = "INHERIT" #
 
 #############################
 

@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
+#include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/classes/resource.hpp>
 #include <godot_cpp/classes/resource_loader.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/type_info.hpp>
@@ -15,11 +17,13 @@
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
+#include "error_strings.h"
 #include "extension_api.h"
 #include "gd_luau.h"
 #include "luagd_bindings.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
+#include "services/sandbox_service.h"
 #include "wrapped_no_binding.h"
 
 using namespace godot;
@@ -136,8 +140,34 @@ static int luaGD_load(lua_State *L) {
         path = udata->script->get_path().get_base_dir().path_join(path);
     }
 
+    if (SandboxService::get_singleton() &&
+            udata->script.is_valid() &&
+            !SandboxService::get_singleton()->is_core_script(udata->script->get_path()) &&
+            !SandboxService::get_singleton()->resource_has_access(path, SandboxService::RESOURCE_READ_ONLY)) {
+        luaL_error(L, RESOURCE_ACCESS_ERR, path.utf8().get_data());
+    }
+
     Ref<Resource> res = nb::ResourceLoader::get_singleton_nb()->load(path);
     LuaStackOp<Object *>::push(L, res.ptr());
+    return 1;
+}
+
+static int luaGD_save(lua_State *L) {
+    Ref<Resource> res = Ref<Resource>(LuaStackOp<Object *>::check(L, 1));
+    String path = LuaStackOp<String>::check(L, 2);
+    int flags = luaL_optinteger(L, 3, 0);
+
+    GDThreadData *udata = luaGD_getthreaddata(L);
+
+    if (SandboxService::get_singleton() &&
+            udata->script.is_valid() &&
+            !SandboxService::get_singleton()->is_core_script(udata->script->get_path()) &&
+            !SandboxService::get_singleton()->resource_has_access(path, SandboxService::RESOURCE_READ_WRITE)) {
+        luaL_error(L, RESOURCE_ACCESS_ERR, path.utf8().get_data());
+    }
+
+    Error err = nb::ResourceSaver::get_singleton_nb()->save(res, path, flags);
+    lua_pushinteger(L, err);
     return 1;
 }
 
@@ -215,6 +245,7 @@ static const luaL_Reg global_funcs[] = {
     { "NP", luaGD_str_ctor<NodePath> },
 
     { "load", luaGD_load },
+    { "save", luaGD_save },
 
     { "gdtypeof", luaGD_gdtypeof },
 

@@ -63,6 +63,11 @@
 
 #define SIGNAL_READ_ONLY_ERR "cannot assign to signal '%s'" // format
 
+/* LUAGD_LIB ERRORS */
+
+#define LUA_ERROR_PARSE_ERR(m_msg) ("Failed to parse Lua error: " + m_msg) // String
+#define RESOURCE_ACCESS_ERR "Cannot access Resource at %s: no permissions" // format
+
 /* LUAU_LIB ERRORS */
 
 #define SCRIPT_THREAD_ERR "this function can only be run from a script thread"
@@ -86,7 +91,6 @@
 #define EXEC_TIME_EXCEEDED_ERR(m_max_time) "thread exceeded maximum execution time (" m_max_time " seconds)"
 #define CONST_NOT_VARIANT_ERR(m_key) ("Registered constant '" + m_key + "' is not a Variant") // String
 #define RESOLVE_PATH_PATH_EMPTY_ERR "Failed to resolve path: Script path is empty"
-#define LUA_ERROR_PARSE_ERR(m_msg) ("Failed to parse Lua error: " + m_msg) // String
 #define THREAD_VM_INVALID_ERR "Thread has an unknown VM type"
 #define EXPECTED_RET_ERR(m_name, m_type) "Expected " m_name " to return a " m_type
 #define NON_VOID_YIELD_ERR "Non-void method yielded unexpectedly"

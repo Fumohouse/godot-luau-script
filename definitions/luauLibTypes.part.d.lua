@@ -11,9 +11,15 @@ declare function SN(str: string): StringNameN
 declare function NP(str: string): NodePathN
 
 -- TODO: constrain to Resource type?
---- Loads a resource. Mostly an alias for `ResourceLoader.singleton:Load()`.
---- @param path The **relative** path to the resource from this script.
+--- Loads a resource. If the current script is not a core script, accessible
+--- paths are restricted by SandboxService.
+--- @param path The relative/absolute path to the resource from this script.
 declare function load<T>(path: string): T?
+
+--- Saves a resource. If the current script is not a core script, accessible
+--- paths are restricted by SandboxService.
+--- @param path The absolute path to save the resource to.
+declare function save(resource: Resource, path: string, flags: ClassEnumResourceSaver_SaverFlags?)
 
 --- Determines the Godot Variant type of a value, or `nil` if the value is not Variant-compatible.
 --- @param value The value.
@@ -82,6 +88,21 @@ declare class SandboxService
 
     --- Returns an array of all core scripts.
     function CoreScriptList(self): Array
+
+    --- Adds access for non-core scripts to read or write resources to the given
+    --- path and its subdirectories.
+    --- @param path The path to add.
+    function ResourceAddPathRW(self, path: string)
+
+    --- Adds access for non-core scripts to read from the given path and its
+    --- subdirectories.
+    --- @param path The path to add.
+    function ResourceAddPathRO(self, path: string)
+
+    --- Removes access for non-core scripts to read or write from the given path
+    --- and its subdirectories.
+    --- @param path The path to remove.
+    function ResourceRemovePath(self, path: string)
 end
 
 --- The main service through which all services are found.
