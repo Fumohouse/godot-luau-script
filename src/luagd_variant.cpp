@@ -285,7 +285,7 @@ void LuauVariant::_register_types() {
     register_type<VariantObjectMethods>(GDEXTENSION_VARIANT_TYPE_OBJECT);
     register_type<VariantUserdataMethods<Callable>>(GDEXTENSION_VARIANT_TYPE_CALLABLE);
     register_type<VariantUserdataMethods<Signal>>(GDEXTENSION_VARIANT_TYPE_SIGNAL);
-    register_type<VariantUserdataMethods<Dictionary>>(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
+    register_type<VariantCoercedMethods<Dictionary>>(GDEXTENSION_VARIANT_TYPE_DICTIONARY);
     register_type<VariantCoercedMethods<Array>>(GDEXTENSION_VARIANT_TYPE_ARRAY);
 
     register_type<VariantCoercedMethods<PackedByteArray>>(GDEXTENSION_VARIANT_TYPE_PACKED_BYTE_ARRAY);

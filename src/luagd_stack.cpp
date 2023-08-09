@@ -374,10 +374,20 @@ bool luaGD_isarray(lua_State *L, int p_index, const char *p_metatable_name, Vari
     if (!lua_istable(L, p_index))
         return false;
 
+    p_index = lua_absindex(L, p_index);
+
+    lua_pushnil(L);
+    if (lua_next(L, p_index) != 0) {
+        lua_pop(L, 1); // value
+
+        if (lua_type(L, -1) == LUA_TNUMBER)
+            lua_pop(L, 1); // key
+        else
+            return false;
+    }
+
     if (p_type == Variant::NIL)
         return true;
-
-    p_index = lua_absindex(L, p_index);
 
     int len = lua_objlen(L, p_index);
     for (int i = 1; i <= len; i++) {
@@ -451,6 +461,9 @@ bool LuaStackOp<Dictionary>::is(lua_State *L, int p_index) {
         return true;
 
     if (!lua_istable(L, p_index))
+        return false;
+
+    if (lua_objlen(L, p_index))
         return false;
 
     p_index = lua_absindex(L, p_index);
