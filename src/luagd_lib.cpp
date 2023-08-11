@@ -192,13 +192,19 @@ void luaGD_gderror(const char *p_method, const String &p_path, String p_msg, int
         file = p_path.is_empty() ? "built-in" : p_path;
         line = p_line;
     } else {
-        // Expect : after res, then 2 more for regular Lua error
         PackedStringArray split = p_msg.split(":");
-        ERR_FAIL_COND_MSG(split.size() < 4, LUA_ERROR_PARSE_ERR(p_msg));
 
-        file = String(":").join(split.slice(0, 2));
-        line = split[2].to_int();
-        p_msg = String(":").join(split.slice(3)).substr(1);
+        if (p_msg.begins_with("res://")) {
+            // Expect : after res, then 2 more for regular Lua error
+            file = String(":").join(split.slice(0, 2));
+            line = split[2].to_int();
+            p_msg = String(":").join(split.slice(3)).substr(1);
+        } else {
+            // Chunk name does not include :
+            file = split[0];
+            line = split[1].to_int();
+            p_msg = String(":").join(split.slice(2)).substr(1);
+        }
     }
 
     // TODO: Switch back to script error when debugger is implemented

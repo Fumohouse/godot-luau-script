@@ -7,6 +7,7 @@
 
 #include "luagd_binder.h"
 #include "luagd_stack.h"
+#include "services/debug_service.h"
 #include "services/sandbox_service.h"
 
 /* Service */
@@ -65,6 +66,7 @@ void LuauInterface::register_service(Service *p_svc) {
 
 void LuauInterface::init_services() {
     register_service(memnew(SandboxService));
+    register_service(memnew(DebugService));
 }
 
 void LuauInterface::deinit_services() {

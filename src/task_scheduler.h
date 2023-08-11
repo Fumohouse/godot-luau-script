@@ -99,4 +99,6 @@ class TaskScheduler {
 public:
     void frame(double p_delta);
     void register_task(lua_State *L, ScheduledTask *p_task);
+
+    const uint32_t *get_gc_step_size() const { return gc_stepsize; }
 };

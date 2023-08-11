@@ -11,6 +11,7 @@
 
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
+#include "luagd_bindings_stack.gen.h" // IWYU pragma: keep - required for Variant builtin return
 
 using namespace godot;
 

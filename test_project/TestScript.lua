@@ -141,6 +141,10 @@ function TestClass:_Ready()
 
     print(TestModule.testConstant)
 
+    LuauInterface.DebugService:Exec("print('hello from exec!')")
+    print("EXEC ERR: ", LuauInterface.DebugService:Exec("error('ERROR!')")) -- in thread error
+    LuauInterface.DebugService:Exec("wait(1); error('ERROR!')") -- task scheduler error
+
     if not Engine.singleton:IsEditorHint() then
         self:Counter()
 

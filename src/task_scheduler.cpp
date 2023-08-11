@@ -7,7 +7,6 @@
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/array.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 #include <utility>
 
 #include "gd_luau.h"
@@ -158,7 +157,11 @@ void TaskScheduler::frame(double p_delta) {
 
                 if (status != LUA_OK && status != LUA_YIELD) {
                     GDThreadData *udata = luaGD_getthreaddata(L);
-                    udata->script->error("TaskScheduler::frame", LuaStackOp<String>::get(L, -1));
+
+                    luaGD_gderror(
+                            "TaskScheduler::frame",
+                            udata->script.is_valid() ? udata->script->get_path() : "<unknown>",
+                            LuaStackOp<String>::get(L, -1));
 
                     lua_pop(L, 1); // error
                 }
@@ -210,9 +213,6 @@ void TaskScheduler::frame(double p_delta) {
                 gc_stepsize[i] -= STEPSIZE_INC;
             }
         }
-
-        if (gc_stepsize[i] != curr_size)
-            UtilityFunctions::print_verbose("task scheduler: vm ", i, ": new gc rate is ", gc_stepsize[i], " KB/s");
     }
 }
 

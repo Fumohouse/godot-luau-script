@@ -105,7 +105,26 @@ declare class SandboxService
     function ResourceRemovePath(self, path: string)
 end
 
+--- Service handling debugging, GC diagnostics, and profiling
+declare class DebugService
+    --- Returns memory usage, in kibibytes (=1024 bytes), of each running VM.
+    function GCCount(self): PackedFloat64Array
+
+    --- Returns the current rate at which the garbage collector is attempting
+    --- to collect on each VM, in KB/s, roughly corresponding to the rate at
+    --- which memory usage is increasing.
+    function GCStepSize(self): PackedInt32Array
+
+    --- Executes code on the core VM with all permissions enabled.
+    --- IMPORTANT: This method should not be used outside of debugging (i.e.
+    --- core game logic should not depend on this functionality).
+    --- @param src The source code to execute.
+    --- @return An empty string if the call was successful, or the error message if any.
+    function Exec(self, src: string): string
+end
+
 --- The main service through which all services are found.
 declare LuauInterface: {
     SandboxService: SandboxService,
+    DebugService: DebugService,
 }
