@@ -7,15 +7,12 @@
             "type": "shell",
             "command": "scons",
             "group": "build",
-            "linux": {
-                "args": [
-                    "target=editor",
-                    "tests=yes",
-                    "platform=linux",
-                    "use_llvm=yes",
-                    "debug_symbols=yes"
-                ]
-            },
+            "args": [
+                "target=editor",
+                "tests=yes",
+                "use_llvm=yes",
+                "debug_symbols=yes"
+            ],
             "problemMatcher": "$gcc"
         },
         {
@@ -23,16 +20,13 @@
             "type": "shell",
             "command": "scons",
             "group": "build",
-            "linux": {
-                "args": [
-                    "target=editor",
-                    "tests=yes",
-                    "platform=linux",
-                    "use_llvm=yes",
-                    "generate_luau_bindings=yes",
-                    "debug_symbols=yes"
-                ]
-            },
+            "args": [
+                "target=editor",
+                "tests=yes",
+                "use_llvm=yes",
+                "generate_luau_bindings=yes",
+                "debug_symbols=yes"
+            ],
             "problemMatcher": "$gcc"
         },
         {
@@ -40,14 +34,11 @@
             "type": "shell",
             "command": "scons",
             "group": "build",
-            "linux": {
-                "args": [
-                    "target=editor",
-                    "platform=linux",
-                    "use_llvm=yes",
-                    "debug_symbols=yes"
-                ]
-            },
+            "args": [
+                "target=editor",
+                "use_llvm=yes",
+                "debug_symbols=yes"
+            ],
             "problemMatcher": "$gcc"
         },
         {
@@ -55,15 +46,12 @@
             "type": "shell",
             "command": "scons",
             "group": "build",
-            "linux": {
-                "args": [
-                    "target=editor",
-                    "platform=linux",
-                    "use_llvm=yes",
-                    "generate_luau_bindings=yes",
-                    "debug_symbols=yes"
-                ]
-            },
+            "args": [
+                "target=editor",
+                "use_llvm=yes",
+                "generate_luau_bindings=yes",
+                "debug_symbols=yes"
+            ],
             "problemMatcher": "$gcc"
         },
         {
@@ -71,13 +59,10 @@
             "type": "shell",
             "command": "scons",
             "group": "build",
-            "linux": {
-                "args": [
-                    "target=template_release",
-                    "platform=linux",
-                    "use_llvm=yes"
-                ]
-            },
+            "args": [
+                "target=template_release",
+                "use_llvm=yes"
+            ],
             "problemMatcher": "$gcc"
         },
         {
@@ -85,14 +70,11 @@
             "type": "shell",
             "command": "scons",
             "group": "build",
-            "linux": {
-                "args": [
-                    "target=template_release",
-                    "platform=linux",
-                    "use_llvm=yes",
-                    "generate_luau_bindings=yes"
-                ]
-            },
+            "args": [
+                "target=template_release",
+                "use_llvm=yes",
+                "generate_luau_bindings=yes"
+            ],
             "problemMatcher": "$gcc"
         },
 
@@ -101,33 +83,25 @@
             "label": "run editor without debugger",
             "type": "shell",
             "command": "godot4",
-            "linux": {
-                "args": [
-                    "-v",
-                    "-e"
-                ],
-                "options": {
-                    "cwd": "${workspaceRoot}/test_project"
-                }
-            },
+            "args": [
+                "--path", "test_project",
+                "-v",
+                "-e"
+            ],
             "problemMatcher": "$gcc" // shut up about the problem matcher
         },
         {
             "label": "run test without debugger",
             "type": "shell",
             "command": "godot4",
-            "linux": {
-                "args": [
-                    "-v",
-                    "main.tscn",
-                    "--luau-tests",
-                    "--",
-                    "--skip-benchmarks"
-                ],
-                "options": {
-                    "cwd": "${workspaceRoot}/test_project"
-                }
-            },
+            "args": [
+                "--path", "test_project",
+                "-v",
+                "main.tscn",
+                "--luau-tests",
+                "--",
+                "--skip-benchmarks"
+            ],
             "problemMatcher": "$gcc" // shut up about the problem matcher
         }
     ]
