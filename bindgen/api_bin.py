@@ -181,7 +181,7 @@ def generate_enum(io, enum):
     is_bitfield = enum["is_bitfield"] if "is_bitfield" in enum else False
     write_bool(io, is_bitfield)  # bool is_bitfield
 
-    values = enum["values"]
+    values = utils.get_enum_values(enum)
     write_size(io, len(values))  # size num_values
 
     for value in values:  # VALUES

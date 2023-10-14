@@ -107,6 +107,18 @@ def get_enum_value_name(enum, value_name):
     return value_name
 
 
+def get_enum_values(enum):
+    def valid_enum_value(val):
+        # As of 4.2-beta1, Godot has exactly two uint64_t enum values.
+        # They don't seem that important so they are ignored for now. Sorry if you need them.
+        if val["value"] < -2147483648 or val["value"] > 2147483647:
+            return False
+
+        return True
+
+    return [val for val in enum["values"] if valid_enum_value(val)]
+
+
 utils_to_bind = {
     # math functions not provided by Luau
     "ease": (None, False),
@@ -232,6 +244,10 @@ def get_class_methods(g_class):
 
         # Handled as special case
         if g_class["name"] == "Object" and method["name"] in ["get", "set", "is_class"]:
+            return True
+
+        # Not of any concern to Luau
+        if "arguments" in method and (True in [arg["type"] == "const void*" for arg in method["arguments"]]):
             return True
 
         return False

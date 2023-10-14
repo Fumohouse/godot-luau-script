@@ -125,7 +125,7 @@ def generate_enum(src, enum, class_name=""):
 
     orig_name = enum["name"]
     name = utils.get_enum_name(orig_name)
-    values = enum["values"]
+    values = utils.get_enum_values(enum)
 
     type_name = "Enum" + name
     if class_name != "":

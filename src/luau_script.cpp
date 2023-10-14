@@ -585,7 +585,7 @@ void *LuauScript::_instance_create(Object *p_for_object) const {
         type = GDLuau::VM_CORE;
 
     LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, type));
-    return internal::gdextension_interface_script_instance_create(&LuauScriptInstance::INSTANCE_INFO, internal);
+    return internal::gdextension_interface_script_instance_create2(&LuauScriptInstance::INSTANCE_INFO, internal);
 }
 
 bool LuauScript::instance_has(uint64_t p_obj_id) const {
@@ -703,7 +703,7 @@ LuauScript::~LuauScript() {
 
 #define COMMON_SELF ((ScriptInstance *)p_self)
 
-void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceInfo &p_info) {
+void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceInfo2 &p_info) {
     // Must initialize potentially unused struct fields to nullptr
     // (if not, causes segfault on MSVC).
     p_info.property_can_revert_func = nullptr;
@@ -736,6 +736,10 @@ void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceI
 
     p_info.free_property_list_func = [](void *p_self, const GDExtensionPropertyInfo *p_list) {
         COMMON_SELF->free_property_list(p_list);
+    };
+
+    p_info.validate_property_func = [](void *p_self, GDExtensionPropertyInfo *p_property) -> GDExtensionBool {
+        return COMMON_SELF->validate_property(p_property);
     };
 
     p_info.get_owner_func = [](void *p_self) {
@@ -948,8 +952,8 @@ ScriptLanguage *ScriptInstance::get_language() const {
 
 #define INSTANCE_SELF ((LuauScriptInstance *)p_self)
 
-static GDExtensionScriptInstanceInfo init_script_instance_info() {
-    GDExtensionScriptInstanceInfo info;
+static GDExtensionScriptInstanceInfo2 init_script_instance_info() {
+    GDExtensionScriptInstanceInfo2 info;
     ScriptInstance::init_script_instance_info_common(info);
 
     info.property_can_revert_func = [](void *p_self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool {
@@ -964,7 +968,7 @@ static GDExtensionScriptInstanceInfo init_script_instance_info() {
         return INSTANCE_SELF->call(*((StringName *)p_method), (const Variant **)p_args, p_argument_count, (Variant *)r_return, r_error);
     };
 
-    info.notification_func = [](void *p_self, int32_t p_what) {
+    info.notification_func = [](void *p_self, int32_t p_what, GDExtensionBool p_reversed) {
         INSTANCE_SELF->notification(p_what);
     };
 
@@ -984,7 +988,7 @@ static GDExtensionScriptInstanceInfo init_script_instance_info() {
     return info;
 }
 
-const GDExtensionScriptInstanceInfo LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
+const GDExtensionScriptInstanceInfo2 LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
 int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int p_nargs, int p_nret) {
     LUAU_LOCK(ET);

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <lua.h>
 #include <godot_cpp/core/method_ptrcall.hpp> // TODO: unused. required to prevent compile error when specializing PtrToArg.
 #include <godot_cpp/core/type_info.hpp>
-#include <lua.h>
 
 using namespace godot;
 

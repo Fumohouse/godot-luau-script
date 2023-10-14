@@ -5,7 +5,7 @@
             "name": "linux editor debug",
             "type": "lldb",
             "request": "launch",
-            "program": "${userHome}/bin/godot4",
+            "program": "godot4",
             "args": [
                 "-v",
                 "-e"
@@ -16,7 +16,7 @@
             "name": "linux scene debug",
             "type": "lldb",
             "request": "launch",
-            "program": "${userHome}/bin/godot4",
+            "program": "godot4",
             "args": [
                 "-v",
                 "main.tscn",

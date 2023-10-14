@@ -1,6 +1,6 @@
 # Godot luau-script
 
-[![Godot Badge](https://img.shields.io/badge/Godot-4.1.1--stable-orange)](https://godotengine.org/)
+[![Godot Badge](https://img.shields.io/badge/Godot-4.2--beta1-orange)](https://godotengine.org/)
 
 > **Note**
 >

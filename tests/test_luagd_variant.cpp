@@ -2,9 +2,9 @@
 
 #include <gdextension_interface.h>
 #include <godot_cpp/classes/object.hpp>
+#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
-#include <godot_cpp/core/memory.hpp>
 
 #include "luagd_bindings_stack.gen.h" // IWYU pragma: keep
 #include "luagd_stack.h"

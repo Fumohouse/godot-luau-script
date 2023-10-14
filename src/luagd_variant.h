@@ -12,8 +12,7 @@ struct lua_State;
 #define DATA_SIZE sizeof(real_t) * 4
 
 // Mirrors Variant + VariantInternal.
-class LuauVariant
-{
+class LuauVariant {
     int32_t type;
 
     // forces the value to refer to a Luau userdata pointer

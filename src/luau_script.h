@@ -234,7 +234,7 @@ protected:
     static void free_prop(const GDExtensionPropertyInfo &p_prop);
 
 public:
-    static void init_script_instance_info_common(GDExtensionScriptInstanceInfo &p_info);
+    static void init_script_instance_info_common(GDExtensionScriptInstanceInfo2 &p_info);
 
     enum PropertySetGetError {
         PROP_OK,
@@ -254,6 +254,7 @@ public:
 
     virtual GDExtensionPropertyInfo *get_property_list(uint32_t *r_count) = 0;
     void free_property_list(const GDExtensionPropertyInfo *p_list) const;
+    virtual bool validate_property(GDExtensionPropertyInfo *p_property) const { return false; }
 
     virtual Variant::Type get_property_type(const StringName &p_name, bool *r_is_valid) const = 0;
 
@@ -280,7 +281,7 @@ class LuauScriptInstance : public ScriptInstance {
     int call_internal(const StringName &p_method, lua_State *ET, int p_nargs, int p_nret);
 
 public:
-    static const GDExtensionScriptInstanceInfo INSTANCE_INFO;
+    static const GDExtensionScriptInstanceInfo2 INSTANCE_INFO;
 
     bool set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err = nullptr) override;
     bool get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err = nullptr) override;
@@ -331,7 +332,7 @@ class PlaceHolderScriptInstance final : public ScriptInstance {
     HashMap<StringName, Variant> constants;
 
 public:
-    static const GDExtensionScriptInstanceInfo INSTANCE_INFO;
+    static const GDExtensionScriptInstanceInfo2 INSTANCE_INFO;
 
     bool set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err = nullptr) override;
     bool get(const StringName &p_name, Variant &r_ret, PropertySetGetError *r_err = nullptr) override;
