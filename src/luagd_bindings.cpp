@@ -25,6 +25,7 @@
 #include "luagd_variant.h"
 #include "luau_lib.h"
 #include "luau_script.h"
+#include "services/pck_scanner.h"
 #include "utils.h"
 #include "wrapped_no_binding.h"
 
@@ -1526,12 +1527,21 @@ void luaGD_openglobals(lua_State *L) {
     const ExtensionApi &api = get_extension_api();
 
     // Enum
-    lua_createtable(L, 0, api.global_enums.size());
+    lua_createtable(L, 0, api.global_enums.size() + 3);
 
     for (const ApiEnum &global_enum : api.global_enums) {
         push_enum(L, global_enum);
         lua_setfield(L, -2, global_enum.name);
     }
+
+    push_enum(L, get_pck_scan_error_enum());
+    lua_setfield(L, -2, get_pck_scan_error_enum().name);
+
+    push_enum(L, get_pck_file_scan_error_enum());
+    lua_setfield(L, -2, get_pck_file_scan_error_enum().name);
+
+    push_enum(L, get_sandbox_violations_enum());
+    lua_setfield(L, -2, get_sandbox_violations_enum().name);
 
     lua_createtable(L, 0, 1);
 

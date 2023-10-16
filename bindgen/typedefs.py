@@ -416,6 +416,10 @@ def generate_typedefs(defs_dir, api, class_settings, lib_types):
     for name, type_name, internal_type_name in global_enums:
         append(src, 1, f"{name}: {internal_type_name},")
 
+    append(src, 1, "PCKScanError: EnumPCKScanError_INTERNAL,")
+    append(src, 1, "PCKFileScanError: EnumPCKFileScanError_INTERNAL,")
+    append(src, 1, "SandboxViolations: EnumSandboxViolations_INTERNAL,")
+
     src.append("}\n")
 
     # Global constants

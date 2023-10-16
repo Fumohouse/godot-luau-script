@@ -2,6 +2,7 @@
 
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/vector.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 
 #include "luagd_binder.h"
 #include "services/luau_interface.h"
@@ -45,6 +46,8 @@ public:
     void resource_add_path_ro(const String &p_path);
     void resource_remove_path(const String &p_path);
     bool resource_has_access(const String &p_path, ResourcePermissions p_permissions) const;
+
+    Dictionary scan_pck(const String &p_path) const;
 
     SandboxService();
     ~SandboxService();

@@ -2,12 +2,14 @@
 
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "luagd_binder.h"
 #include "luagd_permissions.h"
 #include "luau_script.h"
 #include "services/luau_interface.h"
+#include "services/pck_scanner.h"
 
 #define SANDBOX_SERVICE_NAME "SandboxService"
 #define SANDBOX_SERVICE_MT_NAME "Luau." SANDBOX_SERVICE_NAME
@@ -31,6 +33,8 @@ const LuaGDClass &SandboxService::get_lua_class() const {
         lua_class.bind_method("ResourceAddPathRW", FID(&SandboxService::resource_add_path_rw), PERMISSION_INTERNAL);
         lua_class.bind_method("ResourceAddPathRO", FID(&SandboxService::resource_add_path_ro), PERMISSION_INTERNAL);
         lua_class.bind_method("ResourceRemovePath", FID(&SandboxService::resource_remove_path), PERMISSION_INTERNAL);
+
+        lua_class.bind_method("ScanPCK", FID(&SandboxService::scan_pck), PERMISSION_INTERNAL);
 
         did_init = true;
     }
@@ -151,6 +155,10 @@ bool SandboxService::resource_has_access(const String &p_path, ResourcePermissio
     }
 
     return false;
+}
+
+Dictionary SandboxService::scan_pck(const String &p_path) const {
+    return PCKScanner::scan(p_path);
 }
 
 SandboxService::SandboxService() {
