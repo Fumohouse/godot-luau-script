@@ -713,7 +713,7 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
             for t in types:  # ApiClassType types[num_types]
                 generate_class_type(io, t, classes)
 
-            setter_luau, getter_luau, setter_not_found, getter_not_found = utils.get_property_setget(
+            setter, getter, setter_not_found, getter_not_found = utils.get_property_setget(
                 prop, g_class, classes)
 
             if setter_not_found:
@@ -724,8 +724,8 @@ def generate_class(io, g_class, classes, class_settings, singletons, variant_val
                 getter = prop["getter"]
                 print(f"INFO: getter not found: {class_name}::{getter}")
 
-            write_string(io, setter_luau)  # String setter
-            write_string(io, getter_luau)  # String getter
+            write_string(io, utils.snake_to_pascal(setter))  # String setter
+            write_string(io, utils.snake_to_pascal(getter))  # String getter
 
             index = prop["index"] if "index" in prop else -1
             write_int32(io, index)  # int32_t index

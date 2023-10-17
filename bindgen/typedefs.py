@@ -111,7 +111,7 @@ def generate_method(src, class_name, method, api, is_def_static=False, is_obj_nu
             method_ret_str = "()"
 
         append(
-            src, 1, f"{method_name}: ({generate_args(method, api, not is_method_static, True, get_luau_type(class_name, api))}) -> {method_ret_str}")
+            src, 1, f"{method_name}: ({generate_args(method, api, not is_method_static, True, get_luau_type(class_name, api, is_obj_nullable=False))}) -> {method_ret_str}")
     else:
         if method_ret_str != "":
             method_ret_str = ": " + method_ret_str
@@ -259,6 +259,9 @@ function __iter(self): any\
     # Statics
     if "methods" in builtin_class:
         for method in utils.get_builtin_methods(builtin_class):
+            if not method["is_static"] and name != "String":
+                continue
+
             generate_method(src, name, method, api, True)
 
     src.append(f"""\
@@ -289,6 +292,9 @@ def generate_class(src, g_class, api, class_settings):
     # Methods
     if "methods" in g_class:
         for method in utils.get_class_methods(g_class):
+            if method["is_static"]:
+                continue
+
             generate_method(src, name, method, api, is_obj_nullable=is_obj_nullable(method))
 
     # Custom Object methods
@@ -309,8 +315,8 @@ function Free(self)\
     # Properties
     if "properties" in g_class:
         for prop in g_class["properties"]:
-            setter_luau, getter_luau, _, _ = utils.get_property_setget(prop, g_class, api["classes"])
-            if setter_luau == "" and getter_luau == "":
+            setter, getter, _, _ = utils.get_property_setget(prop, g_class, api["classes"])
+            if setter == "" and getter == "":
                 continue
 
             prop_name = utils.snake_to_camel(prop["name"])
@@ -380,6 +386,9 @@ function Free(self)\
     # Statics
     if "methods" in g_class:
         for method in utils.get_class_methods(g_class):
+            if not method["is_static"]:
+                continue
+
             generate_method(src, name, method, api, True, is_obj_nullable=is_obj_nullable(method))
 
     src.append(f"""\

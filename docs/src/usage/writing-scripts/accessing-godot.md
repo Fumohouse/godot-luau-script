@@ -50,7 +50,6 @@ prepended to the name -> `N9`.
 | Object constructors           | `<ClassName>.new`             | *unchanged*                            | `AESContext.new()`      | *unchanged*                |
 | Object singleton              | `<ClassName>`                 | `<ClassName>.singleton`                |
 | Static methods                | `<ClassName>.<Method>`        | *unchanged*                            | `Vector2.from_angle(x)` | `Vector2.FromAngle(x)`     |
-| Instance methods static call  | *N/A*                         | `<ClassName>.<Method>`                 | *N/A*                   | `Vector2.Dot(v1, v2)`      |
 | Instance methods              | `<Instance>.<Method>`         | `<Instance>:<Method>`                  | `v1.dot(v2)`            | `v1:Dot(v2)`               |
 | Member/property/signal access | `<Instance>.<Property>`       | *unchanged* *                          | `vector.x`              | *unchanged*                |
 | Keyed/indexed set             | `<Instance>[<Key>] = <Value>` | `<Instance>:Set(<Key>, <Value>)`       | `dictionary["key"] = 1` | `dictionary:Set("key", 1)` |

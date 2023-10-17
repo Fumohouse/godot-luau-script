@@ -16,7 +16,6 @@ do
 
     -- Namecall
     assert(Vector2.new(1, 2):Dot(Vector2.new(1, 2)) == 5)
-    assert(Vector2.Dot(Vector2.new(3, 4), Vector2.new(5, 6)) == 39)
 
     -- Static
     local vec = Vector2.FromAngle(5)

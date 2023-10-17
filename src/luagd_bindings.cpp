@@ -3,6 +3,7 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
+#include <cstring>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/core/defs.hpp>
@@ -876,10 +877,12 @@ void luaGD_openbuiltins(lua_State *L) {
             lua_setfield(L, -2, "new");
         }
 
-        // All methods (global table)
-        for (const KeyValue<String, ApiVariantMethod> &pair : builtin_class.methods) {
-            push_builtin_method(L, builtin_class, pair.value);
-            lua_setfield(L, -2, pair.value.name);
+        // Static methods
+        if (strcmp(builtin_class.name, "String") == 0) {
+            for (const KeyValue<String, ApiVariantMethod> &pair : builtin_class.methods) {
+                push_builtin_method(L, builtin_class, pair.value);
+                lua_setfield(L, -2, pair.value.name);
+            }
         }
 
         for (const ApiVariantMethod &static_method : builtin_class.static_methods) {
@@ -1427,12 +1430,7 @@ void luaGD_openclasses(lua_State *L) {
             lua_setfield(L, -2, "singleton");
         }
 
-        // All methods (global table)
-        for (const KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
-            push_class_method(L, g_class, pair.value);
-            lua_setfield(L, -2, pair.value.name);
-        }
-
+        // Static methods
         for (const ApiClassMethod &static_method : g_class.static_methods) {
             push_class_method(L, g_class, static_method);
             lua_setfield(L, -2, static_method.name);

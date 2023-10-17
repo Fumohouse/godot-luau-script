@@ -276,13 +276,13 @@ def get_property_setget(prop, g_class, classes):
             return "", False
 
         if has_setget(method_name, g_class):
-            return snake_to_pascal(method_name), False
+            return method_name, False
         elif has_setget(method_name.strip("_"), g_class):
-            return snake_to_pascal(method_name.strip("_")), False
+            return method_name.strip("_"), False
         else:
             return "", True
 
-    setter_luau, setter_not_found = get_actual_setget(setter)
-    getter_luau, getter_not_found = get_actual_setget(getter)
+    setter, setter_not_found = get_actual_setget(setter)
+    getter, getter_not_found = get_actual_setget(getter)
 
-    return setter_luau, getter_luau, setter_not_found, getter_not_found
+    return setter, getter, setter_not_found, getter_not_found
