@@ -60,6 +60,9 @@ TEST_CASE_METHOD(LuauFixture, "task scheduler: wait_signal") {
         // Fire
         obj->emit_signal("testSignal", 16, "hello");
         REQUIRE(lua_status(L) == LUA_OK);
+
+        // Remove task from the list (avoid crash in next test case)
+        task_scheduler.frame(0.1);
     }
 
     SECTION("timeout") {
