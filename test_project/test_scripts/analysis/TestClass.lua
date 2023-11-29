@@ -48,7 +48,7 @@ function TestClass:TestMethodNoAnnotation(p1)
 end
 
 --- @registerMethod
-function TestClass:TestMethodNullableObjectReturn(): Node3D?
+function TestClass:TestMethodNullableObjectReturn(): Object?
     return nil
 end
 

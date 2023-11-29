@@ -194,7 +194,7 @@ static bool get_module_type(Luau::AstStatBlock *p_root, LuauScript *p_script, Lu
             return false;
 
         String actual_type = global_name.is_empty() ? String(instance_type) : global_name;
-        r_prop.set_object_type(actual_type);
+        r_prop.set_object_type(actual_type, instance_type);
 
         return true;
     }
@@ -278,7 +278,7 @@ static bool type_to_prop(Luau::AstStatBlock *p_root, LuauScript *p_script, Luau:
 
             if (Luau::AstTypeReference *type = type_or_pack.type->as<Luau::AstTypeReference>()) {
                 GDProperty type_info;
-                if (!type_to_prop(p_root, p_script, type, type_info) || type_info.class_name.is_empty())
+                if (!type_to_prop(p_root, p_script, type, type_info) || type_info.hint != PROPERTY_HINT_NODE_TYPE)
                     return false;
 
                 if (hint_string.is_empty())

@@ -43,14 +43,18 @@ struct GDProperty {
         usage = PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_NIL_IS_VARIANT;
     }
 
-    void set_object_type(const String &p_type) {
+    void set_object_type(const String &p_type, const String &p_base_type = "") {
         type = GDEXTENSION_VARIANT_TYPE_OBJECT;
+        class_name = p_type; // For non-property usage
 
-        if (Utils::is_parent_class(p_type, "Resource")) {
+        const String &godot_type = p_base_type.is_empty() ? p_type : p_base_type;
+
+        if (Utils::is_parent_class(godot_type, "Resource")) {
             hint = PROPERTY_HINT_RESOURCE_TYPE;
             hint_string = p_type;
-        } else {
-            class_name = p_type;
+        } else if (Utils::is_parent_class(godot_type, "Node")) {
+            hint = PROPERTY_HINT_NODE_TYPE;
+            hint_string = p_type;
         }
     }
 

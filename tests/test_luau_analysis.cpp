@@ -45,6 +45,7 @@ TEST_CASE("luau analysis") {
 
             REQUIRE(method.arguments[1].name == "p2");
             REQUIRE(method.arguments[1].type == GDEXTENSION_VARIANT_TYPE_OBJECT);
+            REQUIRE(method.arguments[1].hint == PROPERTY_HINT_NODE_TYPE);
             REQUIRE(method.arguments[1].class_name == StringName("Node3D"));
 
             REQUIRE(method.arguments[2].name == "p3");
@@ -85,7 +86,6 @@ TEST_CASE("luau analysis") {
             const GDMethod &method = def.methods["TestMethodNullableObjectReturn"];
 
             REQUIRE(method.return_val.type == GDEXTENSION_VARIANT_TYPE_OBJECT);
-            REQUIRE(method.return_val.class_name == StringName("Node3D"));
         }
 
         SECTION("rpc registration") {
