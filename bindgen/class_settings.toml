@@ -9232,6 +9232,9 @@ permissions = "INHERIT" #
 [DirAccess.methods.GetSpaceLeft]
 permissions = "INHERIT" #
 
+[DirAccess.methods.IsCaseSensitive]
+permissions = "INHERIT" #
+
 [DirAccess.methods.ListDirBegin]
 permissions = "INHERIT" #
 
@@ -12722,6 +12725,9 @@ permissions = "INHERIT" #
 [FontFile.methods.GetFixedSize]
 permissions = "INHERIT" #
 
+[FontFile.methods.GetFixedSizeScaleMode]
+permissions = "INHERIT" #
+
 [FontFile.methods.GetGenerateMipmaps]
 permissions = "INHERIT" #
 
@@ -12877,6 +12883,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [FontFile.methods.SetFixedSize]
+permissions = "INHERIT" #
+
+[FontFile.methods.SetFixedSizeScaleMode]
 permissions = "INHERIT" #
 
 [FontFile.methods.SetFontName]
@@ -18208,6 +18217,9 @@ permissions = "INHERIT" #
 [LightmapGI.methods.GetBias]
 permissions = "INHERIT" #
 
+[LightmapGI.methods.GetBounceIndirectEnergy]
+permissions = "INHERIT" #
+
 [LightmapGI.methods.GetBounces]
 permissions = "INHERIT" #
 
@@ -18250,10 +18262,16 @@ permissions = "INHERIT" #
 [LightmapGI.methods.IsUsingDenoiser]
 permissions = "INHERIT" #
 
+[LightmapGI.methods.IsUsingTextureForBounces]
+permissions = "INHERIT" #
+
 [LightmapGI.methods.SetBakeQuality]
 permissions = "INHERIT" #
 
 [LightmapGI.methods.SetBias]
+permissions = "INHERIT" #
+
+[LightmapGI.methods.SetBounceIndirectEnergy]
 permissions = "INHERIT" #
 
 [LightmapGI.methods.SetBounces]
@@ -18295,6 +18313,9 @@ permissions = "INHERIT" #
 [LightmapGI.methods.SetUseDenoiser]
 permissions = "INHERIT" #
 
+[LightmapGI.methods.SetUseTextureForBounces]
+permissions = "INHERIT" #
+
 #############################
 
 [LightmapGIData]
@@ -18313,6 +18334,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 ret_nullable = true #
 
+[LightmapGIData.methods.GetLightmapTextures]
+permissions = "INHERIT" #
+
 [LightmapGIData.methods.GetUserCount]
 permissions = "INHERIT" #
 
@@ -18323,6 +18347,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [LightmapGIData.methods.SetLightTexture]
+permissions = "INHERIT" #
+
+[LightmapGIData.methods.SetLightmapTextures]
 permissions = "INHERIT" #
 
 [LightmapGIData.methods.SetUsesSphericalHarmonics]
@@ -20166,6 +20193,9 @@ permissions = "INHERIT" #
 [NavigationAgent3D.methods.GetHeight]
 permissions = "INHERIT" #
 
+[NavigationAgent3D.methods.GetKeepYVelocity]
+permissions = "INHERIT" #
+
 [NavigationAgent3D.methods.GetMaxNeighbors]
 permissions = "INHERIT" #
 
@@ -20269,6 +20299,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [NavigationAgent3D.methods.SetHeight]
+permissions = "INHERIT" #
+
+[NavigationAgent3D.methods.SetKeepYVelocity]
 permissions = "INHERIT" #
 
 [NavigationAgent3D.methods.SetMaxNeighbors]
@@ -23339,9 +23372,6 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [OpenXRAPIExtension.methods.OpenxrIsEnabled]
-permissions = "INHERIT" #
-
-[OpenXRAPIExtension.methods.TransformFromPose]
 permissions = "INHERIT" #
 
 [OpenXRAPIExtension.methods.XrResult]
@@ -36907,6 +36937,9 @@ permissions = "INHERIT" #
 [TextServer.methods.FontGetFixedSize]
 permissions = "INHERIT" #
 
+[TextServer.methods.FontGetFixedSizeScaleMode]
+permissions = "INHERIT" #
+
 [TextServer.methods.FontGetGenerateMipmaps]
 permissions = "INHERIT" #
 
@@ -37095,6 +37128,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [TextServer.methods.FontSetFixedSize]
+permissions = "INHERIT" #
+
+[TextServer.methods.FontSetFixedSizeScaleMode]
 permissions = "INHERIT" #
 
 [TextServer.methods.FontSetForceAutohinter]
@@ -38446,6 +38482,9 @@ permissions = "INHERIT" #
 [TileMap.methods.IsLayerEnabled]
 permissions = "INHERIT" #
 
+[TileMap.methods.IsLayerNavigationEnabled]
+permissions = "INHERIT" #
+
 [TileMap.methods.IsLayerYSortEnabled]
 permissions = "INHERIT" #
 
@@ -38489,6 +38528,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [TileMap.methods.SetLayerName]
+permissions = "INHERIT" #
+
+[TileMap.methods.SetLayerNavigationEnabled]
 permissions = "INHERIT" #
 
 [TileMap.methods.SetLayerNavigationMap]
@@ -40754,9 +40796,6 @@ permissions = "INHERIT" #
 [Viewport.methods.HasTransparentBackground]
 permissions = "INHERIT" #
 
-[Viewport.methods.Is2DDisabled]
-permissions = "INHERIT" #
-
 [Viewport.methods.Is3DDisabled]
 permissions = "INHERIT" #
 
@@ -40836,9 +40875,6 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [Viewport.methods.SetDefaultCanvasItemTextureRepeat]
-permissions = "INHERIT" #
-
-[Viewport.methods.SetDisable2D]
 permissions = "INHERIT" #
 
 [Viewport.methods.SetDisable3D]

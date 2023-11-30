@@ -195,7 +195,7 @@ property is supplied through syntax and other annotations.
 
 ##### `@default <default value>`
 
-The `@default` annotation registsers a property's default value which will be
+The `@default` annotation registers a property's default value which will be
 automatically assigned when a script instance is initialized if no setter or
 getter exists.
 
@@ -241,7 +241,7 @@ should be in the format `*.ext`, for example `*.png` and `*.jpeg`.
 
 The `@dir` annotation, valid only for `string` properties, indicates to the
 Godot editor that a string should be a directory path. If the `global` argument
-is suppllied, the path is not constrained to the current Godot project.
+is supplied, the path is not constrained to the current Godot project.
 
 ##### `@multiline`
 
@@ -262,13 +262,13 @@ in place of the default number editor.
 
 ##### `@expEasing ['attenuation'|'positiveOnly']`
 
-The `@expEasing` annotation, only valid for `number` properties, indicates to
+The `@expEasing` annotation, valid only for `number` properties, indicates to
 the Godot editor that a easing curve editor should be shown in place of the
 default number editor.
 
 ##### `@noAlpha`
 
-The `@noAlpha` annotation, only valid for `Color` properties, indicates to the
+The `@noAlpha` annotation, valid only for `Color` properties, indicates to the
 Godot editor that the color should not have an editable alpha channel.
 
 #### `@signal`

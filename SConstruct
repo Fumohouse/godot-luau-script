@@ -3,8 +3,7 @@
 import os
 
 env = Environment(tools=["default", "compilation_db"], PLATFORM="")
-cdb = env.CompilationDatabase()
-Alias("cdb", cdb)
+env["disable_exceptions"] = False
 
 # clang terminal colors
 if "TERM" in os.environ:
@@ -12,11 +11,6 @@ if "TERM" in os.environ:
 
 Export("env")
 SConscript("extern/godot-cpp/SConstruct")
-
-# We do not want to export any symbols we don't need to.
-# Strictly speaking, only the init function must be exported.
-if not env.get("is_msvc", False):
-    env.Append(CXXFLAGS=["-fvisibility=hidden"])
 
 if env["platform"] == "macos":
     env.Append(RANLIBFLGS="-no_warning_for_no_symbols")

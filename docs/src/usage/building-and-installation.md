@@ -48,9 +48,6 @@ are supported:
   instead of the compiler to find potential `#include` mistakes.
 - `generate_luau_bindings=yes`: Force regeneration of any auto-generated files
   (see `bindgen/`).
-- `cdb`: Force generation of the `compile_commands.json`, which is used by
-  language servers like `clangd` for analysis. Does not work with
-  `use_llvm=yes`.
 
 Additionally, you may want to use the following flags from godot-cpp:
 
@@ -58,6 +55,8 @@ Additionally, you may want to use the following flags from godot-cpp:
 - `target=template_release`: Build for release templates.
 - `use_llvm=yes`: Force usage of LLVM for compilation (over GCC).
 - `debug_symbols=yes`: Build the project with debug symbols.
+- Run `scons compiledb target=editor tests=yes` to generate a compilation
+  commands database, typically for use with a language server like `clangd`.
 
 After building, output will be present in the `bin/` folder.
 

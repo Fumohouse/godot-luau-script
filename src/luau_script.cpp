@@ -1544,8 +1544,9 @@ void LuauScriptInstance::call(
 void LuauScriptInstance::notification(int32_t p_what) {
 #define NOTIF_NAME "_Notification"
 
-    // This notification will fire at program exit; see ~LuauScriptInstance
-    if (p_what == Object::NOTIFICATION_PREDELETE) {
+    // These notifications will fire at program exit; see ~LuauScriptInstance
+    // 3: NOTIFICATION_PREDELETE_CLEANUP (not bound)
+    if (p_what == Object::NOTIFICATION_PREDELETE || p_what == 3) {
         lua_State *L = GDLuau::get_singleton()->get_vm(vm_type);
 
         if (!L || !luaGD_getthreaddata(L))
