@@ -5,9 +5,8 @@ order to allow custom class creation and provide various other useful functions
 (e.g. `wait` and `require`).
 
 Currently, this library is defined and documented in
-`definitions/luauLibTypes.part.d.lua`. A generated page for this documentation
-is planned.
+`definitions/luauLibTypes.part.d.lua`.
 
 ```lua
-{{#include ../../../../definitions/luauLibTypes.part.d.lua}}
+{{#include ../../../definitions/luauLibTypes.part.d.lua}}
 ```

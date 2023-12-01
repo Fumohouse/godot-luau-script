@@ -6,5 +6,5 @@ create-missing = false
 src = "src"
 title = "godot-luau-script Documentation"
 
-[output.html.fold]
-enable = true
+[output.html]
+curly-quotes = true

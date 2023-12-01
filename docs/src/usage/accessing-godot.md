@@ -5,8 +5,8 @@ selection of utility functions from Godot are also available.
 
 To find out what APIs are exposed, you can refer to the
 `definitions/luauScriptTypes.gen.d.lua` file after building (beware: this file
-is large!) or rely on [autocomplete](./typechecking-autocomplete.md) to tell you
-(after setting that up).
+is large!) or rely on [autocomplete](./typechecking-autocomplete.md) to tell
+you.
 
 For the most part, you can refer to [Godot's documentation](https://docs.godotengine.org/en/latest/)
 to discover the API. After learning the rules below, this should become
@@ -14,7 +14,8 @@ relatively intuitive.
 
 ## Renaming rules
 
-Most members are renamed from their Godot names to the following convention:
+Most names are adapted from their Godot counterparts according to the following
+convention:
 
 | Type               | Godot Case                | Luau Case                              |
 | ------------------ | ------------------------- | -------------------------------------- |
@@ -45,20 +46,20 @@ prepended to the name -> `N9`.
 ### Variant and Object classes
 
 | Type                          | Godot Access                  | Luau Access                            | GDScript Example        | Luau Example               |
-| ----------------------------- | ----------------------------- | -------------------------------------- | ----------------------- | -------------------------- |
-| Variant constructors          | `<ClassName>`                 | `<ClassName>.new`                      | `Vector3(0, 1, 0)`      | `Vector3.new(0, 1, 0)`     |
-| Object constructors           | `<ClassName>.new`             | *unchanged*                            | `AESContext.new()`      | *unchanged*                |
-| Object singleton              | `<ClassName>`                 | `<ClassName>.singleton`                |
+|-------------------------------|-------------------------------|----------------------------------------|-------------------------|----------------------------|
+| Variant constructors          | `<ClassName>`                 | `<ClassName>.new()`                    | `Vector3(0, 1, 0)`      | `Vector3.new(0, 1, 0)`     |
+| Object constructors           | `<ClassName>.new()`           | *unchanged*                            | `AESContext.new()`      | *unchanged*                |
+| Object singleton              | `<ClassName>`                 | `<ClassName>.singleton`                |                         |                            |
 | Static methods                | `<ClassName>.<Method>`        | *unchanged*                            | `Vector2.from_angle(x)` | `Vector2.FromAngle(x)`     |
 | Instance methods              | `<Instance>.<Method>`         | `<Instance>:<Method>`                  | `v1.dot(v2)`            | `v1:Dot(v2)`               |
 | Member/property/signal access | `<Instance>.<Property>`       | *unchanged* *                          | `vector.x`              | *unchanged*                |
 | Keyed/indexed set             | `<Instance>[<Key>] = <Value>` | `<Instance>:Set(<Key>, <Value>)`       | `dictionary["key"] = 1` | `dictionary:Set("key", 1)` |
 | Keyed/indexed get             | `<Instance>[<Key>]`           | `<Instance>:Get(<Key>)`                | `dictionary["key"]`     | `dictionary:Get("key")`    |
 | Array length                  | `<Array>.size()`              | `<Array>:Size()` OR `#<Array>`         | `array.size()`          | `array:Size()` OR `#array` |
-| Array iteration               | `for item in <Array>:`        | `for index, item in <Array> do` **     |
-| Dictionary iteration          | `for key in <Dictionary>:`    | `for key, value in <Dictionary> do` ** |
+| Array iteration               | `for item in <Array>:`        | `for index, item in <Array> do` **     |                         |                            |
+| Dictionary iteration          | `for key in <Dictionary>:`    | `for key, value in <Dictionary> do` ** |                         |                            |
 | Variant type operators        | `<A> <Op> <B>`/`<Unary><A>`   | *unchanged* \*\*\*                     | `v1 == v2`              | *unchanged*                |
-| Variant/Object to string      | `str(<Instance>)`             | `tostring(<Instance>)`                 |
+| Variant/Object to string      | `str(<Instance>)`             | `tostring(<Instance>)`                 |                         |                            |
 
 *: Variant type properties (e.g. `Vector2.x`) **cannot be set** because Luau
 does not support copy on assign (as C++ and GDScript do). You must construct a
@@ -71,16 +72,15 @@ operators do not work.
 
 ### Notes
 
-- For security (permissions) reasons, the only supported `Callable` constructor
-  is `Callable.new(object: Object, methodName: string | StringName)`.
+- For security reasons, the only supported `Callable` constructor is
+  `Callable.new(object: Object, methodName: string | StringName)`.
 - `String`, `StringName`, and `NodePath` are not bound to Luau as Luau's builtin
-  `string` suffices in the vast majority of cases. `StringName` and `NodePath`
-  can be constructed manually if needed (e.g. if a `String` type would be
-  inferred over the other two types) by using the `SN` or `NP` global functions
-  respectively.
+  `string` suffices in the majority of cases. `StringName` and `NodePath` can be
+  constructed manually if needed (e.g. if a `String` type would be inferred over
+  the other two types) by using the `SN` or `NP` global functions respectively.
   - The intention with these constructors is to use them like a prefix you would
     find in other languages, e.g. `SN"testStringName"`. This is valid because
-    of Lua's lenient parsing rules.
+    of Lua's parsing rules.
 - Some Lua types are automatically converted to Godot types when necessary:
   - `{Variant}` to `Array`
   - `{T}` to their corresponding `Packed[T]Array` types

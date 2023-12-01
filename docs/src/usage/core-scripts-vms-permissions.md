@@ -45,5 +45,9 @@ Permissions are set on the thread level, and are inherited to child threads.
 If a thread ever tries to execute a method or other code of a permission level
 it does not have, it will cause an error.
 
+Note that only methods which are registered to Godot are executed on their
+script's thread. If any non-registered methods use protected APIs, classes with
+Godot-registered methods that use them must declare the necessary permissions.
+
 A comprehensive list of the permissions assigned to every Object class and
 method can be seen at `bindgen/class_settings.toml`.

@@ -1,11 +1,17 @@
 # Building and Installation
 
-Prebuilt binaries can be found on the [releases page](https://github.com/Fumohouse/godot-luau-script/releases).
+## Download
 
-If you would like to build this project yourself, instructions are provided
-below.
+Prebuilt binaries for each tagged release can be found on the [releases page](https://codeberg.org/ksk/godot-luau-script/releases).
 
-## Building
+## Installation
+
+All necessary GDExtension files are provided in `bin/`. It should suffice to
+copy the entire folder into your Godot project. After reloading the project, the
+extension should be loaded and you should be able to create a Luau script
+through the script creation dialog.
+
+## Building yourself
 
 `godot-luau-script` uses [SConstruct](https://scons.org/) to build.
 
@@ -18,24 +24,18 @@ this project:
 - `git clone https://github.com/Fumohouse/godot-luau-script --recurse-submodules`, or
 - `git submodule update --recursive` if the repository is already cloned.
 
-#### Windows
-
-`godot-luau-script` uses a symlink to link `bin/` to `test_project/bin/`. These
-symbolic links are not supported on Windows. If you want to run tests, you will
-need to copy the folder (including built binaries) yourself.
-
 ### Supported platforms
 
-`godot-luau-script` officially supports compilation using recent versions of
-Clang, GCC, MinGW, and MSVC, and building for Windows, macOS, and Linux. LLVM
-(`clang++`, `clangd`, `clang-format`) utilities are preferred where possible.
+`godot-luau-script` supports compilation using recent versions of Clang, GCC,
+MinGW, and MSVC, and building for Windows, macOS, and Linux. LLVM (`clang++`,
+`clangd`, `clang-format`) utilities are preferred where possible.
 
 ### Building
 
 Ensure that a supported toolchain is installed. You will also need to install
 [Python 3](https://www.python.org/) and run `python -m pip install scons` to
-install SConstruct (or, if on Linux, SConstruct is available through some
-package repositories).
+install SConstruct. If on Linux, SConstruct is also available through some
+package repositories.
 
 If you are running a Python version older than 3.11, you will need to
 `python -m pip install tomli` for TOML support.
@@ -58,20 +58,12 @@ Additionally, you may want to use the following flags from godot-cpp:
 - Run `scons compiledb target=editor tests=yes` to generate a compilation
   commands database, typically for use with a language server like `clangd`.
 
-After building, output will be present in the `bin/` folder.
-
-## Installation
-
-Installing `godot-luau-script` is relatively easy. All necessary GDExtension
-files are provided in `bin/`; it should suffice to copy the entire folder into
-your Godot project. After reloading the project, the extension should be loaded
-and you should be able to create a Luau script through the script creation
-dialog.
+After building, the output will be present in the `bin/` folder.
 
 ## Build containers
 
 `podman` build containers are provided in `build_containers/` for reproducible
-build environments on Linux, Windows, and macOS.
+build environments targeting Linux, Windows, and macOS.
 
 ### Usage
 
@@ -84,12 +76,11 @@ Scripts should not be run outside the directory they are in.
 
 ### Preparing `osxcross`
 
-See [tpoechtrager/osxcross](https://github.com/tpoechtrager/osxcross/tree/master).
+Go to [tpoechtrager/osxcross](https://github.com/tpoechtrager/osxcross/tree/master)
+and follow an appropriate procedure for downloading Xcode and packaging the SDK
+on your system.
 
-Place the SDK (expected name: `MacOSX13.3.sdk.tar.xz`) in .tar.xz format into
+Place the output SDK (expected name: `MacOSX13.3.sdk.tar.xz`) in
 `build_containers/files/`.
-
-Some workarounds may be required for the scripts to function on recent Xcode
-versions (see [this issue comment](https://github.com/tpoechtrager/osxcross/issues/383#issuecomment-1580487598)).
 
 Build was tested on Xcode 14.3.1 (SDK: macOS 13.3).

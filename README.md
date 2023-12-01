@@ -12,7 +12,7 @@ GDExtension for Godot 4 adding support for
 [Luau](https://github.com/Roblox/luau), a variant of Lua 5.1, to Godot as a
 scripting language.
 
-[Documentation](https://fumohouse.github.io/gls-docs/)
+[Documentation](https://ksk.codeberg.page/godot-luau-script/)
 
 ## License
 

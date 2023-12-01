@@ -3,13 +3,13 @@
 Upon building, `godot-luau-script` will generate a single type definition file
 for use by Luau's analyzer.
 
-Currently, autocomplete and analysis in the Godot editor is not supported. As
-such, the most viable setup is to use Visual Studio Code and the
-[luau-lsp](https://github.com/JohnnyMorganz/luau-lsp) extension.
+Autocomplete and analysis in the Godot editor is not supported. As such, the
+most viable setup is to use Visual Studio Code and the [luau-lsp](https://github.com/JohnnyMorganz/luau-lsp)
+extension.
 
 ## Setup
 
-After installing VSCode and the extension above, you will need to do the
+After installing VSCode and luau-lsp, you will need to do the
 following setup:
 
 - Set the preference `luau-lsp.require.mode` to `relativeToFile` to make

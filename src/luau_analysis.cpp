@@ -979,6 +979,8 @@ struct ClassReader : public Luau::AstVisitor {
                 hint_string += ",radians";
             } else if (option == "degrees") {
                 hint_string += ",degrees";
+            } else if (option == "radiansAsDegrees") {
+                hint_string += ",radians_as_degrees";
             } else if (option == "exp") {
                 hint_string += ",exp";
             } else if (option.begins_with("suffix:")) {

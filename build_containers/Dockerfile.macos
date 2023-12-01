@@ -7,9 +7,6 @@ RUN dnf install -y --setopt=install_weak_deps=False \
         clang llvm-devel cmake patch openssl-devel xz xz-devel libxml2-devel bzip2 bzip2-devel cpio zlib-devel && \
     git clone https://github.com/tpoechtrager/osxcross && \
     cd osxcross && \
-    # #382 - macOS 13.3 Support
-    git fetch origin pull/382/head:dev && \
-    git checkout dev && \
     ln -s /root/files/MacOSX13.3.sdk.tar.xz tarballs/ && \
     export UNATTENDED=1 && \
     ./build.sh && \
