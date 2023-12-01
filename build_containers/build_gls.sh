@@ -4,7 +4,7 @@ source ./config.sh
 echo "Building godot-luau-script (image tag: $tag)"
 
 # Checkout
-git clone $remote ./files/godot-luau-script || /bin/true
+git clone $remote ./files/godot-luau-script || /usr/bin/env true
 pushd ./files/godot-luau-script
 git clean -dfX
 git pull

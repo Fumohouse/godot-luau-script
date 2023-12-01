@@ -24,11 +24,6 @@ class LuaGDClassBinder {
         return LuaStackOp<Pc>::check(L, p_idx++);
     }
 
-    template <>
-    lua_State *check_arg<lua_State *>(lua_State *L, int &p_idx) {
-        return L;
-    }
-
     // https://stackoverflow.com/a/48368508
     template <typename F>
     static lua_CFunction cify_lambda(F &&p_func) {
@@ -158,3 +153,8 @@ public:
     // Must be called when this LuaGDClass's pointer is stable
     void init_metatable(lua_State *L) const;
 };
+
+template <>
+inline lua_State *LuaGDClassBinder::check_arg<lua_State *>(lua_State *L, int &p_idx) {
+    return L;
+}
