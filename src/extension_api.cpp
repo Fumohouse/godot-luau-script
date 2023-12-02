@@ -11,6 +11,7 @@
 #include "luagd_permissions.h"
 #include "luagd_variant.h"
 #include "utils.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -532,8 +533,13 @@ const ExtensionApi &get_extension_api() {
 
                 // Singleton
                 StringName singleton_name = read_string(idx);
-                if (!singleton_name.is_empty())
+                if (!singleton_name.is_empty()) {
+                    // Special cases - avoid invalid access
+                    if (!nb::Engine::get_singleton_nb()->is_editor_hint() && singleton_name == StringName("EditorInterface"))
+                        continue;
+
                     new_class.singleton = internal::gdextension_interface_global_get_singleton(&singleton_name);
+                }
             }
         }
 
