@@ -1,5 +1,5 @@
-*
-!.gitignore
+*.so
+*.dll
 
-!*.framework/
+*.framework/*
 !*.framework/Info.plist

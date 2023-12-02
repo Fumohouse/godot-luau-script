@@ -1,5 +1,6 @@
 #pragma once
 
+#include "godot_cpp/classes/editor_interface.hpp"
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/os.hpp>
@@ -44,5 +45,6 @@ typedef WrappedNoBinding<godot::ResourceLoader> ResourceLoader;
 typedef WrappedNoBinding<godot::ResourceSaver> ResourceSaver;
 typedef WrappedNoBinding<godot::OS> OS;
 typedef WrappedNoBinding<godot::Time> Time;
+typedef WrappedNoBinding<godot::EditorInterface> EditorInterface;
 
 } //namespace nb

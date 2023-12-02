@@ -17,6 +17,8 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/script_language.hpp>
+#include <godot_cpp/classes/texture2d.hpp>
+#include <godot_cpp/classes/theme.hpp>
 #include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
@@ -2010,6 +2012,20 @@ void LuauLanguage::_remove_named_global_constant(const StringName &p_name) {
 }
 
 void LuauLanguage::_frame() {
+#ifdef TOOLS_ENABLED
+    if (ticks_usec == 0) {
+        // Manually register LuauScript icon
+        // Probably the earliest point where EditorNode is available
+        static constexpr const char *icon_path = "res://bin/luau-script/icons/LuauScript.svg";
+        if (nb::Engine::get_singleton_nb()->is_editor_hint() && FileAccess::file_exists(icon_path)) {
+            Ref<Theme> editor_theme = nb::EditorInterface::get_singleton_nb()->get_editor_theme();
+            Ref<Texture2D> tex = nb::ResourceLoader::get_singleton_nb()->load(icon_path);
+
+            editor_theme->set_icon("LuauScript", "EditorIcons", tex);
+        }
+    }
+#endif // TOOLS_ENABLED
+
     uint64_t new_ticks = nb::Time::get_singleton_nb()->get_ticks_usec();
     double time_scale = nb::Engine::get_singleton_nb()->get_time_scale();
 
