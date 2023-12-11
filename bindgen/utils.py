@@ -135,6 +135,7 @@ utils_to_bind = {
     "wrapf": ("wrap", False),
     "pingpong": (None, False),
     "is_equal_approx": (None, False),
+    "is_zero_approx": (None, False),
 
     # print
     "print": (None, True),
@@ -144,6 +145,14 @@ utils_to_bind = {
     "print_rich": (None, True),
     "push_error": (None, True),
     "push_warning": (None, True),
+
+    # variant
+    "var_to_str": (None, False),
+    "str_to_var": (None, False),
+    "var_to_bytes": (None, False),
+    "var_to_bytes_with_objects": (None, False),
+    "bytes_to_var": (None, False),
+    "bytes_to_var_with_objects": (None, False),
 
     # other
     "hash": (None, False),
