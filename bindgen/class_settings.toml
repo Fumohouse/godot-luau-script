@@ -20390,6 +20390,9 @@ permissions = "INHERIT" #
 [NavigationLink2D.methods.GetNavigationLayers]
 permissions = "INHERIT" #
 
+[NavigationLink2D.methods.GetRid]
+permissions = "INHERIT" #
+
 [NavigationLink2D.methods.GetStartPosition]
 permissions = "INHERIT" #
 
@@ -20456,6 +20459,9 @@ permissions = "INHERIT" #
 permissions = "INHERIT" #
 
 [NavigationLink3D.methods.GetNavigationLayers]
+permissions = "INHERIT" #
+
+[NavigationLink3D.methods.GetRid]
 permissions = "INHERIT" #
 
 [NavigationLink3D.methods.GetStartPosition]
@@ -21189,6 +21195,9 @@ ret_nullable = true #
 [NavigationRegion2D.methods.GetRegionRid]
 permissions = "INHERIT" #
 
+[NavigationRegion2D.methods.GetRid]
+permissions = "INHERIT" #
+
 [NavigationRegion2D.methods.GetTravelCost]
 permissions = "INHERIT" #
 
@@ -21259,6 +21268,9 @@ permissions = "INHERIT" #
 ret_nullable = true #
 
 [NavigationRegion3D.methods.GetRegionRid]
+permissions = "INHERIT" #
+
+[NavigationRegion3D.methods.GetRid]
 permissions = "INHERIT" #
 
 [NavigationRegion3D.methods.GetTravelCost]
