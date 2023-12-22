@@ -8,7 +8,7 @@ do
     -- Hack to remove __namecall metatable
     local arr = Array.new()
     arr:PushBack(obj)
-    obj = arr:Get(1)
+    obj = arr:Get(0)
 end
 
 do

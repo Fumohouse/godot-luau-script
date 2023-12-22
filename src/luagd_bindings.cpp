@@ -299,21 +299,20 @@ static int luaGD_array_next(lua_State *L) {
     int idx = luaL_checkinteger(L, 2);
     idx++;
 
-    // Lua is 1 indexed :))))
-    if (idx > array->size()) {
+    if (idx >= array->size()) {
         lua_pushnil(L);
         return 1;
     }
 
     lua_pushinteger(L, idx);
-    LuaStackOp<TElem>::push(L, array->operator[](idx - 1));
+    LuaStackOp<TElem>::push(L, array->operator[](idx));
     return 2;
 }
 
 static int luaGD_array_iter(lua_State *L) {
     lua_pushvalue(L, lua_upvalueindex(1)); // next
     lua_pushvalue(L, 1); // array
-    lua_pushinteger(L, 0); // initial index
+    lua_pushinteger(L, -1); // initial index
 
     return 3;
 }
@@ -637,8 +636,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
                 LuauVariant val;
                 val.lua_check(L, 3, builtin_class->indexing_return_type);
 
-                // lua is 1 indexed :))))
-                builtin_class->indexed_setter(self.get_opaque_pointer(), key.operator int64_t() - 1, val.get_opaque_pointer());
+                builtin_class->indexed_setter(self.get_opaque_pointer(), key.operator int64_t(), val.get_opaque_pointer());
                 return 0;
             }
 
@@ -664,8 +662,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
                 LuauVariant ret;
                 ret.initialize(builtin_class->indexing_return_type);
 
-                // lua is 1 indexed :))))
-                builtin_class->indexed_getter(self.get_opaque_pointer(), key.operator int64_t() - 1, ret.get_opaque_pointer());
+                builtin_class->indexed_getter(self.get_opaque_pointer(), key.operator int64_t(), ret.get_opaque_pointer());
 
                 ret.lua_push(L);
                 return 1;

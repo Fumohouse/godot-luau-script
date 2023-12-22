@@ -40,8 +40,8 @@ do
     array:PushBack("hello")
     array:PushBack("hi")
     assert(array:Size() == 2)
-    assert(array:Get(1) == "hello")
-    assert(array:Get(2) == "hi")
+    assert(array:Get(0) == "hello")
+    assert(array:Get(1) == "hi")
 
     -- No non-const vararg method exists
 end
@@ -57,9 +57,9 @@ do
     -- Indexed
     local array = PackedStringArray.new()
     array:PushBack("hi there")
-    array:Set(1, "hello")
+    array:Set(0, "hello")
     assert(array:Size() == 1)
-    assert(array:Get(1) == "hello")
+    assert(array:Get(0) == "hello")
 
     -- Keyed
     local dict = Dictionary.new()
