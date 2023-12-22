@@ -21,15 +21,30 @@ declare function load<T>(path: string): T?
 --- @param path The absolute path to save the resource to.
 declare function save(resource: Resource, path: string, flags: ClassEnumResourceSaver_SaverFlags?)
 
---- Determines the Godot Variant type of a value, or `nil` if the value is not Variant-compatible.
+--- Determines the Godot Variant type of a value, or `nil` if the value is not
+--- Variant-compatible.
 --- @param value The value.
 declare function gdtypeof(value: any): EnumVariantType?
+
+--- Converts a number into an integer, always rounding down.
+--- @param x The value to convert.
+declare function tointeger(x: number): integer
+
+--- Forces a number to be a float by choosing the next highest floating point
+--- value. If the number is already a float, the value does not change.
+---
+--- This function may be used in cases where passing an integral value as an
+--- integer will cause incorrect behavior, for example when providing tween
+--- values.
+--- @param x The value to convert.
+declare function tofloat(x: number): number
 
 --------------------
 -- LUAU_LIB TYPES --
 --------------------
 
---- A table type used to declare properties, method arguments, and return values.
+--- A table type used to declare properties, method arguments, and return
+--- values.
 export type GDProperty = {
     type: EnumVariantType?,
     name: string?,
@@ -53,13 +68,15 @@ declare function gdclass<T>(tbl: T): T & GDClass
 --- @param duration The duration to wait. If the engine is affected by a time factor, this duration will be affected by it.
 declare function wait(duration: number): number
 
---- Yields the current thread and waits for the signal to be emitted before resuming.
+--- Yields the current thread and waits for the signal to be emitted before
+--- resuming.
 --- @param signal The signal.
 --- @param timeout The number of seconds to wait before timing out (default: 10 seconds).
 --- @return The first return value is whether the signal was emitted (true) or timed out (false), and subsequent values are the arguments passed to the signal when it was emitted.
 declare function wait_signal<T...>(signal: Signal, timeout: number?): (true, T...) | false
 
---- Gets a global constant (e.g. AutoLoad) which was defined in the Godot editor.
+--- Gets a global constant (e.g. AutoLoad) which was defined in the Godot
+--- editor.
 --- @param name The name of the global constant.
 declare function gdglobal(name: StringNameLike): Variant
 

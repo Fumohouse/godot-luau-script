@@ -3,6 +3,8 @@
 #include <Luau/Compiler.h>
 #include <lua.h>
 #include <lualib.h>
+#include <cfloat>
+#include <cmath>
 #include <cstddef>
 #include <cstdlib>
 #include <cstring>
@@ -184,6 +186,24 @@ static int luaGD_gdtypeof(lua_State *L) {
     return 1;
 }
 
+static int luaGD_tointeger(lua_State *L) {
+    double num = luaL_checknumber(L, 1);
+    lua_pushinteger(L, static_cast<int>(num));
+    return 1;
+}
+
+static int luaGD_tofloat(lua_State *L) {
+    double num = luaL_checknumber(L, 1);
+
+    double int_part = 0.0;
+    if (std::modf(num, &int_part) != 0.0) {
+        return 1;
+    }
+
+    lua_pushnumber(L, std::nextafter(num, DBL_MAX));
+    return 1;
+}
+
 void luaGD_gderror(const char *p_method, const String &p_path, String p_msg, int p_line) {
     String file;
     int line = 0;
@@ -254,6 +274,9 @@ static const luaL_Reg global_funcs[] = {
     { "save", luaGD_save },
 
     { "gdtypeof", luaGD_gdtypeof },
+
+    { "tointeger", luaGD_tointeger },
+    { "tofloat", luaGD_tofloat },
 
     { nullptr, nullptr }
 };
