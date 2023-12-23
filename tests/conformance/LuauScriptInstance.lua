@@ -1,4 +1,7 @@
-local script = load("res://test_scripts/instance/Script.lua") :: Script?
+local scriptPath = "res://test_scripts/instance/Script.lua"
+
+LuauInterface.SandboxService:CoreScriptAdd(scriptPath)
+local script = load(scriptPath) :: Script?
 assert(script)
 
 local obj = RefCounted.new()

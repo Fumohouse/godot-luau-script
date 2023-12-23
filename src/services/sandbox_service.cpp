@@ -2,6 +2,9 @@
 
 #include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/core/method_ptrcall.hpp> // TODO: unused. required to prevent compile error when specializing PtrToArg.
+#include <godot_cpp/core/type_info.hpp>
+#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
@@ -28,6 +31,7 @@ const LuaGDClass &SandboxService::get_lua_class() const {
         lua_class.bind_method("DiscoverCoreScripts", FID(&SandboxService::discover_core_scripts), PERMISSION_INTERNAL);
         lua_class.bind_method("CoreScriptIgnore", FID(&SandboxService::core_script_ignore), PERMISSION_INTERNAL);
         lua_class.bind_method("CoreScriptAdd", FID(&SandboxService::core_script_add), PERMISSION_INTERNAL);
+        lua_class.bind_method("CoreScriptRemove", FID(&SandboxService::core_script_remove), PERMISSION_INTERNAL);
         lua_class.bind_method("CoreScriptList", FID(&SandboxService::core_script_list), PERMISSION_INTERNAL);
 
         lua_class.bind_method("ResourceAddPathRW", FID(&SandboxService::resource_add_path_rw), PERMISSION_INTERNAL);
@@ -35,6 +39,9 @@ const LuaGDClass &SandboxService::get_lua_class() const {
         lua_class.bind_method("ResourceRemovePath", FID(&SandboxService::resource_remove_path), PERMISSION_INTERNAL);
 
         lua_class.bind_method("ScanPCK", FID(&SandboxService::scan_pck), PERMISSION_INTERNAL);
+
+        lua_class.bind_method("ProtectedObjectAdd", FID(&SandboxService::protected_object_add), PERMISSION_INTERNAL);
+        lua_class.bind_method("ProtectedObjectRemove", FID(&SandboxService::protected_object_remove), PERMISSION_INTERNAL);
 
         did_init = true;
     }
@@ -114,6 +121,10 @@ void SandboxService::core_script_add(const String &p_path) {
     core_scripts.insert(p_path);
 }
 
+void SandboxService::core_script_remove(const String &p_path) {
+    core_scripts.erase(p_path);
+}
+
 Array SandboxService::core_script_list() const {
     Array a;
 
@@ -159,6 +170,19 @@ bool SandboxService::resource_has_access(const String &p_path, ResourcePermissio
 
 Dictionary SandboxService::scan_pck(const String &p_path) const {
     return PCKScanner::scan(p_path);
+}
+
+void SandboxService::protected_object_add(GDExtensionObjectPtr p_obj, int p_permissions) {
+    protected_objects.insert(p_obj, static_cast<ThreadPermissions>(p_permissions));
+}
+
+void SandboxService::protected_object_remove(GDExtensionObjectPtr p_obj) {
+    protected_objects.erase(p_obj);
+}
+
+const BitField<ThreadPermissions> *SandboxService::get_object_permissions(GDExtensionObjectPtr p_obj) const {
+    HashMap<GDExtensionObjectPtr, BitField<ThreadPermissions>>::ConstIterator E = protected_objects.find(p_obj);
+    return E ? &E->value : nullptr;
 }
 
 SandboxService::SandboxService() {

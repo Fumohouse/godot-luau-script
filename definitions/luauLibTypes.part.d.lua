@@ -117,6 +117,16 @@ declare class EnumSandboxViolations_INTERNAL
     UNTRUSTED_INT_SCRIPT_VIOLATION: EnumSandboxViolations
 end
 
+export type EnumPermissions = number
+
+declare class EnumPermissions_INTERNAL
+    BASE: EnumPermissions
+    INTERNAL: EnumPermissions
+    OS: EnumPermissions
+    FILE: EnumPermissions
+    HTTP: EnumPermissions
+end
+
 --- Service handling script sandboxing
 declare class SandboxService
     --- Returns whether a script is a core script.
@@ -135,6 +145,10 @@ declare class SandboxService
     --- Adds a script path as a core script.
     --- @param path The path to add.
     function CoreScriptAdd(self, path: string)
+
+    --- Removes a script path as a core script.
+    --- @param path The path to remove.
+    function CoreScriptRemove(self, path: string)
 
     --- Returns an array of all core scripts.
     function CoreScriptList(self): Array
@@ -157,6 +171,16 @@ declare class SandboxService
     --- Scans a PCK file and returns a report with details.
     --- @param path The path of the PCK to scan.
     function ScanPCK(self, path: string): Dictionary
+
+    --- Protects an object from its non-const (read-write) methods being called
+    --- without specified permissions.
+    --- @param object The object to protect.
+    --- @param permissions The permissions to require.
+    function ProtectedObjectAdd(self, object: Object, permissions: EnumPermissions)
+
+    --- Removes permission checking for an object.
+    --- @param object The object from which to remove protections.
+    function ProtectedObjectRemove(self, object: Object)
 end
 
 --- Service handling debugging, GC diagnostics, and profiling

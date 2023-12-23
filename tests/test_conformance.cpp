@@ -12,6 +12,7 @@
 #include "luagd_lib.h"
 #include "luagd_permissions.h"
 #include "luau_cache.h"
+#include "services/luau_interface.h"
 #include "test_utils.h"
 
 static int lua_gccollect(lua_State *L) {
@@ -79,6 +80,7 @@ static ExecOutput run_conformance(const char *p_name) {
 
 #define CONFORMANCE_TEST(m_name, m_file)          \
     TEST_CASE("conformance: " m_name) {           \
+        LuauInterface luau_interface;             \
         GDLuau gd_luau;                           \
         LuauCache luau_cache;                     \
                                                   \
@@ -92,3 +94,4 @@ CONFORMANCE_TEST("global bindings", "GlobalBindings.lua")
 CONFORMANCE_TEST("builtin bindings", "BuiltinBindings.lua")
 CONFORMANCE_TEST("luagd lib", "LuaGDLib.lua")
 CONFORMANCE_TEST("script instance", "LuauScriptInstance.lua")
+CONFORMANCE_TEST("luau interface", "LuauInterface.lua")

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <gdextension_interface.h>
 #include <lua.h>
 #include <exception>
 #include <godot_cpp/core/defs.hpp>
@@ -157,4 +158,9 @@ public:
 template <>
 inline lua_State *LuaGDClassBinder::check_arg<lua_State *>(lua_State *L, int &p_idx) {
     return L;
+}
+
+template <>
+inline GDExtensionObjectPtr LuaGDClassBinder::check_arg<GDExtensionObjectPtr>(lua_State *L, int &p_idx) {
+    return LuaStackOp<Object *>::check(L, p_idx++);
 }

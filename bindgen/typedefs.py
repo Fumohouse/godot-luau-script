@@ -428,6 +428,7 @@ def generate_typedefs(defs_dir, api, class_settings, lib_types):
     append(src, 1, "PCKScanError: EnumPCKScanError_INTERNAL,")
     append(src, 1, "PCKFileScanError: EnumPCKFileScanError_INTERNAL,")
     append(src, 1, "SandboxViolations: EnumSandboxViolations_INTERNAL,")
+    append(src, 1, "Permissions: EnumPermissions_INTERNAL,")
 
     src.append("}\n")
 

@@ -384,7 +384,6 @@ void PCKScanner::handle_file(Ref<FileAccess> p_file, PCKFileScanResult &p_scan_r
     }
 }
 
-
 PCKFileScanResult::operator Dictionary() const {
     Dictionary out;
 
@@ -397,7 +396,6 @@ PCKFileScanResult::operator Dictionary() const {
 
     return out;
 }
-
 
 PCKScanResult::operator Dictionary() const {
     Dictionary out;
@@ -527,13 +525,13 @@ const ApiEnum &get_pck_scan_error_enum() {
         "PCKScanError",
         false,
         {
-            { "OK", PCKScanResult::PCK_OK },
-            { "FILE_ERR", PCKScanResult::FILE_ERR },
-            { "MAGIC_NOT_FOUND_ERR", PCKScanResult::MAGIC_NOT_FOUND_ERR },
-            { "PACK_VERSION_ERR", PCKScanResult::PACK_VERSION_ERR },
-            { "GODOT_VERSION_ERR", PCKScanResult::GODOT_VERSION_ERR },
-            { "PACK_ENCRYPTED_ERR", PCKScanResult::PACK_ENCRYPTED_ERR },
-            { "FILE_SCAN_ERR", PCKScanResult::FILE_SCAN_ERR }
+                { "OK", PCKScanResult::PCK_OK },
+                { "FILE_ERR", PCKScanResult::FILE_ERR },
+                { "MAGIC_NOT_FOUND_ERR", PCKScanResult::MAGIC_NOT_FOUND_ERR },
+                { "PACK_VERSION_ERR", PCKScanResult::PACK_VERSION_ERR },
+                { "GODOT_VERSION_ERR", PCKScanResult::GODOT_VERSION_ERR },
+                { "PACK_ENCRYPTED_ERR", PCKScanResult::PACK_ENCRYPTED_ERR },
+                { "FILE_SCAN_ERR", PCKScanResult::FILE_SCAN_ERR },
         }
     };
 
@@ -545,14 +543,14 @@ const ApiEnum &get_pck_file_scan_error_enum() {
         "PCKFileScanError",
         false,
         {
-            { "OK", PCKFileScanResult::FILE_OK },
-            { "FILE_ENCRYPTED_ERR", PCKFileScanResult::FILE_ENCRYPTED_ERR },
-            { "UNTRUSTED_GDSCRIPT_ERR", PCKFileScanResult::UNTRUSTED_GDSCRIPT_ERR },
-            { "UNTRUSTED_FILE_ERR", PCKFileScanResult::UNTRUSTED_FILE_ERR },
-            { "ENDIANNESS_ERR", PCKFileScanResult::ENDIANNESS_ERR },
-            { "RES_VERSION_ERR", PCKFileScanResult::RES_VERSION_ERR },
-            { "GODOT_VERSION_ERR", PCKFileScanResult::GODOT_VERSION_ERR },
-            { "SANDBOX_VIOLATION_ERR", PCKFileScanResult::SANDBOX_VIOLATION_ERR }
+                { "OK", PCKFileScanResult::FILE_OK },
+                { "FILE_ENCRYPTED_ERR", PCKFileScanResult::FILE_ENCRYPTED_ERR },
+                { "UNTRUSTED_GDSCRIPT_ERR", PCKFileScanResult::UNTRUSTED_GDSCRIPT_ERR },
+                { "UNTRUSTED_FILE_ERR", PCKFileScanResult::UNTRUSTED_FILE_ERR },
+                { "ENDIANNESS_ERR", PCKFileScanResult::ENDIANNESS_ERR },
+                { "RES_VERSION_ERR", PCKFileScanResult::RES_VERSION_ERR },
+                { "GODOT_VERSION_ERR", PCKFileScanResult::GODOT_VERSION_ERR },
+                { "SANDBOX_VIOLATION_ERR", PCKFileScanResult::SANDBOX_VIOLATION_ERR },
         }
     };
 
@@ -564,9 +562,9 @@ const ApiEnum &get_sandbox_violations_enum() {
         "SandboxViolations",
         false,
         {
-            { "UNTRUSTED_EXT_SCRIPT_VIOLATION", PCKFileScanResult::UNTRUSTED_EXT_SCRIPT_VIOLATION },
-            { "RESOURCE_SANDBOX_VIOLATION", PCKFileScanResult::RESOURCE_SANDBOX_VIOLATION },
-            { "UNTRUSTED_INT_SCRIPT_VIOLATION", PCKFileScanResult::UNTRUSTED_INT_SCRIPT_VIOLATION }
+                { "UNTRUSTED_EXT_SCRIPT_VIOLATION", PCKFileScanResult::UNTRUSTED_EXT_SCRIPT_VIOLATION },
+                { "RESOURCE_SANDBOX_VIOLATION", PCKFileScanResult::RESOURCE_SANDBOX_VIOLATION },
+                { "UNTRUSTED_INT_SCRIPT_VIOLATION", PCKFileScanResult::UNTRUSTED_INT_SCRIPT_VIOLATION },
         }
     };
 

@@ -27,6 +27,7 @@
 #include "luau_lib.h"
 #include "luau_script.h"
 #include "services/pck_scanner.h"
+#include "services/sandbox_service.h"
 #include "utils.h"
 #include "wrapped_no_binding.h"
 
@@ -941,8 +942,6 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
     LocalVector<LuauVariant> args;
     LocalVector<const void *> pargs;
 
-    get_arguments<ApiClassMethod, ApiClassArgument>(L, p_method.name, &varargs, &args, &pargs, p_method);
-
     GDExtensionObjectPtr self = nullptr;
 
     if (!p_method.is_static) {
@@ -950,7 +949,15 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
         self_var.lua_check(L, 1, GDEXTENSION_VARIANT_TYPE_OBJECT, p_class.name);
 
         self = *self_var.get_ptr<GDExtensionObjectPtr>();
+
+        if (!p_method.is_const && SandboxService::get_singleton()) {
+            const BitField<ThreadPermissions> *permissions = SandboxService::get_singleton()->get_object_permissions(self);
+            if (permissions)
+                luaGD_checkpermissions(L, (nb::Object(self).to_string() + "." + p_method.name).utf8().get_data(), *permissions);
+        }
     }
+
+    get_arguments<ApiClassMethod, ApiClassArgument>(L, p_method.name, &varargs, &args, &pargs, p_method);
 
     if (p_method.is_vararg) {
         Variant ret;
@@ -1537,6 +1544,9 @@ void luaGD_openglobals(lua_State *L) {
 
     push_enum(L, get_sandbox_violations_enum());
     lua_setfield(L, -2, get_sandbox_violations_enum().name);
+
+    push_enum(L, get_permissions_enum());
+    lua_setfield(L, -2, get_permissions_enum().name);
 
     lua_createtable(L, 0, 1);
 

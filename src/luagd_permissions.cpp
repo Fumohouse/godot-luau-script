@@ -6,6 +6,7 @@
 #include <godot_cpp/core/type_info.hpp>
 
 #include "error_strings.h"
+#include "extension_api.h"
 #include "luagd_lib.h"
 
 void luaGD_checkpermissions(lua_State *L, const char *p_name, BitField<ThreadPermissions> p_permissions) {
@@ -16,4 +17,20 @@ void luaGD_checkpermissions(lua_State *L, const char *p_name, BitField<ThreadPer
                 L, PERMISSIONS_ERR,
                 p_name, p_permissions.operator int64_t(), udata->permissions.operator int64_t());
     }
+}
+
+const ApiEnum &get_permissions_enum() {
+    static ApiEnum e = {
+        "Permissions",
+        false,
+        {
+                { "BASE", PERMISSION_BASE },
+                { "INTERNAL", PERMISSION_INTERNAL },
+                { "OS", PERMISSION_OS },
+                { "FILE", PERMISSION_FILE },
+                { "HTTP", PERMISSION_HTTP },
+        }
+    };
+
+    return e;
 }
