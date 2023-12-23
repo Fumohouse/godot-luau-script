@@ -146,6 +146,7 @@ public:
     TypedArray<Dictionary> _get_script_method_list() const override;
     bool _has_method(const StringName &p_method) const override;
     bool has_method(const StringName &p_method, StringName *r_actual_name = nullptr) const;
+    bool _has_static_method(const StringName &p_method) const override { return false; }
     Dictionary _get_method_info(const StringName &p_method) const override;
 
     TypedArray<Dictionary> _get_script_property_list() const override;
