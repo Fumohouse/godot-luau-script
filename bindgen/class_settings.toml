@@ -7897,11 +7897,11 @@ permissions = "INHERIT" #
 
 [ColorPickerButton.methods.GetPicker]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false # 4.2.1-stable: Never null
 
 [ColorPickerButton.methods.GetPopup]
 permissions = "INHERIT" #
-ret_nullable = true #
+ret_nullable = false # 4.2.1-stable: Never null
 
 [ColorPickerButton.methods.IsEditingAlpha]
 permissions = "INHERIT" #

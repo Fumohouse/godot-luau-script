@@ -550,14 +550,20 @@ const GDClassProperty &LuauScript::get_property(const StringName &p_name) const 
 }
 
 bool LuauScript::_has_script_signal(const StringName &p_signal) const {
-    return definition.signals.has(p_signal);
+    return definition.signals.has(p_signal) || (base.is_valid() && base->definition.signals.has(p_signal));
 }
 
 TypedArray<Dictionary> LuauScript::_get_script_signal_list() const {
     TypedArray<Dictionary> signals;
 
-    for (const KeyValue<StringName, GDMethod> &pair : definition.signals)
-        signals.push_back(pair.value);
+    const LuauScript *s = this;
+
+    while (s) {
+        for (const KeyValue<StringName, GDMethod> &pair : s->definition.signals)
+            signals.push_back(pair.value);
+
+        s = s->base.ptr();
+    }
 
     return signals;
 }
@@ -565,8 +571,14 @@ TypedArray<Dictionary> LuauScript::_get_script_signal_list() const {
 Variant LuauScript::_get_rpc_config() const {
     Dictionary rpcs;
 
-    for (const KeyValue<StringName, GDRpc> &pair : definition.rpcs)
-        rpcs[pair.key] = pair.value;
+    const LuauScript *s = this;
+
+    while (s) {
+        for (const KeyValue<StringName, GDRpc> &pair : s->definition.rpcs)
+            rpcs[pair.key] = pair.value;
+
+        s = s->base.ptr();
+    }
 
     return rpcs;
 }
