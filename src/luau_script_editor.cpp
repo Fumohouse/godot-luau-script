@@ -3,6 +3,7 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
+#include <godot_cpp/classes/editor_settings.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/core/object.hpp>
@@ -22,6 +23,7 @@
 #include "luagd_lib.h"
 #include "luau_cache.h"
 #include "luau_lib.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -147,12 +149,91 @@ PlaceHolderScriptInstance *LuauScript::placeholder_get(Object *p_object) {
 }
 #endif // TOOLS_ENABLED
 
+TypedArray<Dictionary> LuauLanguage::_get_built_in_templates(const StringName &p_object) const {
+#ifdef TOOLS_ENABLED
+    TypedArray<Dictionary> templates;
+
+    if (p_object == StringName("Object")) {
+        Dictionary t;
+        t["inherit"] = "Object";
+        t["name"] = "Default";
+        t["description"] = "Default template for Objects";
+        t["content"] = R"TEMPLATE(--- @class
+--- @extends _BASE_CLASS_
+local _CLASS_NAME_ = {}
+local _CLASS_NAME_C = gdclass(_CLASS_NAME_)
+
+--- @classType _CLASS_NAME_
+export type _CLASS_NAME_ = _BASE_CLASS_ & typeof(_CLASS_NAME_) & {
+_I_-- Put properties, signals, and non-registered table fields here
+}
+
+return _CLASS_NAME_C
+)TEMPLATE";
+
+        t["id"] = 0;
+        t["origin"] = 0; // TEMPLATE_BUILT_IN
+
+        templates.push_back(t);
+    }
+
+    if (p_object == StringName("Node")) {
+        Dictionary t;
+        t["inherit"] = "Node";
+        t["name"] = "Default";
+        t["description"] = "Default template for Nodes with _Ready and _Process callbacks";
+        t["content"] = R"TEMPLATE(--- @class
+--- @extends _BASE_CLASS_
+local _CLASS_NAME_ = {}
+local _CLASS_NAME_C = gdclass(_CLASS_NAME_)
+
+--- @classType _CLASS_NAME_
+export type _CLASS_NAME_ = _BASE_CLASS_ & typeof(_CLASS_NAME_) & {
+_I_-- Put properties, signals, and non-registered table fields here
+}
+
+--- @registerMethod
+function _CLASS_NAME_._Ready(self: _CLASS_NAME_)
+_I_-- Called when the node enters the scene tree
+end
+
+--- @registerMethod
+function _CLASS_NAME_._Process(self: _CLASS_NAME_, delta: number)
+_I_-- Called every frame
+end
+
+return _CLASS_NAME_C
+)TEMPLATE";
+
+        t["id"] = 0;
+        t["origin"] = 0; // TEMPLATE_BUILT_IN
+
+        templates.push_back(t);
+    }
+
+    return templates;
+#else
+    return TypedArray<Dictionary>();
+#endif // TOOLS_ENABLED
+}
+
 Ref<Script> LuauLanguage::_make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const {
 #ifdef TOOLS_ENABLED
     Ref<LuauScript> script;
     script.instantiate();
 
-    // TODO: actual template stuff
+    // https://github.com/godotengine/godot/blob/13a0d6e9b253654f5cc2a44f3d0b3cae10440443/modules/gdscript/gdscript_editor.cpp#L3249-L3261
+    Ref<EditorSettings> settings = nb::EditorInterface::get_singleton_nb()->get_editor_settings();
+    bool indent_spaces = settings->get_setting("text_editor/behavior/indent/type");
+    int indent_size = settings->get_setting("text_editor/behavior/indent/size");
+    String indent = indent_spaces ? String(" ").repeat(indent_size) : "\t";
+
+    String contents = p_template
+                              .replace("_CLASS_NAME_", p_class_name)
+                              .replace("_BASE_CLASS_", p_base_class_name)
+                              .replace("_I_", indent);
+
+    script->_set_source_code(contents);
 
     return script;
 #else

@@ -441,6 +441,9 @@ public:
 
     /* ... */
     Object *_create_script() const override;
+
+    bool _is_using_templates() override { return true; }
+    TypedArray<Dictionary> _get_built_in_templates(const StringName &p_object) const override;
     Ref<Script> _make_template(const String &p_template, const String &p_class_name, const String &p_base_class_name) const override;
 
     void _add_global_constant(const StringName &p_name, const Variant &p_value) override;
@@ -488,9 +491,6 @@ public:
 
         return output;
     }
-
-    bool _is_using_templates() override { return false; }
-    TypedArray<Dictionary> _get_built_in_templates(const StringName &p_object) const override { return TypedArray<Dictionary>(); }
 
     Dictionary _complete_code(const String &p_code, const String &p_path, Object *p_owner) const override { return Dictionary(); }
     Dictionary _lookup_code(const String &p_code, const String &p_symbol, const String &p_path, Object *p_owner) const override { return Dictionary(); }

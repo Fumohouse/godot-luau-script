@@ -1,6 +1,6 @@
 #pragma once
 
-#include "godot_cpp/classes/editor_interface.hpp"
+#include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/os.hpp>
