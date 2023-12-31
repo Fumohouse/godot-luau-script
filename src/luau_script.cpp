@@ -412,9 +412,8 @@ bool LuauScript::_is_tool() const {
 StringName LuauScript::_get_instance_base_type() const {
     StringName extends = StringName(definition.extends);
 
-    if (extends != StringName() && Utils::class_exists(extends)) {
+    if (extends != StringName() && Utils::class_exists(extends))
         return extends;
-    }
 
     if (base.is_valid() && base->_is_valid())
         return base->_get_instance_base_type();
@@ -444,7 +443,7 @@ bool LuauScript::_inherits_script(const Ref<Script> &p_script) const {
 }
 
 StringName LuauScript::_get_global_name() const {
-    return get_name();
+    return definition.name;
 }
 
 TypedArray<Dictionary> LuauScript::_get_script_method_list() const {

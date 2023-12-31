@@ -464,7 +464,7 @@ Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
     if (script->get_base().is_valid()) {
         // C# implementation used as reference
         bool global_base_found = false;
-        const LuauScript *s = script.ptr();
+        const LuauScript *s = script->get_base().ptr();
 
         while (s) {
             const String &name = s->get_definition().name;
