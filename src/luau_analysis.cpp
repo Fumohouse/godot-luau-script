@@ -27,7 +27,7 @@
 #include "luau_lib.h"
 #include "luau_script.h"
 #include "services/sandbox_service.h"
-#include "utils.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -151,7 +151,7 @@ static bool get_godot_type(const String &p_type_name, GDProperty &r_prop) {
     if (E) {
         // Variant type
         r_prop.type = E->value;
-    } else if (Utils::class_exists(p_type_name)) {
+    } else if (nb::ClassDB::get_singleton_nb()->class_exists(p_type_name)) {
         r_prop.set_object_type(p_type_name);
     } else {
         return false;
@@ -622,7 +622,7 @@ struct ClassReader : public Luau::AstVisitor {
             return;
         }
 
-        if (Utils::class_exists(extends)) {
+        if (nb::ClassDB::get_singleton_nb()->class_exists(extends)) {
             class_definition.extends = extends;
         } else {
             class_definition.extends = "";

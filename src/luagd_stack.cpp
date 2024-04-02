@@ -168,7 +168,7 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr p_value) {
 
             lua_pop(L, 1); // nil
 
-            curr_class = Utils::get_parent_class(curr_class);
+            curr_class = nb::ClassDB::get_singleton_nb()->get_parent_class(curr_class);
         }
 
         luaGD_object_init(p_value);

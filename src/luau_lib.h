@@ -17,6 +17,7 @@
 
 #include "luagd_permissions.h"
 #include "utils.h"
+#include "wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -49,10 +50,10 @@ struct GDProperty {
 
         const String &godot_type = p_base_type.is_empty() ? p_type : p_base_type;
 
-        if (Utils::is_parent_class(godot_type, "Resource")) {
+        if (nb::ClassDB::get_singleton_nb()->is_parent_class(godot_type, "Resource")) {
             hint = PROPERTY_HINT_RESOURCE_TYPE;
             hint_string = p_type;
-        } else if (Utils::is_parent_class(godot_type, "Node")) {
+        } else if (nb::ClassDB::get_singleton_nb()->is_parent_class(godot_type, "Node")) {
             hint = PROPERTY_HINT_NODE_TYPE;
             hint_string = p_type;
         }

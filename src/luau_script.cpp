@@ -412,7 +412,7 @@ bool LuauScript::_is_tool() const {
 StringName LuauScript::_get_instance_base_type() const {
     StringName extends = StringName(definition.extends);
 
-    if (extends != StringName() && Utils::class_exists(extends))
+    if (extends != StringName() && nb::ClassDB::get_singleton_nb()->class_exists(extends))
         return extends;
 
     if (base.is_valid() && base->_is_valid())

@@ -9,37 +9,8 @@
 #include <godot_cpp/variant/string_name.hpp>
 
 #include "error_strings.h"
-#include "wrapped_no_binding.h"
 
 using namespace godot;
-
-// TODO: the real ClassDB is not available in godot-cpp yet. this is what we get.
-nb::Object Utils::class_db = nullptr;
-
-Object *Utils::get_class_db() {
-    if (!class_db._owner) {
-        StringName classdb_name = "ClassDB";
-        class_db._owner = internal::gdextension_interface_global_get_singleton(&classdb_name);
-    }
-
-    return &class_db;
-}
-
-bool Utils::class_exists(const StringName &p_class_name) {
-    return get_class_db()->call("class_exists", p_class_name);
-}
-
-bool Utils::class_has_method(const StringName &p_class_name, const StringName &p_method, bool p_no_inheritance) {
-    return get_class_db()->call("class_has_method", p_class_name, p_method, p_no_inheritance);
-}
-
-bool Utils::is_parent_class(const StringName &p_class_name, const StringName &p_inherits) {
-    return get_class_db()->call("is_parent_class", p_class_name, p_inherits);
-}
-
-StringName Utils::get_parent_class(const StringName &p_class_name) {
-    return get_class_db()->call("get_parent_class", p_class_name);
-}
 
 String Utils::to_pascal_case(const String &p_input) {
     String out = p_input.to_pascal_case();
