@@ -16,7 +16,6 @@ GDLuau *GDLuau::singleton = nullptr;
 
 void GDLuau::init_vm(VMType p_type) {
     lua_State *L = luaGD_newstate(p_type, PERMISSION_BASE);
-    luaGD_openlibs(L);
     luascript_openlibs(L);
 
     if (LuauInterface::get_singleton()) {

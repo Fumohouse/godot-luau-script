@@ -7,7 +7,6 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
-#include <new>
 
 #include "error_strings.h"
 
@@ -71,7 +70,18 @@ STACK_OP_DEF(uint8_t)
 STACK_OP_DEF(int16_t)
 STACK_OP_DEF(uint16_t)
 STACK_OP_DEF(uint32_t)
-STACK_OP_DEF(int64_t)
+
+template <>
+struct LuaStackOp<int64_t> {
+    static void init_metatable(lua_State *L);
+
+    static void push_i64(lua_State *L, const int64_t &p_value);
+    static void push(lua_State *L, const int64_t &p_value);
+
+    static int64_t get(lua_State *L, int p_index);
+    static bool is(lua_State *L, int p_index);
+    static int64_t check(lua_State *L, int p_index);
+};
 
 template <>
 struct LuaStackOp<Object *> {

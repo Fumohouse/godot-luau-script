@@ -10,6 +10,10 @@ declare function SN(str: string): StringNameN
 --- @param str The string to use.
 declare function NP(str: string): NodePathN
 
+--- Constructs a 64-bit integer.
+--- @param num The number represented as a number or string.
+declare function I64(num: number | string): number
+
 -- TODO: constrain to Resource type?
 --- Loads a resource. If the current script is not a core script, accessible
 --- paths are restricted by SandboxService.

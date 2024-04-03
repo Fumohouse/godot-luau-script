@@ -86,3 +86,12 @@ operators do not work.
   - `{T}` to their corresponding `Packed[T]Array` types
   - `{[Variant]: Variant}` to `Dictionary`
   - `string` to `String`, `NodePath`, or `StringName`
+- Luau's `number` type (represented as double-precision floating point) cannot
+  exactly store integers with an absolute value of more than `2^53`. Numbers
+  outside this range are converted transparently to a custom type `Int64` which
+  is designed to mimic `number` as closely as possible (as such, `Int64` is not
+  generated in type definitions or treated separately from `number`). The value
+  in `Int64` is exact, but operations on `Int64` *will return `number`* (i.e.
+  may result in a loss in precision). The function `I64` will create an `Int64`
+  with value given by a `string` argument (for values of higher magnitude than
+  `2^53`) or a `number` argument.

@@ -48,15 +48,106 @@ bool luaGD_metatables_match(lua_State *L, int p_index, const char *p_metatable_n
 BASIC_STACK_OP_IMPL(bool, boolean, boolean);
 BASIC_STACK_OP_IMPL(int, integer, number);
 BASIC_STACK_OP_IMPL(float, number, number);
-
-// this is only a little bit shady. don't worry about it
 BASIC_STACK_OP_IMPL(double, number, number);
 BASIC_STACK_OP_IMPL(int8_t, number, number);
 BASIC_STACK_OP_IMPL(uint8_t, unsigned, number);
 BASIC_STACK_OP_IMPL(int16_t, number, number);
 BASIC_STACK_OP_IMPL(uint16_t, unsigned, number);
 BASIC_STACK_OP_IMPL(uint32_t, unsigned, number);
-BASIC_STACK_OP_IMPL(int64_t, number, number);
+
+#define INT64_MT_NAME "Luau.Int64"
+#define INT64_DOUBLE_LIMIT 9007199254740992 // 2^53; see https://stackoverflow.com/a/1848762
+
+void LuaStackOp<int64_t>::init_metatable(lua_State *L) {
+    luaL_newmetatable(L, INT64_MT_NAME);
+
+    lua_pushstring(L, "Int64");
+    lua_setfield(L, -2, "__type");
+
+#define INT64_OP_FUNC(m_exp, m_name, m_ret)                                                             \
+    lua_pushcfunction(                                                                                  \
+            L, [](lua_State *L) {                                                                       \
+                double d1 = lua_isnumber(L, 1) ? lua_tonumber(L, 1) : LuaStackOp<int64_t>::check(L, 1); \
+                double d2 = lua_isnumber(L, 2) ? lua_tonumber(L, 2) : LuaStackOp<int64_t>::check(L, 2); \
+                LuaStackOp<m_ret>::push(L, m_exp);                                                      \
+                return 1;                                                                               \
+            },                                                                                          \
+            INT64_MT_NAME "." m_name);                                                                  \
+                                                                                                        \
+    lua_setfield(L, -2, m_name);
+
+    INT64_OP_FUNC(d1 + d2, "__add", double)
+    INT64_OP_FUNC(d1 - d2, "__sub", double)
+    INT64_OP_FUNC(d1 * d2, "__mul", double)
+    INT64_OP_FUNC(d1 / d2, "__div", double)
+    INT64_OP_FUNC(fmod(d1, d2), "__mod", double)
+    INT64_OP_FUNC(pow(d1, d2), "__pow", double)
+
+    INT64_OP_FUNC(d1 == d2, "__eq", bool)
+    INT64_OP_FUNC(d1 < d2, "__lt", bool)
+
+    // Special: negate
+    lua_pushcfunction(
+            L, [](lua_State *L) {
+                LuaStackOp<int64_t>::push(L, -LuaStackOp<int64_t>::check(L, 1));
+                return 1;
+            },
+            INT64_MT_NAME ".__unm");
+
+    lua_setfield(L, -2, "__unm");
+
+    // Special: stringify
+    lua_pushcfunction(
+            L, [](lua_State *L) {
+                LuaStackOp<String>::push(L, String::num_int64(LuaStackOp<int64_t>::check(L, 1)));
+                return 1;
+            },
+            INT64_MT_NAME ".__tostring");
+
+    lua_setfield(L, -2, "__tostring");
+
+    lua_setreadonly(L, -1, true);
+}
+
+void LuaStackOp<int64_t>::push_i64(lua_State *L, const int64_t &p_value) {
+    int64_t *udata = reinterpret_cast<int64_t *>(lua_newuserdata(L, sizeof(int64_t)));
+    *udata = p_value;
+
+    luaL_getmetatable(L, INT64_MT_NAME);
+    if (lua_isnil(L, -1))
+        luaGD_mtnotfounderror(L, INT64_MT_NAME);
+
+    lua_setmetatable(L, -2);
+}
+
+void LuaStackOp<int64_t>::push(lua_State *L, const int64_t &p_value) {
+    if (p_value >= -INT64_DOUBLE_LIMIT && p_value <= INT64_DOUBLE_LIMIT) {
+        lua_pushnumber(L, p_value);
+    } else {
+        LuaStackOp<int64_t>::push_i64(L, p_value);
+    }
+}
+
+int64_t LuaStackOp<int64_t>::get(lua_State *L, int p_index) {
+    if (lua_isnumber(L, p_index))
+        return lua_tonumber(L, p_index);
+
+    if (luaGD_metatables_match(L, p_index, INT64_MT_NAME))
+        return *reinterpret_cast<int64_t *>(lua_touserdata(L, p_index));
+
+    return 0;
+}
+
+bool LuaStackOp<int64_t>::is(lua_State *L, int p_index) {
+    return lua_isnumber(L, p_index) || luaGD_metatables_match(L, p_index, INT64_MT_NAME);
+}
+
+int64_t LuaStackOp<int64_t>::check(lua_State *L, int p_index) {
+    if (luaGD_metatables_match(L, p_index, INT64_MT_NAME))
+        return *reinterpret_cast<int64_t *>(lua_touserdata(L, p_index));
+
+    return luaL_checknumber(L, p_index);
+}
 
 /* STRING */
 
@@ -296,6 +387,10 @@ int LuaStackOp<Variant>::get_type(lua_State *L, int p_index) {
             return -1;
 
         case LUA_TUSERDATA:
+            // Special case
+            if (LuaStackOp<int64_t>::is(L, p_index))
+                return GDEXTENSION_VARIANT_TYPE_INT;
+
             // Pass through to below with metatable on stack
             if (!lua_getmetatable(L, p_index))
                 return -1;

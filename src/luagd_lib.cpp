@@ -74,6 +74,7 @@ lua_State *luaGD_newstate(GDLuau::VMType p_vm_type, BitField<ThreadPermissions> 
     lua_State *L = lua_newstate(luaGD_alloc, nullptr);
 
     luaL_openlibs(L);
+    luaGD_openlibs(L);
     luaGD_openbuiltins(L);
     luaGD_openclasses(L);
     luaGD_openglobals(L);
@@ -131,6 +132,23 @@ template <typename T>
 static int luaGD_str_ctor(lua_State *L) {
     String str = LuaStackOp<String>::check(L, 1);
     LuaStackOp<T>::push(L, str, true);
+    return 1;
+}
+
+static int luaGD_i64_ctor(lua_State *L) {
+    int64_t value = 0;
+
+    if (lua_type(L, 1) == LUA_TSTRING) {
+        String s = LuaStackOp<String>::get(L, 1);
+        if (!s.is_valid_int())
+            luaL_typeerrorL(L, 1, "integer");
+
+        value = s.to_int();
+    } else {
+        value = luaL_checkinteger(L, 1);
+    }
+
+    LuaStackOp<int64_t>::push_i64(L, value);
     return 1;
 }
 
@@ -269,6 +287,7 @@ const Luau::CompileOptions &luaGD_compileopts() {
 static const luaL_Reg global_funcs[] = {
     { "SN", luaGD_str_ctor<StringName> },
     { "NP", luaGD_str_ctor<NodePath> },
+    { "I64", luaGD_i64_ctor },
 
     { "load", luaGD_load },
     { "save", luaGD_save },
@@ -282,5 +301,6 @@ static const luaL_Reg global_funcs[] = {
 };
 
 void luaGD_openlibs(lua_State *L) {
+    LuaStackOp<int64_t>::init_metatable(L);
     luaL_register(L, "_G", global_funcs);
 }

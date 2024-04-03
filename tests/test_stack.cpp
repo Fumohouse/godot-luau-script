@@ -131,3 +131,23 @@ TEST_CASE_METHOD(LuauFixture, "vm: dictionary stack operations") {
                 CHECK_OP(Dictionary, expected_dict));
     }
 }
+
+TEST_CASE_METHOD(LuauFixture, "vm: 64-bit integers") {
+    SECTION("|x| <= 2^53") {
+        int64_t i = 9007199254740992;
+        LuaStackOp<int64_t>::push(L, i);
+        REQUIRE(LuaStackOp<int64_t>::is(L, -1));
+        REQUIRE(LuaStackOp<Variant>::get_type(L, -1) == GDEXTENSION_VARIANT_TYPE_INT);
+        REQUIRE(lua_isnumber(L, -1));
+        REQUIRE(LuaStackOp<int64_t>::get(L, -1) == i);
+    }
+
+    SECTION("|x| > 2^53") {
+        int64_t j = 9007199254740993;
+        LuaStackOp<int64_t>::push(L, j);
+        REQUIRE(LuaStackOp<int64_t>::is(L, -1));
+        REQUIRE(LuaStackOp<Variant>::get_type(L, -1) == GDEXTENSION_VARIANT_TYPE_INT);
+        REQUIRE(lua_isuserdata(L, -1));
+        REQUIRE(LuaStackOp<int64_t>::get(L, -1) == j);
+    }
+}
