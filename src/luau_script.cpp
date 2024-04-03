@@ -244,7 +244,7 @@ String LuauScript::resolve_path(const String &p_relative_path, String &r_error) 
 }
 
 Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
-#define LOAD_DEF_METHOD "LuauScript::load_definition"
+#define LOAD_TABLE_METHOD "LuauScript::load_table"
 
     if (table_refs[p_vm_type]) {
         if (!p_force)
@@ -255,7 +255,7 @@ Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
 
     // TODO: error line numbers?
     if (_is_loading) {
-        error(LOAD_DEF_METHOD, ALREADY_LOADING_ERR, 1);
+        error(LOAD_TABLE_METHOD, ALREADY_LOADING_ERR, 1);
         return ERR_CYCLIC_LINK;
     }
     _is_loading = true;
@@ -274,19 +274,20 @@ Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
         int status = lua_resume(T, nullptr, 0);
 
         if (status == LUA_YIELD || status == LUA_BREAK) {
-            error(LOAD_DEF_METHOD, YIELD_DURING_LOAD_ERR, 1);
+            error(LOAD_TABLE_METHOD, YIELD_DURING_LOAD_ERR, 1);
             lua_pop(L, 1); // thread
+            udata->script.unref();
             _is_loading = false;
             return ERR_COMPILATION_FAILED;
         } else if (status != LUA_OK) {
-            error(LOAD_DEF_METHOD, LuaStackOp<String>::get(T, -1));
+            error(LOAD_TABLE_METHOD, LuaStackOp<String>::get(T, -1));
             lua_pop(L, 1); // thread
             _is_loading = false;
             return ERR_COMPILATION_FAILED;
         }
 
         if (luascript_class_table_get_script(T, 1) != this) {
-            error(LOAD_DEF_METHOD, INVALID_CLASS_TABLE_ERR, 1);
+            error(LOAD_TABLE_METHOD, INVALID_CLASS_TABLE_ERR, 1);
             lua_pop(L, 1); // thread
             _is_loading = false;
             return ERR_COMPILATION_FAILED;
@@ -637,8 +638,11 @@ bool LuauScript::has_dependency(const Ref<LuauScript> &p_script) const {
 }
 
 bool LuauScript::add_dependency(const Ref<LuauScript> &p_script) {
+    if (p_script->has_dependency(this))
+        return false;
+
     dependencies.insert(p_script);
-    return !p_script->has_dependency(this);
+    return true;
 }
 
 void LuauScript::error(const char *p_method, const String &p_msg, int p_line) const {
@@ -1800,6 +1804,18 @@ LuauLanguage::LuauLanguage() {
 LuauLanguage::~LuauLanguage() {
     finalize();
     singleton = nullptr;
+
+#ifdef DEBUG_ENABLED
+    SelfList<LuauScript> *elem = script_list.first();
+
+    while (elem) {
+        const LuauScript *script = elem->self();
+        String path = script->get_path().is_empty() ? "<no path>" : script->get_path();
+        WARN_PRINT(String("Script leaked at exit: ") + path + " (" + String::num(script->get_instance_id()) + ")");
+
+        elem = elem->next();
+    }
+#endif // DEBUG_ENABLED
 }
 
 #ifdef TESTS_ENABLED

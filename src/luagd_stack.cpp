@@ -101,92 +101,97 @@ static void luaGD_object_dtor(void *p_ptr) {
 #define LUAGD_OBJ_CACHE_TABLE "_OBJECTS"
 
 void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr p_value) {
-    if (p_value) {
-        lua_getfield(L, LUA_REGISTRYINDEX, LUAGD_OBJ_CACHE_TABLE);
-
-        // Lazy initialize table
-        if (lua_isnil(L, -1)) {
-            lua_pop(L, 1); // nil
-
-            lua_newtable(L);
-            lua_pushvalue(L, -1);
-            lua_setfield(L, LUA_REGISTRYINDEX, LUAGD_OBJ_CACHE_TABLE);
-
-            // Mark table as weak
-            lua_newtable(L);
-            lua_pushstring(L, "v");
-            lua_setfield(L, -2, "__mode");
-            lua_setreadonly(L, -1, true);
-            lua_setmetatable(L, -2);
-        }
-
-        nb::Object obj = p_value;
-        ObjectUdata *udata = nullptr;
-        uint64_t id = obj.get_instance_id();
-        // Prevent loss of precision (vs casting)
-        const char *str_id = reinterpret_cast<const char *>(&id);
-
-        // Check to return from cache
-        lua_pushlstring(L, str_id, sizeof(uint64_t));
-        lua_gettable(L, -2);
-
-        if (!lua_isnil(L, -1)) {
-            ObjectUdata *cached_udata = reinterpret_cast<ObjectUdata *>(lua_touserdata(L, -1));
-
-            if (cached_udata->is_namecall == !obj.get_script().operator Object *()) {
-                // Metatable is correct
-                lua_remove(L, -2); // table
-                return;
-            } else {
-                // Metatable should be changed, fall below to update
-                udata = cached_udata;
-            }
-        } else {
-            lua_pop(L, 1); // value
-        }
-
-        if (!udata)
-            udata = reinterpret_cast<ObjectUdata *>(lua_newuserdatadtor(L, sizeof(ObjectUdata), luaGD_object_dtor));
-
-        // Must search parent classes because some classes used in Godot are not registered,
-        // e.g. GodotPhysicsDirectSpaceState3D -> PhysicsDirectSpaceState3D
-        StringName curr_class = obj.get_class();
-
-        while (!curr_class.is_empty()) {
-            String metatable_name = "Godot.Object." + curr_class;
-            if (!obj.get_script().operator Object *()) {
-                metatable_name = metatable_name + ".Namecall";
-                udata->is_namecall = true;
-            } else {
-                udata->is_namecall = false;
-            }
-
-            luaL_getmetatable(L, metatable_name.utf8().get_data());
-            if (!lua_isnil(L, -1)) {
-                break;
-            }
-
-            lua_pop(L, 1); // nil
-
-            curr_class = nb::ClassDB::get_singleton_nb()->get_parent_class(curr_class);
-        }
-
-        luaGD_object_init(p_value);
-        udata->id = id;
-
-        // Shouldn't be possible
-        if (!lua_istable(L, -1))
-            luaL_error(L, CLASS_MT_NOT_FOUND_ERR, obj.get_class().utf8().get_data());
-
-        lua_setmetatable(L, -2);
-
-        lua_pushlstring(L, str_id, sizeof(uint64_t));
-        lua_pushvalue(L, -2);
-        lua_settable(L, -4);
-        lua_remove(L, -2); // table
-    } else {
+    if (!p_value) {
         lua_pushnil(L);
+        return;
     }
+
+    lua_getfield(L, LUA_REGISTRYINDEX, LUAGD_OBJ_CACHE_TABLE);
+
+    // Lazy initialize table
+    if (lua_isnil(L, -1)) {
+        lua_pop(L, 1); // nil
+
+        lua_newtable(L);
+        lua_pushvalue(L, -1);
+        lua_setfield(L, LUA_REGISTRYINDEX, LUAGD_OBJ_CACHE_TABLE);
+
+        // Mark table as weak
+        lua_newtable(L);
+        lua_pushstring(L, "v");
+        lua_setfield(L, -2, "__mode");
+        lua_setreadonly(L, -1, true);
+        lua_setmetatable(L, -2);
+    }
+
+    nb::Object obj = p_value;
+    ObjectUdata *udata = nullptr;
+    uint64_t id = obj.get_instance_id();
+    // Prevent loss of precision (vs casting)
+    const char *str_id = reinterpret_cast<const char *>(&id);
+
+    // Check to return from cache
+    lua_pushlstring(L, str_id, sizeof(uint64_t));
+    lua_gettable(L, -2);
+
+    bool has_cached = !lua_isnil(L, -1);
+
+    if (has_cached) {
+        ObjectUdata *cached_udata = reinterpret_cast<ObjectUdata *>(lua_touserdata(L, -1));
+
+        if (cached_udata->is_namecall == !obj.get_script().operator Object *()) {
+            // Metatable is correct
+            lua_remove(L, -2); // table
+            return;
+        } else {
+            // Metatable should be changed, fall below to update
+            udata = cached_udata;
+        }
+    } else {
+        lua_pop(L, 1); // value
+    }
+
+    if (!udata)
+        udata = reinterpret_cast<ObjectUdata *>(lua_newuserdatadtor(L, sizeof(ObjectUdata), luaGD_object_dtor));
+
+    // Must search parent classes because some classes used in Godot are not registered,
+    // e.g. GodotPhysicsDirectSpaceState3D -> PhysicsDirectSpaceState3D
+    StringName curr_class = obj.get_class();
+
+    while (!curr_class.is_empty()) {
+        String metatable_name = "Godot.Object." + curr_class;
+        if (!obj.get_script().operator Object *()) {
+            metatable_name = metatable_name + ".Namecall";
+            udata->is_namecall = true;
+        } else {
+            udata->is_namecall = false;
+        }
+
+        luaL_getmetatable(L, metatable_name.utf8().get_data());
+        if (!lua_isnil(L, -1)) {
+            break;
+        }
+
+        lua_pop(L, 1); // nil
+
+        curr_class = nb::ClassDB::get_singleton_nb()->get_parent_class(curr_class);
+    }
+
+    if (!has_cached)
+        luaGD_object_init(p_value);
+
+    udata->id = id;
+
+    // Shouldn't be possible
+    if (!lua_istable(L, -1))
+        luaL_error(L, CLASS_MT_NOT_FOUND_ERR, obj.get_class().utf8().get_data());
+
+    lua_setmetatable(L, -2);
+
+    lua_pushlstring(L, str_id, sizeof(uint64_t));
+    lua_pushvalue(L, -2);
+    lua_settable(L, -4);
+    lua_remove(L, -2); // table
 }
 
 void LuaStackOp<Object *>::push(lua_State *L, Object *p_value) {

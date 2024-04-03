@@ -80,7 +80,7 @@ struct VariantAssignMethodsDtor : public VariantAssignMethods<T> {
 // Assigns value to _ptr when coming from Luau, and to _opaque otherwise.
 // Used for any type bound to a userdata.
 template <typename T>
-struct VariantUserdataMethods : public VariantAssignMethods<T> {
+struct VariantUserdataMethods : public VariantAssignMethodsDtor<T> {
     virtual void *get(LuauVariant &p_self) const override {
         if (p_self.is_from_luau())
             return p_self._data._ptr;

@@ -3,7 +3,6 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
-#include <string.h>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
@@ -242,7 +241,9 @@ static int luascript_require(lua_State *L) {
 
     // Load and write dependency.
     Error err = OK;
-    Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err);
+    // Do not use a Ref here!
+    // luaL_error, etc. will not properly free Refs and will cause memory leaks and crashes!
+    LuauScript *script = LuauCache::get_singleton()->get_script(full_path, err).ptr();
 
     // Dependencies are, for the most part, not of any concern if they aren't part of the load stage.
     // (i.e. requires processed after initial script load should not write or check dependencies)

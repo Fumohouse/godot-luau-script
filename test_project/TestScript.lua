@@ -119,13 +119,6 @@ export type TestClass = TestBaseScript.TestBaseScript & typeof(TestClass) & {
     inCategory: string,
 }
 
-function TestClass:Counter()
-    for i = 3, 1, -1 do
-        print(i.."!")
-        wait(1)
-    end
-end
-
 function TestClass:_Init()
     self.customProperty = "hey"
 end
@@ -146,10 +139,9 @@ function TestClass:_Ready()
     LuauInterface.DebugService:Exec("wait(1); error('ERROR!')") -- task scheduler error
 
     if not Engine.singleton:IsEditorHint() then
-        self:Counter()
-
         -- Exit the test once complete
         print_rich("[color=green]Tests finished![/color] Exiting...")
+        wait(1)
         self:GetTree():Quit()
     end
 end
