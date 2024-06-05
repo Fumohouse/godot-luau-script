@@ -7,35 +7,35 @@
 #include "luagd_permissions.h"
 
 TEST_CASE("vm: permissions") {
-    lua_State *L = luaGD_newstate(GDLuau::VM_MAX, PERMISSION_INTERNAL);
-    GDThreadData *udata = luaGD_getthreaddata(L);
+	lua_State *L = luaGD_newstate(GDLuau::VM_MAX, PERMISSION_INTERNAL);
+	GDThreadData *udata = luaGD_getthreaddata(L);
 
-    SECTION("vm initialized") {
-        REQUIRE(udata);
-        REQUIRE(udata->permissions == PERMISSION_INTERNAL);
-    }
+	SECTION("vm initialized") {
+		REQUIRE(udata);
+		REQUIRE(udata->permissions == PERMISSION_INTERNAL);
+	}
 
-    SECTION("threads inherit permissions") {
-        lua_State *T = lua_newthread(L);
-        GDThreadData *thread_udata = luaGD_getthreaddata(T);
+	SECTION("threads inherit permissions") {
+		lua_State *T = lua_newthread(L);
+		GDThreadData *thread_udata = luaGD_getthreaddata(T);
 
-        REQUIRE(thread_udata);
-        REQUIRE(thread_udata != udata);
-        REQUIRE(thread_udata->permissions == PERMISSION_INTERNAL);
+		REQUIRE(thread_udata);
+		REQUIRE(thread_udata != udata);
+		REQUIRE(thread_udata->permissions == PERMISSION_INTERNAL);
 
-        lua_pop(L, 1);
-    }
+		lua_pop(L, 1);
+	}
 
-    SECTION("thread permission initialization") {
-        lua_State *T = luaGD_newthread(L, PERMISSION_FILE);
-        GDThreadData *thread_udata = luaGD_getthreaddata(T);
+	SECTION("thread permission initialization") {
+		lua_State *T = luaGD_newthread(L, PERMISSION_FILE);
+		GDThreadData *thread_udata = luaGD_getthreaddata(T);
 
-        REQUIRE(thread_udata);
-        REQUIRE(thread_udata != udata);
-        REQUIRE(thread_udata->permissions == PERMISSION_FILE);
+		REQUIRE(thread_udata);
+		REQUIRE(thread_udata != udata);
+		REQUIRE(thread_udata->permissions == PERMISSION_FILE);
 
-        lua_pop(L, 1);
-    }
+		lua_pop(L, 1);
+	}
 
-    luaGD_close(L);
+	luaGD_close(L);
 }

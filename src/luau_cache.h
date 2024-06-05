@@ -10,15 +10,15 @@ using namespace godot;
 
 // Based on GDScriptCache
 class LuauCache {
-    HashMap<String, Ref<LuauScript>> cache;
+	HashMap<String, Ref<LuauScript>> cache;
 
-    static LuauCache *singleton;
+	static LuauCache *singleton;
 
 public:
-    static LuauCache *get_singleton() { return singleton; }
+	static LuauCache *get_singleton() { return singleton; }
 
-    Ref<LuauScript> get_script(const String &p_path, Error &r_error, bool p_ignore_cache = false, LuauScript::LoadStage p_stage = LuauScript::LOAD_FULL);
+	Ref<LuauScript> get_script(const String &p_path, Error &r_error, bool p_ignore_cache = false, LuauScript::LoadStage p_stage = LuauScript::LOAD_FULL);
 
-    LuauCache();
-    ~LuauCache();
+	LuauCache();
+	~LuauCache();
 };

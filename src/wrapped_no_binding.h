@@ -20,20 +20,20 @@ namespace nb {
 // Avoids the creation of instance bindings by using a protected constructor and not using memnew.
 template <typename T>
 class WrappedNoBinding : public T {
-    static WrappedNoBinding<T> singleton;
+	static WrappedNoBinding<T> singleton;
 
 public:
-    static WrappedNoBinding<T> *get_singleton_nb() {
-        if (!singleton._owner) {
-            StringName singleton_name = T::get_class_static();
-            singleton._owner = internal::gdextension_interface_global_get_singleton(&singleton_name);
-        }
+	static WrappedNoBinding<T> *get_singleton_nb() {
+		if (!singleton._owner) {
+			StringName singleton_name = T::get_class_static();
+			singleton._owner = internal::gdextension_interface_global_get_singleton(&singleton_name);
+		}
 
-        return &singleton;
-    }
+		return &singleton;
+	}
 
-    WrappedNoBinding(GodotObject *p_obj) :
-            T(p_obj) {}
+	WrappedNoBinding(GodotObject *p_obj) :
+			T(p_obj) {}
 };
 
 template <typename T>

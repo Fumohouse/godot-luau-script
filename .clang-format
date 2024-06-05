@@ -1,6 +1,4 @@
-# This project largely adopts Godot's styling convention.
-# Exceptions:
-#   - Spaces, not tabs
+# This project adopts Godot's styling convention.
 # https://raw.githubusercontent.com/godotengine/godot/master/.clang-format
 # See COPYRIGHT.txt for license information
 ---
@@ -172,9 +170,9 @@ SpacesInLineCommentPrefix:
 # StatementMacros:
 #   - Q_UNUSED
 #   - QT_REQUIRE_VERSION
-# TabWidth:        4
+TabWidth:        4
 # UseCRLF:         false
-UseTab:          Never
+UseTab:          Always
 # WhitespaceSensitiveMacros:
 #   - STRINGIZE
 #   - PP_STRINGIZE
@@ -185,4 +183,17 @@ UseTab:          Never
 ### C++ specific config ###
 Language:        Cpp
 Standard:        c++17
+---
+### ObjC specific config ###
+Language:        ObjC
+# ObjCBinPackProtocolList: Auto
+ObjCBlockIndentWidth: 4
+# ObjCBreakBeforeNestedBlockParam: true
+# ObjCSpaceAfterProperty: false
+# ObjCSpaceBeforeProtocolList: true
+---
+### Java specific config ###
+Language:        Java
+# BreakAfterJavaFieldAnnotations: false
+JavaImportGroups: ['org.godotengine', 'android', 'androidx', 'com.android', 'com.google', 'java', 'javax']
 ...

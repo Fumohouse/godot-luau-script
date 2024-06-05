@@ -16,30 +16,30 @@ using namespace godot;
 class LuauScript;
 
 struct LuauComment {
-    enum CommentType {
-        COMMENT_SINGLE_LINE,
-        COMMENT_SINGLE_LINE_EXCL,
-        COMMENT_BLOCK,
-    };
+	enum CommentType {
+		COMMENT_SINGLE_LINE,
+		COMMENT_SINGLE_LINE_EXCL,
+		COMMENT_BLOCK,
+	};
 
-    CommentType type;
-    Luau::Location location;
-    String contents;
+	CommentType type;
+	Luau::Location location;
+	String contents;
 };
 
 struct Annotation {
-    Luau::Location location;
-    StringName name;
-    String args;
+	Luau::Location location;
+	StringName name;
+	String args;
 };
 
 struct LuauScriptAnalysisResult {
-    Error error = OK;
-    String error_msg;
-    int error_line = 1;
+	Error error = OK;
+	String error_msg;
+	int error_line = 1;
 
-    Luau::AstLocal *definition = nullptr;
-    Luau::AstStatTypeAlias *class_type = nullptr;
+	Luau::AstLocal *definition = nullptr;
+	Luau::AstStatTypeAlias *class_type = nullptr;
 };
 
 LuauScriptAnalysisResult luascript_analyze(LuauScript *p_script, const char *p_src, const Luau::ParseResult &p_parse_result, GDClassDefinition &r_def);

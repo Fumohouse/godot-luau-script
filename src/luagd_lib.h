@@ -20,12 +20,12 @@ using namespace godot;
 #define LUAU_LOCK(L) MutexLock L##_lock(*luaGD_getthreaddata(L)->lock.ptr())
 
 struct GDThreadData {
-    GDLuau::VMType vm_type = GDLuau::VM_MAX;
-    BitField<ThreadPermissions> permissions = 0;
-    Ref<LuauScript> script;
-    Ref<Mutex> lock;
+	GDLuau::VMType vm_type = GDLuau::VM_MAX;
+	BitField<ThreadPermissions> permissions = 0;
+	Ref<LuauScript> script;
+	Ref<Mutex> lock;
 
-    uint64_t interrupt_deadline = 0;
+	uint64_t interrupt_deadline = 0;
 };
 
 lua_State *luaGD_newstate(GDLuau::VMType p_vm_type, BitField<ThreadPermissions> p_base_permissions);
@@ -37,13 +37,13 @@ bool luaGD_getfield(lua_State *L, int p_index, const char *p_key);
 
 template <typename T>
 T luaGD_checkvaluetype(lua_State *L, int p_index, const char *p_key, lua_Type p_texpected) {
-    if (!LuaStackOp<T>::is(L, p_index))
-        luaGD_valueerror(L, p_key, lua_typename(L, p_texpected), luaL_typename(L, p_index));
+	if (!LuaStackOp<T>::is(L, p_index))
+		luaGD_valueerror(L, p_key, lua_typename(L, p_texpected), luaL_typename(L, p_index));
 
-    T val = LuaStackOp<T>::get(L, p_index);
+	T val = LuaStackOp<T>::get(L, p_index);
 
-    lua_pop(L, 1);
-    return val;
+	lua_pop(L, 1);
+	return val;
 }
 
 void luaGD_gderror(const char *p_method, const String &p_path, String p_msg, int p_line = 0);
