@@ -2,9 +2,7 @@
 
 #include <lua.h>
 #include <lualib.h>
-#include <cstddef>
 #include <godot_cpp/variant/string.hpp>
-#include <stdexcept>
 
 #include "luagd_binder.h"
 #include "luagd_lib.h"
@@ -14,6 +12,13 @@
 #include "test_utils.h"
 
 using namespace godot;
+
+class TestException : public LuaGDError {
+public:
+	const char *what() const noexcept {
+		return "something went wrong!";
+	}
+};
 
 static void test_func(String x, bool y) { // NOLINT
 	(void)x;
@@ -40,7 +45,7 @@ static String test_func_ret_sig(int p_x, float p_y, bool p_z) {
 static void test_func_perms() {}
 
 static void test_func_except() {
-	throw std::runtime_error("something went wrong!");
+	throw TestException();
 }
 
 TEST_CASE_METHOD(LuauFixture, "binder: basic static binding") {
@@ -112,7 +117,7 @@ struct TestClass {
 	}
 
 	void test_method_except() {
-		throw std::runtime_error("something went wrong!");
+		throw TestException();
 	}
 };
 

@@ -16,6 +16,8 @@
 
 using namespace godot;
 
+class LuaGDError : public std::exception {};
+
 // Concept similar to Godot's ClassDB implementation
 // (https://github.com/godotengine/godot/blob/master/core/variant/binder_common.h)
 
@@ -62,7 +64,7 @@ public:
 					LuaStackOp<R>::push(L, F(check_arg<P>(L, stack_idx)...));
 					return 1;
 				}
-			} catch (std::exception &e) {
+			} catch (LuaGDError &e) {
 				luaL_error(L, "%s", e.what());
 			}
 		});
@@ -86,7 +88,7 @@ public:
 					LuaStackOp<R>::push(L, (self->*F)(check_arg<P>(L, stack_idx)...));                                                                     \
 					return 1;                                                                                                                              \
 				}                                                                                                                                          \
-			} catch (std::exception & e) {                                                                                                                 \
+			} catch (LuaGDError & e) {                                                                                                                     \
 				luaL_error(L, "%s", e.what());                                                                                                             \
 			}                                                                                                                                              \
 		});                                                                                                                                                \

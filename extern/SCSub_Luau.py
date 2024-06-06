@@ -4,7 +4,6 @@ Import("env")
 Import("env_base")
 
 env_luau = env_base.Clone()
-env_luau.Append(CPPDEFINES="LUA_USE_LONGJMP=1")
 
 luau_dir = "#extern/luau/"
 luau_includes = [
