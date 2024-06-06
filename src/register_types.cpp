@@ -12,7 +12,6 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "error_strings.h"
 #include "luagd_variant.h"
 #include "luau_script.h"
 #include "task_scheduler.h"
@@ -43,7 +42,7 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
 	ClassDB::register_class<LuauLanguage>();
 
 	script_language_luau = memnew(LuauLanguage);
-	CRASH_COND_MSG(nb::Engine::get_singleton_nb()->register_script_language(script_language_luau) != OK, LANG_REG_FAILED_ERR);
+	CRASH_COND_MSG(nb::Engine::get_singleton_nb()->register_script_language(script_language_luau) != OK, "Failed to register LuauLanguage");
 
 	ClassDB::register_class<ResourceFormatLoaderLuauScript>();
 	resource_loader_luau.instantiate();

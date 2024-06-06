@@ -20,7 +20,6 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "error_strings.h"
 #include "luagd_permissions.h"
 #include "luagd_variant.h"
 #include "luau_cache.h"
@@ -30,6 +29,15 @@
 #include "wrapped_no_binding.h"
 
 using namespace godot;
+
+/* ERRORS */
+
+#define INVALID_ANNOTATION_ERR(m_name) ("@" + m_name + " is not valid for this node") // String
+#define PROPERTY_TYPE_ERR(m_annotation, m_type) m_annotation " requires a property of type " m_type
+#define ANN_NO_ARGS_ERR(m_annotation) m_annotation " takes no arguments"
+#define ANN_AT_LEAST_ONE_ARG_ERR(m_annotation) (m_annotation + " requires at least one argument") // String
+
+#define INVALID_FLAG_ERR(m_name) (m_name + " is not a valid flag") // String
 
 /* COMMON VISITORS */
 
@@ -591,18 +599,18 @@ struct ClassReader : public Luau::AstVisitor {
 
 	void _error(const String &p_msg, const Luau::Location &loc, Error p_error = ERR_COMPILATION_FAILED) {
 		error = p_error;
-		error_msg = CLASS_PARSE_ERR(p_msg);
+		error_msg = "Failed to parse class: " + p_msg;
 		error_line = loc.begin.line + 1;
 	}
 
 	bool try_add_dependency(const Ref<LuauScript> &p_script, const Annotation &p_annotation) {
 		if (p_script->is_module()) {
-			_error(DEP_ADD_FAILED_ERR(p_script->get_path()), p_annotation.location);
+			_error("Cannot add module at " + p_script->get_path() + " as dependency", p_annotation.location);
 			return false;
 		}
 
 		if (!script->add_dependency(p_script)) {
-			_error(CYCLIC_SCRIPT_REF_ERR(p_script->get_path(), script->get_path()), p_annotation.location, ERR_CYCLIC_LINK);
+			_error("Cyclic reference detected; cannot add script at " + p_script->get_path() + " as dependency for script at " + script->get_path(), p_annotation.location, ERR_CYCLIC_LINK);
 			return false;
 		}
 
@@ -618,7 +626,7 @@ struct ClassReader : public Luau::AstVisitor {
 		String extends = read_until_whitespace(ptr);
 
 		if (*ptr) {
-			_error(EXTENDS_ARG_ERR, p_annotation.location);
+			_error("@extends only takes one argument for the Godot base type or the name of the required base class local", p_annotation.location);
 			return;
 		}
 
@@ -643,7 +651,7 @@ struct ClassReader : public Luau::AstVisitor {
 				Ref<LuauScript> base_script = LuauCache::get_singleton()->get_script(script_path, err, false, LuauScript::LOAD_ANALYZE);
 
 				if (err != OK) {
-					_error(EXTENDS_LOAD_ERR(script_path), p_annotation.location, err);
+					_error("Failed to load base script at " + script_path, p_annotation.location, err);
 					return;
 				}
 
@@ -652,7 +660,7 @@ struct ClassReader : public Luau::AstVisitor {
 
 				class_definition.base_script = base_script.ptr();
 			} else {
-				_error(EXTENDS_NOT_FOUND_ERR(extends), p_annotation.location);
+				_error("Could not find base class '" + extends + "'; ensure it is a valid Godot type or a Luau class required and assigned to a local before this annotation", p_annotation.location);
 			}
 		}
 	}
@@ -672,13 +680,13 @@ struct ClassReader : public Luau::AstVisitor {
 		}
 
 		if (p_annotation.args.is_empty()) {
-			_error(PERMISSIONS_ARG_ERR, p_annotation.location);
+			_error("@permissions requires one or more permission flags", p_annotation.location);
 			return;
 		}
 
 		String path = script->get_path();
 		if (path.is_empty() || (SandboxService::get_singleton() && !SandboxService::get_singleton()->is_core_script(path))) {
-			_error(PERMISSIONS_NON_CORE_ERR, p_annotation.location);
+			_error("!!! Cannot set permissions on a non-core script !!!", p_annotation.location);
 			return;
 		}
 
@@ -700,7 +708,7 @@ struct ClassReader : public Luau::AstVisitor {
 		// TODO: Mostly placeholder for now. Use info here for docs
 
 		if (p_annotation.args.is_empty()) {
-			_error(PARAM_ARG_ERR, p_annotation.location);
+			_error("@param requires at least one argument for the parameter name", p_annotation.location);
 			return;
 		}
 
@@ -728,7 +736,7 @@ struct ClassReader : public Luau::AstVisitor {
 		}
 
 		if (p_annotation.args.is_empty()) {
-			_error(FLAGS_ARG_ERR, p_annotation.location);
+			_error("@flags requires one or more method flags", p_annotation.location);
 			return;
 		}
 
@@ -788,7 +796,7 @@ struct ClassReader : public Luau::AstVisitor {
 
 			if (E) {
 				if (defined & E->value.first) {
-					_error(RPC_OVERRIDE_ERR(option), p_annotation.location);
+					_error("RPC option '" + option + "' will override a previously provided option", p_annotation.location);
 					return;
 				}
 
@@ -813,14 +821,14 @@ struct ClassReader : public Luau::AstVisitor {
 				defined |= E->value.first;
 			} else if (option.is_valid_int()) {
 				if (defined & RPC_CHANNEL) {
-					_error(RPC_OVERRIDE_ERR(option), p_annotation.location);
+					_error("RPC option '" + option + "' will override a previously defined channel", p_annotation.location);
 					return;
 				}
 
 				rpc.channel = option.to_int();
 				defined |= RPC_CHANNEL;
 			} else {
-				_error(RPC_ARG_ERR(option), p_annotation.location);
+				_error("Invalid RPC option '" + option + "'", p_annotation.location);
 				return;
 			}
 		}
@@ -829,6 +837,8 @@ struct ClassReader : public Luau::AstVisitor {
 	}
 
 	void handle_signal(const Annotation &p_annotation, const Luau::AstTableProp &p_prop) {
+#define SIGNAL_TYPE_PARAM_ERR "Signal type only takes 0 or 1 void function type parameters. Return types and generics are not supported."
+
 		if (!p_annotation.args.is_empty()) {
 			_error(ANN_NO_ARGS_ERR("@signal"), p_annotation.location);
 			return;
@@ -869,7 +879,7 @@ struct ClassReader : public Luau::AstVisitor {
 
 					for (int i = 0; i < arg_types.size; i++) {
 						if (!type_to_prop(root, script, arg_types.data[i], args[i])) {
-							_error(SIGNAL_PARAM_INVALID_TYPE_ERR, p_annotation.location);
+							_error("Signal parameter type is invalid. Ensure a Godot-compatible type is used.", p_annotation.location);
 							return;
 						}
 
@@ -902,20 +912,20 @@ struct ClassReader : public Luau::AstVisitor {
 
 			class_definition.signals.insert(p_prop.name.value, signal);
 		} else {
-			_error(SIGNAL_TYPE_ERR, p_annotation.location);
+			_error("@signal property type is not a plain type reference (Signal or Signal<void function type>)", p_annotation.location);
 		}
 	}
 
 	void handle_setget(const Annotation &p_annotation, const char *p_name, StringName &r_out) {
 		if (p_annotation.args.is_empty()) {
-			_error(SETGET_ARG_ERR(String(p_name)), p_annotation.location);
+			_error(String(p_name) + " takes one argument for the method", p_annotation.location);
 			return;
 		}
 
 		String value;
 
 		if (!read_one_word_only(p_annotation.args, value)) {
-			_error(SETGET_WHITESPACE_ERR(String(p_name)), p_annotation.location);
+			_error(String(p_name) + " method name cannot contain whitespaces", p_annotation.location);
 			return;
 		}
 
@@ -924,6 +934,9 @@ struct ClassReader : public Luau::AstVisitor {
 
 	template <typename T>
 	void handle_range_internal(const Annotation &p_annotation, GDProperty &property) {
+#define RANGE_ARG_ERR "@range requires at least two arguments for min and max values"
+#define RANGE_ARG_TYPE_ERR "@range requires arguments to be of correct type (float for float properties, int for int properties)"
+
 		if (p_annotation.args.is_empty()) {
 			_error(RANGE_ARG_ERR, p_annotation.location);
 			return;
@@ -986,7 +999,7 @@ struct ClassReader : public Luau::AstVisitor {
 			} else if (option.begins_with("suffix:")) {
 				hint_string += "," + option;
 			} else {
-				_error(RANGE_SPECIAL_OPT_ERR, p_annotation.location);
+				_error("Invalid option for @range; expected one of 'orGreater', 'orLess', 'hideSlider', 'radians', 'degrees', 'exp', or 'suffix:<keyword>'", p_annotation.location);
 				return;
 			}
 		}
@@ -1039,7 +1052,7 @@ struct ClassReader : public Luau::AstVisitor {
 					String class_name = read_until_whitespace(ptr);
 
 					if (*ptr) {
-						_error(CLASS_ARG_ERR, annotation.location);
+						_error("@class only takes one optional argument for its global name", annotation.location);
 						return;
 					}
 
@@ -1068,7 +1081,7 @@ struct ClassReader : public Luau::AstVisitor {
 				handle_permissions(annotation);
 			} else if (annotation.name == StringName("iconPath")) {
 				if (annotation.args.is_empty() || !FileAccess::file_exists(annotation.args)) {
-					_error(ICONPATH_PATH_ERR, annotation.location);
+					_error("@iconPath path is invalid or missing", annotation.location);
 					return;
 				}
 
@@ -1097,7 +1110,7 @@ struct ClassReader : public Luau::AstVisitor {
 				}
 
 				if (!ast_method(root, script, p_func, method)) {
-					_error(AST_FAILED_ERR, annotation.location);
+					_error("Failed to register method with AST - check that you have met necessary conventions", annotation.location);
 					return;
 				}
 
@@ -1116,14 +1129,14 @@ struct ClassReader : public Luau::AstVisitor {
 				handle_param(annotation);
 			} else if (annotation.name == StringName("defaultArgs")) {
 				if (annotation.args.is_empty()) {
-					_error(DEFAULTARGS_ARG_ERR, annotation.location);
+					_error("@defaultArgs requires an Array of default values", annotation.location);
 					return;
 				}
 
 				Variant val = UtilityFunctions::str_to_var(annotation.args);
 
 				if (val == Variant() || val.get_type() != Variant::ARRAY) {
-					_error(DEFAULTARGS_ARG_PARSE_ERR, annotation.location);
+					_error("Failed to parse argument array; ensure it is compatible with `str_to_var` and of the correct type", annotation.location);
 					return;
 				}
 
@@ -1157,6 +1170,8 @@ struct ClassReader : public Luau::AstVisitor {
 	}
 
 	void handle_table_type(Luau::AstTypeTable *p_table) {
+#define PROP_SIGNAL_ME_ERR "@property and @signal can only be declared once and are mutually exclusive"
+
 		for (const Luau::AstTableProp &prop : p_table->props) {
 			PARSE_COMMENTS(prop.location)
 
@@ -1189,7 +1204,7 @@ struct ClassReader : public Luau::AstVisitor {
 					GDClassProperty new_prop;
 
 					if (!type_to_prop(root, script, prop.type, new_prop.property)) {
-						_error(PROP_INVALID_TYPE_ERR, annotation.location);
+						_error("Property type is invalid. Ensure a Godot-compatible type is used.", annotation.location);
 						return;
 					}
 
@@ -1227,7 +1242,7 @@ struct ClassReader : public Luau::AstVisitor {
 				for (const Annotation &annotation : annotations) {
 					if (annotation.name == StringName("default")) {
 						if (annotation.args.is_empty()) {
-							_error(DEFAULT_ARG_ERR, annotation.location);
+							_error("@default takes one argument for the default property value", annotation.location);
 							return;
 						}
 
@@ -1235,15 +1250,15 @@ struct ClassReader : public Luau::AstVisitor {
 
 						// Unideal error detection but probably the best that can be done
 						if (value == Variant() && annotation.args.strip_edges() != "null") {
-							_error(DEFAULT_ARG_PARSE_ERR, annotation.location);
+							_error("Failed to parse default value; ensure it is compatible with `str_to_var`. For a null value, use `null`.", annotation.location);
 							return;
 						}
 
 						if (value.get_type() != Variant::Type(property.type) &&
 								property.usage != PROPERTY_USAGE_NIL_IS_VARIANT) {
-							_error(DEFAULT_ARG_TYPE_ERR(
-										   Variant::get_type_name(Variant::Type(property.type)),
-										   Variant::get_type_name(value.get_type())),
+							_error("Default value has the incorrect type; expected " +
+											Variant::get_type_name(Variant::Type(property.type)) +
+											", got " + Variant::get_type_name(value.get_type()),
 									annotation.location);
 
 							return;
@@ -1303,7 +1318,7 @@ struct ClassReader : public Luau::AstVisitor {
 							} else if (arg.begins_with("*")) {
 								hint_string = hint_string + "," + arg;
 							} else {
-								_error(FILE_ARG_ERR, annotation.location);
+								_error("Arguments to @file should either be 'global' or an extension in the format *.ext", annotation.location);
 								return;
 							}
 						}
@@ -1323,7 +1338,7 @@ struct ClassReader : public Luau::AstVisitor {
 							property.hint = PROPERTY_HINT_GLOBAL_DIR;
 							property.hint_string = String();
 						} else {
-							_error(DIR_ARG_ERR, annotation.location);
+							_error("Only acceptable argument to @dir is 'global'", annotation.location);
 						}
 					} else if (annotation.name == StringName("multiline")) {
 						if (type != GDEXTENSION_VARIANT_TYPE_STRING) {
@@ -1340,7 +1355,7 @@ struct ClassReader : public Luau::AstVisitor {
 						}
 
 						if (annotation.args.is_empty()) {
-							_error(PLACEHOLDER_ARG_ERR, annotation.location);
+							_error("@placeholderText requires one argument for the placeholder text", annotation.location);
 							return;
 						}
 
@@ -1408,7 +1423,7 @@ struct ClassReader : public Luau::AstVisitor {
 						} else if (arg == "positiveOnly") {
 							hint_string = "positive_only";
 						} else if (!arg.is_empty()) {
-							_error(EXPEASING_ARG_ERR, annotation.location);
+							_error("@expEasing expects a value of either 'attenuation' or 'positiveOnly'", annotation.location);
 							return;
 						}
 
@@ -1451,7 +1466,7 @@ struct ClassReader : public Luau::AstVisitor {
 		for (const Annotation &annotation : annotations) {
 			if (annotation.name == StringName("classType")) {
 				if (annotation.args.is_empty()) {
-					_error(CLASSTYPE_ARG_ERR, annotation.location);
+					_error("@classType requires one argument for class name", annotation.location);
 					return;
 				}
 
@@ -1615,7 +1630,7 @@ LuauScriptAnalysisResult luascript_analyze(LuauScript *p_script, const char *p_s
 	result.definition = find_script_definition(p_parse_result.root);
 	if (!result.definition) {
 		result.error = ERR_COMPILATION_FAILED;
-		result.error_msg = NO_CLASS_TABLE_ERR;
+		result.error_msg = "Failed to parse class: Could not find class table";
 		return result;
 	}
 

@@ -12,7 +12,6 @@
 #include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "error_strings.h"
 #include "luagd_bindings.h"
 #include "luagd_bindings_stack.gen.h"
 #include "luagd_lib.h"
@@ -104,7 +103,7 @@ int GDClassDefinition::set_prop(const String &p_name, const GDClassProperty &p_p
 
 GDProperty luascript_read_property(lua_State *L, int p_idx) {
 	if (!lua_istable(L, p_idx))
-		luaL_error(L, GDPROPERTY_TYPE_ERR);
+		luaL_error(L, "expected table type for GDProperty value");
 
 	GDProperty property;
 
@@ -135,7 +134,7 @@ static int luascript_gdclass_new(lua_State *L) {
 	LuauScript *script = luaGD_lightudataup<LuauScript>(L, 1);
 
 	if (script->is_loading())
-		luaL_error(L, NEW_DURING_LOAD_ERR);
+		luaL_error(L, "cannot instantiate: script is loading");
 
 	StringName class_name = script->_get_instance_base_type();
 
@@ -149,16 +148,16 @@ static int luascript_gdclass_new(lua_State *L) {
 static int luascript_gdclass(lua_State *L) {
 	GDThreadData *udata = luaGD_getthreaddata(L);
 	if (udata->script.is_null())
-		luaL_error(L, SCRIPT_THREAD_ERR);
+		luaL_error(L, "this function can only be run from a script thread");
 
 	luaL_checktype(L, 1, LUA_TTABLE);
 
 	if (lua_getmetatable(L, 1))
-		luaL_error(L, GDCLASS_CUSTOM_MT_ERR);
+		luaL_error(L, "custom metatables are not supported on class definitions");
 
 	lua_createtable(L, 0, 3);
 
-	lua_pushstring(L, MT_LOCKED_MSG);
+	lua_pushstring(L, "This metatable is locked.");
 	lua_setfield(L, -2, "__metatable");
 
 	LuaStackOp<Object *>::push(L, udata->script.ptr());
@@ -214,7 +213,7 @@ static int finishrequire(lua_State *L) {
 static int luascript_require(lua_State *L) {
 	GDThreadData *udata = luaGD_getthreaddata(L);
 	if (udata->script.is_null())
-		luaL_error(L, SCRIPT_THREAD_ERR);
+		luaL_error(L, "this function can only be run from a script thread");
 
 	String path = LuaStackOp<String>::check(L, 1);
 
@@ -224,17 +223,17 @@ static int luascript_require(lua_State *L) {
 	String path_err;
 	String full_path = udata->script->resolve_path(path, path_err);
 	if (!path_err.is_empty()) {
-		luaL_error(L, REQUIRE_FAILED_ERR, path_err.utf8().get_data());
+		luaL_error(L, "require failed: %s", path_err.utf8().get_data());
 	}
 
 	// Checks.
 	if (udata->script->get_path() == full_path)
-		luaL_error(L, REQUIRE_CURRENT_ERR);
+		luaL_error(L, "scripts cannot require themselves");
 
 	if (FileAccess::file_exists(full_path + ".lua")) {
 		full_path = full_path + ".lua";
 	} else {
-		luaL_error(L, REQUIRE_NOT_FOUND_ERR, path.utf8().get_data());
+		luaL_error(L, "could not find module: %s", path.utf8().get_data());
 	}
 
 	CharString full_path_utf8 = full_path.utf8();
@@ -248,7 +247,7 @@ static int luascript_require(lua_State *L) {
 	// Dependencies are, for the most part, not of any concern if they aren't part of the load stage.
 	// (i.e. requires processed after initial script load should not write or check dependencies)
 	if (udata->script->is_loading() && !udata->script->add_dependency(script)) {
-		luaL_error(L, REQUIRE_CYCLIC_ERR,
+		luaL_error(L, "cyclic dependency detected in %s. halting require of %s.",
 				udata->script->get_path().utf8().get_data(),
 				full_path_utf8.get_data());
 	}
@@ -267,12 +266,12 @@ static int luascript_require(lua_State *L) {
 		lua_remove(L, -2); // thread
 	} else {
 		if (udata->vm_type >= GDLuau::VM_MAX)
-			luaL_error(L, REQUIRE_INVALID_VM_ERR);
+			luaL_error(L, "could not get class definition: unknown VM");
 
 		if (script->load_table(udata->vm_type) == OK) {
 			lua_getref(L, script->get_table_ref(udata->vm_type));
 		} else {
-			LuaStackOp<String>::push(L, REQUIRE_CLASS_TABLE_GET_ERR(script->get_path()));
+			LuaStackOp<String>::push(L, "could not get class definition for script at " + script->get_path());
 		}
 	}
 
@@ -311,7 +310,7 @@ static int luascript_gdglobal(lua_State *L) {
 		return 1;
 	}
 
-	luaL_error(L, SINGLETON_NOT_FOUND_ERR, name);
+	luaL_error(L, "singleton '%s' was not found", name);
 }
 
 static const luaL_Reg global_funcs[] = {
@@ -330,6 +329,8 @@ static const luaL_Reg global_funcs[] = {
 /* EXPOSED FUNCTIONS */
 
 void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, LuauScript *&r_script) {
+#define CLASS_GLOBAL_EXPECTED_ERR "expected a class global (i.e. metatable containing the " MT_CLASS_GLOBAL " field)"
+
 	if (lua_isstring(L, p_index)) {
 		r_type = lua_tostring(L, p_index);
 	} else if (LuauScript *script = luascript_class_table_get_script(L, p_index)) {
@@ -358,7 +359,7 @@ String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **
 	if (script) {
 		type = script->get_definition().name;
 		if (type.is_empty())
-			luaL_error(L, SCRIPT_UNNAMED_ERR, script->get_path().utf8().get_data());
+			luaL_error(L, "could not determine script name from script at %s; did you name it?", script->get_path().utf8().get_data());
 
 		if (r_script)
 			*r_script = script;

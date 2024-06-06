@@ -9,7 +9,6 @@
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "error_strings.h"
 #include "luagd_bindings_stack.gen.h" // IWYU pragma: keep
 #include "luagd_stack.h"
 #include "wrapped_no_binding.h"
@@ -300,7 +299,7 @@ void LuauVariant::_register_types() {
 
 #ifdef DEBUG_ENABLED
 	for (int i = 0; i < GDEXTENSION_VARIANT_TYPE_VARIANT_MAX; i++) {
-		CRASH_COND_MSG(!type_methods[i], VAR_TYPE_UNINIT_ERR);
+		CRASH_COND_MSG(!type_methods[i], "Variant type was left uninitialized");
 	}
 #endif // DEBUG_ENABLED
 }
@@ -344,7 +343,7 @@ void LuauVariant::lua_check(lua_State *L, int p_idx, GDExtensionVariantType p_re
 }
 
 void LuauVariant::lua_push(lua_State *L) const {
-	ERR_FAIL_COND_MSG(from_luau, VAR_LUAU_PUSH_ERR);
+	ERR_FAIL_COND_MSG(from_luau, "Pushing a value from Luau back to Luau is unsupported");
 	type_methods[type]->push(*this, L);
 }
 

@@ -15,7 +15,6 @@
 #include <godot_cpp/variant/variant.hpp>
 #include <utility>
 
-#include "error_strings.h"
 #include "luagd_bindings.h"
 #include "luagd_variant.h"
 #include "utils.h"
@@ -275,7 +274,7 @@ void LuaStackOp<Object *>::push(lua_State *L, GDExtensionObjectPtr p_value) {
 
 	// Shouldn't be possible
 	if (!lua_istable(L, -1))
-		luaL_error(L, CLASS_MT_NOT_FOUND_ERR, obj.get_class().utf8().get_data());
+		luaL_error(L, "metatable not found for class %s", obj.get_class().utf8().get_data());
 
 	lua_setmetatable(L, -2);
 
@@ -593,7 +592,7 @@ Dictionary LuaStackOp<Dictionary>::check(lua_State *L, int p_index) {
 	lua_pushnil(L);
 	while (lua_next(L, p_index) != 0) {
 		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1))
-			luaL_error(L, DICTIONARY_TYPE_ERR);
+			luaL_error(L, "table to Dictionary conversion requires all keys and values to be Variant compatible");
 
 		d[LuaStackOp<Variant>::get(L, -2)] = LuaStackOp<Variant>::get(L, -1);
 		lua_pop(L, 1); // value

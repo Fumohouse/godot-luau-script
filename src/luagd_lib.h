@@ -9,8 +9,8 @@
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/core/type_info.hpp>
 
-#include "error_strings.h"
 #include "gd_luau.h"
+#include "luagd_errors.h"
 #include "luagd_permissions.h"
 #include "luagd_stack.h"
 #include "luau_script.h"

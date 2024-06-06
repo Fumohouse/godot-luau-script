@@ -8,8 +8,6 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 
-#include "error_strings.h"
-
 using namespace godot;
 
 String Utils::to_pascal_case(const String &p_input) {
@@ -46,7 +44,7 @@ bool Utils::variant_types_compatible(Variant::Type p_t1, Variant::Type p_t2) {
 
 Error Utils::load_file(const String &p_path, String &r_out) {
 	Ref<FileAccess> file = FileAccess::open(p_path, FileAccess::ModeFlags::READ);
-	ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), FILE_READ_FAILED_ERR(p_path));
+	ERR_FAIL_COND_V_MSG(file.is_null(), FileAccess::get_open_error(), "Failed to read file at " + p_path);
 
 	uint64_t len = file->get_length();
 	PackedByteArray bytes = file->get_buffer(len);

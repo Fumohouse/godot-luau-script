@@ -28,7 +28,6 @@
 #include "luagd_permissions.h"
 #include "luau_analysis.h"
 #include "luau_lib.h"
-#include "services/luau_interface.h"
 #include "task_scheduler.h"
 
 namespace godot {
@@ -46,6 +45,7 @@ typedef HashMap<uint64_t, List<Pair<StringName, Variant>>> ScriptInstanceState;
 
 class LuauCache;
 class LuauScriptInstance;
+class LuauInterface;
 
 #define INIT_LUA_PATH "res://init.lua"
 

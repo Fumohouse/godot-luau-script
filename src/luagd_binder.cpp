@@ -3,8 +3,8 @@
 #include <lua.h>
 #include <lualib.h>
 
-#include "error_strings.h"
 #include "luagd_bindings.h"
+#include "luagd_lib.h"
 
 using namespace godot;
 
@@ -92,7 +92,7 @@ void LuaGDClass::set_index_override(IndexOverride p_func) {
 
 void LuaGDClass::init_metatable(lua_State *L) const {
 	if (!luaL_newmetatable(L, metatable_name)) {
-		luaL_error(L, MT_ALREADY_EXISTS_ERR, metatable_name);
+		luaL_error(L, "metatable '%s' already exists", metatable_name);
 	}
 
 	lua_pushlightuserdata(L, (void *)this);

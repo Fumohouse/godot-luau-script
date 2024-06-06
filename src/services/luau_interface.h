@@ -4,7 +4,7 @@
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/string.hpp>
 
-#include "error_strings.h"
+#include "luagd_errors.h"
 #include "luagd_binder.h"
 #include "luagd_stack.h"
 

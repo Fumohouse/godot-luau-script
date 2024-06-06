@@ -19,7 +19,6 @@
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "error_strings.h"
 #include "extension_api.h"
 #include "gd_luau.h"
 #include "luagd_bindings.h"
@@ -164,7 +163,7 @@ static int luaGD_load(lua_State *L) {
 			udata->script.is_valid() &&
 			!SandboxService::get_singleton()->is_core_script(udata->script->get_path()) &&
 			!SandboxService::get_singleton()->resource_has_access(path, SandboxService::RESOURCE_READ_ONLY)) {
-		luaL_error(L, RESOURCE_ACCESS_ERR, path.utf8().get_data());
+		luaL_error(L, "Cannot load Resource at %s: no permissions", path.utf8().get_data());
 	}
 
 	Ref<Resource> res = nb::ResourceLoader::get_singleton_nb()->load(path);
@@ -183,7 +182,7 @@ static int luaGD_save(lua_State *L) {
 			udata->script.is_valid() &&
 			!SandboxService::get_singleton()->is_core_script(udata->script->get_path()) &&
 			!SandboxService::get_singleton()->resource_has_access(path, SandboxService::RESOURCE_READ_WRITE)) {
-		luaL_error(L, RESOURCE_ACCESS_ERR, path.utf8().get_data());
+		luaL_error(L, "Cannot save Resource at %s: no permissions", path.utf8().get_data());
 	}
 
 	Error err = nb::ResourceSaver::get_singleton_nb()->save(res, path, flags);

@@ -68,10 +68,10 @@ void SandboxService::discover_core_scripts_internal(const String &p_path) {
 	UtilityFunctions::print_verbose("Searching for core scripts in ", p_path, "...");
 
 	Ref<DirAccess> dir = DirAccess::open(p_path);
-	ERR_FAIL_COND_MSG(!dir.is_valid(), DIR_OPEN_ERR(p_path));
+	ERR_FAIL_COND_MSG(!dir.is_valid(), "Failed to open directory at " + p_path);
 
 	Error err = dir->list_dir_begin();
-	ERR_FAIL_COND_MSG(err != OK, DIR_LIST_ERR(p_path));
+	ERR_FAIL_COND_MSG(err != OK, "Failed to list directory at " + p_path);
 
 	String file_name = dir->get_next();
 

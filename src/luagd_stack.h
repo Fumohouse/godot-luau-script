@@ -8,7 +8,7 @@
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "error_strings.h"
+#include "luagd_errors.h"
 
 using namespace godot;
 
@@ -259,7 +259,7 @@ TArray luaGD_checkarray(lua_State *L, int p_index, const char *p_arr_type_name, 
 				expected_type_name = Variant::get_type_name(p_type);
 			}
 
-			luaL_error(L, TYPED_ARRAY_TYPE_ERR,
+			luaL_error(L, "expected type %s for typed array element, got %s (index %d)",
 					expected_type_name.utf8().get_data(),
 					elem_type_name.utf8().get_data(),
 					i);
