@@ -40,7 +40,7 @@ GDProperty::operator Dictionary() const {
 }
 
 GDProperty::operator Variant() const {
-	return this->operator Dictionary();
+	return operator Dictionary();
 }
 
 GDMethod::operator Dictionary() const {
@@ -240,9 +240,7 @@ static int luascript_require(lua_State *L) {
 
 	// Load and write dependency.
 	Error err = OK;
-	// Do not use a Ref here!
-	// luaL_error, etc. will not properly free Refs and will cause memory leaks and crashes!
-	LuauScript *script = LuauCache::get_singleton()->get_script(full_path, err).ptr();
+	Ref<LuauScript> script = LuauCache::get_singleton()->get_script(full_path, err).ptr();
 
 	// Dependencies are, for the most part, not of any concern if they aren't part of the load stage.
 	// (i.e. requires processed after initial script load should not write or check dependencies)

@@ -33,9 +33,6 @@ class LuaGDClassBinder {
 		// std::forward ensures no copy is made (or something)
 		// https://en.cppreference.com/w/cpp/utility/forward
 		static F func = std::forward<F>(p_func);
-		static bool did_init = false;
-
-		did_init = true;
 
 		return [](lua_State *L) -> int {
 			return func(L);

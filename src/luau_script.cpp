@@ -277,7 +277,6 @@ Error LuauScript::load_table(GDLuau::VMType p_vm_type, bool p_force) {
 		if (status == LUA_YIELD || status == LUA_BREAK) {
 			error(LOAD_TABLE_METHOD, "Script unexpectedly yielded during table load", 1);
 			lua_pop(L, 1); // thread
-			udata->script.unref();
 			_is_loading = false;
 			return ERR_COMPILATION_FAILED;
 		} else if (status != LUA_OK) {

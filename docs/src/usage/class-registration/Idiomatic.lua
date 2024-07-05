@@ -3,7 +3,7 @@
 --- @extends Resource
 local MyClass = {}
 
--- 'C' stands for class. The `gdclass` method gives access to the `.new
+-- 'C' stands for class. The `gdclass` method gives access to the `.new`
 -- function.
 local MyClassC = gdclass(MyClass)
 

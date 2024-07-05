@@ -2,7 +2,7 @@
 
 import os
 
-env = Environment(tools=["default", "compilation_db"], PLATFORM="")
+env = Environment(tools=["default"], PLATFORM="")
 env["disable_exceptions"] = False
 
 # clang terminal colors
