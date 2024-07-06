@@ -26,6 +26,7 @@
 #include "scripting/luau_lib.h"
 #include "scripting/luau_script.h"
 #include "services/sandbox_service.h"
+#include "utils/parsing.h"
 #include "utils/wrapped_no_binding.h"
 
 using namespace godot;
@@ -400,43 +401,6 @@ static Luau::AstLocal *find_script_definition(Luau::AstStatBlock *p_root, Luau::
 	return nullptr;
 }
 
-static bool is_whitespace(char p_c) {
-	return p_c == ' ' || p_c == '\t' || p_c == '\v' || p_c == '\f';
-}
-
-static void skip_whitespace(const char *&ptr) {
-	while (is_whitespace(*ptr)) {
-		ptr++;
-	}
-}
-
-static String read_until_whitespace(const char *&ptr) {
-	String out;
-
-	while (*ptr && !is_whitespace(*ptr)) {
-		out += *ptr;
-		ptr++;
-	}
-
-	skip_whitespace(ptr);
-	return out;
-}
-
-static String read_until_end(const char *&ptr) {
-	String out;
-
-	while (*ptr) {
-		out += *ptr;
-		ptr++;
-	}
-
-	return out;
-}
-
-static bool is_comment_prefix(const char *p_ptr) {
-	return *p_ptr == '-' && *(p_ptr + 1) == '-';
-}
-
 static bool read_flags(const char *&ptr, const HashMap<String, int> &p_map, int &flags, String &r_error) {
 	while (*ptr) {
 		if (is_comment_prefix(ptr)) {
@@ -455,48 +419,6 @@ static bool read_flags(const char *&ptr, const HashMap<String, int> &p_map, int 
 	}
 
 	return true;
-}
-
-static bool read_one_word_only(const String &p_str, String &r_out) {
-	CharString str = p_str.utf8();
-	const char *ptr = str.get_data();
-
-	skip_whitespace(ptr);
-
-	String val = read_until_whitespace(ptr);
-
-	if (*ptr)
-		return false;
-
-	r_out = val;
-	return true;
-}
-
-template <typename T>
-static bool to_number(const String &p_str, T &r_out);
-
-template <>
-bool to_number<int>(const String &p_str, int &r_out) {
-	if (!p_str.is_valid_int())
-		return false;
-
-	r_out = p_str.to_int();
-	return true;
-}
-
-template <>
-bool to_number<float>(const String &p_str, float &r_out) {
-	if (!p_str.is_valid_float())
-		return false;
-
-	r_out = p_str.to_float();
-	return true;
-}
-
-template <typename T>
-static bool read_number(const char *&ptr, T &r_out) {
-	String str = read_until_whitespace(ptr);
-	return to_number<T>(str, r_out);
 }
 
 static String read_hint_list(const char *&ptr) {
@@ -922,9 +844,13 @@ struct ClassReader : public Luau::AstVisitor {
 			return;
 		}
 
-		String value;
+		CharString args = p_annotation.args.utf8();
+		const char *ptr = args.get_data();
+		skip_whitespace(ptr);
 
-		if (!read_one_word_only(p_annotation.args, value)) {
+		String value = read_until_whitespace(ptr);
+
+		if (*ptr) {
 			_error(String(p_name) + " method name cannot contain whitespaces", p_annotation.location);
 			return;
 		}

@@ -10,6 +10,7 @@
 
 #include "core/permissions.h"
 #include "scripting/luau_script.h"
+#include "scripting/resource_format_luau_script.h"
 #include "services/class_binder.h"
 #include "services/luau_interface.h"
 #include "services/pck_scanner.h"

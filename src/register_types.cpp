@@ -13,8 +13,9 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "core/variant.h"
-#include "scheduler/task_scheduler.h"
+#include "scheduler/wait_signal_task.h"
 #include "scripting/luau_script.h"
+#include "scripting/resource_format_luau_script.h"
 #include "utils/wrapped_no_binding.h"
 
 using namespace godot;

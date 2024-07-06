@@ -278,25 +278,6 @@ static int luascript_require(lua_State *L) {
 	return finishrequire(L);
 }
 
-static int luascript_wait(lua_State *L) {
-	double duration = LuaStackOp<double>::check(L, 1);
-
-	WaitTask *task = memnew(WaitTask(L, duration));
-	LuauLanguage::get_singleton()->get_task_scheduler().register_task(L, task);
-
-	return lua_yield(L, 0);
-}
-
-static int luascript_wait_signal(lua_State *L) {
-	Signal signal = LuaStackOp<Signal>::check(L, 1);
-	double timeout = luaL_optnumber(L, 2, 10);
-
-	WaitSignalTask *task = memnew(WaitSignalTask(L, signal, timeout));
-	LuauLanguage::get_singleton()->get_task_scheduler().register_task(L, task);
-
-	return lua_yield(L, 0);
-}
-
 static int luascript_gdglobal(lua_State *L) {
 	const char *name = luaL_checkstring(L, 1);
 
@@ -309,19 +290,6 @@ static int luascript_gdglobal(lua_State *L) {
 
 	luaL_error(L, "singleton '%s' was not found", name);
 }
-
-static const luaL_Reg global_funcs[] = {
-	{ "gdclass", luascript_gdclass },
-
-	{ "require", luascript_require },
-
-	{ "wait", luascript_wait },
-	{ "wait_signal", luascript_wait_signal },
-
-	{ "gdglobal", luascript_gdglobal },
-
-	{ nullptr, nullptr }
-};
 
 /* EXPOSED FUNCTIONS */
 
@@ -364,6 +332,14 @@ String luascript_get_scriptname_or_type(lua_State *L, int p_index, LuauScript **
 
 	return type;
 }
+
+static const luaL_Reg global_funcs[] = {
+	{ "gdclass", luascript_gdclass },
+	{ "require", luascript_require },
+	{ "gdglobal", luascript_gdglobal },
+
+	{ nullptr, nullptr }
+};
 
 void luascript_openlibs(lua_State *L) {
 	luaL_register(L, "_G", global_funcs);

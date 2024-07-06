@@ -23,6 +23,7 @@
 #include "core/runtime.h"
 #include "scripting/luau_cache.h"
 #include "scripting/luau_lib.h"
+#include "scripting/resource_format_luau_script.h"
 #include "utils/wrapped_no_binding.h"
 
 using namespace godot;

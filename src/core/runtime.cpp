@@ -7,6 +7,7 @@
 
 #include "core/lua_utils.h"
 #include "core/permissions.h"
+#include "scheduler/scheduler_lib.h"
 #include "scripting/luau_lib.h"
 #include "services/luau_interface.h"
 
@@ -17,6 +18,7 @@ LuauRuntime *LuauRuntime::singleton = nullptr;
 void LuauRuntime::init_vm(VMType p_type) {
 	lua_State *L = luaGD_newstate(p_type, PERMISSION_BASE);
 	luascript_openlibs(L);
+	luasched_openlibs(L);
 
 	if (LuauInterface::get_singleton()) {
 		LuauInterface::get_singleton()->register_metatables(L);

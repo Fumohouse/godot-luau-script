@@ -2,6 +2,7 @@
 
 #include <lua.h>
 
+#include "scheduler/scheduler_lib.h"
 #include "scheduler/task_scheduler.h"
 #include "scripting/luau_cache.h"
 #include "scripting/luau_script.h"
@@ -30,7 +31,7 @@ TEST_CASE_METHOD(LuauFixture, "task scheduler: basic functionality") {
 }
 
 TEST_CASE_METHOD(LuauFixture, "task scheduler: wait_signal") {
-	luascript_openlibs(L);
+	luasched_openlibs(L);
 
 	// Load script
 	LuauRuntime gd_luau;
