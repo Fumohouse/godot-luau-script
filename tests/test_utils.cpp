@@ -6,13 +6,13 @@
 #include <godot_cpp/variant/string.hpp>
 #include <string>
 
-#include "gd_luau.h"
-#include "luagd_lib.h"
-#include "luagd_permissions.h"
-#include "luagd_stack.h"
+#include "core/lua_utils.h"
+#include "core/permissions.h"
+#include "core/runtime.h"
+#include "core/stack.h"
 
 LuauFixture::LuauFixture() {
-	L = luaGD_newstate(GDLuau::VM_MAX, PERMISSION_BASE);
+	L = luaGD_newstate(LuauRuntime::VM_MAX, PERMISSION_BASE);
 }
 
 LuauFixture::~LuauFixture() {

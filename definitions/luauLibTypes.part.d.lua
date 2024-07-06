@@ -1,6 +1,6 @@
----------------------
--- LUAGD_LIB TYPES --
----------------------
+----------------
+-- BASE TYPES --
+----------------
 
 --- Constructs a new `StringName`.
 --- @param str The string to use.

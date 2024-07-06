@@ -8,9 +8,9 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "luagd_binder.h"
-#include "luagd_permissions.h"
-#include "luau_script.h"
+#include "core/permissions.h"
+#include "scripting/luau_script.h"
+#include "services/class_binder.h"
 #include "services/luau_interface.h"
 #include "services/pck_scanner.h"
 

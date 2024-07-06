@@ -12,10 +12,10 @@
 #include <godot_cpp/godot.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
-#include "luagd_variant.h"
-#include "luau_script.h"
-#include "task_scheduler.h"
-#include "wrapped_no_binding.h"
+#include "core/variant.h"
+#include "scheduler/task_scheduler.h"
+#include "scripting/luau_script.h"
+#include "utils/wrapped_no_binding.h"
 
 using namespace godot;
 

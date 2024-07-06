@@ -8,7 +8,7 @@
 #include <godot_cpp/variant/packed_byte_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 
-#include "extension_api.h"
+#include "core/extension_api.h"
 
 using namespace godot;
 

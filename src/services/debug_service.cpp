@@ -6,12 +6,12 @@
 #include <godot_cpp/variant/string.hpp>
 #include <string>
 
-#include "gd_luau.h"
+#include "core/lua_utils.h"
+#include "core/permissions.h"
+#include "core/runtime.h"
 #include "lua.h"
-#include "luagd_binder.h"
-#include "luagd_lib.h"
-#include "luagd_permissions.h"
-#include "luau_script.h"
+#include "scripting/luau_script.h"
+#include "services/class_binder.h"
 #include "services/luau_interface.h"
 
 #define DEBUG_SERVICE_NAME "DebugService"
@@ -43,10 +43,10 @@ void DebugService::lua_push(lua_State *L) {
 
 PackedFloat64Array DebugService::gc_count() const {
 	PackedFloat64Array arr;
-	arr.resize(GDLuau::VM_MAX);
+	arr.resize(LuauRuntime::VM_MAX);
 
-	for (int i = 0; i < GDLuau::VM_MAX; i++) {
-		lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VMType(i));
+	for (int i = 0; i < LuauRuntime::VM_MAX; i++) {
+		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
 		double mem_kb = lua_gc(L, LUA_GCCOUNT, 0) + lua_gc(L, LUA_GCCOUNTB, 0) / 1024.0;
 
 		arr[i] = mem_kb;
@@ -57,11 +57,11 @@ PackedFloat64Array DebugService::gc_count() const {
 
 PackedInt32Array DebugService::gc_step_size() const {
 	PackedInt32Array arr;
-	arr.resize(GDLuau::VM_MAX);
+	arr.resize(LuauRuntime::VM_MAX);
 
 	const uint32_t *rates = LuauLanguage::get_singleton()->get_task_scheduler().get_gc_step_size();
 
-	for (int i = 0; i < GDLuau::VM_MAX; i++) {
+	for (int i = 0; i < LuauRuntime::VM_MAX; i++) {
 		arr[i] = rates[i];
 	}
 
@@ -70,7 +70,7 @@ PackedInt32Array DebugService::gc_step_size() const {
 
 String DebugService::exec(const String &p_src) {
 	if (!T) {
-		lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
+		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 		LUAU_LOCK(L);
 		T = lua_newthread(L);
 		thread_ref = lua_ref(L, -1);
@@ -116,9 +116,9 @@ DebugService::~DebugService() {
 		singleton = nullptr;
 	}
 
-	// Not a normal condition. GDLuau is deinitialized before LuauInterface
-	if (T && GDLuau::get_singleton()) {
-		lua_State *L = GDLuau::get_singleton()->get_vm(GDLuau::VM_CORE);
+	// Not a normal condition. LuauRuntime is deinitialized before LuauInterface
+	if (T && LuauRuntime::get_singleton()) {
+		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 		lua_unref(L, thread_ref);
 
 		T = nullptr;

@@ -7,8 +7,7 @@ def generate_stack_ops(src_dir, include_dir, api):
     header = [constants.header_comment, ""]
 
     src.append("""\
-#include "luagd_stack.h"
-#include "luagd_bindings_stack.gen.h"
+#include "core/stack.h"
 
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/classes/object.hpp>
@@ -16,10 +15,6 @@ def generate_stack_ops(src_dir, include_dir, api):
 """)
 
     header.append("""\
-#pragma once
-
-#include "luagd_stack.h"
-
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
@@ -67,5 +62,8 @@ using namespace godot;
     header.append("")
 
     # Save
-    write_file(src_dir / "luagd_bindings_stack.gen.cpp", src)
-    write_file(include_dir / "luagd_bindings_stack.gen.h", header)
+    core_include_dir = include_dir / "core"
+    core_include_dir.mkdir(parents=True, exist_ok=True)
+
+    write_file(src_dir / "builtins_stack.gen.cpp", src)
+    write_file(core_include_dir / "builtins_stack.gen.inc", header)

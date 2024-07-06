@@ -1,12 +1,12 @@
 #pragma once
 
 #include <lua.h>
+#include <lualib.h>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/variant/string.hpp>
 
-#include "luagd_errors.h"
-#include "luagd_binder.h"
-#include "luagd_stack.h"
+#include "core/stack.h"
+#include "services/class_binder.h"
 
 #define STACK_OP_SVC_DEF(m_type)                         \
 	template <>                                          \

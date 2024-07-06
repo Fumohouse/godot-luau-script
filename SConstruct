@@ -39,7 +39,7 @@ if env["iwyu"]:
     env_main["CXX"] = "include-what-you-use"
 
 sources = Glob("src/*.cpp")
-sources += Glob("src/services/*.cpp")
+sources += Glob("src/*/*.cpp")
 
 env_main.Append(CPPPATH=["src/"])
 
@@ -52,6 +52,7 @@ if env["tests"]:
     sources.append(File("extern/Catch2/extras/catch_amalgamated.cpp"))
 
     sources += Glob("tests/*.cpp")
+    sources += Glob("tests/*/*.cpp")
     env_main.Append(CPPPATH=["tests/"])
 
 if env["platform"] == "macos":
@@ -61,6 +62,17 @@ if env["platform"] == "macos":
         ),
         source=sources,
     )
+elif env["platform"] == "ios":
+    if env["ios_simulator"]:
+        library = env.StaticLibrary(
+            "bin/luau-script/libluau-script.{}.{}.simulator.a".format(env["platform"], env["target"]),
+            source=sources,
+        )
+    else:
+        library = env.StaticLibrary(
+            "bin/luau-script/libluau-script.{}.{}.a".format(env["platform"], env["target"]),
+            source=sources,
+        )
 else:
     library = env_main.SharedLibrary(
         "bin/luau-script/libluau-script{}{}".format(

@@ -5,8 +5,8 @@
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/string.hpp>
 
-#include "luagd_binder.h"
-#include "luagd_stack.h"
+#include "core/stack.h"
+#include "services/class_binder.h"
 #include "services/debug_service.h"
 #include "services/sandbox_service.h"
 

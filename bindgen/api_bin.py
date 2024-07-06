@@ -830,7 +830,7 @@ def generate_api_bin(src_dir, api, class_settings):
 
     # put in a separate source file to avoid upsetting C++ language servers
     src.append(f"""\
-#include "extension_api.h"
+#include "core/extension_api.h"
 
 #include <cstdint>
 #include <gdextension_interface.h>

@@ -3,7 +3,7 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/memory.hpp>
 
-#include "luagd_stack.h"
+#include "core/stack.h"
 #include "test_utils.h"
 
 TEST_CASE_METHOD(LuauFixture, "benchmarks: object stack operations") {

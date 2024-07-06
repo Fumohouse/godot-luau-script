@@ -21,8 +21,8 @@ else:
 def scons_emit_files(target, source, env):
     files = [
         # Stack
-        env.File("gen/include/luagd_bindings_stack.gen.h"),
-        env.File("gen/src/luagd_bindings_stack.gen.cpp"),
+        env.File("gen/include/core/builtins_stack.gen.inc"),
+        env.File("gen/src/builtins_stack.gen.cpp"),
 
         # Extension API
         env.File("gen/src/extension_api_bin.gen.cpp")
