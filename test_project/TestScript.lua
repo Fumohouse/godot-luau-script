@@ -8,7 +8,6 @@ local TestModule = require("TestModule.mod")
 local TestClass = {}
 local TestClassC = gdclass(TestClass)
 
---- @classType TestClass
 export type TestClass = TestBaseScript.TestBaseScript & typeof(TestClass) & {
     --- @property
     --- @default 1.5

@@ -1,15 +1,9 @@
 # Class Type
 
-## `@classType <classLocal>`
-
-This annotation should be attached to the type definition associated with your
-class.
-
-Links a class to its type definition, which is used for registering properties
-and signals.
-
-- `classLocal`: The name of the local which your `@class` annotation is
-  attached to.
+The class type is the Luau type with the same name as the `local` that the
+[`@class` annotation](./class-definition.md#class-globalclassname) refers to.
+It is used to enable type checking for the class and declare the its associated
+properties/signals.
 
 Example:
 
@@ -17,7 +11,7 @@ Example:
 --- @class
 local MyClass = {}
 
---- @classType MyClass
+-- This is the class type
 export type MyClass = RefCounted & typeof(MyClass) & {
     -- Attach annotations in the "Property annnotations" section here.
     tableField1: number,

@@ -18,7 +18,6 @@ MyClass.TestEnum = {
 --- @registerConstant
 MyClass.TEST_CONSTANT = "hello!"
 
---- @classType MyClass
 export type MyClass = Resource & typeof(MyClassImpl) & {
     --- @property
     --- @range 0.0 1.0 0.1

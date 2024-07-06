@@ -5,7 +5,6 @@ local Base = require("Base")
 local Script = {}
 local ScriptC = gdclass(Script)
 
---- @classType Script
 export type Script = Base.Base & typeof(Script) & {
     --- @property
     --- @default 4.25

@@ -6,7 +6,6 @@ local Module = require("Module.mod")
 local Base = {}
 local BaseC = gdclass(Base)
 
---- @classType Base
 export type Base = Node & typeof(Base)
 
 --- @registerConstant

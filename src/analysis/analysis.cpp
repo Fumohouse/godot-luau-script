@@ -1389,26 +1389,10 @@ struct ClassReader : public Luau::AstVisitor {
 
 		PARSE_COMMENTS(p_type->location);
 
-		for (const Annotation &annotation : annotations) {
-			if (annotation.name == StringName("classType")) {
-				if (annotation.args.is_empty()) {
-					_error("@classType requires one argument for class name", annotation.location);
-					return;
-				}
-
-				if (annotation.args == definition->name.value) {
-					type_found = true;
-					break;
-				}
-			} else {
-				_error(INVALID_ANNOTATION_ERR(annotation.name), annotation.location);
-				return;
-			}
-		}
-
-		if (!type_found)
+		if (p_type->name != definition->name)
 			return;
 
+		type_found = true;
 		class_type = p_type;
 
 		if (Luau::AstTypeTable *table = p_type->type->as<Luau::AstTypeTable>()) {

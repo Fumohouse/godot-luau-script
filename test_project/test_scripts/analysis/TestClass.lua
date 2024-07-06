@@ -7,7 +7,6 @@ local Base = require("Base")
 local TestClass = {}
 local TestClassC = gdclass(TestClass)
 
---- @classType TestClass
 export type TestClass = Base.Base & typeof(TestClass) & {
     --- @signal
     testSignal1: Signal,

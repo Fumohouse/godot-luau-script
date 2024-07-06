@@ -2,7 +2,6 @@
 local TestClass = {}
 local TestClassC = gdclass(TestClass)
 
---- @classType TestClass
 export type TestClass = RefCounted & typeof(TestClass) & {
     --- @signal
     testSignal: SignalWithArgs<(arg1: number) -> ()>,

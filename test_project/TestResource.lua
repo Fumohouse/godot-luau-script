@@ -3,7 +3,6 @@
 local TestResource = {}
 local TestResourceC = gdclass(TestResource)
 
---- @classType TestResource
 export type TestResource = Resource & typeof(TestResource) & {
 	--- @property
 	--- @multiline

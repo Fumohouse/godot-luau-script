@@ -1,6 +1,6 @@
 # Class Definition
 
-These annotations should be attached to the local defining the original class
+These annotations should be attached to the `local` defining the original class
 table (in [this example](../defining-a-class.md), `MyClass`).
 
 ## `@class [globalClassName]`
@@ -8,6 +8,9 @@ table (in [this example](../defining-a-class.md), `MyClass`).
 Required to define a class.
 
 - `globalClassName`: If supplied, the class will be globally visible to Godot.
+
+Note: this annotation reserves the Luau type with the same name as the `local`
+it is applied to for use as the [class type](./class-type.md).
 
 ## `@extends <base>`
 

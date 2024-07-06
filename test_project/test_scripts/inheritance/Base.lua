@@ -3,7 +3,6 @@
 local Base = {}
 local BaseC = gdclass(Base)
 
---- @classType Base
 export type Base = Object & typeof(Base) & {
     --- @property
     --- @default "hey"

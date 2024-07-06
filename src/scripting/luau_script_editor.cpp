@@ -164,7 +164,6 @@ TypedArray<Dictionary> LuauLanguage::_get_built_in_templates(const StringName &p
 local _CLASS_NAME_ = {}
 local _CLASS_NAME_C = gdclass(_CLASS_NAME_)
 
---- @classType _CLASS_NAME_
 export type _CLASS_NAME_ = _BASE_CLASS_ & typeof(_CLASS_NAME_) & {
 _I_-- Put properties, signals, and non-registered table fields here
 }
@@ -188,7 +187,6 @@ return _CLASS_NAME_C
 local _CLASS_NAME_ = {}
 local _CLASS_NAME_C = gdclass(_CLASS_NAME_)
 
---- @classType _CLASS_NAME_
 export type _CLASS_NAME_ = _BASE_CLASS_ & typeof(_CLASS_NAME_) & {
 _I_-- Put properties, signals, and non-registered table fields here
 }
