@@ -135,7 +135,7 @@ Error LuauScript::analyze() {
 
 	analysis_result = luascript_analyze(this, source.utf8().get_data(), luau_data.parse_result, new_definition);
 
-	if (analysis_result.error == OK) {
+	if (!analysis_result.errors.size()) {
 		luau_data.analysis_result = analysis_result;
 		definition = new_definition;
 
@@ -144,8 +144,11 @@ Error LuauScript::analyze() {
 		luau_data.analysis_result = LuauScriptAnalysisResult();
 		definition = GDClassDefinition();
 
-		error("LuauScript::analyze", analysis_result.error_msg, analysis_result.error_line);
-		return analysis_result.error;
+		for (const AnalysisError &e : analysis_result.errors) {
+			error("LuauScript::analyze", e.message, e.location.begin.line + 1);
+		}
+
+		return analysis_result.errors[0].error;
 	}
 }
 
