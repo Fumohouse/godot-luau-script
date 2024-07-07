@@ -25,11 +25,17 @@ struct ApiArgument {
 	GDExtensionVariantType type;
 	bool has_default_value = false;
 	LuauVariant default_value;
+
+	GDExtensionVariantType get_arg_type() const { return type; }
+	String get_arg_type_name() const { return ""; }
 };
 
 struct ApiArgumentNoDefault {
 	const char *name;
 	GDExtensionVariantType type;
+
+	GDExtensionVariantType get_arg_type() const { return type; }
+	String get_arg_type_name() const { return ""; }
 };
 
 struct ApiEnum {
@@ -57,6 +63,9 @@ struct ApiUtilityFunction {
 	GDExtensionPtrUtilityFunction func;
 	Vector<ApiArgumentNoDefault> arguments;
 	int32_t return_type; // GDNativeVariantType or -1 if none; NIL -> Variant
+
+	bool is_method_static() const { return true; }
+	bool is_method_vararg() const { return is_vararg; }
 };
 
 //////////////
@@ -100,6 +109,9 @@ struct ApiVariantMethod {
 	GDExtensionPtrBuiltInMethod func;
 	Vector<ApiArgument> arguments;
 	int32_t return_type; // GDExtensionVariantType or -1 if none; NIL -> Variant
+
+	bool is_method_static() const { return is_static; }
+	bool is_method_vararg() const { return is_vararg; }
 };
 
 struct ApiBuiltinClass {
@@ -155,6 +167,9 @@ struct ApiClassArgument {
 
 	bool has_default_value;
 	LuauVariant default_value;
+
+	GDExtensionVariantType get_arg_type() const { return GDExtensionVariantType(type.type); }
+	const String &get_arg_type_name() const { return type.type_name; }
 };
 
 struct ApiClassMethod {
@@ -171,6 +186,9 @@ struct ApiClassMethod {
 	GDExtensionMethodBindPtr bind = nullptr;
 	Vector<ApiClassArgument> arguments;
 	ApiClassType return_type;
+
+	bool is_method_static() const { return is_static; }
+	bool is_method_vararg() const { return is_vararg; }
 };
 
 struct ApiClassSignal {

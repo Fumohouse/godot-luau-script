@@ -40,7 +40,7 @@ static int luaGD_global_index(lua_State *L) {
 	return 1;
 }
 
-static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause reserved keyword
+static void push_enum(lua_State *L, const ApiEnum &p_enum) {
 	lua_createtable(L, 0, p_enum.values.size());
 
 	for (const Pair<String, int32_t> &value : p_enum.values) {
@@ -70,48 +70,9 @@ static void push_enum(lua_State *L, const ApiEnum &p_enum) { // notation cause r
 
 /* GETTING ARGUMENTS */
 
-// Getters for argument types
-template <typename T>
-_FORCE_INLINE_ static GDExtensionVariantType get_arg_type(const T &p_arg) { return p_arg.type; }
-
-template <>
-_FORCE_INLINE_ GDExtensionVariantType get_arg_type<ApiClassArgument>(const ApiClassArgument &p_arg) { return (GDExtensionVariantType)p_arg.type.type; }
-
-template <typename T>
-_FORCE_INLINE_ static String get_arg_type_name(const T &) { return String(); }
-
-template <>
-_FORCE_INLINE_ String get_arg_type_name<ApiClassArgument>(const ApiClassArgument &p_arg) { return p_arg.type.type_name; }
-
-template <>
-_FORCE_INLINE_ String get_arg_type_name<GDProperty>(const GDProperty &p_arg) { return p_arg.class_name; }
-
-// Getters for method types
-template <typename T>
-_FORCE_INLINE_ static bool is_method_static(const T &p_method) { return p_method.is_static; }
-
-template <>
-_FORCE_INLINE_ bool is_method_static<ApiUtilityFunction>(const ApiUtilityFunction &) { return true; }
-
-template <>
-_FORCE_INLINE_ bool is_method_static<GDMethod>(const GDMethod &) { return false; }
-
-template <typename T>
-_FORCE_INLINE_ static bool is_method_vararg(const T &p_method) { return p_method.is_vararg; }
-
-template <>
-_FORCE_INLINE_ bool is_method_vararg<GDMethod>(const GDMethod &) { return true; }
-
-// From stack
 template <typename T>
 _FORCE_INLINE_ static void get_argument(lua_State *L, int p_idx, const T &p_arg, LuauVariant &r_out) {
-	r_out.lua_check(L, p_idx, p_arg.type);
-}
-
-template <>
-_FORCE_INLINE_ void get_argument<ApiClassArgument>(lua_State *L, int idx, const ApiClassArgument &p_arg, LuauVariant &r_out) {
-	const ApiClassType &type = p_arg.type;
-	r_out.lua_check(L, idx, (GDExtensionVariantType)type.type, type.type_name);
+	r_out.lua_check(L, p_idx, p_arg.get_arg_type(), p_arg.get_arg_type_name());
 }
 
 // Defaults
@@ -128,7 +89,7 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int 
 
 		if (arg.has_default_value) {
 			// Special case: null Object default value
-			if (get_arg_type(arg) == GDEXTENSION_VARIANT_TYPE_OBJECT) {
+			if (arg.get_arg_type() == GDEXTENSION_VARIANT_TYPE_OBJECT) {
 				if (*arg.default_value.template get_ptr<GDExtensionObjectPtr>()) {
 					// Should never happen
 					ERR_PRINT("Could not set non-null object argument default value");
@@ -171,6 +132,17 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int 
 }
 
 // this is magic
+// Gets arguments from stack for some type of function.
+// Supported types:
+// - ApiVariantMethod/ApiArgument: Godot builtin classes (e.g. Vector2)
+// - ApiClassMethod/ApiClassArgument: Godot object classes (e.g. RefCounted)
+// - ApiUtilityFunction/ApiArgumentNoDefault: Godot utility functions (e.g. lerp)
+// - GDMethod/GDProperty: user-defined classes
+// Magic functions:
+// - T::is_method_static
+// - T::is_method_vararg
+// - TArg::get_arg_type
+// - TArg::get_arg_type_name
 template <typename T, typename TArg>
 static int get_arguments(lua_State *L,
 		const char *p_method_name,
@@ -179,7 +151,7 @@ static int get_arguments(lua_State *L,
 		LocalVector<const void *> *r_pargs,
 		const T &p_method) {
 	// arg 1 is self for instance methods
-	int arg_offset = is_method_static(p_method) ? 0 : 1;
+	int arg_offset = p_method.is_method_static() ? 0 : 1;
 	int nargs = lua_gettop(L) - arg_offset;
 
 	if (p_method.arguments.size() > nargs)
@@ -187,7 +159,7 @@ static int get_arguments(lua_State *L,
 	else
 		r_pargs->resize(nargs);
 
-	if (is_method_vararg(p_method)) {
+	if (p_method.is_method_vararg()) {
 		r_varargs->resize(nargs);
 
 		LuauVariant arg;

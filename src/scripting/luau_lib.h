@@ -73,6 +73,9 @@ struct GDProperty {
 			hint_string = Variant::get_type_name(Variant::Type(p_type.type));
 		}
 	}
+
+	GDExtensionVariantType get_arg_type() const { return type; }
+	const StringName &get_arg_type_name() const { return class_name; }
 };
 
 struct GDClassProperty {
@@ -93,6 +96,9 @@ struct GDMethod {
 
 	operator Dictionary() const;
 	operator Variant() const;
+
+	bool is_method_static() const { return false; }
+	bool is_method_vararg() const { return true; }
 };
 
 // ! Reference: modules/multiplayer/scene_rpc_interface.cpp _parse_rpc_config
