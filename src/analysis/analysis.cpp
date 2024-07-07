@@ -1,17 +1,14 @@
 #include "analysis/analysis.h"
 
 #include <Luau/Ast.h>
-#include <Luau/Lexer.h>
 #include <Luau/Location.h>
 #include <Luau/ParseResult.h>
-#include <gdextension_interface.h>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/string.hpp>
 
 #include "analysis/analysis_utils.h"
 #include "scripting/luau_lib.h"
-#include "scripting/luau_script.h"
 
 using namespace godot;
 

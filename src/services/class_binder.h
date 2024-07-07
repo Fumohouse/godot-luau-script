@@ -3,7 +3,6 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <exception>
-#include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/method_ptrcall.hpp> // TODO: unused. required to prevent compile error when specializing PtrToArg.
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>

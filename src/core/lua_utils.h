@@ -8,6 +8,7 @@
 #include <godot_cpp/core/method_ptrcall.hpp> // TODO: unused. required to prevent compile error when specializing PtrToArg.
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/core/type_info.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 #include "core/permissions.h"
 #include "core/runtime.h"

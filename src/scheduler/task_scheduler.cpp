@@ -1,12 +1,8 @@
 #include "scheduler/task_scheduler.h"
 
 #include <lua.h>
-#include <godot_cpp/classes/time.hpp>
-#include <godot_cpp/core/class_db.hpp>
-#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/templates/pair.hpp>
-#include <godot_cpp/variant/array.hpp>
 
 #include "core/lua_utils.h"
 #include "core/runtime.h"

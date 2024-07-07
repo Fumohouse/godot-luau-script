@@ -8,9 +8,7 @@
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
-#include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
-#include <godot_cpp/variant/signal.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -23,8 +21,6 @@ using namespace godot;
 
 #define LUASCRIPT_MODULE_TABLE "_MODULES"
 #define LUASCRIPT_MT_SCRIPT "__script"
-
-struct lua_State;
 
 struct GDProperty {
 	GDExtensionVariantType type = GDEXTENSION_VARIANT_TYPE_NIL;

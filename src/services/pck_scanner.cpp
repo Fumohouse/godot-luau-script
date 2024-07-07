@@ -1,7 +1,6 @@
 #include "pck_scanner.h"
 
 #include <godot_cpp/classes/file_access.hpp>
-#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/resource_uid.hpp>
 #include <godot_cpp/godot.hpp>
@@ -9,8 +8,8 @@
 #include <godot_cpp/variant/packed_byte_array.hpp>
 #include <godot_cpp/variant/packed_int32_array.hpp>
 #include <godot_cpp/variant/string.hpp>
-#include <godot_cpp/variant/string_name.hpp>
 
+#include "core/extension_api.h"
 #include "services/sandbox_service.h"
 
 using namespace godot;

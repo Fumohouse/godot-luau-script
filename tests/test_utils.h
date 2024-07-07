@@ -1,5 +1,6 @@
 #pragma once
 
+#include <lua.h>
 #include <catch_amalgamated.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
@@ -9,8 +10,6 @@
 #include "core/stack.h" // IWYU pragma: keep
 
 using namespace godot;
-
-struct lua_State;
 
 class LuauFixture {
 protected:

@@ -4,8 +4,6 @@
 #include <lua.h>
 #include <lualib.h>
 #include <cstddef>
-#include <cstdlib>
-#include <cstring>
 #include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/local_vector.hpp>

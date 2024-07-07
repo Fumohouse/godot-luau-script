@@ -6,9 +6,10 @@
 #include <godot_cpp/variant/string.hpp>
 
 #include "analysis/analysis.h"
-#include "scripting/luau_lib.h"
 
 using namespace godot;
+
+struct GDProperty;
 
 Vector<LuauComment> extract_comments(const char *p_src, const Luau::ParseResult &p_parse_result);
 void parse_comments(Luau::Location p_location, const Vector<LuauComment> &p_comments, String &r_body, Vector<Annotation> &r_annotations);

@@ -1,7 +1,6 @@
 #include "scripting/luau_script.h"
 
 #include <lua.h>
-#include <godot_cpp/core/error_macros.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/typed_array.hpp>
 

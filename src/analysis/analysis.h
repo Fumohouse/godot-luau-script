@@ -4,9 +4,7 @@
 #include <Luau/Location.h>
 #include <Luau/ParseResult.h>
 #include <godot_cpp/classes/global_constants.hpp>
-#include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
-#include <godot_cpp/variant/char_string.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/string_name.hpp>
 

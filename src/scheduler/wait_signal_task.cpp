@@ -1,7 +1,6 @@
 #include "scheduler/wait_signal_task.h"
 
 #include <lua.h>
-#include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/signal.hpp>
 
 #include "core/lua_utils.h"

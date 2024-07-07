@@ -1,8 +1,6 @@
 #pragma once
 
 #include <gdextension_interface.h>
-#include <godot_cpp/classes/global_constants.hpp>
-#include <godot_cpp/core/defs.hpp> // TODO: 4.0-beta10: pair.hpp does not include, causes errors.
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>

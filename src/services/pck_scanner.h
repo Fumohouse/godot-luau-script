@@ -1,16 +1,15 @@
 #pragma once
 
 #include <godot_cpp/classes/file_access.hpp>
-#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/packed_byte_array.hpp>
 #include <godot_cpp/variant/string.hpp>
 
-#include "core/extension_api.h"
-
 using namespace godot;
+
+struct ApiEnum;
 
 struct PCKFileScanResult {
 	enum FileScanError {

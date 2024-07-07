@@ -3,7 +3,6 @@
 #include <gdextension_interface.h>
 #include <lua.h>
 #include <lualib.h>
-#include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>

@@ -6,7 +6,6 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/error_macros.hpp>
-#include <godot_cpp/godot.hpp>
 #include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/string.hpp>

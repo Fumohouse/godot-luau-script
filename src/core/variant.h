@@ -2,8 +2,7 @@
 
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
-#include <godot_cpp/core/error_macros.hpp>
-#include <godot_cpp/variant/builtin_types.hpp>
+#include <godot_cpp/variant/string.hpp>
 
 using namespace godot;
 

@@ -3,7 +3,6 @@
 #include <cstdint>
 
 struct lua_State;
-class LuauScript;
 
 class LuauRuntime {
 public:

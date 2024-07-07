@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <godot_cpp/classes/wrapped.hpp>
 #include <godot_cpp/templates/list.hpp>
 #include <godot_cpp/templates/pair.hpp>
 

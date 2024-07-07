@@ -36,7 +36,9 @@ env_main = env.Clone()
 
 if env["iwyu"]:
     env_main["CC"] = "include-what-you-use"
-    env_main["CXX"] = "include-what-you-use"
+    env_main["CXX"] = "include-what-you-use "
+
+    env_main.Prepend(CXXFLAGS=["-Xiwyu", "--transitive_includes_only"])
 
 sources = Glob("src/*.cpp")
 sources += Glob("src/*/*.cpp")

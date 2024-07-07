@@ -8,7 +8,6 @@
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/variant/dictionary.hpp>
 
-#include "services/class_binder.h"
 #include "services/luau_interface.h"
 
 class SandboxService : public Service {

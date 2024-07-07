@@ -6,7 +6,6 @@
 
 #include "core/lua_utils.h"
 #include "core/permissions.h"
-#include "core/stack.h"
 #include "services/class_binder.h"
 #include "services/luau_interface.h"
 #include "test_utils.h"

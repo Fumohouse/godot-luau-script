@@ -1,8 +1,6 @@
 #include <catch_amalgamated.hpp>
 
 #include <lua.h>
-#include <godot_cpp/classes/object.hpp>
-#include <godot_cpp/core/memory.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/packed_string_array.hpp>
 #include <godot_cpp/variant/string.hpp>

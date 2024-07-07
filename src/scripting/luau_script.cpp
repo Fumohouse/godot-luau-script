@@ -7,11 +7,10 @@
 #include <Luau/ParseOptions.h>
 #include <Luau/ParseResult.h>
 #include <Luau/Parser.h>
-#include <Luau/StringUtils.h>
 #include <gdextension_interface.h>
 #include <lua.h>
+#include <lualib.h>
 #include <cstring>
-#include <godot_cpp/classes/dir_access.hpp>
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/object.hpp>
