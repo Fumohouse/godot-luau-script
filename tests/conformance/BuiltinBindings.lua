@@ -91,6 +91,11 @@ do
     arr:PushBack("d")
     arr:PushBack("e")
     assert(#arr == 5)
+
+    -- Error
+    asserterror(function()
+        print(Vector2.new() + {})
+    end, "no operator matched for arguments of type Vector2 and table")
 end
 
 do

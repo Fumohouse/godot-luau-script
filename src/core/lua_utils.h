@@ -56,5 +56,11 @@ T luaGD_checkvaluetype(lua_State *L, int p_index, const char *p_key, lua_Type p_
 	return val;
 }
 
+template <typename T>
+T *luaGD_lightudataup(lua_State *L, int p_index) {
+	return reinterpret_cast<T *>(
+			lua_tolightuserdata(L, lua_upvalueindex(p_index)));
+}
+
 void luaGD_gderror(const char *p_method, const String &p_path, String p_msg, int p_line = 0);
 const Luau::CompileOptions &luaGD_compileopts();

@@ -1,6 +1,18 @@
 #pragma once
 
+#include <gdextension_interface.h>
 #include <lua.h>
+#include <godot_cpp/templates/local_vector.hpp>
+#include <godot_cpp/variant/variant.hpp>
+
+#include "core/permissions.h"
+#include "core/variant.h"
+
+using namespace godot;
+
+struct ApiClass;
+struct ApiClassMethod;
+struct ApiEnum;
 
 #define BUILTIN_MT_PREFIX "Godot.Builtin."
 #define BUILTIN_MT_NAME(m_type) BUILTIN_MT_PREFIX #m_type
@@ -20,11 +32,30 @@
 	lua_pushboolean(L, true);                  \
 	lua_setfield(L, LUA_REGISTRYINDEX, m_key);
 
-template <typename T>
-T *luaGD_lightudataup(lua_State *L, int p_index) {
-	return reinterpret_cast<T *>(
-			lua_tolightuserdata(L, lua_upvalueindex(p_index)));
-}
+#if TOOLS_ENABLED
+#define SET_CALL_STACK(L) LuauLanguage::get_singleton()->set_call_stack(L)
+#define CLEAR_CALL_STACK LuauLanguage::get_singleton()->clear_call_stack()
+#else
+#define SET_CALL_STACK(L)
+#define CLEAR_CALL_STACK
+#endif
+
+int luaGD_global_index(lua_State *L);
+void push_enum(lua_State *L, const ApiEnum &p_enum);
+
+#define VARIANT_TOSTRING_DEBUG_NAME "Variant.__tostring"
+int luaGD_variant_tostring(lua_State *L);
+void luaGD_initmetatable(lua_State *L, int p_idx, GDExtensionVariantType p_variant_type, const char *p_global_name);
+void luaGD_initglobaltable(lua_State *L, int p_idx, const char *p_global_name);
+ThreadPermissions get_method_permissions(const ApiClass &p_class, const ApiClassMethod &p_method);
+
+template <typename T, typename TArg>
+int get_arguments(lua_State *L,
+		const char *p_method_name,
+		LocalVector<Variant> *r_varargs,
+		LocalVector<LuauVariant> *r_args,
+		LocalVector<const void *> *r_pargs,
+		const T &p_method);
 
 void luaGD_openbuiltins(lua_State *L);
 void luaGD_openclasses(lua_State *L);

@@ -3,7 +3,6 @@
 #include <lua.h>
 #include <lualib.h>
 
-#include "core/godot_bindings.h"
 #include "core/lua_utils.h"
 
 using namespace godot;
