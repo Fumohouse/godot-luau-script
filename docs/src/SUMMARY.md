@@ -23,7 +23,6 @@
 - [The Task Scheduler](./usage/task-scheduler.md)
 - [init.lua](./usage/init-file.md)
 - [Typechecking and Autocomplete](./usage/typechecking-autocomplete.md)
-- [Known Issues](./usage/known-issues.md)
 
 # Development
 

@@ -6,5 +6,5 @@ Godot's [build containers](https://github.com/godotengine/build-containers/) and
 
 Published releases are built using these containers and scripts.
 
-See the [documentation](https://fumohouse.github.io/gls-docs/usage/building-and-installation.html)
+See the [documentation](https://ksk.codeberg.page/godot-luau-script/usage/building-and-installation.html)
 for usage.

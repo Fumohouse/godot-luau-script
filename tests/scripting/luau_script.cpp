@@ -117,7 +117,7 @@ TEST_CASE("luau script: instance") {
 		REQUIRE(m1_found);
 		REQUIRE(m2_found);
 
-		inst->free_method_list(methods);
+		inst->free_method_list(methods, count);
 	}
 
 	SECTION("property methods") {
@@ -144,7 +144,7 @@ TEST_CASE("luau script: instance") {
 			REQUIRE(*(StringName *)properties[4].name == StringName("custom/testProperty"));
 			REQUIRE(properties[4].type == GDEXTENSION_VARIANT_TYPE_FLOAT);
 
-			inst->free_property_list(properties);
+			inst->free_property_list(properties, count);
 		}
 
 		SECTION("property_can_revert") {

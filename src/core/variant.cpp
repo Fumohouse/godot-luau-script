@@ -295,6 +295,7 @@ void LuauVariant::_register_types() {
 	register_type<VariantCoercedMethods<PackedVector2Array>>(GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR2_ARRAY);
 	register_type<VariantCoercedMethods<PackedVector3Array>>(GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR3_ARRAY);
 	register_type<VariantCoercedMethods<PackedColorArray>>(GDEXTENSION_VARIANT_TYPE_PACKED_COLOR_ARRAY);
+	register_type<VariantCoercedMethods<PackedVector4Array>>(GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR4_ARRAY);
 
 #ifdef DEBUG_ENABLED
 	for (int i = 0; i < GDEXTENSION_VARIANT_TYPE_VARIANT_MAX; i++) {

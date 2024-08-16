@@ -35,7 +35,7 @@ using namespace godot;
 void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
 #ifdef TOOLS_ENABLED
 	PlaceHolderScriptInstance *internal = memnew(PlaceHolderScriptInstance(Ref<LuauScript>(this), p_for_object));
-	return internal::gdextension_interface_script_instance_create2(&PlaceHolderScriptInstance::INSTANCE_INFO, internal);
+	return internal::gdextension_interface_script_instance_create3(&PlaceHolderScriptInstance::INSTANCE_INFO, internal);
 #else
 	return nullptr;
 #endif // TOOLS_ENABLED
@@ -501,10 +501,10 @@ Dictionary LuauLanguage::_get_global_class_name(const String &p_path) const {
 #ifdef TOOLS_ENABLED
 #define PLACEHOLDER_SELF ((PlaceHolderScriptInstance *)p_self)
 
-static GDExtensionScriptInstanceInfo2 init_placeholder_instance_info() {
+static GDExtensionScriptInstanceInfo3 init_placeholder_instance_info() {
 	// Methods which essentially have no utility (e.g. call) are implemented here instead of in the class.
 
-	GDExtensionScriptInstanceInfo2 info;
+	GDExtensionScriptInstanceInfo3 info;
 	ScriptInstance::init_script_instance_info_common(info);
 
 	info.property_can_revert_func = [](void *, GDExtensionConstStringNamePtr) -> GDExtensionBool {
@@ -539,7 +539,7 @@ static GDExtensionScriptInstanceInfo2 init_placeholder_instance_info() {
 	return info;
 }
 
-const GDExtensionScriptInstanceInfo2 PlaceHolderScriptInstance::INSTANCE_INFO = init_placeholder_instance_info();
+const GDExtensionScriptInstanceInfo3 PlaceHolderScriptInstance::INSTANCE_INFO = init_placeholder_instance_info();
 
 bool PlaceHolderScriptInstance::set(const StringName &p_name, const Variant &p_value, PropertySetGetError *r_err) {
 	if (script->_is_placeholder_fallback_enabled()) {
@@ -633,7 +633,7 @@ GDExtensionPropertyInfo *PlaceHolderScriptInstance::get_property_list(uint32_t *
 
 	*r_count = size;
 
-	GDExtensionPropertyInfo *list = alloc_with_len<GDExtensionPropertyInfo>(size);
+	GDExtensionPropertyInfo *list = (GDExtensionPropertyInfo *)memalloc(sizeof(GDExtensionPropertyInfo) * size);
 	memcpy(list, props.ptr(), sizeof(GDExtensionPropertyInfo) * size);
 
 	return list;

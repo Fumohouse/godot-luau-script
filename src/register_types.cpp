@@ -39,21 +39,21 @@ void initialize_luau_script_module(ModuleInitializationLevel p_level) {
 	};
 #endif // DEBUG_ENABLED
 
-	ClassDB::register_class<LuauScript>();
-	ClassDB::register_class<LuauLanguage>();
+	GDREGISTER_CLASS(LuauScript);
+	GDREGISTER_CLASS(LuauLanguage);
 
 	script_language_luau = memnew(LuauLanguage);
 	CRASH_COND_MSG(nb::Engine::get_singleton_nb()->register_script_language(script_language_luau) != OK, "Failed to register LuauLanguage");
 
-	ClassDB::register_class<ResourceFormatLoaderLuauScript>();
+	GDREGISTER_CLASS(ResourceFormatLoaderLuauScript);
 	resource_loader_luau.instantiate();
 	nb::ResourceLoader::get_singleton_nb()->add_resource_format_loader(resource_loader_luau);
 
-	ClassDB::register_class<ResourceFormatSaverLuauScript>();
+	GDREGISTER_CLASS(ResourceFormatSaverLuauScript);
 	resource_saver_luau.instantiate();
 	nb::ResourceSaver::get_singleton_nb()->add_resource_format_saver(resource_saver_luau);
 
-	ClassDB::register_class<SignalWaiter>();
+	GDREGISTER_CLASS(SignalWaiter);
 }
 
 void uninitialize_luau_script_module(ModuleInitializationLevel p_level) {

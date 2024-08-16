@@ -107,7 +107,8 @@ variant_types = [
     "PackedStringArray",
     "PackedVector2Array",
     "PackedVector3Array",
-    "PackedColorArray"
+    "PackedColorArray",
+    "PackedVector4Array"
 ]
 
 

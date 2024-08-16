@@ -42,6 +42,7 @@ using namespace godot;
                 "PackedStringArray": ("String", "STRING"),
                 "PackedVector2Array": ("Vector2", "VECTOR2"),
                 "PackedVector3Array": ("Vector3", "VECTOR3"),
+                "PackedVector4Array": ("Vector4", "VECTOR4"),
                 "PackedColorArray": ("Color", "COLOR"),
             }
 

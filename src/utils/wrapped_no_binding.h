@@ -3,6 +3,7 @@
 #include <godot_cpp/classes/class_db_singleton.hpp>
 #include <godot_cpp/classes/editor_interface.hpp>
 #include <godot_cpp/classes/engine.hpp>
+#include <godot_cpp/classes/engine_debugger.hpp>
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/os.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
@@ -48,5 +49,6 @@ typedef WrappedNoBinding<godot::OS> OS;
 typedef WrappedNoBinding<godot::Time> Time;
 typedef WrappedNoBinding<godot::EditorInterface> EditorInterface;
 typedef WrappedNoBinding<godot::ClassDBSingleton> ClassDB;
+typedef WrappedNoBinding<godot::EngineDebugger> EngineDebugger;
 
 } // namespace nb

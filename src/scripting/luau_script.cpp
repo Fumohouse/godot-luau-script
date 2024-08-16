@@ -601,7 +601,7 @@ void *LuauScript::_instance_create(Object *p_for_object) const {
 		type = LuauRuntime::VM_CORE;
 
 	LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, type));
-	return internal::gdextension_interface_script_instance_create2(&LuauScriptInstance::INSTANCE_INFO, internal);
+	return internal::gdextension_interface_script_instance_create3(&LuauScriptInstance::INSTANCE_INFO, internal);
 }
 
 bool LuauScript::instance_has(uint64_t p_obj_id) const {
@@ -722,7 +722,7 @@ LuauScript::~LuauScript() {
 
 #define COMMON_SELF ((ScriptInstance *)p_self)
 
-void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceInfo2 &p_info) {
+void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceInfo3 &p_info) {
 	// Must initialize potentially unused struct fields to nullptr
 	// (if not, causes segfault on MSVC).
 	p_info.property_can_revert_func = nullptr;
@@ -753,8 +753,8 @@ void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceI
 		return COMMON_SELF->get_property_list(r_count);
 	};
 
-	p_info.free_property_list_func = [](void *p_self, const GDExtensionPropertyInfo *p_list) {
-		COMMON_SELF->free_property_list(p_list);
+	p_info.free_property_list_func = [](void *p_self, const GDExtensionPropertyInfo *p_list, uint32_t p_count) {
+		COMMON_SELF->free_property_list(p_list, p_count);
 	};
 
 	p_info.validate_property_func = [](void *p_self, GDExtensionPropertyInfo *p_property) -> GDExtensionBool {
@@ -773,8 +773,8 @@ void ScriptInstance::init_script_instance_info_common(GDExtensionScriptInstanceI
 		return COMMON_SELF->get_method_list(r_count);
 	};
 
-	p_info.free_method_list_func = [](void *p_self, const GDExtensionMethodInfo *p_list) {
-		COMMON_SELF->free_method_list(p_list);
+	p_info.free_method_list_func = [](void *p_self, const GDExtensionMethodInfo *p_list, uint32_t p_count) {
+		COMMON_SELF->free_method_list(p_list, p_count);
 	};
 
 	p_info.get_property_type_func = [](void *p_self, GDExtensionConstStringNamePtr p_name, GDExtensionBool *r_is_valid) -> GDExtensionVariantType {
@@ -806,14 +806,6 @@ static StringName *stringname_alloc(const String &p_str) {
 	*ptr = p_str;
 
 	return ptr;
-}
-
-int ScriptInstance::get_len_from_ptr(const void *p_ptr) {
-	return *((int *)p_ptr - 1);
-}
-
-void ScriptInstance::free_with_len(void *p_ptr) {
-	memfree((int *)p_ptr - 1);
 }
 
 void ScriptInstance::copy_prop(const GDProperty &p_src, GDExtensionPropertyInfo &p_dst) {
@@ -851,7 +843,7 @@ void ScriptInstance::get_property_state(GDExtensionScriptInstancePropertyStateAd
 		}
 	}
 
-	free_property_list(props);
+	free_property_list(props, count);
 }
 
 static void add_to_state(GDExtensionConstStringNamePtr p_name, GDExtensionConstVariantPtr p_value, void *p_userdata) {
@@ -863,17 +855,14 @@ void ScriptInstance::get_property_state(List<Pair<StringName, Variant>> &p_list)
 	get_property_state(add_to_state, &p_list);
 }
 
-void ScriptInstance::free_property_list(const GDExtensionPropertyInfo *p_list) const {
+void ScriptInstance::free_property_list(const GDExtensionPropertyInfo *p_list, uint32_t p_count) const {
 	if (!p_list)
 		return;
 
-	// don't ask.
-	int size = get_len_from_ptr(p_list);
-
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < p_count; i++)
 		free_prop(p_list[i]);
 
-	free_with_len((GDExtensionPropertyInfo *)p_list);
+	memfree((GDExtensionPropertyInfo *)p_list);
 }
 
 GDExtensionMethodInfo *ScriptInstance::get_method_list(uint32_t *r_count) const {
@@ -927,20 +916,17 @@ GDExtensionMethodInfo *ScriptInstance::get_method_list(uint32_t *r_count) const 
 	int size = methods.size();
 	*r_count = size;
 
-	GDExtensionMethodInfo *list = alloc_with_len<GDExtensionMethodInfo>(size);
+	GDExtensionMethodInfo *list = (GDExtensionMethodInfo *)memalloc(sizeof(GDExtensionMethodInfo) * size);
 	memcpy(list, methods.ptr(), sizeof(GDExtensionMethodInfo) * size);
 
 	return list;
 }
 
-void ScriptInstance::free_method_list(const GDExtensionMethodInfo *p_list) const {
+void ScriptInstance::free_method_list(const GDExtensionMethodInfo *p_list, uint32_t p_count) const {
 	if (!p_list)
 		return;
 
-	// don't ask.
-	int size = get_len_from_ptr(p_list);
-
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < p_count; i++) {
 		const GDExtensionMethodInfo &method = p_list[i];
 
 		memdelete((StringName *)method.name);
@@ -958,7 +944,7 @@ void ScriptInstance::free_method_list(const GDExtensionMethodInfo *p_list) const
 			memdelete((Variant *)method.default_arguments);
 	}
 
-	free_with_len((GDExtensionMethodInfo *)p_list);
+	memdelete((GDExtensionMethodInfo *)p_list);
 }
 
 ScriptLanguage *ScriptInstance::get_language() const {
@@ -971,8 +957,8 @@ ScriptLanguage *ScriptInstance::get_language() const {
 
 #define INSTANCE_SELF ((LuauScriptInstance *)p_self)
 
-static GDExtensionScriptInstanceInfo2 init_script_instance_info() {
-	GDExtensionScriptInstanceInfo2 info;
+static GDExtensionScriptInstanceInfo3 init_script_instance_info() {
+	GDExtensionScriptInstanceInfo3 info;
 	ScriptInstance::init_script_instance_info_common(info);
 
 	info.property_can_revert_func = [](void *p_self, GDExtensionConstStringNamePtr p_name) -> GDExtensionBool {
@@ -1007,7 +993,7 @@ static GDExtensionScriptInstanceInfo2 init_script_instance_info() {
 	return info;
 }
 
-const GDExtensionScriptInstanceInfo2 LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
+const GDExtensionScriptInstanceInfo3 LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
 int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int p_nargs, int p_nret) {
 	LUAU_LOCK(ET);
@@ -1370,7 +1356,7 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
 	int size = properties.size();
 	*r_count = size;
 
-	GDExtensionPropertyInfo *list = alloc_with_len<GDExtensionPropertyInfo>(size);
+	GDExtensionPropertyInfo *list = (GDExtensionPropertyInfo *)memalloc(sizeof(GDExtensionPropertyInfo) * size);
 	memcpy(list, properties.ptr(), sizeof(GDExtensionPropertyInfo) * size);
 
 	return list;
@@ -1893,9 +1879,8 @@ void LuauLanguage::_init() {
 		}
 	}
 
-	// TODO: Only if EngineDebugger is active
-	// if (nb::EngineDebugger::get_singleton_nb()->is_active())
-	debug_init();
+	if (nb::EngineDebugger::get_singleton_nb()->is_active())
+		debug_init();
 }
 
 void LuauLanguage::finalize() {

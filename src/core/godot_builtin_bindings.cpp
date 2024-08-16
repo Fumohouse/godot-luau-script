@@ -89,6 +89,8 @@ static const ArrayTypeInfo *get_array_type_info(GDExtensionVariantType p_type) {
 			ARRAY_INFO(PackedVector3Array, Vector3)
 		case GDEXTENSION_VARIANT_TYPE_PACKED_COLOR_ARRAY:
 			ARRAY_INFO(PackedColorArray, Color)
+		case GDEXTENSION_VARIANT_TYPE_PACKED_VECTOR4_ARRAY:
+			ARRAY_INFO(PackedVector4Array, Vector4)
 
 		default:
 			return nullptr;
@@ -544,6 +546,9 @@ void luaGD_openbuiltins(lua_State *L) {
 						break;
 					case GDEXTENSION_VARIANT_OP_NEGATE:
 						op_mt_name = "__unm";
+						break;
+					case GDEXTENSION_VARIANT_OP_POWER:
+						op_mt_name = "__pow";
 						break;
 
 					default:
