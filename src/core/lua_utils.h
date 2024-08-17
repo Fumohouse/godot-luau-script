@@ -17,8 +17,6 @@
 
 using namespace godot;
 
-#define LUAU_LOCK(L) MutexLock L##_lock(*luaGD_getthreaddata(L)->lock.ptr())
-
 #define luaGD_objnullerror(L, p_i) luaL_error(L, "argument #%d: Object is null or freed", p_i)
 #define luaGD_nonamecallatomerror(L) luaL_error(L, "no namecallatom")
 

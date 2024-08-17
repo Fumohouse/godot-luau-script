@@ -81,7 +81,7 @@ TEST_CASE("luau script: instance") {
 	REQUIRE(inst->get_script() == script);
 
 	// Global table access
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
+	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 	lua_State *T = lua_newthread(L);
 	luaL_sandboxthread(T);
 
@@ -236,7 +236,7 @@ TEST_CASE("luau script: instance") {
 
 	SECTION("table setget") {
 		SECTION("normal") {
-			lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
+			ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 			int top = lua_gettop(L);
 
 			SECTION("set") {
@@ -265,7 +265,7 @@ TEST_CASE("luau script: instance") {
 		}
 
 		SECTION("wrong thread") {
-			lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_SCRIPT_LOAD);
+			ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_SCRIPT_LOAD);
 
 			SECTION("set") {
 				lua_pushstring(L, "testField");
@@ -383,7 +383,7 @@ TEST_CASE("luau script: inheritance") {
 	Object *obj = memnew(Object);
 	obj->set_script(script);
 
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
+	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 	lua_State *T = lua_newthread(L);
 	luaL_sandboxthread(T);
 

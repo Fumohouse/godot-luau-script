@@ -3,6 +3,7 @@
 #include <Luau/CodeGen.h>
 #include <lua.h>
 #include <lualib.h>
+#include <godot_cpp/classes/mutex.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 #include "core/lua_utils.h"
@@ -12,6 +13,19 @@
 #include "services/luau_interface.h"
 
 using namespace godot;
+
+ThreadHandle::ThreadHandle(lua_State *L) :
+		L(L) {
+	if (Mutex *mut = luaGD_getthreaddata(L)->lock.ptr())
+		mut->lock();
+}
+
+ThreadHandle::~ThreadHandle() {
+	if (Mutex *mut = luaGD_getthreaddata(L)->lock.ptr())
+		mut->unlock();
+}
+
+ThreadHandle::operator lua_State *() const { return L; }
 
 LuauRuntime *LuauRuntime::singleton = nullptr;
 
@@ -49,29 +63,29 @@ LuauRuntime::LuauRuntime() {
 LuauRuntime::~LuauRuntime() {
 	UtilityFunctions::print_verbose("Luau runtime: uninitializing...");
 
+	if (singleton == this)
+		singleton = nullptr;
+
 	for (lua_State *&L : vms) {
 		luaGD_close(L);
 		L = nullptr;
 	}
-
-	if (singleton == this)
-		singleton = nullptr;
 }
 
-lua_State *LuauRuntime::get_vm(VMType p_type) {
+ThreadHandle LuauRuntime::get_vm(VMType p_type) {
 	return vms[p_type];
 }
 
 void LuauRuntime::gc_step(const uint32_t *p_step, double p_delta) {
 	for (int i = 0; i < VM_MAX; i++) {
-		lua_State *L = get_vm(VMType(i));
+		ThreadHandle L = get_vm(VMType(i));
 		lua_gc(L, LUA_GCSTEP, p_step[i] * p_delta);
 	}
 }
 
 void LuauRuntime::gc_size(int32_t *r_buffer) {
 	for (int i = 0; i < VM_MAX; i++) {
-		lua_State *L = get_vm(VMType(i));
+		ThreadHandle L = get_vm(VMType(i));
 		r_buffer[i] = lua_gc(L, LUA_GCCOUNT, 0);
 	}
 }

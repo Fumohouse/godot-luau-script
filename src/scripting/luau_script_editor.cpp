@@ -277,8 +277,7 @@ void LuauScript::unload_module() {
 	CharString path_utf8 = get_path().utf8();
 
 	for (int i = 0; i < LuauRuntime::VM_MAX; i++) {
-		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
-		LUAU_LOCK(L);
+		ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
 
 		luaL_findtable(L, LUA_REGISTRYINDEX, LUASCRIPT_MODULE_TABLE, 1);
 		lua_pushnil(L);

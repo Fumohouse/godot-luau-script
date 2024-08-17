@@ -12,7 +12,7 @@ TEST_CASE_METHOD(LuauFixture, "task scheduler: basic functionality") {
 	LuauRuntime gd_luau;
 	TaskScheduler &task_scheduler = LuauLanguage::get_singleton()->get_task_scheduler();
 
-	lua_State *L = gd_luau.get_vm(LuauRuntime::VM_CORE);
+	ThreadHandle L = gd_luau.get_vm(LuauRuntime::VM_CORE);
 
 	SECTION("wait") {
 		lua_State *T = lua_newthread(L);

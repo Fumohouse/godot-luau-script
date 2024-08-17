@@ -62,7 +62,7 @@ static ExecOutput run_conformance(const char *p_name) {
 	std::stringstream buffer;
 	buffer << stream.rdbuf();
 
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
+	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 	lua_State *T = luaGD_newthread(L, PERMISSION_INTERNAL);
 	luaL_sandboxthread(T);
 

@@ -192,7 +192,7 @@ public:
 	const LuauData &get_luau_data() const { return luau_data; }
 	Ref<LuauScript> get_base() const { return base; }
 
-	void def_table_get(lua_State *T) const;
+	void def_table_get(const ThreadHandle &T) const;
 	const GDClassDefinition &get_definition() const { return definition; }
 
 	bool is_loading() const { return _is_loading; }
@@ -262,7 +262,7 @@ class LuauScriptInstance : public ScriptInstance {
 	int thread_ref;
 	lua_State *T;
 
-	int call_internal(const StringName &p_method, lua_State *ET, int p_nargs, int p_nret);
+	int call_internal(const StringName &p_method, const ThreadHandle &ET, int p_nargs, int p_nret);
 
 public:
 	static const GDExtensionScriptInstanceInfo3 INSTANCE_INFO;
@@ -287,8 +287,8 @@ public:
 	Object *get_owner() const override { return owner; }
 	Ref<LuauScript> get_script() const override { return script; }
 
-	bool table_set(lua_State *T) const;
-	bool table_get(lua_State *T) const;
+	bool table_set(const ThreadHandle &T) const;
+	bool table_get(const ThreadHandle &T) const;
 
 	LuauRuntime::VMType get_vm_type() const { return vm_type; }
 

@@ -29,12 +29,10 @@ void TaskScheduler::frame(double p_delta) {
 
 	while (task) {
 		Pair<lua_State *, ScheduledTask *> &E = task->get();
-		lua_State *L = E.first;
+		ThreadHandle L = E.first;
 		ScheduledTask *s_task = E.second;
 
 		s_task->update(p_delta);
-
-		LUAU_LOCK(L);
 
 		if (s_task->is_complete()) {
 			if (s_task->should_resume()) {

@@ -4,6 +4,7 @@
 #include <godot_cpp/variant/signal.hpp>
 
 #include "core/lua_utils.h"
+#include "core/runtime.h"
 #include "scripting/luau_script.h"
 
 void SignalWaiter::_bind_methods() {
@@ -19,7 +20,7 @@ void SignalWaiter::initialize(lua_State *L, Signal p_signal) {
 
 void SignalWaiter::on_signal(const Variant **p_args, GDExtensionInt p_argc, GDExtensionCallError &r_err) {
 	{
-		LUAU_LOCK(L);
+		ThreadHandle L = this->L;
 
 		lua_pushboolean(L, true);
 

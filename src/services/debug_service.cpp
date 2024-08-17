@@ -46,7 +46,7 @@ PackedFloat64Array DebugService::gc_count() const {
 	arr.resize(LuauRuntime::VM_MAX);
 
 	for (int i = 0; i < LuauRuntime::VM_MAX; i++) {
-		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
+		ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
 		double mem_kb = lua_gc(L, LUA_GCCOUNT, 0) + lua_gc(L, LUA_GCCOUNTB, 0) / 1024.0;
 
 		arr[i] = mem_kb;
@@ -70,8 +70,7 @@ PackedInt32Array DebugService::gc_step_size() const {
 
 String DebugService::exec(const String &p_src) {
 	if (!T) {
-		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
-		LUAU_LOCK(L);
+		ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 		T = lua_newthread(L);
 		thread_ref = lua_ref(L, -1);
 
@@ -80,7 +79,7 @@ String DebugService::exec(const String &p_src) {
 		lua_pop(L, 1); // thread
 	}
 
-	LUAU_LOCK(T);
+	ThreadHandle T = this->T;
 
 	// Recover
 	int status = lua_status(T);
@@ -118,7 +117,7 @@ DebugService::~DebugService() {
 
 	// Not a normal condition. LuauRuntime is deinitialized before LuauInterface
 	if (T && LuauRuntime::get_singleton()) {
-		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
+		ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 		lua_unref(L, thread_ref);
 
 		T = nullptr;

@@ -169,8 +169,7 @@ Error LuauScript::finish_load() {
 	}
 
 	// Build method/constant cache.
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_SCRIPT_LOAD);
-	LUAU_LOCK(L);
+	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_SCRIPT_LOAD);
 	methods.clear();
 	constants.clear();
 
@@ -263,8 +262,7 @@ Error LuauScript::load_table(LuauRuntime::VMType p_vm_type, bool p_force) {
 	}
 	_is_loading = true;
 
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(p_vm_type);
-	LUAU_LOCK(L);
+	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(p_vm_type);
 
 	lua_State *T = lua_newthread(L);
 	luaL_sandboxthread(T);
@@ -311,12 +309,10 @@ void LuauScript::unref_table(LuauRuntime::VMType p_vm) {
 	if (!table_refs[p_vm])
 		return;
 
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(p_vm);
+	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(p_vm);
 
 	// See ~LuauScriptInstance
 	if (L && luaGD_getthreaddata(L)) {
-		LUAU_LOCK(L);
-
 		lua_unref(L, table_refs[p_vm]);
 		table_refs[p_vm] = 0;
 	}
@@ -618,10 +614,9 @@ LuauScriptInstance *LuauScript::instance_get(uint64_t p_obj_id) const {
 	return instances.get(p_obj_id);
 }
 
-void LuauScript::def_table_get(lua_State *T) const {
+void LuauScript::def_table_get(const ThreadHandle &T) const {
 	GDThreadData *udata = luaGD_getthreaddata(T);
 	ERR_FAIL_COND_MSG(udata->vm_type >= LuauRuntime::VM_MAX, "Thread has an unknown VM type");
-	LUAU_LOCK(T);
 
 	int table_ref = table_refs[udata->vm_type];
 	if (!table_ref) {
@@ -995,9 +990,7 @@ static GDExtensionScriptInstanceInfo3 init_script_instance_info() {
 
 const GDExtensionScriptInstanceInfo3 LuauScriptInstance::INSTANCE_INFO = init_script_instance_info();
 
-int LuauScriptInstance::call_internal(const StringName &p_method, lua_State *ET, int p_nargs, int p_nret) {
-	LUAU_LOCK(ET);
-
+int LuauScriptInstance::call_internal(const StringName &p_method, const ThreadHandle &ET, int p_nargs, int p_nret) {
 	const LuauScript *s = script.ptr();
 
 	while (s) {
@@ -1064,7 +1057,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 			}
 
 			// Set
-			LUAU_LOCK(T);
+			ThreadHandle T = this->T;
 			lua_State *ET = lua_newthread(T);
 			int status = LUA_OK;
 
@@ -1160,7 +1153,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
 			}
 
 			// Get
-			LUAU_LOCK(T);
+			ThreadHandle T = this->T;
 			lua_State *ET = lua_newthread(T);
 			int status = LUA_OK;
 
@@ -1551,11 +1544,8 @@ void LuauScriptInstance::notification(int32_t p_what) {
 
 	// These notifications will fire at program exit; see ~LuauScriptInstance
 	// 3: NOTIFICATION_PREDELETE_CLEANUP (not bound)
-	if (p_what == Object::NOTIFICATION_PREDELETE || p_what == 3) {
-		lua_State *L = LuauRuntime::get_singleton()->get_vm(vm_type);
-
-		if (!L || !luaGD_getthreaddata(L))
-			return;
+	if ((p_what == Object::NOTIFICATION_PREDELETE || p_what == 3) && !LuauRuntime::get_singleton()) {
+		return;
 	}
 
 	const LuauScript *s = script.ptr();
@@ -1599,11 +1589,10 @@ void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out) {
 	}
 }
 
-bool LuauScriptInstance::table_set(lua_State *T) const {
+bool LuauScriptInstance::table_set(const ThreadHandle &T) const {
 	if (lua_mainthread(T) != lua_mainthread(this->T))
 		return false;
 
-	LUAU_LOCK(T);
 	lua_getref(T, table_ref);
 	lua_insert(T, -3);
 	lua_settable(T, -3);
@@ -1612,11 +1601,10 @@ bool LuauScriptInstance::table_set(lua_State *T) const {
 	return true;
 }
 
-bool LuauScriptInstance::table_get(lua_State *T) const {
+bool LuauScriptInstance::table_get(const ThreadHandle &T) const {
 	if (lua_mainthread(T) != lua_mainthread(this->T))
 		return false;
 
-	LUAU_LOCK(T);
 	lua_getref(T, table_ref);
 	lua_insert(T, -2);
 	lua_gettable(T, -2);
@@ -1702,8 +1690,7 @@ LuauScriptInstance::LuauScriptInstance(const Ref<LuauScript> &p_script, Object *
 		UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->get_definition().permissions);
 	}
 
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(p_vm_type);
-	LUAU_LOCK(L);
+	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(p_vm_type);
 	T = luaGD_newthread(L, permissions);
 	luaL_sandboxthread(T);
 
@@ -1763,14 +1750,14 @@ LuauScriptInstance::~LuauScriptInstance() {
 		script->instances.erase(owner->get_instance_id());
 	}
 
-	lua_State *L = LuauRuntime::get_singleton()->get_vm(vm_type);
+	if (LuauRuntime::get_singleton()) {
+		ThreadHandle L = LuauRuntime::get_singleton()->get_vm(vm_type);
 
-	// Check to prevent issues with unref during thread free (luaGD_close in ~LuauRuntime)
-	if (L && luaGD_getthreaddata(L)) {
-		LUAU_LOCK(L);
-
-		lua_unref(L, table_ref);
-		lua_unref(L, thread_ref);
+		// Check to prevent issues with unref during thread free (luaGD_close in ~LuauRuntime)
+		if (L && luaGD_getthreaddata(L)) {
+			lua_unref(L, table_ref);
+			lua_unref(L, thread_ref);
+		}
 	}
 
 	table_ref = -1;
@@ -1860,7 +1847,7 @@ void LuauLanguage::_init() {
 
 		if (err == OK) {
 			std::string bytecode = Luau::compile(src.utf8().get_data(), luaGD_compileopts());
-			lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
+			ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VM_CORE);
 			lua_State *T = lua_newthread(L);
 
 			GDThreadData *udata = luaGD_getthreaddata(T);

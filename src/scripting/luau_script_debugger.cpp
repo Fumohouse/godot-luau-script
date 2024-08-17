@@ -19,7 +19,7 @@ LuauLanguage::DebugInfo::StackInfo::operator Dictionary() const {
 
 void LuauLanguage::debug_init() {
 	for (int i = 0; i < LuauRuntime::VM_MAX; i++) {
-		lua_State *L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
+		ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
 		lua_Callbacks *cb = lua_callbacks(L);
 
 		cb->interrupt = LuauLanguage::lua_interrupt;
