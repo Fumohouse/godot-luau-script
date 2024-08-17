@@ -5,6 +5,7 @@
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/multiplayer_api.hpp>
 #include <godot_cpp/classes/multiplayer_peer.hpp>
+#include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -139,3 +140,6 @@ GDProperty luascript_read_property(lua_State *L, int p_idx);
 void luascript_openlibs(lua_State *L);
 
 LuauScript *luascript_class_table_get_script(lua_State *L, int p_i);
+
+int luascript_resume(lua_State *L, lua_State *p_from, int p_nargs);
+int luascript_pcall(lua_State *L, int p_nargs, int p_nresults, int p_errfunc);

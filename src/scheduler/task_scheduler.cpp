@@ -37,9 +37,7 @@ void TaskScheduler::frame(double p_delta) {
 		if (s_task->is_complete()) {
 			if (s_task->should_resume()) {
 				int results = s_task->push_results(L);
-
-				INIT_TIMEOUT(L)
-				int status = lua_resume(L, nullptr, results);
+				int status = luascript_resume(L, nullptr, results);
 
 				if (status != LUA_OK && status != LUA_YIELD) {
 					GDThreadData *udata = luaGD_getthreaddata(L);

@@ -5,6 +5,7 @@
 
 #include "core/lua_utils.h"
 #include "core/runtime.h"
+#include "scripting/luau_lib.h"
 #include "scripting/luau_script.h"
 
 void SignalWaiter::_bind_methods() {
@@ -28,8 +29,7 @@ void SignalWaiter::on_signal(const Variant **p_args, GDExtensionInt p_argc, GDEx
 			LuaStackOp<Variant>::push(L, *p_args[i]);
 		}
 
-		INIT_TIMEOUT(L)
-		int status = lua_resume(L, nullptr, p_argc + 1);
+		int status = luascript_resume(L, nullptr, p_argc + 1);
 
 		if (status != LUA_OK && status != LUA_YIELD) {
 			GDThreadData *udata = luaGD_getthreaddata(L);

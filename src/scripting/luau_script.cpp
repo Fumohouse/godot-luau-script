@@ -271,8 +271,7 @@ Error LuauScript::load_table(LuauRuntime::VMType p_vm_type, bool p_force) {
 	udata->script = Ref<LuauScript>(this);
 
 	if (try_load(T) == OK) {
-		INIT_TIMEOUT(T)
-		int status = lua_resume(T, nullptr, 0);
+		int status = luascript_resume(T, nullptr, 0);
 
 		if (status == LUA_YIELD) {
 			error(LOAD_TABLE_METHOD, "Script unexpectedly yielded during table load", 1);
@@ -662,8 +661,7 @@ void LuauScript::load_module(lua_State *L) {
 
 	String err;
 	if (try_load(ML, &err) == OK) {
-		INIT_TIMEOUT(ML)
-		int status = lua_resume(ML, nullptr, 0);
+		int status = luascript_resume(ML, nullptr, 0);
 
 		if (status == LUA_YIELD) {
 			lua_pushstring(L, "module unexpectedly yielded during load");
@@ -1008,8 +1006,7 @@ int LuauScriptInstance::call_internal(const StringName &p_method, const ThreadHa
 			LuaStackOp<Object *>::push(ET, owner);
 			lua_insert(ET, -p_nargs - 1);
 
-			INIT_TIMEOUT(ET)
-			int status = lua_resume(ET, nullptr, p_nargs + 1);
+			int status = luascript_resume(ET, nullptr, p_nargs + 1);
 
 			if (status != LUA_OK && status != LUA_YIELD) {
 				s->error("LuauScriptInstance::call_internal", LuaStackOp<String>::get(ET, -1));
@@ -1314,8 +1311,7 @@ GDExtensionPropertyInfo *LuauScriptInstance::get_property_list(uint32_t *r_count
 
 				lua_insert(ET, 1);
 
-				INIT_TIMEOUT(ET)
-				int get_status = lua_pcall(ET, 1, LUA_MULTRET, 0);
+				int get_status = luascript_pcall(ET, 1, LUA_MULTRET, 0);
 				if (get_status != LUA_OK) {
 					s->error(GET_PROPERTY_LIST_METHOD, LuaStackOp<String>::get(ET, -1));
 					goto next;
@@ -1726,8 +1722,7 @@ LuauScriptInstance::LuauScriptInstance(const Ref<LuauScript> &p_script, Object *
 				// before instance_create was called, and this instance was registered with the script before now.
 				LuaStackOp<Object *>::push(T, p_owner);
 
-				INIT_TIMEOUT(T)
-				int status = lua_pcall(T, 1, 0, 0);
+				int status = luascript_pcall(T, 1, 0, 0);
 
 				if (status == LUA_YIELD) {
 					p_script->error(INST_CTOR_METHOD, "_Init yielded unexpectedly");
@@ -1854,7 +1849,7 @@ void LuauLanguage::_init() {
 			udata->permissions = PERMISSIONS_ALL;
 
 			if (luau_load(T, "@" INIT_LUA_PATH, bytecode.data(), bytecode.size(), 0) == 0) {
-				int status = lua_resume(T, nullptr, 0);
+				int status = luascript_resume(T, nullptr, 0);
 
 				if (status == LUA_YIELD) {
 					luaGD_gderror(INIT_METHOD, INIT_LUA_PATH, "init.lua yielded unexpectedly", 1);

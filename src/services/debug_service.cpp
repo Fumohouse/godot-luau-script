@@ -10,6 +10,7 @@
 #include "core/permissions.h"
 #include "core/runtime.h"
 #include "lua.h"
+#include "scripting/luau_lib.h"
 #include "scripting/luau_script.h"
 #include "services/class_binder.h"
 #include "services/luau_interface.h"
@@ -92,8 +93,7 @@ String DebugService::exec(const String &p_src) {
 	std::string bytecode = Luau::compile(p_src.utf8().get_data(), luaGD_compileopts());
 
 	if (luau_load(T, "=exec", bytecode.data(), bytecode.size(), 0) == 0) {
-		INIT_TIMEOUT(T);
-		int status = lua_resume(T, nullptr, 0);
+		int status = luascript_resume(T, nullptr, 0);
 
 		if (status == LUA_OK || status == LUA_YIELD) {
 			return "";

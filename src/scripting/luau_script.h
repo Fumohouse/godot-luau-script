@@ -344,12 +344,6 @@ public:
 
 #define THREAD_EXECUTION_TIMEOUT 10
 
-#if TOOLS_ENABLED
-#define INIT_TIMEOUT(L) luaGD_getthreaddata(L)->interrupt_deadline = (lua_clock() + THREAD_EXECUTION_TIMEOUT) * 1e6;
-#else
-#define INIT_TIMEOUT(L)
-#endif // TOOLS_ENABLED
-
 class LuauLanguage : public ScriptLanguageExtension {
 	GDCLASS(LuauLanguage, ScriptLanguageExtension);
 

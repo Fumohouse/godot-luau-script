@@ -6,6 +6,7 @@
 #include <godot_cpp/classes/file_access.hpp>
 #include <godot_cpp/classes/global_constants.hpp>
 #include <godot_cpp/classes/ref.hpp>
+#include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/object.hpp>
 #include <godot_cpp/variant/builtin_types.hpp>
 #include <godot_cpp/variant/char_string.hpp>
@@ -342,4 +343,22 @@ static const luaL_Reg global_funcs[] = {
 
 void luascript_openlibs(lua_State *L) {
 	luaL_register(L, "_G", global_funcs);
+}
+
+int luascript_resume(lua_State *L, lua_State *p_from, int p_nargs) {
+#ifdef TOOLS_ENABLED
+	luaGD_getthreaddata(L)->interrupt_deadline = (lua_clock() + THREAD_EXECUTION_TIMEOUT) * 1e6;
+#endif // TOOLS_ENABLED
+
+	int status = lua_resume(L, p_from, p_nargs);
+	return status;
+}
+
+int luascript_pcall(lua_State *L, int p_nargs, int p_nresults, int p_errfunc) {
+#ifdef TOOLS_ENABLED
+	luaGD_getthreaddata(L)->interrupt_deadline = (lua_clock() + THREAD_EXECUTION_TIMEOUT) * 1e6;
+#endif // TOOLS_ENABLED
+
+	int status = lua_pcall(L, p_nargs, p_nresults, p_errfunc);
+	return status;
 }
