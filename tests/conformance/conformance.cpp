@@ -26,7 +26,7 @@ static int lua_asserterror(lua_State *L) {
 
 	lua_pushvalue(L, 1);
 	int status = lua_pcall(L, 0, 0, 0);
-	if (status == LUA_OK || status == LUA_YIELD || status == LUA_BREAK) {
+	if (status == LUA_OK || status == LUA_YIELD) {
 		luaL_error(L, "assertion failed! function did not error");
 	}
 

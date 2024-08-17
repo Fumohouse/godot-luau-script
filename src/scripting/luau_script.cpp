@@ -276,7 +276,7 @@ Error LuauScript::load_table(LuauRuntime::VMType p_vm_type, bool p_force) {
 		INIT_TIMEOUT(T)
 		int status = lua_resume(T, nullptr, 0);
 
-		if (status == LUA_YIELD || status == LUA_BREAK) {
+		if (status == LUA_YIELD) {
 			error(LOAD_TABLE_METHOD, "Script unexpectedly yielded during table load", 1);
 			lua_pop(L, 1); // thread
 			_is_loading = false;
@@ -670,7 +670,7 @@ void LuauScript::load_module(lua_State *L) {
 		INIT_TIMEOUT(ML)
 		int status = lua_resume(ML, nullptr, 0);
 
-		if (status == LUA_YIELD || status == LUA_BREAK) {
+		if (status == LUA_YIELD) {
 			lua_pushstring(L, "module unexpectedly yielded during load");
 			_is_loading = false;
 			return;
@@ -1079,7 +1079,7 @@ bool LuauScriptInstance::set(const StringName &p_name, const Variant &p_value, P
 
 			lua_pop(T, 1); // thread
 
-			if (status == LUA_OK || status == LUA_YIELD || status == LUA_BREAK) {
+			if (status == LUA_OK || status == LUA_YIELD) {
 				if (r_err)
 					*r_err = PROP_OK;
 
@@ -1194,7 +1194,7 @@ bool LuauScriptInstance::get(const StringName &p_name, Variant &r_ret, PropertyS
 
 				lua_pop(T, 1); // thread
 				return true;
-			} else if (status == LUA_YIELD || status == LUA_BREAK) {
+			} else if (status == LUA_YIELD) {
 				if (r_err)
 					*r_err = PROP_GET_FAILED;
 
