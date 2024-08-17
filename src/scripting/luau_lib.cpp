@@ -291,6 +291,37 @@ static int luascript_gdglobal(lua_State *L) {
 	luaL_error(L, "singleton '%s' was not found", name);
 }
 
+static int luascript_breakpoint(lua_State *L) {
+#if TOOLS_ENABLED
+	if (!nb::EngineDebugger::get_singleton_nb()->is_active()) {
+		lua_pushboolean(L, false);
+		return 1;
+	}
+
+	lua_Debug ar;
+	if (!lua_getinfo(L, 1, "sl", &ar) || ar.source[0] != '@') {
+		lua_pushboolean(L, false);
+		return 1;
+	}
+
+	Error err;
+	Ref<LuauScript> script = LuauCache::get_singleton()->get_script(ar.source + 1, err);
+
+	if (err != OK) {
+		lua_pushboolean(L, false);
+		return 1;
+	}
+
+	script->insert_breakpoint(ar.currentline + 1);
+
+	lua_pushboolean(L, true);
+	return 1;
+#else
+	lua_pushboolean(L, false);
+	return 1;
+#endif // TOOLS_ENABLED
+}
+
 /* EXPOSED FUNCTIONS */
 
 void luascript_get_classdef_or_type(lua_State *L, int p_index, String &r_type, LuauScript *&r_script) {
@@ -337,6 +368,7 @@ static const luaL_Reg global_funcs[] = {
 	{ "gdclass", luascript_gdclass },
 	{ "require", luascript_require },
 	{ "gdglobal", luascript_gdglobal },
+	{ "breakpoint", luascript_breakpoint },
 
 	{ nullptr, nullptr }
 };
@@ -345,12 +377,33 @@ void luascript_openlibs(lua_State *L) {
 	luaL_register(L, "_G", global_funcs);
 }
 
+#ifdef TOOLS_ENABLED
+static void luascript_handle_status(lua_State *L, int &p_status) {
+	if (unlikely(p_status == LUA_BREAK)) {
+		while (p_status == LUA_BREAK) {
+			p_status = lua_resume(L, nullptr, 0);
+		}
+
+		return;
+	}
+
+	if (p_status != LUA_OK && p_status != LUA_YIELD && nb::EngineDebugger::get_singleton_nb()->is_active()) {
+		LuauLanguage::get_singleton()->debug_break(L);
+	}
+}
+#endif // TOOLS_ENABLED
+
 int luascript_resume(lua_State *L, lua_State *p_from, int p_nargs) {
 #ifdef TOOLS_ENABLED
 	luaGD_getthreaddata(L)->interrupt_deadline = (lua_clock() + THREAD_EXECUTION_TIMEOUT) * 1e6;
 #endif // TOOLS_ENABLED
 
 	int status = lua_resume(L, p_from, p_nargs);
+
+#ifdef TOOLS_ENABLED
+	luascript_handle_status(L, status);
+#endif // TOOLS_ENABLED
+
 	return status;
 }
 
@@ -360,5 +413,10 @@ int luascript_pcall(lua_State *L, int p_nargs, int p_nresults, int p_errfunc) {
 #endif // TOOLS_ENABLED
 
 	int status = lua_pcall(L, p_nargs, p_nresults, p_errfunc);
+
+#ifdef TOOLS_ENABLED
+	luascript_handle_status(L, status);
+#endif // TOOLS_ENABLED
+
 	return status;
 }

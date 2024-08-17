@@ -6,12 +6,12 @@ local TestAutoLoadC = gdclass(TestAutoLoad)
 
 --- @registerMethod
 function TestAutoLoad:_Ready()
-	print("TestAutoLoad: Ready!")
+    print("TestAutoLoad: Ready!")
 end
 
 --- @registerMethod
 function TestAutoLoad:TestMethod()
-	print("TestAutoLoad: TestMethod")
+    print("TestAutoLoad: TestMethod")
 end
 
 return TestAutoLoadC

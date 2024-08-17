@@ -543,8 +543,10 @@ Dictionary LuaStackOp<Dictionary>::get(lua_State *L, int p_index) {
 
 	lua_pushnil(L);
 	while (lua_next(L, p_index) != 0) {
-		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1))
+		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1)) {
+			lua_pop(L, 2); // value and key
 			return Dictionary();
+		}
 
 		d[LuaStackOp<Variant>::get(L, -2)] = LuaStackOp<Variant>::get(L, -1);
 		lua_pop(L, 1); // value
@@ -567,8 +569,10 @@ bool LuaStackOp<Dictionary>::is(lua_State *L, int p_index) {
 
 	lua_pushnil(L);
 	while (lua_next(L, p_index) != 0) {
-		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1))
+		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1)) {
+			lua_pop(L, 2); // value and key
 			return false;
+		}
 
 		lua_pop(L, 1); // value
 	}

@@ -367,7 +367,9 @@ static int luaGD_builtin_namecall(lua_State *L) {
 				LuauVariant val;
 				val.lua_check(L, 3, builtin_class->indexing_return_type);
 
+				SET_CALL_STACK(L);
 				builtin_class->indexed_setter(self.get_opaque_pointer(), key.operator int64_t(), val.get_opaque_pointer());
+				CLEAR_CALL_STACK;
 				return 0;
 			}
 
@@ -375,7 +377,9 @@ static int luaGD_builtin_namecall(lua_State *L) {
 				// Keyed
 				// if the key or val is ever assumed to not be Variant, this will segfault. nice.
 				Variant val = LuaStackOp<Variant>::check(L, 3);
+				SET_CALL_STACK(L);
 				builtin_class->keyed_setter(self.get_opaque_pointer(), &key, &val);
+				CLEAR_CALL_STACK;
 				return 0;
 			}
 
@@ -393,7 +397,9 @@ static int luaGD_builtin_namecall(lua_State *L) {
 				LuauVariant ret;
 				ret.initialize(builtin_class->indexing_return_type);
 
+				SET_CALL_STACK(L);
 				builtin_class->indexed_getter(self.get_opaque_pointer(), key.operator int64_t(), ret.get_opaque_pointer());
+				CLEAR_CALL_STACK;
 
 				ret.lua_push(L);
 				return 1;
@@ -408,7 +414,9 @@ static int luaGD_builtin_namecall(lua_State *L) {
 					Variant ret;
 					// this is sketchy. if key or ret is ever assumed by Godot to not be Variant, this will segfault. Cool!
 					// ! see: core/variant/variant_setget.cpp
+					SET_CALL_STACK(L);
 					builtin_class->keyed_getter(self.get_opaque_pointer(), &key, &ret);
+					CLEAR_CALL_STACK;
 
 					LuaStackOp<Variant>::push(L, ret);
 					return 1;

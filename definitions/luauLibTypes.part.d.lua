@@ -84,6 +84,11 @@ declare function wait_signal<T...>(signal: Signal, timeout: number?): (true, T..
 --- @param name The name of the global constant.
 declare function gdglobal(name: StringNameLike): Variant
 
+--- Sets a breakpoint on the next line of the current script. Only works in
+--- editor builds.
+--- @return Whether the breakpoint was successfully set.
+declare function breakpoint(): boolean
+
 --------------
 -- SERVICES --
 --------------

@@ -13,6 +13,7 @@
 #include "core/godot_bindings.h"
 #include "core/permissions.h"
 #include "core/runtime.h"
+#include "utils/wrapped_no_binding.h"
 
 using namespace godot;
 
@@ -134,16 +135,12 @@ void luaGD_gderror(const char *p_method, const String &p_path, String p_msg, int
 		}
 	}
 
-	// TODO: Switch back to script error when debugger is implemented
-	/*
 	internal::gdextension_interface_print_script_error(
 			p_msg.utf8().get_data(),
 			p_method,
 			file.utf8().get_data(),
 			line,
 			false);
-	*/
-	_err_print_error(p_method, file.utf8().get_data(), line, p_msg);
 }
 
 const Luau::CompileOptions &luaGD_compileopts() {
@@ -168,6 +165,10 @@ const Luau::CompileOptions &luaGD_compileopts() {
 
 		// Prevents Luau from optimizing the value such that it (seemingly) won't ever change
 		opts.mutableGlobals = mutable_globals.ptr();
+
+		if (nb::EngineDebugger::get_singleton_nb()->is_active()) {
+			opts.debugLevel = 2; // Full debug info
+		}
 	}
 
 	return opts;

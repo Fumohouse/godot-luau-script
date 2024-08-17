@@ -1,10 +1,10 @@
 #pragma once
 
 #include <lua.h>
+#include <godot_cpp/classes/ref.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/variant/callable.hpp>
 #include <godot_cpp/variant/signal.hpp>
-#include <godot_cpp/classes/ref.hpp>
 
 #include "scheduler/task_scheduler.h"
 

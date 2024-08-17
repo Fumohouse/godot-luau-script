@@ -95,6 +95,16 @@ private:
 	GDClassDefinition definition;
 	int table_refs[LuauRuntime::VM_MAX] = { 0 };
 
+#ifdef TOOLS_ENABLED
+	struct {
+		int function_refs[LuauRuntime::VM_MAX] = { 0 };
+		HashSet<int> breakpoints;
+	} debug;
+
+	void ref_thread(lua_State *L);
+	void set_breakpoint(int p_line, bool p_enabled);
+#endif // TOOLS_ENABLED
+
 	HashSet<String> methods;
 	HashMap<StringName, Variant> constants;
 
@@ -201,6 +211,11 @@ public:
 	bool has_dependency(const Ref<LuauScript> &p_script) const;
 	bool add_dependency(const Ref<LuauScript> &p_script);
 
+#if TOOLS_ENABLED
+	void insert_breakpoint(int p_line);
+	void remove_breakpoint(int p_line);
+#endif // TOOLS_ENABLED
+
 	void load_module(lua_State *L);
 #if TOOLS_ENABLED
 	void unload_module();
@@ -287,6 +302,7 @@ public:
 	Object *get_owner() const override { return owner; }
 	Ref<LuauScript> get_script() const override { return script; }
 
+	bool get_table(const ThreadHandle &T) const;
 	bool table_set(const ThreadHandle &T) const;
 	bool table_get(const ThreadHandle &T) const;
 
@@ -366,31 +382,55 @@ class LuauLanguage : public ScriptLanguageExtension {
 	HashMap<StringName, Variant> global_constants;
 
 #ifdef TOOLS_ENABLED
+	HashMap<LuauScriptInstance *, void *> instance_to_godot;
+
 	struct DebugInfo {
 		struct StackInfo {
 			String source;
 			String name;
-			int line;
+			int line = 0;
 
 			operator Dictionary() const;
 		};
 
+		struct BreakStackInfo : public StackInfo {
+			HashMap<String, Variant> members;
+			HashMap<String, Variant> locals;
+
+			void *instance = nullptr;
+		};
+
 		Ref<Mutex> call_lock;
 		Vector<StackInfo> call_stack;
+		Vector<BreakStackInfo> break_call_stack;
+
+		int thread_ref = 0;
+		lua_State *L = nullptr;
+		String error;
+		int break_depth = -1;
+
+		String base_break_source;
+		int base_break_line = -1;
+
+		int breakhits[LuauRuntime::VM_MAX] = { 0 };
+
+		uint64_t interrupt_reset = 0;
 	} debug;
 
 	void debug_init();
+	void debug_reset();
+
 	static void lua_interrupt(lua_State *L, int p_gc);
+	static void lua_debuginterrupt(lua_State *L, lua_Debug *ar);
+	static void lua_debugbreak(lua_State *L, lua_Debug *ar);
+	static void lua_debugstep(lua_State *L, lua_Debug *ar);
+	static void lua_debugprotectederror(lua_State *L);
 
 	static bool ar_to_si(lua_Debug &p_ar, DebugInfo::StackInfo &p_si);
 #endif // TOOLS_ENABLED
 
 	bool finalized = false;
 	void finalize();
-
-#ifdef TOOLS_ENABLED
-	List<Ref<LuauScript>> get_scripts() const;
-#endif // TOOLS_ENABLED
 
 protected:
 	static void _bind_methods() {}
@@ -439,21 +479,22 @@ public:
 	Dictionary _get_global_class_name(const String &p_path) const override;
 
 	/* DEBUGGER */
-	// String _debug_get_error() const;
-	// int64_t _debug_get_stack_level_count() const;
-	// int64_t _debug_get_stack_level_line(int64_t level) const;
-	// String _debug_get_stack_level_function(int64_t level) const;
-	// Dictionary _debug_get_stack_level_locals(int64_t level, int64_t max_subitems, int64_t max_depth);
-	// Dictionary _debug_get_stack_level_members(int64_t level, int64_t max_subitems, int64_t max_depth);
-	// void *_debug_get_stack_level_instance(int64_t level);
-	// Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth);
-	// String _debug_parse_stack_level_expression(int64_t level, const String &expression, int64_t max_subitems, int64_t max_depth);
-
 #ifdef TOOLS_ENABLED
+	void debug_break(const ThreadHandle &L, bool p_is_step = false);
 	void set_call_stack(lua_State *L);
 	void clear_call_stack();
 #endif // TOOLS_ENABLED
 
+	String _debug_get_error() const override;
+	int32_t _debug_get_stack_level_count() const override;
+	int32_t _debug_get_stack_level_line(int32_t p_level) const override;
+	String _debug_get_stack_level_function(int32_t p_level) const override;
+	String _debug_get_stack_level_source(int32_t p_level) const override;
+	Dictionary _debug_get_stack_level_locals(int32_t p_level, int32_t p_max_subitems, int32_t p_max_depth) override;
+	Dictionary _debug_get_stack_level_members(int32_t p_level, int32_t p_max_subitems, int32_t p_max_depth) override;
+	void *_debug_get_stack_level_instance(int32_t p_level) override;
+	Dictionary _debug_get_globals(int32_t p_max_subitems, int32_t p_max_depth) override { return Dictionary(); }
+	String _debug_parse_stack_level_expression(int32_t p_level, const String &p_expression, int32_t p_max_subitems, int32_t p_max_depth) override;
 	TypedArray<Dictionary> _debug_get_current_stack_info() override;
 
 	/* ???: pure virtual functions which have no clear purpose */
@@ -497,6 +538,10 @@ public:
 
 	const HashMap<StringName, Variant> &get_global_constants() const { return global_constants; }
 	TaskScheduler &get_task_scheduler() { return task_scheduler; }
+
+#ifdef TOOLS_ENABLED
+	List<Ref<LuauScript>> get_scripts() const;
+#endif // TOOLS_ENABLED
 
 	LuauLanguage();
 	~LuauLanguage();

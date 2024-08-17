@@ -218,7 +218,12 @@ Error LuauScript::try_load(lua_State *L, String *r_err) {
 	const std::string &bytecode = luau_data.bytecode;
 
 	Error ret = luau_load(L, chunkname.utf8().get_data(), bytecode.data(), bytecode.size(), 0) == 0 ? OK : ERR_COMPILATION_FAILED;
-	if (Luau::CodeGen::isSupported()) {
+#ifdef TOOLS_ENABLED
+	ref_thread(L);
+#endif // TOOLS_ENABLED
+
+	// Disable CodeGen when debugging to make debugging easier
+	if (Luau::CodeGen::isSupported() && !nb::EngineDebugger::get_singleton_nb()->is_active()) {
 		Luau::CodeGen::CompilationOptions opts;
 		Luau::CodeGen::compile(L, -1, opts);
 	}
@@ -596,7 +601,14 @@ void *LuauScript::_instance_create(Object *p_for_object) const {
 		type = LuauRuntime::VM_CORE;
 
 	LuauScriptInstance *internal = memnew(LuauScriptInstance(Ref<Script>(this), p_for_object, type));
-	return internal::gdextension_interface_script_instance_create3(&LuauScriptInstance::INSTANCE_INFO, internal);
+	void *godot_instance = internal::gdextension_interface_script_instance_create3(&LuauScriptInstance::INSTANCE_INFO, internal);
+
+#ifdef TOOLS_ENABLED
+	MutexLock lock(*LuauLanguage::singleton->lock.ptr());
+	LuauLanguage::get_singleton()->instance_to_godot[internal] = godot_instance;
+#endif // TOOLS_ENABLED
+
+	return godot_instance;
 }
 
 bool LuauScript::instance_has(uint64_t p_obj_id) const {
@@ -698,14 +710,22 @@ LuauScript::LuauScript() :
 }
 
 LuauScript::~LuauScript() {
-	if (LuauRuntime::get_singleton()) {
-		for (int i = 0; i < LuauRuntime::VM_MAX; i++) {
-			if (!table_refs[i])
-				continue;
+	if (!LuauRuntime::get_singleton())
+		return;
 
+	for (int i = 0; i < LuauRuntime::VM_MAX; i++) {
+		if (table_refs[i]) {
 			unref_table(LuauRuntime::VMType(i));
 			table_refs[i] = 0;
 		}
+
+#ifdef TOOLS_ENABLED
+		if (debug.function_refs[i]) {
+			ThreadHandle L = LuauRuntime::get_singleton()->get_vm(LuauRuntime::VMType(i));
+			lua_unref(L, debug.function_refs[i]);
+			debug.function_refs[i] = 0;
+		}
+#endif // TOOLS_ENABLED
 	}
 }
 
@@ -1585,6 +1605,14 @@ void LuauScriptInstance::to_string(GDExtensionBool *r_is_valid, String *r_out) {
 	}
 }
 
+bool LuauScriptInstance::get_table(const ThreadHandle &T) const {
+	if (lua_mainthread(T) != lua_mainthread(this->T))
+		return false;
+
+	lua_getref(T, table_ref);
+	return true;
+}
+
 bool LuauScriptInstance::table_set(const ThreadHandle &T) const {
 	if (lua_mainthread(T) != lua_mainthread(this->T))
 		return false;
@@ -1743,6 +1771,10 @@ LuauScriptInstance::~LuauScriptInstance() {
 	if (script.is_valid() && owner) {
 		MutexLock lock(*LuauLanguage::singleton->lock.ptr());
 		script->instances.erase(owner->get_instance_id());
+
+#ifdef TOOLS_ENABLED
+		LuauLanguage::get_singleton()->instance_to_godot.erase(this);
+#endif // TOOLS_ENABLED
 	}
 
 	if (LuauRuntime::get_singleton()) {

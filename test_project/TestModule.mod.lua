@@ -1,3 +1,3 @@
 return {
-	testConstant = "hello!"
+    testConstant = "hello!"
 }

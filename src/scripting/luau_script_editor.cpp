@@ -19,7 +19,6 @@
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
-#include "core/lua_utils.h"
 #include "core/runtime.h"
 #include "scripting/luau_cache.h"
 #include "scripting/luau_lib.h"
