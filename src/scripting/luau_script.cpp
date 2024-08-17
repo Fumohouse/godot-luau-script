@@ -1786,7 +1786,10 @@ LuauLanguage *LuauLanguage::singleton = nullptr;
 LuauLanguage::LuauLanguage() {
 	singleton = this;
 	lock.instantiate();
+
+#ifdef TOOLS_ENABLED
 	debug.call_lock.instantiate();
+#endif // TOOLS_ENABLED
 }
 
 LuauLanguage::~LuauLanguage() {
@@ -1879,8 +1882,10 @@ void LuauLanguage::_init() {
 		}
 	}
 
+#ifdef TOOLS_ENABLED
 	if (nb::EngineDebugger::get_singleton_nb()->is_active())
 		debug_init();
+#endif // TOOLS_ENABLED
 }
 
 void LuauLanguage::finalize() {

@@ -7,6 +7,7 @@
 #include "core/lua_utils.h"
 #include "core/runtime.h"
 
+#ifdef TOOLS_ENABLED
 LuauLanguage::DebugInfo::StackInfo::operator Dictionary() const {
 	Dictionary d;
 	d["file"] = source;
@@ -69,15 +70,18 @@ void LuauLanguage::clear_call_stack() {
 	debug.call_stack.clear();
 	debug.call_lock->unlock();
 }
+#endif // TOOLS_ENABLED
 
 TypedArray<Dictionary> LuauLanguage::_debug_get_current_stack_info() {
 	TypedArray<Dictionary> stack_info;
 
+	#ifdef TOOLS_ENABLED
 	if (!debug.call_stack.is_empty()) {
 		for (const DebugInfo::StackInfo &si : debug.call_stack) {
 			stack_info.push_back(si.operator Dictionary());
 		}
 	}
+	#endif // TOOLS_ENABLED
 
 	return stack_info;
 }

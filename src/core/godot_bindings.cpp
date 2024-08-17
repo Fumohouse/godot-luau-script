@@ -151,7 +151,7 @@ int get_arguments(lua_State *L,
 		r_args->resize(nargs);
 
 		if (nargs > p_method.arguments.size())
-			luaL_error(L, "too many arguments to '%s' (expected at most %d)", p_method_name, p_method.arguments.size());
+			luaL_error(L, "too many arguments to '%s' (expected at most %ld)", p_method_name, p_method.arguments.size());
 
 		for (int i = 0; i < nargs; i++) {
 			get_argument(L, i + 1 + arg_offset, p_method.arguments[i], r_args->ptr()[i]);

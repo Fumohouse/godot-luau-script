@@ -32,6 +32,14 @@ using namespace godot;
 // (especially placeholder and reloading functionality).
 // See COPYRIGHT.txt for license information.
 
+bool LuauScript::_is_placeholder_fallback_enabled() const {
+#ifdef TOOLS_ENABLED
+	return placeholder_fallback_enabled;
+#else
+	return false;
+#endif // TOOLS_ENABLED
+}
+
 void *LuauScript::_placeholder_instance_create(Object *p_for_object) const {
 #ifdef TOOLS_ENABLED
 	PlaceHolderScriptInstance *internal = memnew(PlaceHolderScriptInstance(Ref<LuauScript>(this), p_for_object));

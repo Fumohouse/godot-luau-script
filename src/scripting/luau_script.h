@@ -87,6 +87,7 @@ private:
 	HashMap<uint64_t, LuauScriptInstance *> instances;
 #ifdef TOOLS_ENABLED
 	HashMap<uint64_t, PlaceHolderScriptInstance *> placeholders;
+	bool placeholder_fallback_enabled = false;
 #endif // TOOLS_ENABLED
 
 	bool _is_loading = false;
@@ -96,8 +97,6 @@ private:
 
 	HashSet<String> methods;
 	HashMap<StringName, Variant> constants;
-
-	bool placeholder_fallback_enabled = false;
 
 	LoadStage load_stage = LOAD_NONE;
 	Error compile();
@@ -170,7 +169,7 @@ public:
 	LuauScriptInstance *instance_get(uint64_t p_obj_id) const;
 
 	/* PLACEHOLDER INSTANCE */
-	bool _is_placeholder_fallback_enabled() const override { return placeholder_fallback_enabled; }
+	bool _is_placeholder_fallback_enabled() const override;
 	void *_placeholder_instance_create(Object *p_for_object) const override;
 	void _update_exports() override;
 	void _placeholder_erased(void *p_placeholder) override;
@@ -372,6 +371,7 @@ class LuauLanguage : public ScriptLanguageExtension {
 
 	HashMap<StringName, Variant> global_constants;
 
+#ifdef TOOLS_ENABLED
 	struct DebugInfo {
 		struct StackInfo {
 			String source;
@@ -389,6 +389,7 @@ class LuauLanguage : public ScriptLanguageExtension {
 	static void lua_interrupt(lua_State *L, int p_gc);
 
 	static bool ar_to_si(lua_Debug &p_ar, DebugInfo::StackInfo &p_si);
+#endif // TOOLS_ENABLED
 
 	bool finalized = false;
 	void finalize();
@@ -453,8 +454,12 @@ public:
 	// void *_debug_get_stack_level_instance(int64_t level);
 	// Dictionary _debug_get_globals(int64_t max_subitems, int64_t max_depth);
 	// String _debug_parse_stack_level_expression(int64_t level, const String &expression, int64_t max_subitems, int64_t max_depth);
+
+#ifdef TOOLS_ENABLED
 	void set_call_stack(lua_State *L);
 	void clear_call_stack();
+#endif // TOOLS_ENABLED
+
 	TypedArray<Dictionary> _debug_get_current_stack_info() override;
 
 	/* ???: pure virtual functions which have no clear purpose */
