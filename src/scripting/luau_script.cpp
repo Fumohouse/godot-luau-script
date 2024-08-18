@@ -2070,8 +2070,3 @@ void LuauLanguage::_frame() {
 
 	ticks_usec = new_ticks;
 }
-
-bool LuauLanguage::_has_named_classes() const {
-	// not true for any of Godot's built in languages. why
-	return false;
-}

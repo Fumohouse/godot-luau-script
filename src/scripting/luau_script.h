@@ -497,9 +497,6 @@ public:
 	String _debug_parse_stack_level_expression(int32_t p_level, const String &p_expression, int32_t p_max_subitems, int32_t p_max_depth) override;
 	TypedArray<Dictionary> _debug_get_current_stack_info() override;
 
-	/* ???: pure virtual functions which have no clear purpose */
-	bool _has_named_classes() const override;
-
 	/* UNNEEDED */
 	void _thread_enter() override {}
 	void _thread_exit() override {}
