@@ -398,7 +398,7 @@ declare {name}: {name}_GLOBAL
 """)
 
 
-def generate_typedefs(defs_dir, api, class_settings, lib_types):
+def generate_typedefs(defs_dir, api, class_settings, lib_types, godot_types):
     src = [constants.header_comment_lua, ""]
 
     # Global enums
@@ -543,26 +543,11 @@ declare class ClassGlobal end
 
     src.append(var_def)
 
-    # TODO: better way?
-    src.append("""\
-export type SignalWithArgs<T> = Signal
-export type TypedArray<T> = Array
-export type integer = number
-
-declare class StringNameN end
-declare class NodePathN end
-export type StringName = string
-export type NodePath = string
-export type NodePathConstrained<T...> = NodePath
-
-export type NodePathLike = string | NodePathN
-export type StringNameLike = string | StringNameN
-export type ArrayLike = {Variant} | Array
-export type DictionaryLike = {[Variant]: Variant} | Array
-""")
-
-    # luau_lib types
+    # Type fragments
     with open(lib_types, "r") as f:
+        src.append(f.read())
+
+    with open(godot_types, "r") as f:
         src.append(f.read())
 
     # Save

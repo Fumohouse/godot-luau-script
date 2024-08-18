@@ -20,7 +20,7 @@ luau_bindings = env_gen.GenerateLuauBindings(
         os.path.join(
             os.getcwd(), "definitions/luauLibTypes.part.d.lua"),
         os.path.join(
-            os.getcwd(), "extern/godot-cpp/gdextension/gdextension_interface.h")
+            os.getcwd(), "definitions/godotTypes.part.d.lua")
     ]
 )
 

@@ -58,6 +58,6 @@ def scons_generate_bindings(target, source, env):
     # Codegen
     generate_stack_ops(src_dir, include_dir, api)
     generate_api_bin(src_dir, api, class_settings)
-    generate_typedefs(defs_dir, api, class_settings, str(source[2]))
+    generate_typedefs(defs_dir, api, class_settings, str(source[2]), str(source[3]))
 
     return None
