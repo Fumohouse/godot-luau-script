@@ -1711,7 +1711,6 @@ LuauScriptInstance::LuauScriptInstance(const Ref<LuauScript> &p_script, Object *
 
 	if (permissions != PERMISSION_BASE) {
 		CRASH_COND_MSG(SandboxService::get_singleton() && !SandboxService::get_singleton()->is_core_script(p_script->get_path()), "!!! Non-core script declared permissions !!!");
-		UtilityFunctions::print_verbose("Creating instance of script ", p_script->get_path(), " with requested permissions ", p_script->get_definition().permissions);
 	}
 
 	ThreadHandle L = LuauRuntime::get_singleton()->get_vm(p_vm_type);

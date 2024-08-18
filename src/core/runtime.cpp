@@ -4,7 +4,6 @@
 #include <lua.h>
 #include <lualib.h>
 #include <godot_cpp/classes/mutex.hpp>
-#include <godot_cpp/variant/utility_functions.hpp>
 
 #include "core/lua_utils.h"
 #include "core/permissions.h"
@@ -50,8 +49,6 @@ void LuauRuntime::init_vm(VMType p_type) {
 }
 
 LuauRuntime::LuauRuntime() {
-	UtilityFunctions::print_verbose("Luau runtime: initializing...");
-
 	init_vm(VM_SCRIPT_LOAD);
 	init_vm(VM_CORE);
 	init_vm(VM_USER);
@@ -61,8 +58,6 @@ LuauRuntime::LuauRuntime() {
 }
 
 LuauRuntime::~LuauRuntime() {
-	UtilityFunctions::print_verbose("Luau runtime: uninitializing...");
-
 	if (singleton == this)
 		singleton = nullptr;
 
