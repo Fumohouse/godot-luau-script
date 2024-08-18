@@ -9,7 +9,7 @@ gd_luau_type_map = {
     "String": "string",
 }
 
-# Types which should have *Like suffix when used as an argument since it can be
+# Types that should have *Like suffix when used as an argument since it can be
 # coerced from other types
 gd_luau_arg_coerce_types = ["StringName", "NodePath", "Array", "Dictionary"]
 
@@ -23,7 +23,7 @@ def get_luau_type(type_string, api, is_ret=False, is_obj_nullable=True):
 
     if type_string.startswith(constants.typed_array_prefix):
         array_type_name = type_string.split(":")[-1]
-        return f"TypedArray<{get_luau_type(array_type_name, api)}>"
+        return f"TypedArray<{get_luau_type(array_type_name, api, is_obj_nullable=False)}>"
 
     enum_name = None
 
@@ -68,7 +68,7 @@ def generate_args(method, api, with_self=True, is_type=False, self_annot=""):
 
         for i, arg in enumerate(arguments):
             # The p helps to escape collisions with Luau reserved keywords (e.g. "end")
-            # .strip(): one argument name has a leadinng space for some reason
+            # .strip(): one argument name has a leading space for some reason
             arg_name = "p" + utils.snake_to_pascal(arg["name"].strip())
             arg_type = get_luau_type(arg["type"], api)
 
