@@ -11,7 +11,7 @@ gd_luau_type_map = {
 
 # Types that should have *Like suffix when used as an argument since it can be
 # coerced from other types
-gd_luau_arg_coerce_types = ["StringName", "NodePath", "Array", "Dictionary"]
+gd_luau_arg_coerce_types = ["StringName", "NodePath"]
 
 
 def get_luau_type(type_string, api, is_ret=False, is_obj_nullable=True):

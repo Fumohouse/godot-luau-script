@@ -7,11 +7,8 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/godot.hpp>
-#include <godot_cpp/variant/array.hpp>
-#include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
-#include <utility>
 
 #include "core/godot_bindings.h"
 #include "core/variant.h"
@@ -374,39 +371,27 @@ int LuaStackOp<Variant>::get_type(lua_State *L, int p_index) {
 		case LUA_TSTRING:
 			return GDEXTENSION_VARIANT_TYPE_STRING;
 
-		case LUA_TTABLE:
-			if (LuaStackOp<Array>::is(L, p_index))
-				return GDEXTENSION_VARIANT_TYPE_ARRAY;
-
-			if (LuaStackOp<Dictionary>::is(L, p_index))
-				return GDEXTENSION_VARIANT_TYPE_DICTIONARY;
-
-			return -1;
-
-		case LUA_TUSERDATA:
+		case LUA_TUSERDATA: {
 			// Special case
 			if (LuaStackOp<int64_t>::is(L, p_index))
 				return GDEXTENSION_VARIANT_TYPE_INT;
 
-			// Pass through to below with metatable on stack
 			if (!lua_getmetatable(L, p_index))
 				return -1;
 
-			break;
+			lua_getfield(L, -1, MT_VARIANT_TYPE);
+			if (lua_isnil(L, -1))
+				return -1;
+
+			int type = lua_tonumber(L, -1);
+			lua_pop(L, 2); // value, metatable
+
+			return type;
+		}
 
 		default:
 			return -1;
 	}
-
-	lua_getfield(L, -1, MT_VARIANT_TYPE);
-
-	if (lua_isnil(L, -1))
-		return -1;
-
-	int type = lua_tonumber(L, -1);
-	lua_pop(L, 2); // value, metatable
-
-	return type;
 }
 
 Variant LuaStackOp<Variant>::check(lua_State *L, int p_index) {
@@ -461,148 +446,3 @@ Variant LuaStackOp<Variant>::check(lua_State *L, int p_index) {
 
 STR_STACK_OP_IMPL(StringName)
 STR_STACK_OP_IMPL(NodePath)
-
-/* ARRAY */
-
-bool luaGD_isarray(lua_State *L, int p_index, const char *p_metatable_name, Variant::Type p_type, const String &p_class_name) {
-	if (luaGD_metatables_match(L, p_index, p_metatable_name))
-		return true;
-
-	if (!lua_istable(L, p_index))
-		return false;
-
-	p_index = lua_absindex(L, p_index);
-
-	lua_pushnil(L);
-	if (lua_next(L, p_index) != 0) {
-		lua_pop(L, 1); // value
-
-		if (lua_type(L, -1) == LUA_TNUMBER)
-			lua_pop(L, 1); // key
-		else
-			return false;
-	}
-
-	if (p_type == Variant::NIL)
-		return true;
-
-	int len = lua_objlen(L, p_index);
-	for (int i = 1; i <= len; i++) {
-		lua_pushinteger(L, i);
-		lua_gettable(L, p_index);
-
-		if (!LuauVariant::lua_is(L, -1, (GDExtensionVariantType)p_type, p_class_name))
-			return false;
-
-		lua_pop(L, 1);
-	}
-
-	return true;
-}
-
-#define ARRAY_METATABLE_NAME "Godot.Builtin.Array"
-
-UDATA_PUSH(Array);
-
-static void array_set(Array &p_array, int p_index, Variant p_elem) {
-	p_array[p_index] = std::move(p_elem);
-}
-
-Array LuaStackOp<Array>::get(lua_State *L, int p_index) {
-	return luaGD_getarray<Array>(L, p_index, ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
-}
-
-bool LuaStackOp<Array>::is(lua_State *L, int p_index) {
-	return luaGD_isarray(L, p_index, ARRAY_METATABLE_NAME, Variant::NIL, "");
-}
-
-Array LuaStackOp<Array>::check(lua_State *L, int p_index) {
-	return luaGD_checkarray<Array>(L, p_index, "Array", ARRAY_METATABLE_NAME, Variant::NIL, "", array_set);
-}
-
-UDATA_ALLOC(Array, ARRAY_METATABLE_NAME, DTOR(Array))
-UDATA_GET_PTR(Array, ARRAY_METATABLE_NAME)
-UDATA_CHECK_PTR(Array, ARRAY_METATABLE_NAME)
-
-/* DICTIONARY */
-
-#define DICTIONARY_METATABLE_NAME "Godot.Builtin.Dictionary"
-
-UDATA_PUSH(Dictionary)
-
-Dictionary LuaStackOp<Dictionary>::get(lua_State *L, int p_index) {
-	if (luaGD_metatables_match(L, p_index, DICTIONARY_METATABLE_NAME))
-		return *LuaStackOp<Dictionary>::get_ptr(L, p_index);
-
-	if (!lua_istable(L, p_index))
-		return Dictionary();
-
-	p_index = lua_absindex(L, p_index);
-
-	Dictionary d;
-
-	lua_pushnil(L);
-	while (lua_next(L, p_index) != 0) {
-		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1)) {
-			lua_pop(L, 2); // value and key
-			return Dictionary();
-		}
-
-		d[LuaStackOp<Variant>::get(L, -2)] = LuaStackOp<Variant>::get(L, -1);
-		lua_pop(L, 1); // value
-	}
-
-	return d;
-}
-
-bool LuaStackOp<Dictionary>::is(lua_State *L, int p_index) {
-	if (luaGD_metatables_match(L, p_index, DICTIONARY_METATABLE_NAME))
-		return true;
-
-	if (!lua_istable(L, p_index))
-		return false;
-
-	if (lua_objlen(L, p_index))
-		return false;
-
-	p_index = lua_absindex(L, p_index);
-
-	lua_pushnil(L);
-	while (lua_next(L, p_index) != 0) {
-		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1)) {
-			lua_pop(L, 2); // value and key
-			return false;
-		}
-
-		lua_pop(L, 1); // value
-	}
-
-	return true;
-}
-
-Dictionary LuaStackOp<Dictionary>::check(lua_State *L, int p_index) {
-	if (luaGD_metatables_match(L, p_index, DICTIONARY_METATABLE_NAME))
-		return *LuaStackOp<Dictionary>::get_ptr(L, p_index);
-
-	if (!lua_istable(L, p_index))
-		luaL_typeerrorL(L, p_index, "Dictionary");
-
-	p_index = lua_absindex(L, p_index);
-
-	Dictionary d;
-
-	lua_pushnil(L);
-	while (lua_next(L, p_index) != 0) {
-		if (!LuaStackOp<Variant>::is(L, -2) || !LuaStackOp<Variant>::is(L, -1))
-			luaL_error(L, "table to Dictionary conversion requires all keys and values to be Variant compatible");
-
-		d[LuaStackOp<Variant>::get(L, -2)] = LuaStackOp<Variant>::get(L, -1);
-		lua_pop(L, 1); // value
-	}
-
-	return d;
-}
-
-UDATA_ALLOC(Dictionary, DICTIONARY_METATABLE_NAME, DTOR(Dictionary))
-UDATA_GET_PTR(Dictionary, DICTIONARY_METATABLE_NAME)
-UDATA_CHECK_PTR(Dictionary, DICTIONARY_METATABLE_NAME)

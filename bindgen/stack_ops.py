@@ -29,27 +29,9 @@ using namespace godot;
         class_name = b_class["name"]
         metatable_name = constants.builtin_metatable_prefix + class_name
 
-        if class_name in ["Array", "Dictionary", "StringName", "NodePath", "String"]:
+        if class_name in ["StringName", "NodePath", "String"]:
             # Special cases
             continue
-        elif class_name.endswith("Array"):
-            array_elem_types = {
-                "PackedByteArray": ("uint32_t", "INT"),
-                "PackedInt32Array": ("int32_t", "INT"),
-                "PackedInt64Array": ("int64_t", "INT"),
-                "PackedFloat32Array": ("float", "FLOAT"),
-                "PackedFloat64Array": ("double", "FLOAT"),
-                "PackedStringArray": ("String", "STRING"),
-                "PackedVector2Array": ("Vector2", "VECTOR2"),
-                "PackedVector3Array": ("Vector3", "VECTOR3"),
-                "PackedVector4Array": ("Vector4", "VECTOR4"),
-                "PackedColorArray": ("Color", "COLOR"),
-            }
-
-            array_elem_type, array_elem_variant_type = array_elem_types[class_name]
-            array_elem_variant_type = "Variant::" + array_elem_variant_type
-
-            src.append(f"ARRAY_STACK_OP_IMPL({class_name}, {array_elem_variant_type}, {array_elem_type}, \"{metatable_name}\")")
         elif "has_destructor" in b_class and b_class["has_destructor"]:
             src.append(
                 f"UDATA_STACK_OP_IMPL({class_name}, \"{metatable_name}\", DTOR({class_name}));")

@@ -14,5 +14,3 @@ export type NodePathConstrained<T...> = NodePath
 
 export type NodePathLike = string | NodePathN
 export type StringNameLike = string | StringNameN
-export type ArrayLike = {Variant} | Array
-export type DictionaryLike = {[Variant]: Variant} | Array

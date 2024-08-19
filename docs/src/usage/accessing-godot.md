@@ -81,11 +81,6 @@ operators do not work.
   - The intention with these constructors is to use them like a prefix you would
     find in other languages, e.g. `SN"testStringName"`. This is valid because
     of Lua's parsing rules.
-- Some Lua types are automatically converted to Godot types when necessary:
-  - `{Variant}` to `Array`
-  - `{T}` to their corresponding `Packed[T]Array` types
-  - `{[Variant]: Variant}` to `Dictionary`
-  - `string` to `String`, `NodePath`, or `StringName`
 - Luau's `number` type (represented as double-precision floating point) cannot
   exactly store integers with an absolute value of more than `2^53`. Numbers
   outside this range are converted transparently to a custom type `Int64` which

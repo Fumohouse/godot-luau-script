@@ -30,9 +30,7 @@ def write_file(path, lines):
 
 
 def should_skip_class(class_name):
-    to_skip = ["Nil", "bool", "int", "float"]
-
-    return class_name in to_skip
+    return class_name in ["Nil", "bool", "int", "float"]
 
 
 def append(source, indent_level, line):

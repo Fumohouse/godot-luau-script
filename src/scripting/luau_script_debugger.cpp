@@ -191,7 +191,7 @@ bool LuauLanguage::ar_to_si(lua_Debug &p_ar, DebugInfo::StackInfo &p_si) {
 
 static Variant get_lua_val(lua_State *L, int idx) {
 	lua_checkstack(L, 2); // for ::is, ::get
-	if (!lua_istable(L, idx) && LuaStackOp<Variant>::is(L, idx)) {
+	if (LuaStackOp<Variant>::is(L, idx)) {
 		return LuaStackOp<Variant>::get(L, idx);
 	}
 
