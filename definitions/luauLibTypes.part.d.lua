@@ -93,31 +93,6 @@ declare function breakpoint(): boolean
 -- SERVICES --
 --------------
 
-export type EnumPCKScanError = number
-
-declare class EnumPCKScanError_INTERNAL
-    OK: EnumPCKScanError
-    FILE_ERR: EnumPCKScanError
-    MAGIC_NOT_FOUND_ERR: EnumPCKScanError
-    PACK_VERSION_ERR: EnumPCKScanError
-    GODOT_VERSION_ERR: EnumPCKScanError
-    PACK_ENCRYPTED_ERR: EnumPCKScanError
-    FILE_SCAN_ERR: EnumPCKScanError
-end
-
-export type EnumPCKFileScanError = number
-
-declare class EnumPCKFileScanError_INTERNAL
-    OK: EnumPCKFileScanError
-    FILE_ENCRYPTED_ERR: EnumPCKFileScanError
-    UNTRUSTED_GDSCRIPT_ERR: EnumPCKFileScanError
-    UNTRUSTED_FILE_ERR: EnumPCKFileScanError
-    ENDIANNESS_ERR: EnumPCKFileScanError
-    RES_VERSION_ERR: EnumPCKFileScanError
-    GODOT_VERSION_ERR: EnumPCKFileScanError
-    SANDBOX_VIOLATION_ERR: EnumPCKFileScanError
-end
-
 export type EnumSandboxViolations = number
 
 declare class EnumSandboxViolations_INTERNAL
@@ -176,10 +151,6 @@ declare class SandboxService
     --- and its subdirectories.
     --- @param path The path to remove.
     function ResourceRemovePath(self, path: string)
-
-    --- Scans a PCK file and returns a report with details.
-    --- @param path The path of the PCK to scan.
-    function ScanPCK(self, path: string): Dictionary
 
     --- Protects an object from its non-const (read-write) methods being called
     --- without specified permissions.

@@ -53,8 +53,6 @@ public:
 	void resource_remove_path(const String &p_path);
 	bool resource_has_access(const String &p_path, ResourcePermissions p_permissions) const;
 
-	Dictionary scan_pck(const String &p_path) const;
-
 	void protected_object_add(GDExtensionObjectPtr p_obj, int p_permissions);
 	void protected_object_remove(GDExtensionObjectPtr p_obj);
 	const BitField<ThreadPermissions> *get_object_permissions(GDExtensionObjectPtr p_obj) const;

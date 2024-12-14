@@ -13,7 +13,6 @@
 #include "scripting/resource_format_luau_script.h"
 #include "services/class_binder.h"
 #include "services/luau_interface.h"
-#include "services/pck_scanner.h"
 
 #define SANDBOX_SERVICE_NAME "SandboxService"
 #define SANDBOX_SERVICE_MT_NAME "Luau." SANDBOX_SERVICE_NAME
@@ -38,8 +37,6 @@ const LuaGDClass &SandboxService::get_lua_class() const {
 		lua_class.bind_method("ResourceAddPathRW", FID(&SandboxService::resource_add_path_rw), PERMISSION_INTERNAL);
 		lua_class.bind_method("ResourceAddPathRO", FID(&SandboxService::resource_add_path_ro), PERMISSION_INTERNAL);
 		lua_class.bind_method("ResourceRemovePath", FID(&SandboxService::resource_remove_path), PERMISSION_INTERNAL);
-
-		lua_class.bind_method("ScanPCK", FID(&SandboxService::scan_pck), PERMISSION_INTERNAL);
 
 		lua_class.bind_method("ProtectedObjectAdd", FID(&SandboxService::protected_object_add), PERMISSION_INTERNAL);
 		lua_class.bind_method("ProtectedObjectRemove", FID(&SandboxService::protected_object_remove), PERMISSION_INTERNAL);
@@ -167,10 +164,6 @@ bool SandboxService::resource_has_access(const String &p_path, ResourcePermissio
 	}
 
 	return false;
-}
-
-Dictionary SandboxService::scan_pck(const String &p_path) const {
-	return PCKScanner::scan(p_path);
 }
 
 void SandboxService::protected_object_add(GDExtensionObjectPtr p_obj, int p_permissions) {

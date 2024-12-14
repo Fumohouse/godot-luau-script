@@ -15,7 +15,6 @@ This project has a few specific goals:
   - Enforce permission levels for restricted APIs, such as networking or
     filesystem access
   - Limit breakage of the game by user scripts
-  - Scan PCKs for unsafe script or resource access
 - Support typechecking of source files
 
 Note that `godot-luau-script` was specifically built for loading untrusted UGC.

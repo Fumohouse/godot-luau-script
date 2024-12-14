@@ -8,7 +8,6 @@
 #include "core/lua_utils.h"
 #include "core/permissions.h"
 #include "core/variant.h"
-#include "services/pck_scanner.h"
 
 using namespace godot;
 
@@ -76,15 +75,6 @@ void luaGD_openglobals(lua_State *L) {
 		push_enum(L, global_enum);
 		lua_setfield(L, -2, global_enum.name);
 	}
-
-	push_enum(L, get_pck_scan_error_enum());
-	lua_setfield(L, -2, get_pck_scan_error_enum().name);
-
-	push_enum(L, get_pck_file_scan_error_enum());
-	lua_setfield(L, -2, get_pck_file_scan_error_enum().name);
-
-	push_enum(L, get_sandbox_violations_enum());
-	lua_setfield(L, -2, get_sandbox_violations_enum().name);
 
 	push_enum(L, get_permissions_enum());
 	lua_setfield(L, -2, get_permissions_enum().name);

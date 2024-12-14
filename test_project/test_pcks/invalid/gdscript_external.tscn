@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://b4sutfdr4ordf"]
-
-[ext_resource type="Script" path="res://test_pcks/invalid/gdscript.gd" id="1_g3k5n"]
-
-[node name="GDScriptExternal" type="Node"]
-script = ExtResource("1_g3k5n")
