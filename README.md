@@ -13,6 +13,21 @@ a variant of Lua 5.1, to Godot as a scripting language.
 
 [Documentation](https://ksk.codeberg.page/godot-luau-script/)
 
+## Development status
+
+godot-luau-script is currently under **limited maintenance**.
+
+Fumohouse, the main user of GLS, will be transitioning to GDScript. GLS will
+likely be used in the future if/when sandboxing is required.
+
+GLS may receive sporadic updates to resolve selected issues and keep it
+up-to-date with upstream Godot/Luau changes. The timing and reliability of these
+updates is not guaranteed. New releases may not be published.
+
+Contributions are still accepted and will be reviewed. If you would like to
+become a maintainer of this project, feel free to reach out by filing an issue.
+Outstanding tasks are listed in `TASKS.md` for your reference.
+
 ## License
 
 See `LICENSE.txt`.
