@@ -22,15 +22,8 @@ classes = sorted(api["classes"], key=lambda c: c["name"])
 
 print(
     """\
-# This file is used by the binding generators to define class permissions and whether methods/properties are nullable.
+# This file is used by the binding generators to define class permissions.
 # It must be updated on every Godot release.
-
-# Notes:
-# - Return values are "nullable" only if it is reasonably "likely" that the method will return a null value,
-#   i.e. if the user should expect the value to be null.
-#   In reality, almost every Object returned from Godot can be null, but at that point the nullability loses
-#   much of its meaning and becomes annoying. And, in the end, assertions and using a nil value have the same
-#   outcome of an error.
 """
 )
 
@@ -38,11 +31,6 @@ for g_class in classes:
     class_name = g_class["name"]
 
     print(f"[{class_name}]")
-
-    # Inherits
-    if "inherits" in g_class:
-        inherits = g_class["inherits"]
-        print(f'inherits = "{inherits}"')
 
     # Default permissions
     default_permissions = "INTERNAL"

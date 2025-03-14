@@ -10,7 +10,6 @@
 
 [AESContext]
 #* SAFE: 4.0-beta13
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AESContext.methods]
@@ -30,7 +29,6 @@ permissions = "INHERIT" #
 #############################
 
 [AStar2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AStar2D.methods]
@@ -107,7 +105,6 @@ permissions = "INHERIT" #
 #############################
 
 [AStar3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AStar3D.methods]
@@ -184,7 +181,6 @@ permissions = "INHERIT" #
 #############################
 
 [AStarGrid2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AStarGrid2D.methods]
@@ -288,7 +284,6 @@ permissions = "INHERIT" #
 #############################
 
 [AcceptDialog]
-inherits = "Window"
 default_permissions = "BASE" #
 
 [AcceptDialog.methods]
@@ -344,7 +339,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimatableBody2D]
-inherits = "StaticBody2D"
 default_permissions = "BASE" #
 
 [AnimatableBody2D.methods]
@@ -358,7 +352,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimatableBody3D]
-inherits = "StaticBody3D"
 default_permissions = "BASE" #
 
 [AnimatableBody3D.methods]
@@ -372,7 +365,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimatedSprite2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [AnimatedSprite2D.methods]
@@ -461,7 +453,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimatedSprite3D]
-inherits = "SpriteBase3D"
 default_permissions = "BASE" #
 
 [AnimatedSprite3D.methods]
@@ -526,7 +517,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimatedTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [AnimatedTexture.methods]
@@ -576,7 +566,6 @@ permissions = "INHERIT" #
 #############################
 
 [Animation]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Animation.methods]
@@ -806,7 +795,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationLibrary]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [AnimationLibrary.methods]
@@ -832,7 +820,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationMixer]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [AnimationMixer.methods]
@@ -954,7 +941,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNode]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [AnimationNode.methods]
@@ -1007,7 +993,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeAdd2]
-inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeAdd2.methods]
@@ -1015,7 +1000,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeAdd3]
-inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeAdd3.methods]
@@ -1023,7 +1007,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeAnimation]
-inherits = "AnimationRootNode"
 default_permissions = "BASE" #
 
 [AnimationNodeAnimation.methods]
@@ -1073,7 +1056,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeBlend2]
-inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeBlend2.methods]
@@ -1081,7 +1063,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeBlend3]
-inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeBlend3.methods]
@@ -1089,7 +1070,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeBlendSpace1D]
-inherits = "AnimationRootNode"
 default_permissions = "BASE" #
 
 [AnimationNodeBlendSpace1D.methods]
@@ -1154,7 +1134,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeBlendSpace2D]
-inherits = "AnimationRootNode"
 default_permissions = "BASE" #
 
 [AnimationNodeBlendSpace2D.methods]
@@ -1243,7 +1222,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeBlendTree]
-inherits = "AnimationRootNode"
 default_permissions = "BASE" #
 
 [AnimationNodeBlendTree.methods]
@@ -1284,7 +1262,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeOneShot]
-inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeOneShot.methods]
@@ -1346,7 +1323,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeOutput]
-inherits = "AnimationNode"
 default_permissions = "BASE" #
 
 [AnimationNodeOutput.methods]
@@ -1354,7 +1330,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeStateMachine]
-inherits = "AnimationRootNode"
 default_permissions = "BASE" #
 
 [AnimationNodeStateMachine.methods]
@@ -1437,7 +1412,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeStateMachinePlayback]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [AnimationNodeStateMachinePlayback.methods]
@@ -1475,7 +1449,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeStateMachineTransition]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [AnimationNodeStateMachineTransition.methods]
@@ -1537,7 +1510,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeSub2]
-inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeSub2.methods]
@@ -1545,7 +1517,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeSync]
-inherits = "AnimationNode"
 default_permissions = "BASE" #
 
 [AnimationNodeSync.methods]
@@ -1559,7 +1530,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationNodeTimeScale]
-inherits = "AnimationNode"
 default_permissions = "BASE" #
 
 [AnimationNodeTimeScale.methods]
@@ -1567,7 +1537,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeTimeSeek]
-inherits = "AnimationNode"
 default_permissions = "BASE" #
 
 [AnimationNodeTimeSeek.methods]
@@ -1575,7 +1544,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationNodeTransition]
-inherits = "AnimationNodeSync"
 default_permissions = "BASE" #
 
 [AnimationNodeTransition.methods]
@@ -1622,7 +1590,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationPlayer]
-inherits = "AnimationMixer"
 default_permissions = "BASE" #
 
 [AnimationPlayer.methods]
@@ -1759,7 +1726,6 @@ permissions = "INHERIT" #
 #############################
 
 [AnimationRootNode]
-inherits = "AnimationNode"
 default_permissions = "BASE" #
 
 [AnimationRootNode.methods]
@@ -1767,7 +1733,6 @@ default_permissions = "BASE" #
 #############################
 
 [AnimationTree]
-inherits = "AnimationMixer"
 default_permissions = "BASE" #
 
 [AnimationTree.methods]
@@ -1799,7 +1764,6 @@ permissions = "INHERIT" #
 #############################
 
 [Area2D]
-inherits = "CollisionObject2D"
 default_permissions = "BASE" #
 
 [Area2D.methods]
@@ -1915,7 +1879,6 @@ permissions = "INHERIT" #
 #############################
 
 [Area3D]
-inherits = "CollisionObject3D"
 default_permissions = "BASE" #
 
 [Area3D.methods]
@@ -2073,7 +2036,6 @@ permissions = "INHERIT" #
 #############################
 
 [ArrayMesh]
-inherits = "Mesh"
 default_permissions = "BASE" #
 
 [ArrayMesh.methods]
@@ -2156,7 +2118,6 @@ permissions = "INHERIT" #
 #############################
 
 [ArrayOccluder3D]
-inherits = "Occluder3D"
 default_permissions = "BASE" #
 
 [ArrayOccluder3D.methods]
@@ -2173,7 +2134,6 @@ permissions = "INHERIT" #
 #############################
 
 [AspectRatioContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [AspectRatioContainer.methods]
@@ -2205,7 +2165,6 @@ permissions = "INHERIT" #
 #############################
 
 [AtlasTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [AtlasTexture.methods]
@@ -2237,7 +2196,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioBusLayout]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [AudioBusLayout.methods]
@@ -2245,7 +2203,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffect]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [AudioEffect.methods]
@@ -2253,7 +2210,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectAmplify]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectAmplify.methods]
@@ -2267,7 +2223,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectBandLimitFilter]
-inherits = "AudioEffectFilter"
 default_permissions = "BASE" #
 
 [AudioEffectBandLimitFilter.methods]
@@ -2275,7 +2230,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectBandPassFilter]
-inherits = "AudioEffectFilter"
 default_permissions = "BASE" #
 
 [AudioEffectBandPassFilter.methods]
@@ -2283,7 +2237,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectCapture]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectCapture.methods]
@@ -2318,7 +2271,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectChorus]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectChorus.methods]
@@ -2380,7 +2332,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectCompressor]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectCompressor.methods]
@@ -2430,7 +2381,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectDelay]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectDelay.methods]
@@ -2516,7 +2466,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectDistortion]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectDistortion.methods]
@@ -2554,7 +2503,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectEQ]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectEQ.methods]
@@ -2571,7 +2519,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectEQ10]
-inherits = "AudioEffectEQ"
 default_permissions = "BASE" #
 
 [AudioEffectEQ10.methods]
@@ -2579,7 +2526,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectEQ21]
-inherits = "AudioEffectEQ"
 default_permissions = "BASE" #
 
 [AudioEffectEQ21.methods]
@@ -2587,7 +2533,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectEQ6]
-inherits = "AudioEffectEQ"
 default_permissions = "BASE" #
 
 [AudioEffectEQ6.methods]
@@ -2595,7 +2540,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectFilter]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectFilter.methods]
@@ -2627,7 +2571,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectHardLimiter]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectHardLimiter.methods]
@@ -2653,7 +2596,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectHighPassFilter]
-inherits = "AudioEffectFilter"
 default_permissions = "BASE" #
 
 [AudioEffectHighPassFilter.methods]
@@ -2661,7 +2603,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectHighShelfFilter]
-inherits = "AudioEffectFilter"
 default_permissions = "BASE" #
 
 [AudioEffectHighShelfFilter.methods]
@@ -2669,7 +2610,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectInstance]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AudioEffectInstance.methods]
@@ -2677,7 +2617,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectLimiter]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectLimiter.methods]
@@ -2709,7 +2648,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectLowPassFilter]
-inherits = "AudioEffectFilter"
 default_permissions = "BASE" #
 
 [AudioEffectLowPassFilter.methods]
@@ -2717,7 +2655,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectLowShelfFilter]
-inherits = "AudioEffectFilter"
 default_permissions = "BASE" #
 
 [AudioEffectLowShelfFilter.methods]
@@ -2725,7 +2662,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectNotchFilter]
-inherits = "AudioEffectFilter"
 default_permissions = "BASE" #
 
 [AudioEffectNotchFilter.methods]
@@ -2733,7 +2669,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioEffectPanner]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectPanner.methods]
@@ -2747,7 +2682,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectPhaser]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectPhaser.methods]
@@ -2785,7 +2719,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectPitchShift]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectPitchShift.methods]
@@ -2811,7 +2744,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectRecord]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectRecord.methods]
@@ -2834,7 +2766,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectReverb]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectReverb.methods]
@@ -2890,7 +2821,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectSpectrumAnalyzer]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectSpectrumAnalyzer.methods]
@@ -2916,7 +2846,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectSpectrumAnalyzerInstance]
-inherits = "AudioEffectInstance"
 default_permissions = "BASE" #
 
 [AudioEffectSpectrumAnalyzerInstance.methods]
@@ -2927,7 +2856,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioEffectStereoEnhance]
-inherits = "AudioEffect"
 default_permissions = "BASE" #
 
 [AudioEffectStereoEnhance.methods]
@@ -2953,7 +2881,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioListener2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [AudioListener2D.methods]
@@ -2970,7 +2897,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioListener3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [AudioListener3D.methods]
@@ -2990,7 +2916,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioSample]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AudioSample.methods]
@@ -2998,7 +2923,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioSamplePlayback]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AudioSamplePlayback.methods]
@@ -3006,7 +2930,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioServer]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [AudioServer.methods]
@@ -3161,7 +3084,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStream]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [AudioStream.methods]
@@ -3187,7 +3109,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamGenerator]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamGenerator.methods]
@@ -3207,7 +3128,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamGeneratorPlayback]
-inherits = "AudioStreamPlaybackResampled"
 default_permissions = "BASE" #
 
 [AudioStreamGeneratorPlayback.methods]
@@ -3233,7 +3153,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamInteractive]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamInteractive.methods]
@@ -3310,7 +3229,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamMP3]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamMP3.methods]
@@ -3354,7 +3272,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamMicrophone]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamMicrophone.methods]
@@ -3362,7 +3279,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioStreamOggVorbis]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamOggVorbis.methods]
@@ -3412,7 +3328,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlayback]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [AudioStreamPlayback.methods]
@@ -3426,7 +3341,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlaybackInteractive]
-inherits = "AudioStreamPlayback"
 default_permissions = "BASE" #
 
 [AudioStreamPlaybackInteractive.methods]
@@ -3440,7 +3354,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlaybackOggVorbis]
-inherits = "AudioStreamPlaybackResampled"
 default_permissions = "BASE" #
 
 [AudioStreamPlaybackOggVorbis.methods]
@@ -3448,7 +3361,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioStreamPlaybackPlaylist]
-inherits = "AudioStreamPlayback"
 default_permissions = "BASE" #
 
 [AudioStreamPlaybackPlaylist.methods]
@@ -3456,7 +3368,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioStreamPlaybackPolyphonic]
-inherits = "AudioStreamPlayback"
 default_permissions = "BASE" #
 
 [AudioStreamPlaybackPolyphonic.methods]
@@ -3479,7 +3390,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlaybackResampled]
-inherits = "AudioStreamPlayback"
 default_permissions = "BASE" #
 
 [AudioStreamPlaybackResampled.methods]
@@ -3490,7 +3400,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlaybackSynchronized]
-inherits = "AudioStreamPlayback"
 default_permissions = "BASE" #
 
 [AudioStreamPlaybackSynchronized.methods]
@@ -3498,7 +3407,6 @@ default_permissions = "BASE" #
 #############################
 
 [AudioStreamPlayer]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [AudioStreamPlayer.methods]
@@ -3581,7 +3489,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlayer2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [AudioStreamPlayer2D.methods]
@@ -3682,7 +3589,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlayer3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [AudioStreamPlayer3D.methods]
@@ -3831,7 +3737,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPlaylist]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamPlaylist.methods]
@@ -3872,7 +3777,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamPolyphonic]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamPolyphonic.methods]
@@ -3886,7 +3790,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamRandomizer]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamRandomizer.methods]
@@ -3939,7 +3842,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamSynchronized]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamSynchronized.methods]
@@ -3965,7 +3867,6 @@ permissions = "INHERIT" #
 #############################
 
 [AudioStreamWAV]
-inherits = "AudioStream"
 default_permissions = "BASE" #
 
 [AudioStreamWAV.methods]
@@ -4018,7 +3919,6 @@ permissions = "INHERIT" #
 #############################
 
 [BackBufferCopy]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [BackBufferCopy.methods]
@@ -4038,7 +3938,6 @@ permissions = "INHERIT" #
 #############################
 
 [BaseButton]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [BaseButton.methods]
@@ -4115,7 +4014,6 @@ permissions = "INHERIT" #
 #############################
 
 [BaseMaterial3D]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [BaseMaterial3D.methods]
@@ -4531,7 +4429,6 @@ permissions = "INHERIT" #
 #############################
 
 [BitMap]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [BitMap.methods]
@@ -4578,7 +4475,6 @@ permissions = "INHERIT" #
 #############################
 
 [Bone2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Bone2D.methods]
@@ -4619,7 +4515,6 @@ permissions = "INHERIT" #
 #############################
 
 [BoneAttachment3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [BoneAttachment3D.methods]
@@ -4660,7 +4555,6 @@ permissions = "INHERIT" #
 #############################
 
 [BoneMap]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [BoneMap.methods]
@@ -4683,7 +4577,6 @@ permissions = "INHERIT" #
 #############################
 
 [BoxContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [BoxContainer.methods]
@@ -4706,7 +4599,6 @@ permissions = "INHERIT" #
 #############################
 
 [BoxMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [BoxMesh.methods]
@@ -4738,7 +4630,6 @@ permissions = "INHERIT" #
 #############################
 
 [BoxOccluder3D]
-inherits = "Occluder3D"
 default_permissions = "BASE" #
 
 [BoxOccluder3D.methods]
@@ -4752,7 +4643,6 @@ permissions = "INHERIT" #
 #############################
 
 [BoxShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [BoxShape3D.methods]
@@ -4766,7 +4656,6 @@ permissions = "INHERIT" #
 #############################
 
 [Button]
-inherits = "BaseButton"
 default_permissions = "BASE" #
 
 [Button.methods]
@@ -4846,7 +4735,6 @@ permissions = "INHERIT" #
 #############################
 
 [ButtonGroup]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [ButtonGroup.methods]
@@ -4866,7 +4754,6 @@ permissions = "INHERIT" #
 #############################
 
 [CPUParticles2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [CPUParticles2D.methods]
@@ -5078,7 +4965,6 @@ permissions = "INHERIT" #
 #############################
 
 [CPUParticles3D]
-inherits = "GeometryInstance3D"
 default_permissions = "BASE" #
 
 [CPUParticles3D.methods]
@@ -5332,7 +5218,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGBox3D]
-inherits = "CSGPrimitive3D"
 default_permissions = "BASE" #
 
 [CSGBox3D.methods]
@@ -5352,7 +5237,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGCombiner3D]
-inherits = "CSGShape3D"
 default_permissions = "BASE" #
 
 [CSGCombiner3D.methods]
@@ -5360,7 +5244,6 @@ default_permissions = "BASE" #
 #############################
 
 [CSGCylinder3D]
-inherits = "CSGPrimitive3D"
 default_permissions = "BASE" #
 
 [CSGCylinder3D.methods]
@@ -5404,7 +5287,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGMesh3D]
-inherits = "CSGPrimitive3D"
 default_permissions = "BASE" #
 
 [CSGMesh3D.methods]
@@ -5424,7 +5306,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGPolygon3D]
-inherits = "CSGPrimitive3D"
 default_permissions = "BASE" #
 
 [CSGPolygon3D.methods]
@@ -5528,7 +5409,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGPrimitive3D]
-inherits = "CSGShape3D"
 default_permissions = "BASE" #
 
 [CSGPrimitive3D.methods]
@@ -5542,7 +5422,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGShape3D]
-inherits = "GeometryInstance3D"
 default_permissions = "BASE" #
 
 [CSGShape3D.methods]
@@ -5610,7 +5489,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGSphere3D]
-inherits = "CSGPrimitive3D"
 default_permissions = "BASE" #
 
 [CSGSphere3D.methods]
@@ -5648,7 +5526,6 @@ permissions = "INHERIT" #
 #############################
 
 [CSGTorus3D]
-inherits = "CSGPrimitive3D"
 default_permissions = "BASE" #
 
 [CSGTorus3D.methods]
@@ -5692,7 +5569,6 @@ permissions = "INHERIT" #
 #############################
 
 [CallbackTweener]
-inherits = "Tweener"
 default_permissions = "BASE" #
 
 [CallbackTweener.methods]
@@ -5703,7 +5579,6 @@ permissions = "INHERIT" #
 #############################
 
 [Camera2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Camera2D.methods]
@@ -5858,7 +5733,6 @@ permissions = "INHERIT" #
 #############################
 
 [Camera3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [Camera3D.methods]
@@ -6013,7 +5887,6 @@ permissions = "INHERIT" #
 #############################
 
 [CameraAttributes]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [CameraAttributes.methods]
@@ -6051,7 +5924,6 @@ permissions = "INHERIT" #
 #############################
 
 [CameraAttributesPhysical]
-inherits = "CameraAttributes"
 default_permissions = "BASE" #
 
 [CameraAttributesPhysical.methods]
@@ -6110,7 +5982,6 @@ permissions = "INHERIT" #
 #############################
 
 [CameraAttributesPractical]
-inherits = "CameraAttributes"
 default_permissions = "BASE" #
 
 [CameraAttributesPractical.methods]
@@ -6172,7 +6043,6 @@ permissions = "INHERIT" #
 #############################
 
 [CameraFeed]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [CameraFeed.methods]
@@ -6204,7 +6074,6 @@ permissions = "INHERIT" #
 #############################
 
 [CameraServer]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [CameraServer.methods]
@@ -6227,7 +6096,6 @@ permissions = "INHERIT" #
 #############################
 
 [CameraTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [CameraTexture.methods]
@@ -6253,7 +6121,6 @@ permissions = "INHERIT" #
 #############################
 
 [CanvasGroup]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [CanvasGroup.methods]
@@ -6279,7 +6146,6 @@ permissions = "INHERIT" #
 #############################
 
 [CanvasItem]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [CanvasItem.methods]
@@ -6548,7 +6414,6 @@ permissions = "INHERIT" #
 #############################
 
 [CanvasItemMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [CanvasItemMaterial.methods]
@@ -6592,7 +6457,6 @@ permissions = "INHERIT" #
 #############################
 
 [CanvasLayer]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [CanvasLayer.methods]
@@ -6666,7 +6530,6 @@ permissions = "INHERIT" #
 #############################
 
 [CanvasModulate]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [CanvasModulate.methods]
@@ -6680,7 +6543,6 @@ permissions = "INHERIT" #
 #############################
 
 [CanvasTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [CanvasTexture.methods]
@@ -6730,7 +6592,6 @@ permissions = "INHERIT" #
 #############################
 
 [CapsuleMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [CapsuleMesh.methods]
@@ -6762,7 +6623,6 @@ permissions = "INHERIT" #
 #############################
 
 [CapsuleShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [CapsuleShape2D.methods]
@@ -6782,7 +6642,6 @@ permissions = "INHERIT" #
 #############################
 
 [CapsuleShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [CapsuleShape3D.methods]
@@ -6802,7 +6661,6 @@ permissions = "INHERIT" #
 #############################
 
 [CenterContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [CenterContainer.methods]
@@ -6816,7 +6674,6 @@ permissions = "INHERIT" #
 #############################
 
 [CharFXTransform]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [CharFXTransform.methods]
@@ -6902,7 +6759,6 @@ permissions = "INHERIT" #
 #############################
 
 [CharacterBody2D]
-inherits = "PhysicsBody2D"
 default_permissions = "BASE" #
 
 [CharacterBody2D.methods]
@@ -7054,7 +6910,6 @@ permissions = "INHERIT" #
 #############################
 
 [CharacterBody3D]
-inherits = "PhysicsBody3D"
 default_permissions = "BASE" #
 
 [CharacterBody3D.methods]
@@ -7209,7 +7064,6 @@ permissions = "INHERIT" #
 #############################
 
 [CheckBox]
-inherits = "Button"
 default_permissions = "BASE" #
 
 [CheckBox.methods]
@@ -7217,7 +7071,6 @@ default_permissions = "BASE" #
 #############################
 
 [CheckButton]
-inherits = "Button"
 default_permissions = "BASE" #
 
 [CheckButton.methods]
@@ -7225,7 +7078,6 @@ default_permissions = "BASE" #
 #############################
 
 [CircleShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [CircleShape2D.methods]
@@ -7239,7 +7091,6 @@ permissions = "INHERIT" #
 #############################
 
 [ClassDB]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [ClassDB.methods]
@@ -7325,7 +7176,6 @@ permissions = "INHERIT" #
 #############################
 
 [CodeEdit]
-inherits = "TextEdit"
 default_permissions = "BASE" #
 
 [CodeEdit.methods]
@@ -7660,7 +7510,6 @@ permissions = "INHERIT" #
 #############################
 
 [CodeHighlighter]
-inherits = "SyntaxHighlighter"
 default_permissions = "BASE" #
 
 [CodeHighlighter.methods]
@@ -7752,7 +7601,6 @@ permissions = "INHERIT" #
 #############################
 
 [CollisionObject2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [CollisionObject2D.methods]
@@ -7862,7 +7710,6 @@ permissions = "INHERIT" #
 #############################
 
 [CollisionObject3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [CollisionObject3D.methods]
@@ -7966,7 +7813,6 @@ permissions = "INHERIT" #
 #############################
 
 [CollisionPolygon2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [CollisionPolygon2D.methods]
@@ -8004,7 +7850,6 @@ permissions = "INHERIT" #
 #############################
 
 [CollisionPolygon3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [CollisionPolygon3D.methods]
@@ -8036,7 +7881,6 @@ permissions = "INHERIT" #
 #############################
 
 [CollisionShape2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [CollisionShape2D.methods]
@@ -8074,7 +7918,6 @@ permissions = "INHERIT" #
 #############################
 
 [CollisionShape3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [CollisionShape3D.methods]
@@ -8100,7 +7943,6 @@ permissions = "INHERIT" #
 #############################
 
 [ColorPicker]
-inherits = "VBoxContainer"
 default_permissions = "BASE" #
 
 [ColorPicker.methods]
@@ -8192,7 +8034,6 @@ permissions = "INHERIT" #
 #############################
 
 [ColorPickerButton]
-inherits = "Button"
 default_permissions = "BASE" #
 
 [ColorPickerButton.methods]
@@ -8218,7 +8059,6 @@ permissions = "INHERIT" #
 #############################
 
 [ColorRect]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [ColorRect.methods]
@@ -8232,7 +8072,6 @@ permissions = "INHERIT" #
 #############################
 
 [Compositor]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Compositor.methods]
@@ -8246,7 +8085,6 @@ permissions = "INHERIT" #
 #############################
 
 [CompositorEffect]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [CompositorEffect.methods]
@@ -8296,7 +8134,6 @@ permissions = "INHERIT" #
 #############################
 
 [CompressedCubemap]
-inherits = "CompressedTextureLayered"
 default_permissions = "BASE" #
 
 [CompressedCubemap.methods]
@@ -8304,7 +8141,6 @@ default_permissions = "BASE" #
 #############################
 
 [CompressedCubemapArray]
-inherits = "CompressedTextureLayered"
 default_permissions = "BASE" #
 
 [CompressedCubemapArray.methods]
@@ -8312,7 +8148,6 @@ default_permissions = "BASE" #
 #############################
 
 [CompressedTexture2D]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [CompressedTexture2D.methods]
@@ -8326,7 +8161,6 @@ permissions = "INHERIT" #
 #############################
 
 [CompressedTexture2DArray]
-inherits = "CompressedTextureLayered"
 default_permissions = "BASE" #
 
 [CompressedTexture2DArray.methods]
@@ -8334,7 +8168,6 @@ default_permissions = "BASE" #
 #############################
 
 [CompressedTexture3D]
-inherits = "Texture3D"
 default_permissions = "BASE" #
 
 [CompressedTexture3D.methods]
@@ -8348,7 +8181,6 @@ permissions = "INHERIT" #
 #############################
 
 [CompressedTextureLayered]
-inherits = "TextureLayered"
 default_permissions = "BASE" #
 
 [CompressedTextureLayered.methods]
@@ -8362,7 +8194,6 @@ permissions = "INHERIT" #
 #############################
 
 [ConcavePolygonShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [ConcavePolygonShape2D.methods]
@@ -8376,7 +8207,6 @@ permissions = "INHERIT" #
 #############################
 
 [ConcavePolygonShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [ConcavePolygonShape3D.methods]
@@ -8396,7 +8226,6 @@ permissions = "INHERIT" #
 #############################
 
 [ConeTwistJoint3D]
-inherits = "Joint3D"
 default_permissions = "BASE" #
 
 [ConeTwistJoint3D.methods]
@@ -8410,7 +8239,6 @@ permissions = "INHERIT" #
 #############################
 
 [ConfigFile]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ConfigFile.methods]
@@ -8469,7 +8297,6 @@ permissions = "INHERIT" #
 #############################
 
 [ConfirmationDialog]
-inherits = "AcceptDialog"
 default_permissions = "BASE" #
 
 [ConfirmationDialog.methods]
@@ -8486,7 +8313,6 @@ permissions = "INHERIT" #
 #############################
 
 [Container]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [Container.methods]
@@ -8500,7 +8326,6 @@ permissions = "INHERIT" #
 #############################
 
 [Control]
-inherits = "CanvasItem"
 default_permissions = "BASE" #
 
 [Control.methods]
@@ -8892,7 +8717,6 @@ permissions = "INHERIT" #
 #############################
 
 [ConvexPolygonShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [ConvexPolygonShape2D.methods]
@@ -8909,7 +8733,6 @@ permissions = "INHERIT" #
 #############################
 
 [ConvexPolygonShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [ConvexPolygonShape3D.methods]
@@ -8923,7 +8746,6 @@ permissions = "INHERIT" #
 #############################
 
 [Crypto]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Crypto.methods]
@@ -8958,7 +8780,6 @@ permissions = "INHERIT" #
 #############################
 
 [CryptoKey]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [CryptoKey.methods]
@@ -8981,7 +8802,6 @@ permissions = "INHERIT" #
 #############################
 
 [Cubemap]
-inherits = "ImageTextureLayered"
 default_permissions = "BASE" #
 
 [Cubemap.methods]
@@ -8992,7 +8812,6 @@ permissions = "INHERIT" #
 #############################
 
 [CubemapArray]
-inherits = "ImageTextureLayered"
 default_permissions = "BASE" #
 
 [CubemapArray.methods]
@@ -9003,7 +8822,6 @@ permissions = "INHERIT" #
 #############################
 
 [Curve]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Curve.methods]
@@ -9089,7 +8907,6 @@ permissions = "INHERIT" #
 #############################
 
 [Curve2D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Curve2D.methods]
@@ -9166,7 +8983,6 @@ permissions = "INHERIT" #
 #############################
 
 [Curve3D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Curve3D.methods]
@@ -9264,7 +9080,6 @@ permissions = "INHERIT" #
 #############################
 
 [CurveTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [CurveTexture.methods]
@@ -9287,7 +9102,6 @@ permissions = "INHERIT" #
 #############################
 
 [CurveXYZTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [CurveXYZTexture.methods]
@@ -9316,7 +9130,6 @@ permissions = "INHERIT" #
 #############################
 
 [CylinderMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [CylinderMesh.methods]
@@ -9366,7 +9179,6 @@ permissions = "INHERIT" #
 #############################
 
 [CylinderShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [CylinderShape3D.methods]
@@ -9386,7 +9198,6 @@ permissions = "INHERIT" #
 #############################
 
 [DTLSServer]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [DTLSServer.methods]
@@ -9400,7 +9211,6 @@ permissions = "INHERIT" #
 #############################
 
 [DampedSpringJoint2D]
-inherits = "Joint2D"
 default_permissions = "BASE" #
 
 [DampedSpringJoint2D.methods]
@@ -9432,7 +9242,6 @@ permissions = "INHERIT" #
 #############################
 
 [Decal]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [Decal.methods]
@@ -9513,7 +9322,6 @@ permissions = "INHERIT" #
 
 [DirAccess]
 #* CORRECT: 4.0-beta13
-inherits = "RefCounted"
 default_permissions = "FILE"
 
 [DirAccess.methods]
@@ -9632,7 +9440,6 @@ permissions = "INHERIT" #
 #############################
 
 [DirectionalLight2D]
-inherits = "Light2D"
 default_permissions = "BASE" #
 
 [DirectionalLight2D.methods]
@@ -9646,7 +9453,6 @@ permissions = "INHERIT" #
 #############################
 
 [DirectionalLight3D]
-inherits = "Light3D"
 default_permissions = "BASE" #
 
 [DirectionalLight3D.methods]
@@ -9672,7 +9478,6 @@ permissions = "INHERIT" #
 #############################
 
 [DisplayServer]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [DisplayServer.methods]
@@ -10232,7 +10037,6 @@ permissions = "INHERIT" #
 #############################
 
 [ENetConnection]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ENetConnection.methods]
@@ -10294,7 +10098,6 @@ permissions = "INHERIT" #
 #############################
 
 [ENetMultiplayerPeer]
-inherits = "MultiplayerPeer"
 default_permissions = "BASE" #
 
 [ENetMultiplayerPeer.methods]
@@ -10323,7 +10126,6 @@ permissions = "INHERIT" #
 #############################
 
 [ENetPacketPeer]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [ENetPacketPeer.methods]
@@ -10376,7 +10178,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorCommandPalette]
-inherits = "ConfirmationDialog"
 default_permissions = "BASE" #
 
 [EditorCommandPalette.methods]
@@ -10390,7 +10191,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorDebuggerPlugin]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorDebuggerPlugin.methods]
@@ -10404,7 +10204,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorDebuggerSession]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorDebuggerSession.methods]
@@ -10436,7 +10235,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorExportPlatform]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorExportPlatform.methods]
@@ -10447,7 +10245,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorExportPlatformAndroid]
-inherits = "EditorExportPlatform"
 default_permissions = "BASE" #
 
 [EditorExportPlatformAndroid.methods]
@@ -10455,7 +10252,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorExportPlatformIOS]
-inherits = "EditorExportPlatform"
 default_permissions = "BASE" #
 
 [EditorExportPlatformIOS.methods]
@@ -10463,7 +10259,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorExportPlatformLinuxBSD]
-inherits = "EditorExportPlatformPC"
 default_permissions = "BASE" #
 
 [EditorExportPlatformLinuxBSD.methods]
@@ -10471,7 +10266,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorExportPlatformMacOS]
-inherits = "EditorExportPlatform"
 default_permissions = "BASE" #
 
 [EditorExportPlatformMacOS.methods]
@@ -10479,7 +10273,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorExportPlatformPC]
-inherits = "EditorExportPlatform"
 default_permissions = "BASE" #
 
 [EditorExportPlatformPC.methods]
@@ -10487,7 +10280,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorExportPlatformWeb]
-inherits = "EditorExportPlatform"
 default_permissions = "BASE" #
 
 [EditorExportPlatformWeb.methods]
@@ -10495,7 +10287,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorExportPlatformWindows]
-inherits = "EditorExportPlatformPC"
 default_permissions = "BASE" #
 
 [EditorExportPlatformWindows.methods]
@@ -10503,7 +10294,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorExportPlugin]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorExportPlugin.methods]
@@ -10547,7 +10337,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorFeatureProfile]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorFeatureProfile.methods]
@@ -10588,7 +10377,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorFileDialog]
-inherits = "ConfirmationDialog"
 default_permissions = "BASE" #
 
 [EditorFileDialog.methods]
@@ -10701,7 +10489,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorFileSystem]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [EditorFileSystem.methods]
@@ -10736,7 +10523,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorFileSystemDirectory]
-inherits = "Object"
 default_permissions = "BASE" #
 
 [EditorFileSystemDirectory.methods]
@@ -10786,7 +10572,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorFileSystemImportFormatSupportQuery]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorFileSystemImportFormatSupportQuery.methods]
@@ -10794,7 +10579,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorImportPlugin]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [EditorImportPlugin.methods]
@@ -10805,7 +10589,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorInspector]
-inherits = "ScrollContainer"
 default_permissions = "BASE" #
 
 [EditorInspector.methods]
@@ -10819,7 +10602,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorInspectorPlugin]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorInspectorPlugin.methods]
@@ -10836,7 +10618,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorInterface]
-inherits = "Object"
 default_permissions = "BASE" #
 
 [EditorInterface.methods]
@@ -11009,7 +10790,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorNode3DGizmo]
-inherits = "Node3DGizmo"
 default_permissions = "BASE" #
 
 [EditorNode3DGizmo.methods]
@@ -11056,7 +10836,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorNode3DGizmoPlugin]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [EditorNode3DGizmoPlugin.methods]
@@ -11079,7 +10858,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorPaths]
-inherits = "Object"
 default_permissions = "BASE" #
 
 [EditorPaths.methods]
@@ -11105,7 +10883,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorPlugin]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [EditorPlugin.methods]
@@ -11248,7 +11025,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorProperty]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [EditorProperty.methods]
@@ -11316,7 +11092,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorResourceConversionPlugin]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorResourceConversionPlugin.methods]
@@ -11324,7 +11099,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorResourcePicker]
-inherits = "HBoxContainer"
 default_permissions = "BASE" #
 
 [EditorResourcePicker.methods]
@@ -11362,7 +11136,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorResourcePreview]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [EditorResourcePreview.methods]
@@ -11385,7 +11158,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorResourcePreviewGenerator]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorResourcePreviewGenerator.methods]
@@ -11393,7 +11165,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorResourceTooltipPlugin]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorResourceTooltipPlugin.methods]
@@ -11404,7 +11175,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorSceneFormatImporter]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorSceneFormatImporter.methods]
@@ -11412,7 +11182,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorSceneFormatImporterBlend]
-inherits = "EditorSceneFormatImporter"
 default_permissions = "BASE" #
 
 [EditorSceneFormatImporterBlend.methods]
@@ -11420,7 +11189,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorSceneFormatImporterFBX2GLTF]
-inherits = "EditorSceneFormatImporter"
 default_permissions = "BASE" #
 
 [EditorSceneFormatImporterFBX2GLTF.methods]
@@ -11428,7 +11196,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorSceneFormatImporterGLTF]
-inherits = "EditorSceneFormatImporter"
 default_permissions = "BASE" #
 
 [EditorSceneFormatImporterGLTF.methods]
@@ -11436,7 +11203,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorSceneFormatImporterUFBX]
-inherits = "EditorSceneFormatImporter"
 default_permissions = "BASE" #
 
 [EditorSceneFormatImporterUFBX.methods]
@@ -11444,7 +11210,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorScenePostImport]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorScenePostImport.methods]
@@ -11455,7 +11220,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorScenePostImportPlugin]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorScenePostImportPlugin.methods]
@@ -11472,7 +11236,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorScript]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorScript.methods]
@@ -11489,7 +11252,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorScriptPicker]
-inherits = "EditorResourcePicker"
 default_permissions = "BASE" #
 
 [EditorScriptPicker.methods]
@@ -11504,7 +11266,6 @@ permissions = "INHERIT" #
 
 [EditorSelection]
 #* SAFE: 4.0-beta14
-inherits = "Object"
 default_permissions = "BASE" #
 
 [EditorSelection.methods]
@@ -11527,7 +11288,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorSettings]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [EditorSettings.methods]
@@ -11583,7 +11343,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorSpinSlider]
-inherits = "Range"
 default_permissions = "BASE" #
 
 [EditorSpinSlider.methods]
@@ -11621,7 +11380,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorSyntaxHighlighter]
-inherits = "SyntaxHighlighter"
 default_permissions = "BASE" #
 
 [EditorSyntaxHighlighter.methods]
@@ -11629,7 +11387,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorTranslationParserPlugin]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EditorTranslationParserPlugin.methods]
@@ -11637,7 +11394,6 @@ default_permissions = "BASE" #
 #############################
 
 [EditorUndoRedoManager]
-inherits = "Object"
 default_permissions = "BASE" #
 
 [EditorUndoRedoManager.methods]
@@ -11681,7 +11437,6 @@ permissions = "INHERIT" #
 #############################
 
 [EditorVCSInterface]
-inherits = "Object"
 default_permissions = "BASE" #
 
 [EditorVCSInterface.methods]
@@ -11713,7 +11468,6 @@ permissions = "INHERIT" #
 #############################
 
 [EncodedObjectAsID]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EncodedObjectAsID.methods]
@@ -11728,7 +11482,6 @@ permissions = "INHERIT" #
 
 [Engine]
 #* CORRECT: 4.0-stable
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [Engine.methods]
@@ -11848,7 +11601,6 @@ permissions = "INHERIT" #
 #############################
 
 [EngineDebugger]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [EngineDebugger.methods]
@@ -11925,7 +11677,6 @@ permissions = "INHERIT" #
 #############################
 
 [EngineProfiler]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [EngineProfiler.methods]
@@ -11933,7 +11684,6 @@ default_permissions = "BASE" #
 #############################
 
 [Environment]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Environment.methods]
@@ -12493,7 +12243,6 @@ permissions = "INHERIT" #
 #############################
 
 [Expression]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Expression.methods]
@@ -12513,7 +12262,6 @@ permissions = "INHERIT" #
 #############################
 
 [FBXDocument]
-inherits = "GLTFDocument"
 default_permissions = "BASE" #
 
 [FBXDocument.methods]
@@ -12521,7 +12269,6 @@ default_permissions = "BASE" #
 #############################
 
 [FBXState]
-inherits = "GLTFState"
 default_permissions = "BASE" #
 
 [FBXState.methods]
@@ -12535,7 +12282,6 @@ permissions = "INHERIT" #
 #############################
 
 [FastNoiseLite]
-inherits = "Noise"
 default_permissions = "BASE" #
 
 [FastNoiseLite.methods]
@@ -12670,7 +12416,6 @@ permissions = "INHERIT" #
 
 [FileAccess]
 #* CORRECT: 4.0-beta13
-inherits = "RefCounted"
 default_permissions = "FILE"
 
 [FileAccess.methods]
@@ -12849,7 +12594,6 @@ permissions = "INHERIT" #
 #############################
 
 [FileDialog]
-inherits = "ConfirmationDialog"
 default_permissions = "BASE" #
 
 [FileDialog.methods]
@@ -12965,7 +12709,6 @@ permissions = "INHERIT" #
 #############################
 
 [FileSystemDock]
-inherits = "VBoxContainer"
 default_permissions = "BASE" #
 
 [FileSystemDock.methods]
@@ -12982,7 +12725,6 @@ permissions = "INHERIT" #
 #############################
 
 [FlowContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [FlowContainer.methods]
@@ -13017,7 +12759,6 @@ permissions = "INHERIT" #
 #############################
 
 [FogMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [FogMaterial.methods]
@@ -13061,7 +12802,6 @@ permissions = "INHERIT" #
 #############################
 
 [FogVolume]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [FogVolume.methods]
@@ -13087,7 +12827,6 @@ permissions = "INHERIT" #
 #############################
 
 [Font]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Font.methods]
@@ -13197,7 +12936,6 @@ permissions = "INHERIT" #
 #############################
 
 [FontFile]
-inherits = "Font"
 default_permissions = "BASE" #
 
 [FontFile.methods]
@@ -13511,7 +13249,6 @@ permissions = "INHERIT" #
 #############################
 
 [FontVariation]
-inherits = "Font"
 default_permissions = "BASE" #
 
 [FontVariation.methods]
@@ -13561,7 +13298,6 @@ permissions = "INHERIT" #
 #############################
 
 [FramebufferCacheRD]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [FramebufferCacheRD.methods]
@@ -13572,7 +13308,6 @@ permissions = "INHERIT" #
 #############################
 
 [GDExtension]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GDExtension.methods]
@@ -13586,7 +13321,6 @@ permissions = "INHERIT" #
 #############################
 
 [GDExtensionManager]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [GDExtensionManager.methods]
@@ -13612,7 +13346,6 @@ permissions = "INHERIT" #
 #############################
 
 [GDScript]
-inherits = "Script"
 default_permissions = "BASE" #
 
 [GDScript.methods]
@@ -13623,7 +13356,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFAccessor]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFAccessor.methods]
@@ -13721,7 +13453,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFAnimation]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFAnimation.methods]
@@ -13747,7 +13478,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFBufferView]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFBufferView.methods]
@@ -13794,7 +13524,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFCamera]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFCamera.methods]
@@ -13844,7 +13573,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFDocument]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFDocument.methods]
@@ -13894,7 +13622,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFDocumentExtension]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFDocumentExtension.methods]
@@ -13902,7 +13629,6 @@ default_permissions = "BASE" #
 #############################
 
 [GLTFDocumentExtensionConvertImporterMesh]
-inherits = "GLTFDocumentExtension"
 default_permissions = "BASE" #
 
 [GLTFDocumentExtensionConvertImporterMesh.methods]
@@ -13910,7 +13636,6 @@ default_permissions = "BASE" #
 #############################
 
 [GLTFLight]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFLight.methods]
@@ -13972,7 +13697,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFMesh]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFMesh.methods]
@@ -14010,7 +13734,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFNode]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFNode.methods]
@@ -14102,7 +13825,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFPhysicsBody]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFPhysicsBody.methods]
@@ -14170,7 +13892,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFPhysicsShape]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFPhysicsShape.methods]
@@ -14238,7 +13959,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFSkeleton]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFSkeleton.methods]
@@ -14279,7 +13999,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFSkin]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFSkin.methods]
@@ -14347,7 +14066,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFSpecGloss]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFSpecGloss.methods]
@@ -14385,7 +14103,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFState]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFState.methods]
@@ -14597,7 +14314,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFTexture]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFTexture.methods]
@@ -14617,7 +14333,6 @@ permissions = "INHERIT" #
 #############################
 
 [GLTFTextureSampler]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [GLTFTextureSampler.methods]
@@ -14649,7 +14364,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticles2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [GPUParticles2D.methods]
@@ -14813,7 +14527,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticles3D]
-inherits = "GeometryInstance3D"
 default_permissions = "BASE" #
 
 [GPUParticles3D.methods]
@@ -14983,7 +14696,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesAttractor3D]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [GPUParticlesAttractor3D.methods]
@@ -15015,7 +14727,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesAttractorBox3D]
-inherits = "GPUParticlesAttractor3D"
 default_permissions = "BASE" #
 
 [GPUParticlesAttractorBox3D.methods]
@@ -15029,7 +14740,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesAttractorSphere3D]
-inherits = "GPUParticlesAttractor3D"
 default_permissions = "BASE" #
 
 [GPUParticlesAttractorSphere3D.methods]
@@ -15043,7 +14753,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesAttractorVectorField3D]
-inherits = "GPUParticlesAttractor3D"
 default_permissions = "BASE" #
 
 [GPUParticlesAttractorVectorField3D.methods]
@@ -15063,7 +14772,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesCollision3D]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [GPUParticlesCollision3D.methods]
@@ -15077,7 +14785,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesCollisionBox3D]
-inherits = "GPUParticlesCollision3D"
 default_permissions = "BASE" #
 
 [GPUParticlesCollisionBox3D.methods]
@@ -15091,7 +14798,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesCollisionHeightField3D]
-inherits = "GPUParticlesCollision3D"
 default_permissions = "BASE" #
 
 [GPUParticlesCollisionHeightField3D.methods]
@@ -15123,7 +14829,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesCollisionSDF3D]
-inherits = "GPUParticlesCollision3D"
 default_permissions = "BASE" #
 
 [GPUParticlesCollisionSDF3D.methods]
@@ -15167,7 +14872,6 @@ permissions = "INHERIT" #
 #############################
 
 [GPUParticlesCollisionSphere3D]
-inherits = "GPUParticlesCollision3D"
 default_permissions = "BASE" #
 
 [GPUParticlesCollisionSphere3D.methods]
@@ -15181,7 +14885,6 @@ permissions = "INHERIT" #
 #############################
 
 [Generic6DOFJoint3D]
-inherits = "Joint3D"
 default_permissions = "BASE" #
 
 [Generic6DOFJoint3D.methods]
@@ -15225,7 +14928,6 @@ permissions = "INHERIT" #
 #############################
 
 [Geometry2D]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [Geometry2D.methods]
@@ -15302,7 +15004,6 @@ permissions = "INHERIT" #
 #############################
 
 [Geometry3D]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [Geometry3D.methods]
@@ -15355,7 +15056,6 @@ permissions = "INHERIT" #
 #############################
 
 [GeometryInstance3D]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [GeometryInstance3D.methods]
@@ -15459,7 +15159,6 @@ permissions = "INHERIT" #
 #############################
 
 [Gradient]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Gradient.methods]
@@ -15518,7 +15217,6 @@ permissions = "INHERIT" #
 #############################
 
 [GradientTexture1D]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [GradientTexture1D.methods]
@@ -15541,7 +15239,6 @@ permissions = "INHERIT" #
 #############################
 
 [GradientTexture2D]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [GradientTexture2D.methods]
@@ -15591,7 +15288,6 @@ permissions = "INHERIT" #
 #############################
 
 [GraphEdit]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [GraphEdit.methods]
@@ -15809,7 +15505,6 @@ permissions = "INHERIT" #
 #############################
 
 [GraphElement]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [GraphElement.methods]
@@ -15847,7 +15542,6 @@ permissions = "INHERIT" #
 #############################
 
 [GraphFrame]
-inherits = "GraphElement"
 default_permissions = "BASE" #
 
 [GraphFrame.methods]
@@ -15894,7 +15588,6 @@ permissions = "INHERIT" #
 #############################
 
 [GraphNode]
-inherits = "GraphElement"
 default_permissions = "BASE" #
 
 [GraphNode.methods]
@@ -16010,7 +15703,6 @@ permissions = "INHERIT" #
 #############################
 
 [GridContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [GridContainer.methods]
@@ -16024,7 +15716,6 @@ permissions = "INHERIT" #
 #############################
 
 [GridMap]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [GridMap.methods]
@@ -16173,7 +15864,6 @@ permissions = "INHERIT" #
 #############################
 
 [GrooveJoint2D]
-inherits = "Joint2D"
 default_permissions = "BASE" #
 
 [GrooveJoint2D.methods]
@@ -16193,7 +15883,6 @@ permissions = "INHERIT" #
 #############################
 
 [HBoxContainer]
-inherits = "BoxContainer"
 default_permissions = "BASE" #
 
 [HBoxContainer.methods]
@@ -16201,7 +15890,6 @@ default_permissions = "BASE" #
 #############################
 
 [HFlowContainer]
-inherits = "FlowContainer"
 default_permissions = "BASE" #
 
 [HFlowContainer.methods]
@@ -16209,7 +15897,6 @@ default_permissions = "BASE" #
 #############################
 
 [HMACContext]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [HMACContext.methods]
@@ -16226,7 +15913,6 @@ permissions = "INHERIT" #
 #############################
 
 [HScrollBar]
-inherits = "ScrollBar"
 default_permissions = "BASE" #
 
 [HScrollBar.methods]
@@ -16234,7 +15920,6 @@ default_permissions = "BASE" #
 #############################
 
 [HSeparator]
-inherits = "Separator"
 default_permissions = "BASE" #
 
 [HSeparator.methods]
@@ -16242,7 +15927,6 @@ default_permissions = "BASE" #
 #############################
 
 [HSlider]
-inherits = "Slider"
 default_permissions = "BASE" #
 
 [HSlider.methods]
@@ -16250,7 +15934,6 @@ default_permissions = "BASE" #
 #############################
 
 [HSplitContainer]
-inherits = "SplitContainer"
 default_permissions = "BASE" #
 
 [HSplitContainer.methods]
@@ -16259,7 +15942,6 @@ default_permissions = "BASE" #
 
 [HTTPClient]
 #* CORRECT: 4.0-beta13
-inherits = "RefCounted"
 default_permissions = "HTTP"
 
 [HTTPClient.methods]
@@ -16334,7 +16016,6 @@ permissions = "INHERIT" #
 
 [HTTPRequest]
 #* CORRECT: 4.0-beta13
-inherits = "Node"
 default_permissions = "HTTP"
 
 [HTTPRequest.methods]
@@ -16411,7 +16092,6 @@ permissions = "INHERIT" #
 #############################
 
 [HashingContext]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [HashingContext.methods]
@@ -16428,7 +16108,6 @@ permissions = "INHERIT" #
 #############################
 
 [HeightMapShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [HeightMapShape3D.methods]
@@ -16463,7 +16142,6 @@ permissions = "INHERIT" #
 #############################
 
 [HingeJoint3D]
-inherits = "Joint3D"
 default_permissions = "BASE" #
 
 [HingeJoint3D.methods]
@@ -16483,7 +16161,6 @@ permissions = "INHERIT" #
 #############################
 
 [IP]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [IP.methods]
@@ -16521,7 +16198,6 @@ permissions = "INHERIT" #
 #############################
 
 [Image]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Image.methods]
@@ -16742,7 +16418,6 @@ permissions = "INHERIT" #
 #############################
 
 [ImageFormatLoader]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ImageFormatLoader.methods]
@@ -16750,7 +16425,6 @@ default_permissions = "BASE" #
 #############################
 
 [ImageFormatLoaderExtension]
-inherits = "ImageFormatLoader"
 default_permissions = "BASE" #
 
 [ImageFormatLoaderExtension.methods]
@@ -16764,7 +16438,6 @@ permissions = "INHERIT" #
 #############################
 
 [ImageTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [ImageTexture.methods]
@@ -16787,7 +16460,6 @@ permissions = "INHERIT" #
 #############################
 
 [ImageTexture3D]
-inherits = "Texture3D"
 default_permissions = "BASE" #
 
 [ImageTexture3D.methods]
@@ -16801,7 +16473,6 @@ permissions = "INHERIT" #
 #############################
 
 [ImageTextureLayered]
-inherits = "TextureLayered"
 default_permissions = "BASE" #
 
 [ImageTextureLayered.methods]
@@ -16815,7 +16486,6 @@ permissions = "INHERIT" #
 #############################
 
 [ImmediateMesh]
-inherits = "Mesh"
 default_permissions = "BASE" #
 
 [ImmediateMesh.methods]
@@ -16853,7 +16523,6 @@ permissions = "INHERIT" #
 #############################
 
 [ImporterMesh]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [ImporterMesh.methods]
@@ -16930,7 +16599,6 @@ permissions = "INHERIT" #
 #############################
 
 [ImporterMeshInstance3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [ImporterMeshInstance3D.methods]
@@ -16999,7 +16667,6 @@ permissions = "INHERIT" #
 
 [Input]
 #* SAFE: 4.0-beta17
-inherits = "Object"
 default_permissions = "BASE"
 
 [Input.methods]
@@ -17169,7 +16836,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEvent]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [InputEvent.methods]
@@ -17222,7 +16888,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventAction]
-inherits = "InputEvent"
 default_permissions = "BASE" #
 
 [InputEventAction.methods]
@@ -17251,7 +16916,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventFromWindow]
-inherits = "InputEvent"
 default_permissions = "BASE" #
 
 [InputEventFromWindow.methods]
@@ -17265,7 +16929,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventGesture]
-inherits = "InputEventWithModifiers"
 default_permissions = "BASE" #
 
 [InputEventGesture.methods]
@@ -17279,7 +16942,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventJoypadButton]
-inherits = "InputEvent"
 default_permissions = "BASE" #
 
 [InputEventJoypadButton.methods]
@@ -17302,7 +16964,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventJoypadMotion]
-inherits = "InputEvent"
 default_permissions = "BASE" #
 
 [InputEventJoypadMotion.methods]
@@ -17322,7 +16983,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventKey]
-inherits = "InputEventWithModifiers"
 default_permissions = "BASE" #
 
 [InputEventKey.methods]
@@ -17387,7 +17047,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventMIDI]
-inherits = "InputEvent"
 default_permissions = "BASE" #
 
 [InputEventMIDI.methods]
@@ -17443,7 +17102,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventMagnifyGesture]
-inherits = "InputEventGesture"
 default_permissions = "BASE" #
 
 [InputEventMagnifyGesture.methods]
@@ -17457,7 +17115,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventMouse]
-inherits = "InputEventWithModifiers"
 default_permissions = "BASE" #
 
 [InputEventMouse.methods]
@@ -17483,7 +17140,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventMouseButton]
-inherits = "InputEventMouse"
 default_permissions = "BASE" #
 
 [InputEventMouseButton.methods]
@@ -17515,7 +17171,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventMouseMotion]
-inherits = "InputEventMouse"
 default_permissions = "BASE" #
 
 [InputEventMouseMotion.methods]
@@ -17565,7 +17220,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventPanGesture]
-inherits = "InputEventGesture"
 default_permissions = "BASE" #
 
 [InputEventPanGesture.methods]
@@ -17579,7 +17233,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventScreenDrag]
-inherits = "InputEventFromWindow"
 default_permissions = "BASE" #
 
 [InputEventScreenDrag.methods]
@@ -17641,7 +17294,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventScreenTouch]
-inherits = "InputEventFromWindow"
 default_permissions = "BASE" #
 
 [InputEventScreenTouch.methods]
@@ -17673,7 +17325,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventShortcut]
-inherits = "InputEvent"
 default_permissions = "BASE" #
 
 [InputEventShortcut.methods]
@@ -17687,7 +17338,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputEventWithModifiers]
-inherits = "InputEventFromWindow"
 default_permissions = "BASE" #
 
 [InputEventWithModifiers.methods]
@@ -17731,7 +17381,6 @@ permissions = "INHERIT" #
 #############################
 
 [InputMap]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [InputMap.methods]
@@ -17778,7 +17427,6 @@ permissions = "INHERIT" #
 #############################
 
 [InstancePlaceholder]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [InstancePlaceholder.methods]
@@ -17795,7 +17443,6 @@ permissions = "INHERIT" #
 #############################
 
 [IntervalTweener]
-inherits = "Tweener"
 default_permissions = "BASE" #
 
 [IntervalTweener.methods]
@@ -17803,7 +17450,6 @@ default_permissions = "BASE" #
 #############################
 
 [ItemList]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [ItemList.methods]
@@ -18030,7 +17676,6 @@ permissions = "INHERIT" #
 #############################
 
 [JNISingleton]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [JNISingleton.methods]
@@ -18038,7 +17683,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [JSON]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [JSON.methods]
@@ -18070,7 +17714,6 @@ permissions = "INHERIT" #
 #############################
 
 [JSONRPC]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [JSONRPC.methods]
@@ -18099,7 +17742,6 @@ permissions = "INHERIT" #
 #############################
 
 [JavaClass]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [JavaClass.methods]
@@ -18107,7 +17749,6 @@ default_permissions = "BASE" #
 #############################
 
 [JavaClassWrapper]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [JavaClassWrapper.methods]
@@ -18118,7 +17759,6 @@ permissions = "INHERIT" #
 #############################
 
 [JavaScriptBridge]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [JavaScriptBridge.methods]
@@ -18150,7 +17790,6 @@ permissions = "INHERIT" #
 #############################
 
 [JavaScriptObject]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [JavaScriptObject.methods]
@@ -18158,7 +17797,6 @@ default_permissions = "BASE" #
 #############################
 
 [Joint2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Joint2D.methods]
@@ -18193,7 +17831,6 @@ permissions = "INHERIT" #
 #############################
 
 [Joint3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [Joint3D.methods]
@@ -18228,7 +17865,6 @@ permissions = "INHERIT" #
 #############################
 
 [KinematicCollision2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [KinematicCollision2D.methods]
@@ -18275,7 +17911,6 @@ permissions = "INHERIT" #
 #############################
 
 [KinematicCollision3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [KinematicCollision3D.methods]
@@ -18325,7 +17960,6 @@ permissions = "INHERIT" #
 #############################
 
 [Label]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [Label.methods]
@@ -18468,7 +18102,6 @@ permissions = "INHERIT" #
 #############################
 
 [Label3D]
-inherits = "GeometryInstance3D"
 default_permissions = "BASE" #
 
 [Label3D.methods]
@@ -18653,7 +18286,6 @@ permissions = "INHERIT" #
 #############################
 
 [LabelSettings]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [LabelSettings.methods]
@@ -18715,7 +18347,6 @@ permissions = "INHERIT" #
 #############################
 
 [Light2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Light2D.methods]
@@ -18819,7 +18450,6 @@ permissions = "INHERIT" #
 #############################
 
 [Light3D]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [Light3D.methods]
@@ -18914,7 +18544,6 @@ permissions = "INHERIT" #
 #############################
 
 [LightOccluder2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [LightOccluder2D.methods]
@@ -18940,7 +18569,6 @@ permissions = "INHERIT" #
 #############################
 
 [LightmapGI]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [LightmapGI.methods]
@@ -19062,7 +18690,6 @@ permissions = "INHERIT" #
 #############################
 
 [LightmapGIData]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [LightmapGIData.methods]
@@ -19100,7 +18727,6 @@ permissions = "INHERIT" #
 #############################
 
 [LightmapProbe]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [LightmapProbe.methods]
@@ -19108,7 +18734,6 @@ default_permissions = "BASE" #
 #############################
 
 [Lightmapper]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Lightmapper.methods]
@@ -19116,7 +18741,6 @@ default_permissions = "BASE" #
 #############################
 
 [LightmapperRD]
-inherits = "Lightmapper"
 default_permissions = "BASE" #
 
 [LightmapperRD.methods]
@@ -19124,7 +18748,6 @@ default_permissions = "BASE" #
 #############################
 
 [Line2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Line2D.methods]
@@ -19234,7 +18857,6 @@ permissions = "INHERIT" #
 #############################
 
 [LineEdit]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [LineEdit.methods]
@@ -19467,7 +19089,6 @@ permissions = "INHERIT" #
 #############################
 
 [LinkButton]
-inherits = "BaseButton"
 default_permissions = "BASE" #
 
 [LinkButton.methods]
@@ -19517,7 +19138,6 @@ permissions = "INHERIT" #
 #############################
 
 [MainLoop]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [MainLoop.methods]
@@ -19525,7 +19145,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [MarginContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [MarginContainer.methods]
@@ -19533,7 +19152,6 @@ default_permissions = "BASE" #
 #############################
 
 [Marker2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Marker2D.methods]
@@ -19547,7 +19165,6 @@ permissions = "INHERIT" #
 #############################
 
 [Marker3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [Marker3D.methods]
@@ -19561,7 +19178,6 @@ permissions = "INHERIT" #
 #############################
 
 [Marshalls]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [Marshalls.methods]
@@ -19587,7 +19203,6 @@ permissions = "INHERIT" #
 #############################
 
 [Material]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Material.methods]
@@ -19613,7 +19228,6 @@ permissions = "INHERIT" #
 #############################
 
 [MenuBar]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [MenuBar.methods]
@@ -19693,7 +19307,6 @@ permissions = "INHERIT" #
 #############################
 
 [MenuButton]
-inherits = "Button"
 default_permissions = "BASE" #
 
 [MenuButton.methods]
@@ -19722,7 +19335,6 @@ permissions = "INHERIT" #
 #############################
 
 [Mesh]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Mesh.methods]
@@ -19772,7 +19384,6 @@ permissions = "INHERIT" #
 #############################
 
 [MeshConvexDecompositionSettings]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [MeshConvexDecompositionSettings.methods]
@@ -19858,7 +19469,6 @@ permissions = "INHERIT" #
 #############################
 
 [MeshDataTool]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [MeshDataTool.methods]
@@ -19980,7 +19590,6 @@ permissions = "INHERIT" #
 #############################
 
 [MeshInstance2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [MeshInstance2D.methods]
@@ -20000,7 +19609,6 @@ permissions = "INHERIT" #
 #############################
 
 [MeshInstance3D]
-inherits = "GeometryInstance3D"
 default_permissions = "BASE" #
 
 [MeshInstance3D.methods]
@@ -20068,7 +19676,6 @@ permissions = "INHERIT" #
 #############################
 
 [MeshLibrary]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [MeshLibrary.methods]
@@ -20142,7 +19749,6 @@ permissions = "INHERIT" #
 #############################
 
 [MeshTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [MeshTexture.methods]
@@ -20168,7 +19774,6 @@ permissions = "INHERIT" #
 #############################
 
 [MethodTweener]
-inherits = "Tweener"
 default_permissions = "BASE" #
 
 [MethodTweener.methods]
@@ -20185,7 +19790,6 @@ permissions = "INHERIT" #
 #############################
 
 [MissingNode]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [MissingNode.methods]
@@ -20211,7 +19815,6 @@ permissions = "INHERIT" #
 #############################
 
 [MissingResource]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [MissingResource.methods]
@@ -20231,7 +19834,6 @@ permissions = "INHERIT" #
 #############################
 
 [MobileVRInterface]
-inherits = "XRInterface"
 default_permissions = "BASE" #
 
 [MobileVRInterface.methods]
@@ -20299,7 +19901,6 @@ permissions = "INHERIT" #
 #############################
 
 [MovieWriter]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [MovieWriter.methods]
@@ -20310,7 +19911,6 @@ permissions = "INHERIT" #
 #############################
 
 [MultiMesh]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [MultiMesh.methods]
@@ -20393,7 +19993,6 @@ permissions = "INHERIT" #
 #############################
 
 [MultiMeshInstance2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [MultiMeshInstance2D.methods]
@@ -20413,7 +20012,6 @@ permissions = "INHERIT" #
 #############################
 
 [MultiMeshInstance3D]
-inherits = "GeometryInstance3D"
 default_permissions = "BASE" #
 
 [MultiMeshInstance3D.methods]
@@ -20427,7 +20025,6 @@ permissions = "INHERIT" #
 #############################
 
 [MultiplayerAPI]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [MultiplayerAPI.methods]
@@ -20477,7 +20074,6 @@ permissions = "INHERIT" #
 #############################
 
 [MultiplayerAPIExtension]
-inherits = "MultiplayerAPI"
 default_permissions = "BASE" #
 
 [MultiplayerAPIExtension.methods]
@@ -20485,7 +20081,6 @@ default_permissions = "BASE" #
 #############################
 
 [MultiplayerPeer]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [MultiplayerPeer.methods]
@@ -20544,7 +20139,6 @@ permissions = "INHERIT" #
 #############################
 
 [MultiplayerPeerExtension]
-inherits = "MultiplayerPeer"
 default_permissions = "BASE" #
 
 [MultiplayerPeerExtension.methods]
@@ -20552,7 +20146,6 @@ default_permissions = "BASE" #
 #############################
 
 [MultiplayerSpawner]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [MultiplayerSpawner.methods]
@@ -20593,7 +20186,6 @@ permissions = "INHERIT" #
 #############################
 
 [MultiplayerSynchronizer]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [MultiplayerSynchronizer.methods]
@@ -20652,7 +20244,6 @@ permissions = "INHERIT" #
 #############################
 
 [Mutex]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Mutex.methods]
@@ -20669,7 +20260,6 @@ permissions = "INHERIT" #
 #############################
 
 [NativeMenu]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [NativeMenu.methods]
@@ -20875,7 +20465,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationAgent2D]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [NavigationAgent2D.methods]
@@ -21096,7 +20685,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationAgent3D]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [NavigationAgent3D.methods]
@@ -21335,7 +20923,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationLink2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [NavigationLink2D.methods]
@@ -21406,7 +20993,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationLink3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [NavigationLink3D.methods]
@@ -21477,7 +21063,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationMesh]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [NavigationMesh.methods]
@@ -21659,7 +21244,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationMeshGenerator]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [NavigationMeshGenerator.methods]
@@ -21679,7 +21263,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationMeshSourceGeometryData2D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [NavigationMeshSourceGeometryData2D.methods]
@@ -21732,7 +21315,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationMeshSourceGeometryData3D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [NavigationMeshSourceGeometryData3D.methods]
@@ -21785,7 +21367,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationObstacle2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [NavigationObstacle2D.methods]
@@ -21850,7 +21431,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationObstacle3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [NavigationObstacle3D.methods]
@@ -21927,7 +21507,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationPathQueryParameters2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [NavigationPathQueryParameters2D.methods]
@@ -21989,7 +21568,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationPathQueryParameters3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [NavigationPathQueryParameters3D.methods]
@@ -22051,7 +21629,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationPathQueryResult2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [NavigationPathQueryResult2D.methods]
@@ -22086,7 +21663,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationPathQueryResult3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [NavigationPathQueryResult3D.methods]
@@ -22121,7 +21697,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationPolygon]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [NavigationPolygon.methods]
@@ -22237,7 +21812,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationRegion2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [NavigationRegion2D.methods]
@@ -22305,7 +21879,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationRegion3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [NavigationRegion3D.methods]
@@ -22373,7 +21946,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationServer2D]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [NavigationServer2D.methods]
@@ -22756,7 +22328,6 @@ permissions = "INHERIT" #
 #############################
 
 [NavigationServer3D]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [NavigationServer3D.methods]
@@ -23196,7 +22767,6 @@ permissions = "INHERIT" #
 #############################
 
 [NinePatchRect]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [NinePatchRect.methods]
@@ -23240,7 +22810,6 @@ permissions = "INHERIT" #
 #############################
 
 [Node]
-inherits = "Object"
 default_permissions = "BASE" #
 
 [Node.methods]
@@ -23593,7 +23162,6 @@ permissions = "INHERIT" #
 #############################
 
 [Node2D]
-inherits = "CanvasItem"
 default_permissions = "BASE" #
 
 [Node2D.methods]
@@ -23700,7 +23268,6 @@ permissions = "INHERIT" #
 #############################
 
 [Node3D]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [Node3D.methods]
@@ -23918,7 +23485,6 @@ permissions = "INHERIT" #
 #############################
 
 [Node3DGizmo]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Node3DGizmo.methods]
@@ -23926,7 +23492,6 @@ default_permissions = "BASE" #
 #############################
 
 [Noise]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Noise.methods]
@@ -23961,7 +23526,6 @@ permissions = "INHERIT" #
 #############################
 
 [NoiseTexture2D]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [NoiseTexture2D.methods]
@@ -24035,7 +23599,6 @@ permissions = "INHERIT" #
 #############################
 
 [NoiseTexture3D]
-inherits = "Texture3D"
 default_permissions = "BASE" #
 
 [NoiseTexture3D.methods]
@@ -24088,7 +23651,6 @@ permissions = "INHERIT" #
 #############################
 
 [ORMMaterial3D]
-inherits = "BaseMaterial3D"
 default_permissions = "BASE" #
 
 [ORMMaterial3D.methods]
@@ -24097,7 +23659,6 @@ default_permissions = "BASE" #
 
 [OS]
 #* CORRECT: 4.0-beta13
-inherits = "Object"
 default_permissions = "OS"
 
 [OS.methods]
@@ -24464,7 +24025,6 @@ permissions = "BASE"
 #############################
 
 [Occluder3D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Occluder3D.methods]
@@ -24478,7 +24038,6 @@ permissions = "INHERIT" #
 #############################
 
 [OccluderInstance3D]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [OccluderInstance3D.methods]
@@ -24510,7 +24069,6 @@ permissions = "INHERIT" #
 #############################
 
 [OccluderPolygon2D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [OccluderPolygon2D.methods]
@@ -24536,7 +24094,6 @@ permissions = "INHERIT" #
 #############################
 
 [OfflineMultiplayerPeer]
-inherits = "MultiplayerPeer"
 default_permissions = "BASE" #
 
 [OfflineMultiplayerPeer.methods]
@@ -24544,7 +24101,6 @@ default_permissions = "BASE" #
 #############################
 
 [OggPacketSequence]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [OggPacketSequence.methods]
@@ -24573,7 +24129,6 @@ permissions = "INHERIT" #
 #############################
 
 [OggPacketSequencePlayback]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [OggPacketSequencePlayback.methods]
@@ -24581,7 +24136,6 @@ default_permissions = "BASE" #
 #############################
 
 [OmniLight3D]
-inherits = "Light3D"
 default_permissions = "BASE" #
 
 [OmniLight3D.methods]
@@ -24595,7 +24149,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRAPIExtension]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [OpenXRAPIExtension.methods]
@@ -24660,7 +24213,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRAction]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [OpenXRAction.methods]
@@ -24686,7 +24238,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRActionMap]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [OpenXRActionMap.methods]
@@ -24739,7 +24290,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRActionSet]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [OpenXRActionSet.methods]
@@ -24774,7 +24324,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRCompositionLayer]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [OpenXRCompositionLayer.methods]
@@ -24812,7 +24361,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRCompositionLayerCylinder]
-inherits = "OpenXRCompositionLayer"
 default_permissions = "BASE" #
 
 [OpenXRCompositionLayerCylinder.methods]
@@ -24844,7 +24392,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRCompositionLayerEquirect]
-inherits = "OpenXRCompositionLayer"
 default_permissions = "BASE" #
 
 [OpenXRCompositionLayerEquirect.methods]
@@ -24882,7 +24429,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRCompositionLayerQuad]
-inherits = "OpenXRCompositionLayer"
 default_permissions = "BASE" #
 
 [OpenXRCompositionLayerQuad.methods]
@@ -24896,7 +24442,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRExtensionWrapperExtension]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [OpenXRExtensionWrapperExtension.methods]
@@ -24910,7 +24455,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRHand]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [OpenXRHand.methods]
@@ -24948,7 +24492,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRIPBinding]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [OpenXRIPBinding.methods]
@@ -24980,7 +24523,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRInteractionProfile]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [OpenXRInteractionProfile.methods]
@@ -25006,7 +24548,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRInteractionProfileMetadata]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [OpenXRInteractionProfileMetadata.methods]
@@ -25026,7 +24567,6 @@ permissions = "INHERIT" #
 #############################
 
 [OpenXRInterface]
-inherits = "XRInterface"
 default_permissions = "BASE" #
 
 [OpenXRInterface.methods]
@@ -25121,7 +24661,6 @@ permissions = "INHERIT" #
 #############################
 
 [OptimizedTranslation]
-inherits = "Translation"
 default_permissions = "BASE" #
 
 [OptimizedTranslation.methods]
@@ -25132,7 +24671,6 @@ permissions = "INHERIT" #
 #############################
 
 [OptionButton]
-inherits = "Button"
 default_permissions = "BASE" #
 
 [OptionButton.methods]
@@ -25242,7 +24780,6 @@ permissions = "INHERIT" #
 #############################
 
 [PCKPacker]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PCKPacker.methods]
@@ -25259,7 +24796,6 @@ permissions = "INHERIT" #
 #############################
 
 [PackedDataContainer]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [PackedDataContainer.methods]
@@ -25273,7 +24809,6 @@ permissions = "INHERIT" #
 #############################
 
 [PackedDataContainerRef]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PackedDataContainerRef.methods]
@@ -25284,7 +24819,6 @@ permissions = "INHERIT" #
 #############################
 
 [PackedScene]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [PackedScene.methods]
@@ -25304,7 +24838,6 @@ permissions = "INHERIT" #
 #############################
 
 [PacketPeer]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PacketPeer.methods]
@@ -25336,7 +24869,6 @@ permissions = "INHERIT" #
 #############################
 
 [PacketPeerDTLS]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [PacketPeerDTLS.methods]
@@ -25356,7 +24888,6 @@ permissions = "INHERIT" #
 #############################
 
 [PacketPeerExtension]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [PacketPeerExtension.methods]
@@ -25364,7 +24895,6 @@ default_permissions = "BASE" #
 #############################
 
 [PacketPeerStream]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [PacketPeerStream.methods]
@@ -25390,7 +24920,6 @@ permissions = "INHERIT" #
 #############################
 
 [PacketPeerUDP]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [PacketPeerUDP.methods]
@@ -25437,7 +24966,6 @@ permissions = "INHERIT" #
 #############################
 
 [Panel]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [Panel.methods]
@@ -25445,7 +24973,6 @@ default_permissions = "BASE" #
 #############################
 
 [PanelContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [PanelContainer.methods]
@@ -25453,7 +24980,6 @@ default_permissions = "BASE" #
 #############################
 
 [PanoramaSkyMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [PanoramaSkyMaterial.methods]
@@ -25479,7 +25005,6 @@ permissions = "INHERIT" #
 #############################
 
 [Parallax2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Parallax2D.methods]
@@ -25547,7 +25072,6 @@ permissions = "INHERIT" #
 #############################
 
 [ParallaxBackground]
-inherits = "CanvasLayer"
 default_permissions = "BASE" #
 
 [ParallaxBackground.methods]
@@ -25591,7 +25115,6 @@ permissions = "INHERIT" #
 #############################
 
 [ParallaxLayer]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [ParallaxLayer.methods]
@@ -25617,7 +25140,6 @@ permissions = "INHERIT" #
 #############################
 
 [ParticleProcessMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [ParticleProcessMaterial.methods]
@@ -25901,7 +25423,6 @@ permissions = "INHERIT" #
 #############################
 
 [Path2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Path2D.methods]
@@ -25915,7 +25436,6 @@ permissions = "INHERIT" #
 #############################
 
 [Path3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [Path3D.methods]
@@ -25929,7 +25449,6 @@ permissions = "INHERIT" #
 #############################
 
 [PathFollow2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [PathFollow2D.methods]
@@ -25979,7 +25498,6 @@ permissions = "INHERIT" #
 #############################
 
 [PathFollow3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [PathFollow3D.methods]
@@ -26044,7 +25562,6 @@ permissions = "INHERIT" #
 #############################
 
 [Performance]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [Performance.methods]
@@ -26073,7 +25590,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicalBone2D]
-inherits = "RigidBody2D"
 default_permissions = "BASE" #
 
 [PhysicalBone2D.methods]
@@ -26117,7 +25633,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicalBone3D]
-inherits = "PhysicsBody3D"
 default_permissions = "BASE" #
 
 [PhysicalBone3D.methods]
@@ -26236,7 +25751,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicalBoneSimulator3D]
-inherits = "SkeletonModifier3D"
 default_permissions = "BASE" #
 
 [PhysicalBoneSimulator3D.methods]
@@ -26259,7 +25773,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicalSkyMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [PhysicalSkyMaterial.methods]
@@ -26333,7 +25846,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsBody2D]
-inherits = "CollisionObject2D"
 default_permissions = "BASE" #
 
 [PhysicsBody2D.methods]
@@ -26359,7 +25871,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsBody3D]
-inherits = "CollisionObject3D"
 default_permissions = "BASE" #
 
 [PhysicsBody3D.methods]
@@ -26391,7 +25902,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsDirectBodyState2D]
-inherits = "Object"
 default_permissions = "BASE"
 
 [PhysicsDirectBodyState2D.methods]
@@ -26531,7 +26041,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsDirectBodyState2DExtension]
-inherits = "PhysicsDirectBodyState2D"
 default_permissions = "INTERNAL" #
 
 [PhysicsDirectBodyState2DExtension.methods]
@@ -26539,7 +26048,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [PhysicsDirectBodyState3D]
-inherits = "Object"
 default_permissions = "BASE"
 
 [PhysicsDirectBodyState3D.methods]
@@ -26685,7 +26193,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsDirectBodyState3DExtension]
-inherits = "PhysicsDirectBodyState3D"
 default_permissions = "INTERNAL" #
 
 [PhysicsDirectBodyState3DExtension.methods]
@@ -26694,7 +26201,6 @@ default_permissions = "INTERNAL" #
 
 [PhysicsDirectSpaceState2D]
 #* SAFE: 4.0-beta17
-inherits = "Object"
 default_permissions = "BASE"
 
 [PhysicsDirectSpaceState2D.methods]
@@ -26720,7 +26226,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsDirectSpaceState2DExtension]
-inherits = "PhysicsDirectSpaceState2D"
 default_permissions = "INTERNAL" #
 
 [PhysicsDirectSpaceState2DExtension.methods]
@@ -26732,7 +26237,6 @@ permissions = "INHERIT" #
 
 [PhysicsDirectSpaceState3D]
 #* SAFE: 4.0-beta17
-inherits = "Object"
 default_permissions = "BASE"
 
 [PhysicsDirectSpaceState3D.methods]
@@ -26758,7 +26262,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsDirectSpaceState3DExtension]
-inherits = "PhysicsDirectSpaceState3D"
 default_permissions = "INTERNAL" #
 
 [PhysicsDirectSpaceState3DExtension.methods]
@@ -26769,7 +26272,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsMaterial]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [PhysicsMaterial.methods]
@@ -26801,7 +26303,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsPointQueryParameters2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsPointQueryParameters2D.methods]
@@ -26845,7 +26346,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsPointQueryParameters3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsPointQueryParameters3D.methods]
@@ -26883,7 +26383,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsRayQueryParameters2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsRayQueryParameters2D.methods]
@@ -26936,7 +26435,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsRayQueryParameters3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsRayQueryParameters3D.methods]
@@ -26995,7 +26493,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsServer2D]
-inherits = "Object"
 default_permissions = "BASE"
 
 [PhysicsServer2D.methods]
@@ -27360,7 +26857,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsServer2DExtension]
-inherits = "PhysicsServer2D"
 default_permissions = "INTERNAL" #
 
 [PhysicsServer2DExtension.methods]
@@ -27374,7 +26870,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsServer2DManager]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [PhysicsServer2DManager.methods]
@@ -27388,7 +26883,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsServer3D]
-inherits = "Object"
 default_permissions = "BASE"
 
 [PhysicsServer3D.methods]
@@ -27903,7 +27397,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsServer3DExtension]
-inherits = "PhysicsServer3D"
 default_permissions = "INTERNAL" #
 
 [PhysicsServer3DExtension.methods]
@@ -27917,7 +27410,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsServer3DManager]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [PhysicsServer3DManager.methods]
@@ -27931,7 +27423,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsServer3DRenderingServerHandler]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [PhysicsServer3DRenderingServerHandler.methods]
@@ -27948,7 +27439,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsShapeQueryParameters2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsShapeQueryParameters2D.methods]
@@ -28010,7 +27500,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsShapeQueryParameters3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsShapeQueryParameters3D.methods]
@@ -28072,7 +27561,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsTestMotionParameters2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsTestMotionParameters2D.methods]
@@ -28122,7 +27610,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsTestMotionParameters3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsTestMotionParameters3D.methods]
@@ -28178,7 +27665,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsTestMotionResult2D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsTestMotionResult2D.methods]
@@ -28225,7 +27711,6 @@ permissions = "INHERIT" #
 #############################
 
 [PhysicsTestMotionResult3D]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [PhysicsTestMotionResult3D.methods]
@@ -28275,7 +27760,6 @@ permissions = "INHERIT" #
 #############################
 
 [PinJoint2D]
-inherits = "Joint2D"
 default_permissions = "BASE" #
 
 [PinJoint2D.methods]
@@ -28319,7 +27803,6 @@ permissions = "INHERIT" #
 #############################
 
 [PinJoint3D]
-inherits = "Joint3D"
 default_permissions = "BASE" #
 
 [PinJoint3D.methods]
@@ -28333,7 +27816,6 @@ permissions = "INHERIT" #
 #############################
 
 [PlaceholderCubemap]
-inherits = "PlaceholderTextureLayered"
 default_permissions = "BASE" #
 
 [PlaceholderCubemap.methods]
@@ -28341,7 +27823,6 @@ default_permissions = "BASE" #
 #############################
 
 [PlaceholderCubemapArray]
-inherits = "PlaceholderTextureLayered"
 default_permissions = "BASE" #
 
 [PlaceholderCubemapArray.methods]
@@ -28349,7 +27830,6 @@ default_permissions = "BASE" #
 #############################
 
 [PlaceholderMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [PlaceholderMaterial.methods]
@@ -28357,7 +27837,6 @@ default_permissions = "BASE" #
 #############################
 
 [PlaceholderMesh]
-inherits = "Mesh"
 default_permissions = "BASE" #
 
 [PlaceholderMesh.methods]
@@ -28368,7 +27847,6 @@ permissions = "INHERIT" #
 #############################
 
 [PlaceholderTexture2D]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [PlaceholderTexture2D.methods]
@@ -28379,7 +27857,6 @@ permissions = "INHERIT" #
 #############################
 
 [PlaceholderTexture2DArray]
-inherits = "PlaceholderTextureLayered"
 default_permissions = "BASE" #
 
 [PlaceholderTexture2DArray.methods]
@@ -28387,7 +27864,6 @@ default_permissions = "BASE" #
 #############################
 
 [PlaceholderTexture3D]
-inherits = "Texture3D"
 default_permissions = "BASE" #
 
 [PlaceholderTexture3D.methods]
@@ -28401,7 +27877,6 @@ permissions = "INHERIT" #
 #############################
 
 [PlaceholderTextureLayered]
-inherits = "TextureLayered"
 default_permissions = "BASE" #
 
 [PlaceholderTextureLayered.methods]
@@ -28418,7 +27893,6 @@ permissions = "INHERIT" #
 #############################
 
 [PlaneMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [PlaneMesh.methods]
@@ -28456,7 +27930,6 @@ permissions = "INHERIT" #
 #############################
 
 [PointLight2D]
-inherits = "Light2D"
 default_permissions = "BASE" #
 
 [PointLight2D.methods]
@@ -28482,7 +27955,6 @@ permissions = "INHERIT" #
 #############################
 
 [PointMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [PointMesh.methods]
@@ -28490,7 +27962,6 @@ default_permissions = "BASE" #
 #############################
 
 [Polygon2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Polygon2D.methods]
@@ -28612,7 +28083,6 @@ permissions = "INHERIT" #
 #############################
 
 [PolygonOccluder3D]
-inherits = "Occluder3D"
 default_permissions = "BASE" #
 
 [PolygonOccluder3D.methods]
@@ -28626,7 +28096,6 @@ permissions = "INHERIT" #
 #############################
 
 [PolygonPathFinder]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [PolygonPathFinder.methods]
@@ -28658,7 +28127,6 @@ permissions = "INHERIT" #
 #############################
 
 [Popup]
-inherits = "Window"
 default_permissions = "BASE" #
 
 [Popup.methods]
@@ -28666,7 +28134,6 @@ default_permissions = "BASE" #
 #############################
 
 [PopupMenu]
-inherits = "Popup"
 default_permissions = "BASE" #
 
 [PopupMenu.methods]
@@ -28935,7 +28402,6 @@ permissions = "INHERIT" #
 #############################
 
 [PopupPanel]
-inherits = "Popup"
 default_permissions = "BASE" #
 
 [PopupPanel.methods]
@@ -28943,7 +28409,6 @@ default_permissions = "BASE" #
 #############################
 
 [PortableCompressedTexture2D]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [PortableCompressedTexture2D.methods]
@@ -28978,7 +28443,6 @@ permissions = "INHERIT" #
 #############################
 
 [PrimitiveMesh]
-inherits = "Mesh"
 default_permissions = "BASE" #
 
 [PrimitiveMesh.methods]
@@ -29022,7 +28486,6 @@ permissions = "INHERIT" #
 #############################
 
 [PrismMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [PrismMesh.methods]
@@ -29060,7 +28523,6 @@ permissions = "INHERIT" #
 #############################
 
 [ProceduralSkyMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [ProceduralSkyMaterial.methods]
@@ -29152,7 +28614,6 @@ permissions = "INHERIT" #
 #############################
 
 [ProgressBar]
-inherits = "Range"
 default_permissions = "BASE" #
 
 [ProgressBar.methods]
@@ -29184,7 +28645,6 @@ permissions = "INHERIT" #
 #############################
 
 [ProjectSettings]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [ProjectSettings.methods]
@@ -29246,7 +28706,6 @@ permissions = "INHERIT" #
 #############################
 
 [PropertyTweener]
-inherits = "Tweener"
 default_permissions = "BASE" #
 
 [PropertyTweener.methods]
@@ -29275,7 +28734,6 @@ permissions = "INHERIT" #
 #############################
 
 [QuadMesh]
-inherits = "PlaneMesh"
 default_permissions = "BASE" #
 
 [QuadMesh.methods]
@@ -29283,7 +28741,6 @@ default_permissions = "BASE" #
 #############################
 
 [QuadOccluder3D]
-inherits = "Occluder3D"
 default_permissions = "BASE" #
 
 [QuadOccluder3D.methods]
@@ -29297,7 +28754,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDAttachmentFormat]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDAttachmentFormat.methods]
@@ -29323,7 +28779,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDFramebufferPass]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDFramebufferPass.methods]
@@ -29361,7 +28816,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDPipelineColorBlendState]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDPipelineColorBlendState.methods]
@@ -29393,7 +28847,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDPipelineColorBlendStateAttachment]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDPipelineColorBlendStateAttachment.methods]
@@ -29470,7 +28923,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDPipelineDepthStencilState]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDPipelineDepthStencilState.methods]
@@ -29604,7 +29056,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDPipelineMultisampleState]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDPipelineMultisampleState.methods]
@@ -29648,7 +29099,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDPipelineRasterizationState]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDPipelineRasterizationState.methods]
@@ -29722,7 +29172,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDPipelineSpecializationConstant]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDPipelineSpecializationConstant.methods]
@@ -29742,7 +29191,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDSamplerState]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDSamplerState.methods]
@@ -29840,7 +29288,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDShaderFile]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [RDShaderFile.methods]
@@ -29863,7 +29310,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDShaderSPIRV]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [RDShaderSPIRV.methods]
@@ -29883,7 +29329,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDShaderSource]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDShaderSource.methods]
@@ -29903,7 +29348,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDTextureFormat]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDTextureFormat.methods]
@@ -29971,7 +29415,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDTextureView]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDTextureView.methods]
@@ -30009,7 +29452,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDUniform]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDUniform.methods]
@@ -30038,7 +29480,6 @@ permissions = "INHERIT" #
 #############################
 
 [RDVertexAttribute]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RDVertexAttribute.methods]
@@ -30076,7 +29517,6 @@ permissions = "INHERIT" #
 #############################
 
 [RandomNumberGenerator]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RandomNumberGenerator.methods]
@@ -30117,7 +29557,6 @@ permissions = "INHERIT" #
 #############################
 
 [Range]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [Range.methods]
@@ -30194,7 +29633,6 @@ permissions = "INHERIT" #
 #############################
 
 [RayCast2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [RayCast2D.methods]
@@ -30286,7 +29724,6 @@ permissions = "INHERIT" #
 #############################
 
 [RayCast3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [RayCast3D.methods]
@@ -30399,7 +29836,6 @@ permissions = "INHERIT" #
 #############################
 
 [RectangleShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [RectangleShape2D.methods]
@@ -30413,7 +29849,6 @@ permissions = "INHERIT" #
 #############################
 
 [RefCounted]
-inherits = "Object"
 default_permissions = "BASE" #
 
 [RefCounted.methods]
@@ -30433,7 +29868,6 @@ permissions = "INHERIT" #
 #############################
 
 [ReferenceRect]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [ReferenceRect.methods]
@@ -30459,7 +29893,6 @@ permissions = "INHERIT" #
 #############################
 
 [ReflectionProbe]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [ReflectionProbe.methods]
@@ -30551,7 +29984,6 @@ permissions = "INHERIT" #
 #############################
 
 [RegEx]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RegEx.methods]
@@ -30589,7 +30021,6 @@ permissions = "INHERIT" #
 #############################
 
 [RegExMatch]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RegExMatch.methods]
@@ -30618,7 +30049,6 @@ permissions = "INHERIT" #
 #############################
 
 [RemoteTransform2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [RemoteTransform2D.methods]
@@ -30659,7 +30089,6 @@ permissions = "INHERIT" #
 #############################
 
 [RemoteTransform3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [RemoteTransform3D.methods]
@@ -30700,7 +30129,6 @@ permissions = "INHERIT" #
 #############################
 
 [RenderData]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [RenderData.methods]
@@ -30720,7 +30148,6 @@ permissions = "INHERIT" #
 #############################
 
 [RenderDataExtension]
-inherits = "RenderData"
 default_permissions = "INTERNAL" #
 
 [RenderDataExtension.methods]
@@ -30728,7 +30155,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [RenderDataRD]
-inherits = "RenderData"
 default_permissions = "INTERNAL" #
 
 [RenderDataRD.methods]
@@ -30736,7 +30162,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [RenderSceneBuffers]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RenderSceneBuffers.methods]
@@ -30747,7 +30172,6 @@ permissions = "INHERIT" #
 #############################
 
 [RenderSceneBuffersConfiguration]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [RenderSceneBuffersConfiguration.methods]
@@ -30809,7 +30233,6 @@ permissions = "INHERIT" #
 #############################
 
 [RenderSceneBuffersExtension]
-inherits = "RenderSceneBuffers"
 default_permissions = "BASE" #
 
 [RenderSceneBuffersExtension.methods]
@@ -30817,7 +30240,6 @@ default_permissions = "BASE" #
 #############################
 
 [RenderSceneBuffersRD]
-inherits = "RenderSceneBuffers"
 default_permissions = "BASE" #
 
 [RenderSceneBuffersRD.methods]
@@ -30906,7 +30328,6 @@ permissions = "INHERIT" #
 #############################
 
 [RenderSceneData]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [RenderSceneData.methods]
@@ -30932,7 +30353,6 @@ permissions = "INHERIT" #
 #############################
 
 [RenderSceneDataExtension]
-inherits = "RenderSceneData"
 default_permissions = "INTERNAL" #
 
 [RenderSceneDataExtension.methods]
@@ -30940,7 +30360,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [RenderSceneDataRD]
-inherits = "RenderSceneData"
 default_permissions = "INTERNAL" #
 
 [RenderSceneDataRD.methods]
@@ -30948,7 +30367,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [RenderingDevice]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [RenderingDevice.methods]
@@ -31250,7 +30668,6 @@ permissions = "INHERIT" #
 #############################
 
 [RenderingServer]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [RenderingServer.methods]
@@ -32740,7 +32157,6 @@ permissions = "INHERIT" #
 #############################
 
 [Resource]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Resource.methods]
@@ -32793,7 +32209,6 @@ permissions = "INHERIT" #
 #############################
 
 [ResourceFormatLoader]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ResourceFormatLoader.methods]
@@ -32801,7 +32216,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceFormatSaver]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ResourceFormatSaver.methods]
@@ -32809,7 +32223,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporter]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ResourceImporter.methods]
@@ -32817,7 +32230,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterBMFont]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterBMFont.methods]
@@ -32825,7 +32237,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterBitMap]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterBitMap.methods]
@@ -32833,7 +32244,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterCSVTranslation]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterCSVTranslation.methods]
@@ -32841,7 +32251,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterDynamicFont]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterDynamicFont.methods]
@@ -32849,7 +32258,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterImage]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterImage.methods]
@@ -32857,7 +32265,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterImageFont]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterImageFont.methods]
@@ -32865,7 +32272,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterLayeredTexture]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterLayeredTexture.methods]
@@ -32873,7 +32279,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterMP3]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterMP3.methods]
@@ -32881,7 +32286,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterOBJ]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterOBJ.methods]
@@ -32889,7 +32293,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterOggVorbis]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterOggVorbis.methods]
@@ -32903,7 +32306,6 @@ permissions = "INHERIT" #
 #############################
 
 [ResourceImporterScene]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterScene.methods]
@@ -32911,7 +32313,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterShaderFile]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterShaderFile.methods]
@@ -32919,7 +32320,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterTexture]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterTexture.methods]
@@ -32927,7 +32327,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterTextureAtlas]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterTextureAtlas.methods]
@@ -32935,7 +32334,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceImporterWAV]
-inherits = "ResourceImporter"
 default_permissions = "BASE" #
 
 [ResourceImporterWAV.methods]
@@ -32943,7 +32341,6 @@ default_permissions = "BASE" #
 #############################
 
 [ResourceLoader]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [ResourceLoader.methods]
@@ -32987,7 +32384,6 @@ permissions = "INHERIT" #
 #############################
 
 [ResourcePreloader]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [ResourcePreloader.methods]
@@ -33013,7 +32409,6 @@ permissions = "INHERIT" #
 #############################
 
 [ResourceSaver]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [ResourceSaver.methods]
@@ -33033,7 +32428,6 @@ permissions = "INHERIT" #
 #############################
 
 [ResourceUID]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [ResourceUID.methods]
@@ -33065,7 +32459,6 @@ permissions = "INHERIT" #
 #############################
 
 [RibbonTrailMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [RibbonTrailMesh.methods]
@@ -33109,7 +32502,6 @@ permissions = "INHERIT" #
 #############################
 
 [RichTextEffect]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [RichTextEffect.methods]
@@ -33117,7 +32509,6 @@ default_permissions = "BASE" #
 #############################
 
 [RichTextLabel]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [RichTextLabel.methods]
@@ -33476,7 +32867,6 @@ permissions = "INHERIT" #
 #############################
 
 [RigidBody2D]
-inherits = "PhysicsBody2D"
 default_permissions = "BASE" #
 
 [RigidBody2D.methods]
@@ -33658,7 +33048,6 @@ permissions = "INHERIT" #
 #############################
 
 [RigidBody3D]
-inherits = "PhysicsBody3D"
 default_permissions = "BASE" #
 
 [RigidBody3D.methods]
@@ -33843,7 +33232,6 @@ permissions = "INHERIT" #
 #############################
 
 [RootMotionView]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [RootMotionView.methods]
@@ -33881,7 +33269,6 @@ permissions = "INHERIT" #
 #############################
 
 [SceneMultiplayer]
-inherits = "MultiplayerAPI"
 default_permissions = "BASE" #
 
 [SceneMultiplayer.methods]
@@ -33955,7 +33342,6 @@ permissions = "INHERIT" #
 #############################
 
 [SceneReplicationConfig]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [SceneReplicationConfig.methods]
@@ -34002,7 +33388,6 @@ permissions = "INHERIT" #
 #############################
 
 [SceneState]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [SceneState.methods]
@@ -34074,7 +33459,6 @@ permissions = "INHERIT" #
 
 [SceneTree]
 #* CORRECT: 4.0-stable
-inherits = "MainLoop"
 default_permissions = "INTERNAL" #
 
 [SceneTree.methods]
@@ -34215,7 +33599,6 @@ permissions = "INHERIT" #
 #############################
 
 [SceneTreeTimer]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [SceneTreeTimer.methods]
@@ -34230,7 +33613,6 @@ permissions = "INHERIT" #
 
 [Script]
 # Prevent users from changing source code and reloading, etc.
-inherits = "Resource"
 default_permissions = "INTERNAL"
 
 [Script.methods]
@@ -34289,7 +33671,6 @@ permissions = "INHERIT" #
 #############################
 
 [ScriptCreateDialog]
-inherits = "ConfirmationDialog"
 default_permissions = "BASE" #
 
 [ScriptCreateDialog.methods]
@@ -34300,7 +33681,6 @@ permissions = "INHERIT" #
 #############################
 
 [ScriptEditor]
-inherits = "PanelContainer"
 default_permissions = "BASE" #
 
 [ScriptEditor.methods]
@@ -34335,7 +33715,6 @@ permissions = "INHERIT" #
 #############################
 
 [ScriptEditorBase]
-inherits = "VBoxContainer"
 default_permissions = "BASE" #
 
 [ScriptEditorBase.methods]
@@ -34350,7 +33729,6 @@ permissions = "INHERIT" #
 
 [ScriptExtension]
 # See Script
-inherits = "Script"
 default_permissions = "INTERNAL"
 
 [ScriptExtension.methods]
@@ -34358,7 +33736,6 @@ default_permissions = "INTERNAL"
 #############################
 
 [ScriptLanguage]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [ScriptLanguage.methods]
@@ -34366,7 +33743,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [ScriptLanguageExtension]
-inherits = "ScriptLanguage"
 default_permissions = "INTERNAL" #
 
 [ScriptLanguageExtension.methods]
@@ -34374,7 +33750,6 @@ default_permissions = "INTERNAL" #
 #############################
 
 [ScrollBar]
-inherits = "Range"
 default_permissions = "BASE" #
 
 [ScrollBar.methods]
@@ -34388,7 +33763,6 @@ permissions = "INHERIT" #
 #############################
 
 [ScrollContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [ScrollContainer.methods]
@@ -34453,7 +33827,6 @@ permissions = "INHERIT" #
 #############################
 
 [SegmentShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [SegmentShape2D.methods]
@@ -34473,7 +33846,6 @@ permissions = "INHERIT" #
 #############################
 
 [Semaphore]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Semaphore.methods]
@@ -34490,7 +33862,6 @@ permissions = "INHERIT" #
 #############################
 
 [SeparationRayShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [SeparationRayShape2D.methods]
@@ -34510,7 +33881,6 @@ permissions = "INHERIT" #
 #############################
 
 [SeparationRayShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [SeparationRayShape3D.methods]
@@ -34530,7 +33900,6 @@ permissions = "INHERIT" #
 #############################
 
 [Separator]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [Separator.methods]
@@ -34538,7 +33907,6 @@ default_permissions = "BASE" #
 #############################
 
 [Shader]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Shader.methods]
@@ -34564,7 +33932,6 @@ permissions = "INHERIT" #
 #############################
 
 [ShaderGlobalsOverride]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [ShaderGlobalsOverride.methods]
@@ -34572,7 +33939,6 @@ default_permissions = "BASE" #
 #############################
 
 [ShaderInclude]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [ShaderInclude.methods]
@@ -34586,7 +33952,6 @@ permissions = "INHERIT" #
 #############################
 
 [ShaderMaterial]
-inherits = "Material"
 default_permissions = "BASE" #
 
 [ShaderMaterial.methods]
@@ -34606,7 +33971,6 @@ permissions = "INHERIT" #
 #############################
 
 [Shape2D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Shape2D.methods]
@@ -34638,7 +34002,6 @@ permissions = "INHERIT" #
 #############################
 
 [Shape3D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Shape3D.methods]
@@ -34661,7 +34024,6 @@ permissions = "INHERIT" #
 #############################
 
 [ShapeCast2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [ShapeCast2D.methods]
@@ -34774,7 +34136,6 @@ permissions = "INHERIT" #
 #############################
 
 [ShapeCast3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [ShapeCast3D.methods]
@@ -34896,7 +34257,6 @@ permissions = "INHERIT" #
 #############################
 
 [Shortcut]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Shortcut.methods]
@@ -34919,7 +34279,6 @@ permissions = "INHERIT" #
 #############################
 
 [Skeleton2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Skeleton2D.methods]
@@ -34951,7 +34310,6 @@ permissions = "INHERIT" #
 #############################
 
 [Skeleton3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [Skeleton3D.methods]
@@ -35112,7 +34470,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonIK3D]
-inherits = "SkeletonModifier3D"
 default_permissions = "BASE" #
 
 [SkeletonIK3D.methods]
@@ -35192,7 +34549,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [SkeletonModification2D.methods]
@@ -35230,7 +34586,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2DCCDIK]
-inherits = "SkeletonModification2D"
 default_permissions = "BASE" #
 
 [SkeletonModification2DCCDIK.methods]
@@ -35298,7 +34653,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2DFABRIK]
-inherits = "SkeletonModification2D"
 default_permissions = "BASE" #
 
 [SkeletonModification2DFABRIK.methods]
@@ -35342,7 +34696,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2DJiggle]
-inherits = "SkeletonModification2D"
 default_permissions = "BASE" #
 
 [SkeletonModification2DJiggle.methods]
@@ -35452,7 +34805,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2DLookAt]
-inherits = "SkeletonModification2D"
 default_permissions = "BASE" #
 
 [SkeletonModification2DLookAt.methods]
@@ -35508,7 +34860,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2DPhysicalBones]
-inherits = "SkeletonModification2D"
 default_permissions = "BASE" #
 
 [SkeletonModification2DPhysicalBones.methods]
@@ -35537,7 +34888,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2DStackHolder]
-inherits = "SkeletonModification2D"
 default_permissions = "BASE" #
 
 [SkeletonModification2DStackHolder.methods]
@@ -35551,7 +34901,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModification2DTwoBoneIK]
-inherits = "SkeletonModification2D"
 default_permissions = "BASE" #
 
 [SkeletonModification2DTwoBoneIK.methods]
@@ -35607,7 +34956,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModificationStack2D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [SkeletonModificationStack2D.methods]
@@ -35660,7 +35008,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonModifier3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [SkeletonModifier3D.methods]
@@ -35683,7 +35030,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonProfile]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [SkeletonProfile.methods]
@@ -35778,7 +35124,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkeletonProfileHumanoid]
-inherits = "SkeletonProfile"
 default_permissions = "BASE" #
 
 [SkeletonProfileHumanoid.methods]
@@ -35786,7 +35131,6 @@ default_permissions = "BASE" #
 #############################
 
 [Skin]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Skin.methods]
@@ -35827,7 +35171,6 @@ permissions = "INHERIT" #
 #############################
 
 [SkinReference]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [SkinReference.methods]
@@ -35841,7 +35184,6 @@ permissions = "INHERIT" #
 #############################
 
 [Sky]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Sky.methods]
@@ -35867,7 +35209,6 @@ permissions = "INHERIT" #
 #############################
 
 [Slider]
-inherits = "Range"
 default_permissions = "BASE" #
 
 [Slider.methods]
@@ -35899,7 +35240,6 @@ permissions = "INHERIT" #
 #############################
 
 [SliderJoint3D]
-inherits = "Joint3D"
 default_permissions = "BASE" #
 
 [SliderJoint3D.methods]
@@ -35913,7 +35253,6 @@ permissions = "INHERIT" #
 #############################
 
 [SoftBody3D]
-inherits = "MeshInstance3D"
 default_permissions = "BASE" #
 
 [SoftBody3D.methods]
@@ -36020,7 +35359,6 @@ permissions = "INHERIT" #
 #############################
 
 [SphereMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [SphereMesh.methods]
@@ -36058,7 +35396,6 @@ permissions = "INHERIT" #
 #############################
 
 [SphereOccluder3D]
-inherits = "Occluder3D"
 default_permissions = "BASE" #
 
 [SphereOccluder3D.methods]
@@ -36072,7 +35409,6 @@ permissions = "INHERIT" #
 #############################
 
 [SphereShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [SphereShape3D.methods]
@@ -36086,7 +35422,6 @@ permissions = "INHERIT" #
 #############################
 
 [SpinBox]
-inherits = "Range"
 default_permissions = "BASE" #
 
 [SpinBox.methods]
@@ -36142,7 +35477,6 @@ permissions = "INHERIT" #
 #############################
 
 [SplitContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [SplitContainer.methods]
@@ -36177,7 +35511,6 @@ permissions = "INHERIT" #
 #############################
 
 [SpotLight3D]
-inherits = "Light3D"
 default_permissions = "BASE" #
 
 [SpotLight3D.methods]
@@ -36185,7 +35518,6 @@ default_permissions = "BASE" #
 #############################
 
 [SpringArm3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [SpringArm3D.methods]
@@ -36229,7 +35561,6 @@ permissions = "INHERIT" #
 #############################
 
 [Sprite2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [Sprite2D.methods]
@@ -36315,7 +35646,6 @@ permissions = "INHERIT" #
 #############################
 
 [Sprite3D]
-inherits = "SpriteBase3D"
 default_permissions = "BASE" #
 
 [Sprite3D.methods]
@@ -36365,7 +35695,6 @@ permissions = "INHERIT" #
 #############################
 
 [SpriteBase3D]
-inherits = "GeometryInstance3D"
 default_permissions = "BASE" #
 
 [SpriteBase3D.methods]
@@ -36475,7 +35804,6 @@ permissions = "INHERIT" #
 #############################
 
 [SpriteFrames]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [SpriteFrames.methods]
@@ -36534,7 +35862,6 @@ permissions = "INHERIT" #
 #############################
 
 [StandardMaterial3D]
-inherits = "BaseMaterial3D"
 default_permissions = "BASE" #
 
 [StandardMaterial3D.methods]
@@ -36542,7 +35869,6 @@ default_permissions = "BASE" #
 #############################
 
 [StaticBody2D]
-inherits = "PhysicsBody2D"
 default_permissions = "BASE" #
 
 [StaticBody2D.methods]
@@ -36568,7 +35894,6 @@ permissions = "INHERIT" #
 #############################
 
 [StaticBody3D]
-inherits = "PhysicsBody3D"
 default_permissions = "BASE" #
 
 [StaticBody3D.methods]
@@ -36594,7 +35919,6 @@ permissions = "INHERIT" #
 #############################
 
 [StatusIndicator]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [StatusIndicator.methods]
@@ -36629,7 +35953,6 @@ permissions = "INHERIT" #
 #############################
 
 [StreamPeer]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [StreamPeer.methods]
@@ -36736,7 +36059,6 @@ permissions = "INHERIT" #
 #############################
 
 [StreamPeerBuffer]
-inherits = "StreamPeer"
 default_permissions = "BASE" #
 
 [StreamPeerBuffer.methods]
@@ -36768,7 +36090,6 @@ permissions = "INHERIT" #
 #############################
 
 [StreamPeerExtension]
-inherits = "StreamPeer"
 default_permissions = "BASE" #
 
 [StreamPeerExtension.methods]
@@ -36776,7 +36097,6 @@ default_permissions = "BASE" #
 #############################
 
 [StreamPeerGZIP]
-inherits = "StreamPeer"
 default_permissions = "BASE" #
 
 [StreamPeerGZIP.methods]
@@ -36796,7 +36116,6 @@ permissions = "INHERIT" #
 #############################
 
 [StreamPeerTCP]
-inherits = "StreamPeer"
 default_permissions = "BASE" #
 
 [StreamPeerTCP.methods]
@@ -36831,7 +36150,6 @@ permissions = "INHERIT" #
 #############################
 
 [StreamPeerTLS]
-inherits = "StreamPeer"
 default_permissions = "BASE" #
 
 [StreamPeerTLS.methods]
@@ -36857,7 +36175,6 @@ permissions = "INHERIT" #
 #############################
 
 [StyleBox]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [StyleBox.methods]
@@ -36892,7 +36209,6 @@ permissions = "INHERIT" #
 #############################
 
 [StyleBoxEmpty]
-inherits = "StyleBox"
 default_permissions = "BASE" #
 
 [StyleBoxEmpty.methods]
@@ -36900,7 +36216,6 @@ default_permissions = "BASE" #
 #############################
 
 [StyleBoxFlat]
-inherits = "StyleBox"
 default_permissions = "BASE" #
 
 [StyleBoxFlat.methods]
@@ -37004,7 +36319,6 @@ permissions = "INHERIT" #
 #############################
 
 [StyleBoxLine]
-inherits = "StyleBox"
 default_permissions = "BASE" #
 
 [StyleBoxLine.methods]
@@ -37042,7 +36356,6 @@ permissions = "INHERIT" #
 #############################
 
 [StyleBoxTexture]
-inherits = "StyleBox"
 default_permissions = "BASE" #
 
 [StyleBoxTexture.methods]
@@ -37104,7 +36417,6 @@ permissions = "INHERIT" #
 #############################
 
 [SubViewport]
-inherits = "Viewport"
 default_permissions = "BASE" #
 
 [SubViewport.methods]
@@ -37142,7 +36454,6 @@ permissions = "INHERIT" #
 #############################
 
 [SubViewportContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [SubViewportContainer.methods]
@@ -37162,7 +36473,6 @@ permissions = "INHERIT" #
 #############################
 
 [SurfaceTool]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [SurfaceTool.methods]
@@ -37269,7 +36579,6 @@ permissions = "INHERIT" #
 #############################
 
 [SyntaxHighlighter]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [SyntaxHighlighter.methods]
@@ -37289,7 +36598,6 @@ permissions = "INHERIT" #
 #############################
 
 [SystemFont]
-inherits = "Font"
 default_permissions = "BASE" #
 
 [SystemFont.methods]
@@ -37382,7 +36690,6 @@ permissions = "INHERIT" #
 
 [TCPServer]
 #* CORRECT: 4.0-beta13
-inherits = "RefCounted"
 default_permissions = "HTTP"
 
 [TCPServer.methods]
@@ -37408,7 +36715,6 @@ permissions = "INHERIT" #
 #############################
 
 [TLSOptions]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [TLSOptions.methods]
@@ -37443,7 +36749,6 @@ permissions = "INHERIT" #
 #############################
 
 [TabBar]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [TabBar.methods]
@@ -37619,7 +36924,6 @@ permissions = "INHERIT" #
 #############################
 
 [TabContainer]
-inherits = "Container"
 default_permissions = "BASE" #
 
 [TabContainer.methods]
@@ -37774,7 +37078,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextEdit]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [TextEdit.methods]
@@ -38481,7 +37784,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextLine]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [TextLine.methods]
@@ -38597,7 +37899,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [TextMesh.methods]
@@ -38713,7 +38014,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextParagraph]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [TextParagraph.methods]
@@ -38889,7 +38189,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextServer]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [TextServer.methods]
@@ -39536,7 +38835,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextServerAdvanced]
-inherits = "TextServerExtension"
 default_permissions = "BASE" #
 
 [TextServerAdvanced.methods]
@@ -39544,7 +38842,6 @@ default_permissions = "BASE" #
 #############################
 
 [TextServerDummy]
-inherits = "TextServerExtension"
 default_permissions = "BASE" #
 
 [TextServerDummy.methods]
@@ -39552,7 +38849,6 @@ default_permissions = "BASE" #
 #############################
 
 [TextServerExtension]
-inherits = "TextServer"
 default_permissions = "BASE" #
 
 [TextServerExtension.methods]
@@ -39560,7 +38856,6 @@ default_permissions = "BASE" #
 #############################
 
 [TextServerManager]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [TextServerManager.methods]
@@ -39592,7 +38887,6 @@ permissions = "INHERIT" #
 #############################
 
 [Texture]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Texture.methods]
@@ -39600,7 +38894,6 @@ default_permissions = "BASE" #
 #############################
 
 [Texture2D]
-inherits = "Texture"
 default_permissions = "BASE" #
 
 [Texture2D.methods]
@@ -39635,7 +38928,6 @@ permissions = "INHERIT" #
 #############################
 
 [Texture2DArray]
-inherits = "ImageTextureLayered"
 default_permissions = "BASE" #
 
 [Texture2DArray.methods]
@@ -39646,7 +38938,6 @@ permissions = "INHERIT" #
 #############################
 
 [Texture2DArrayRD]
-inherits = "TextureLayeredRD"
 default_permissions = "BASE" #
 
 [Texture2DArrayRD.methods]
@@ -39654,7 +38945,6 @@ default_permissions = "BASE" #
 #############################
 
 [Texture2DRD]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [Texture2DRD.methods]
@@ -39668,7 +38958,6 @@ permissions = "INHERIT" #
 #############################
 
 [Texture3D]
-inherits = "Texture"
 default_permissions = "BASE" #
 
 [Texture3D.methods]
@@ -39697,7 +38986,6 @@ permissions = "INHERIT" #
 #############################
 
 [Texture3DRD]
-inherits = "Texture3D"
 default_permissions = "BASE" #
 
 [Texture3DRD.methods]
@@ -39711,7 +38999,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextureButton]
-inherits = "BaseButton"
 default_permissions = "BASE" #
 
 [TextureButton.methods]
@@ -39779,7 +39066,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextureCubemapArrayRD]
-inherits = "TextureLayeredRD"
 default_permissions = "BASE" #
 
 [TextureCubemapArrayRD.methods]
@@ -39787,7 +39073,6 @@ default_permissions = "BASE" #
 #############################
 
 [TextureCubemapRD]
-inherits = "TextureLayeredRD"
 default_permissions = "BASE" #
 
 [TextureCubemapRD.methods]
@@ -39795,7 +39080,6 @@ default_permissions = "BASE" #
 #############################
 
 [TextureLayered]
-inherits = "Texture"
 default_permissions = "BASE" #
 
 [TextureLayered.methods]
@@ -39824,7 +39108,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextureLayeredRD]
-inherits = "TextureLayered"
 default_permissions = "BASE" #
 
 [TextureLayeredRD.methods]
@@ -39838,7 +39121,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextureProgressBar]
-inherits = "Range"
 default_permissions = "BASE" #
 
 [TextureProgressBar.methods]
@@ -39924,7 +39206,6 @@ permissions = "INHERIT" #
 #############################
 
 [TextureRect]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [TextureRect.methods]
@@ -39962,7 +39243,6 @@ permissions = "INHERIT" #
 #############################
 
 [Theme]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Theme.methods]
@@ -40174,7 +39454,6 @@ permissions = "INHERIT" #
 #############################
 
 [ThemeDB]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [ThemeDB.methods]
@@ -40219,7 +39498,6 @@ permissions = "INHERIT" #
 
 [Thread]
 #* CORRECT: 4.0-beta13
-inherits = "RefCounted"
 default_permissions = "INTERNAL"
 
 [Thread.methods]
@@ -40245,7 +39523,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileData]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [TileData.methods]
@@ -40394,7 +39671,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileMap]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [TileMap.methods]
@@ -40576,7 +39852,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileMapLayer]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [TileMapLayer.methods]
@@ -40728,7 +40003,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileMapPattern]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [TileMapPattern.methods]
@@ -40766,7 +40040,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileSet]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [TileSet.methods]
@@ -41032,7 +40305,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileSetAtlasSource]
-inherits = "TileSetSource"
 default_permissions = "BASE" #
 
 [TileSetAtlasSource.methods]
@@ -41163,7 +40435,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileSetScenesCollectionSource]
-inherits = "TileSetSource"
 default_permissions = "BASE" #
 
 [TileSetScenesCollectionSource.methods]
@@ -41204,7 +40475,6 @@ permissions = "INHERIT" #
 #############################
 
 [TileSetSource]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [TileSetSource.methods]
@@ -41230,7 +40500,6 @@ permissions = "INHERIT" #
 #############################
 
 [Time]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [Time.methods]
@@ -41301,7 +40570,6 @@ permissions = "INHERIT" #
 #############################
 
 [Timer]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [Timer.methods]
@@ -41351,7 +40619,6 @@ permissions = "INHERIT" #
 #############################
 
 [TorusMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [TorusMesh.methods]
@@ -41383,7 +40650,6 @@ permissions = "INHERIT" #
 #############################
 
 [TouchScreenButton]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [TouchScreenButton.methods]
@@ -41448,7 +40714,6 @@ permissions = "INHERIT" #
 #############################
 
 [Translation]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [Translation.methods]
@@ -41486,7 +40751,6 @@ permissions = "INHERIT" #
 #############################
 
 [TranslationServer]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [TranslationServer.methods]
@@ -41563,7 +40827,6 @@ permissions = "INHERIT" #
 #############################
 
 [Tree]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [Tree.methods]
@@ -41754,7 +41017,6 @@ permissions = "INHERIT" #
 #############################
 
 [TreeItem]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [TreeItem.methods]
@@ -42095,7 +41357,6 @@ permissions = "INHERIT" #
 #############################
 
 [TriangleMesh]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [TriangleMesh.methods]
@@ -42103,7 +41364,6 @@ default_permissions = "BASE" #
 #############################
 
 [TubeTrailMesh]
-inherits = "PrimitiveMesh"
 default_permissions = "BASE" #
 
 [TubeTrailMesh.methods]
@@ -42159,7 +41419,6 @@ permissions = "INHERIT" #
 #############################
 
 [Tween]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Tween.methods]
@@ -42239,7 +41498,6 @@ permissions = "INHERIT" #
 #############################
 
 [Tweener]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [Tweener.methods]
@@ -42247,7 +41505,6 @@ default_permissions = "BASE" #
 #############################
 
 [UDPServer]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [UDPServer.methods]
@@ -42282,7 +41539,6 @@ permissions = "INHERIT" #
 #############################
 
 [UPNP]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [UPNP.methods]
@@ -42341,7 +41597,6 @@ permissions = "INHERIT" #
 #############################
 
 [UPNPDevice]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [UPNPDevice.methods]
@@ -42397,7 +41652,6 @@ permissions = "INHERIT" #
 #############################
 
 [UndoRedo]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [UndoRedo.methods]
@@ -42474,7 +41728,6 @@ permissions = "INHERIT" #
 #############################
 
 [UniformSetCacheRD]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [UniformSetCacheRD.methods]
@@ -42485,7 +41738,6 @@ permissions = "INHERIT" #
 #############################
 
 [VBoxContainer]
-inherits = "BoxContainer"
 default_permissions = "BASE" #
 
 [VBoxContainer.methods]
@@ -42493,7 +41745,6 @@ default_permissions = "BASE" #
 #############################
 
 [VFlowContainer]
-inherits = "FlowContainer"
 default_permissions = "BASE" #
 
 [VFlowContainer.methods]
@@ -42501,7 +41752,6 @@ default_permissions = "BASE" #
 #############################
 
 [VScrollBar]
-inherits = "ScrollBar"
 default_permissions = "BASE" #
 
 [VScrollBar.methods]
@@ -42509,7 +41759,6 @@ default_permissions = "BASE" #
 #############################
 
 [VSeparator]
-inherits = "Separator"
 default_permissions = "BASE" #
 
 [VSeparator.methods]
@@ -42517,7 +41766,6 @@ default_permissions = "BASE" #
 #############################
 
 [VSlider]
-inherits = "Slider"
 default_permissions = "BASE" #
 
 [VSlider.methods]
@@ -42525,7 +41773,6 @@ default_permissions = "BASE" #
 #############################
 
 [VSplitContainer]
-inherits = "SplitContainer"
 default_permissions = "BASE" #
 
 [VSplitContainer.methods]
@@ -42533,7 +41780,6 @@ default_permissions = "BASE" #
 #############################
 
 [VehicleBody3D]
-inherits = "RigidBody3D"
 default_permissions = "BASE" #
 
 [VehicleBody3D.methods]
@@ -42559,7 +41805,6 @@ permissions = "INHERIT" #
 #############################
 
 [VehicleWheel3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [VehicleWheel3D.methods]
@@ -42663,7 +41908,6 @@ permissions = "INHERIT" #
 #############################
 
 [VideoStream]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [VideoStream.methods]
@@ -42677,7 +41921,6 @@ permissions = "INHERIT" #
 #############################
 
 [VideoStreamPlayback]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [VideoStreamPlayback.methods]
@@ -42688,7 +41931,6 @@ permissions = "INHERIT" #
 #############################
 
 [VideoStreamPlayer]
-inherits = "Control"
 default_permissions = "BASE" #
 
 [VideoStreamPlayer.methods]
@@ -42780,7 +42022,6 @@ permissions = "INHERIT" #
 #############################
 
 [VideoStreamTheora]
-inherits = "VideoStream"
 default_permissions = "BASE" #
 
 [VideoStreamTheora.methods]
@@ -42788,7 +42029,6 @@ default_permissions = "BASE" #
 #############################
 
 [Viewport]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [Viewport.methods]
@@ -43135,7 +42375,6 @@ permissions = "INHERIT" #
 #############################
 
 [ViewportTexture]
-inherits = "Texture2D"
 default_permissions = "BASE" #
 
 [ViewportTexture.methods]
@@ -43149,7 +42388,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisibleOnScreenEnabler2D]
-inherits = "VisibleOnScreenNotifier2D"
 default_permissions = "BASE" #
 
 [VisibleOnScreenEnabler2D.methods]
@@ -43169,7 +42407,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisibleOnScreenEnabler3D]
-inherits = "VisibleOnScreenNotifier3D"
 default_permissions = "BASE" #
 
 [VisibleOnScreenEnabler3D.methods]
@@ -43189,7 +42426,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisibleOnScreenNotifier2D]
-inherits = "Node2D"
 default_permissions = "BASE" #
 
 [VisibleOnScreenNotifier2D.methods]
@@ -43206,7 +42442,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisibleOnScreenNotifier3D]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [VisibleOnScreenNotifier3D.methods]
@@ -43220,7 +42455,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualInstance3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [VisualInstance3D.methods]
@@ -43264,7 +42498,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShader]
-inherits = "Shader"
 default_permissions = "BASE" #
 
 [VisualShader.methods]
@@ -43338,7 +42571,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNode]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [VisualShaderNode.methods]
@@ -43379,7 +42611,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeBillboard]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeBillboard.methods]
@@ -43399,7 +42630,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeBooleanConstant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeBooleanConstant.methods]
@@ -43413,7 +42643,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeBooleanParameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeBooleanParameter.methods]
@@ -43433,7 +42662,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeClamp]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeClamp.methods]
@@ -43447,7 +42675,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeColorConstant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeColorConstant.methods]
@@ -43461,7 +42688,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeColorFunc]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeColorFunc.methods]
@@ -43475,7 +42701,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeColorOp]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeColorOp.methods]
@@ -43489,7 +42714,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeColorParameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeColorParameter.methods]
@@ -43509,7 +42733,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeComment]
-inherits = "VisualShaderNodeFrame"
 default_permissions = "BASE" #
 
 [VisualShaderNodeComment.methods]
@@ -43523,7 +42746,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeCompare]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeCompare.methods]
@@ -43549,7 +42771,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeConstant]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeConstant.methods]
@@ -43557,7 +42778,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeCubemap]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeCubemap.methods]
@@ -43583,7 +42803,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeCubemapParameter]
-inherits = "VisualShaderNodeTextureParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeCubemapParameter.methods]
@@ -43591,7 +42810,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeCurveTexture]
-inherits = "VisualShaderNodeResizableBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeCurveTexture.methods]
@@ -43605,7 +42823,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeCurveXYZTexture]
-inherits = "VisualShaderNodeResizableBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeCurveXYZTexture.methods]
@@ -43619,7 +42836,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeCustom]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeCustom.methods]
@@ -43630,7 +42846,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeDerivativeFunc]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeDerivativeFunc.methods]
@@ -43656,7 +42871,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeDeterminant]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeDeterminant.methods]
@@ -43664,7 +42878,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeDistanceFade]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeDistanceFade.methods]
@@ -43672,7 +42885,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeDotProduct]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeDotProduct.methods]
@@ -43680,7 +42892,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeExpression]
-inherits = "VisualShaderNodeGroupBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeExpression.methods]
@@ -43694,7 +42905,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeFaceForward]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeFaceForward.methods]
@@ -43702,7 +42912,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeFloatConstant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeFloatConstant.methods]
@@ -43716,7 +42925,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeFloatFunc]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeFloatFunc.methods]
@@ -43730,7 +42938,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeFloatOp]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeFloatOp.methods]
@@ -43744,7 +42951,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeFloatParameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeFloatParameter.methods]
@@ -43788,7 +42994,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeFrame]
-inherits = "VisualShaderNodeResizableBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeFrame.methods]
@@ -43832,7 +43037,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeFresnel]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeFresnel.methods]
@@ -43840,7 +43044,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeGlobalExpression]
-inherits = "VisualShaderNodeExpression"
 default_permissions = "BASE" #
 
 [VisualShaderNodeGlobalExpression.methods]
@@ -43848,7 +43051,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeGroupBase]
-inherits = "VisualShaderNodeResizableBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeGroupBase.methods]
@@ -43919,7 +43121,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeIf]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeIf.methods]
@@ -43927,7 +43128,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeInput]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeInput.methods]
@@ -43944,7 +43144,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeIntConstant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeIntConstant.methods]
@@ -43958,7 +43157,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeIntFunc]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeIntFunc.methods]
@@ -43972,7 +43170,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeIntOp]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeIntOp.methods]
@@ -43986,7 +43183,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeIntParameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeIntParameter.methods]
@@ -44030,7 +43226,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeIs]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeIs.methods]
@@ -44044,7 +43239,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeLinearSceneDepth]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeLinearSceneDepth.methods]
@@ -44052,7 +43246,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeMix]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeMix.methods]
@@ -44066,7 +43259,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeMultiplyAdd]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeMultiplyAdd.methods]
@@ -44080,7 +43272,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeOuterProduct]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeOuterProduct.methods]
@@ -44088,7 +43279,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeOutput]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeOutput.methods]
@@ -44096,7 +43286,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeParameter]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParameter.methods]
@@ -44116,7 +43305,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParameterRef]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParameterRef.methods]
@@ -44130,7 +43318,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParticleAccelerator]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleAccelerator.methods]
@@ -44144,7 +43331,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParticleBoxEmitter]
-inherits = "VisualShaderNodeParticleEmitter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleBoxEmitter.methods]
@@ -44152,7 +43338,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeParticleConeVelocity]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleConeVelocity.methods]
@@ -44160,7 +43345,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeParticleEmit]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleEmit.methods]
@@ -44174,7 +43358,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParticleEmitter]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleEmitter.methods]
@@ -44188,7 +43371,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParticleMeshEmitter]
-inherits = "VisualShaderNodeParticleEmitter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleMeshEmitter.methods]
@@ -44214,7 +43396,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParticleMultiplyByAxisAngle]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleMultiplyByAxisAngle.methods]
@@ -44228,7 +43409,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParticleOutput]
-inherits = "VisualShaderNodeOutput"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleOutput.methods]
@@ -44236,7 +43416,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeParticleRandomness]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleRandomness.methods]
@@ -44250,7 +43429,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeParticleRingEmitter]
-inherits = "VisualShaderNodeParticleEmitter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleRingEmitter.methods]
@@ -44258,7 +43436,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeParticleSphereEmitter]
-inherits = "VisualShaderNodeParticleEmitter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeParticleSphereEmitter.methods]
@@ -44266,7 +43443,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeProximityFade]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeProximityFade.methods]
@@ -44274,7 +43450,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeRandomRange]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeRandomRange.methods]
@@ -44282,7 +43457,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeRemap]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeRemap.methods]
@@ -44290,7 +43464,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeReroute]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeReroute.methods]
@@ -44301,7 +43474,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeResizableBase]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeResizableBase.methods]
@@ -44315,7 +43487,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeRotationByAxis]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeRotationByAxis.methods]
@@ -44323,7 +43494,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeSDFRaymarch]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeSDFRaymarch.methods]
@@ -44331,7 +43501,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeSDFToScreenUV]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeSDFToScreenUV.methods]
@@ -44339,7 +43508,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeSample3D]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeSample3D.methods]
@@ -44353,7 +43521,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeScreenNormalWorldSpace]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeScreenNormalWorldSpace.methods]
@@ -44361,7 +43528,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeScreenUVToSDF]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeScreenUVToSDF.methods]
@@ -44369,7 +43535,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeSmoothStep]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeSmoothStep.methods]
@@ -44383,7 +43548,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeStep]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeStep.methods]
@@ -44397,7 +43561,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeSwitch]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeSwitch.methods]
@@ -44411,7 +43574,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTexture]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTexture.methods]
@@ -44437,7 +43599,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTexture2DArray]
-inherits = "VisualShaderNodeSample3D"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTexture2DArray.methods]
@@ -44451,7 +43612,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTexture2DArrayParameter]
-inherits = "VisualShaderNodeTextureParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTexture2DArrayParameter.methods]
@@ -44459,7 +43619,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTexture2DParameter]
-inherits = "VisualShaderNodeTextureParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTexture2DParameter.methods]
@@ -44467,7 +43626,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTexture3D]
-inherits = "VisualShaderNodeSample3D"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTexture3D.methods]
@@ -44481,7 +43639,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTexture3DParameter]
-inherits = "VisualShaderNodeTextureParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTexture3DParameter.methods]
@@ -44489,7 +43646,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTextureParameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTextureParameter.methods]
@@ -44527,7 +43683,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTextureParameterTriplanar]
-inherits = "VisualShaderNodeTextureParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTextureParameterTriplanar.methods]
@@ -44535,7 +43690,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTextureSDF]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTextureSDF.methods]
@@ -44543,7 +43697,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTextureSDFNormal]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTextureSDFNormal.methods]
@@ -44551,7 +43704,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTransformCompose]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTransformCompose.methods]
@@ -44559,7 +43711,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTransformConstant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTransformConstant.methods]
@@ -44573,7 +43724,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTransformDecompose]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTransformDecompose.methods]
@@ -44581,7 +43731,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeTransformFunc]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTransformFunc.methods]
@@ -44595,7 +43744,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTransformOp]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTransformOp.methods]
@@ -44609,7 +43757,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTransformParameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTransformParameter.methods]
@@ -44629,7 +43776,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeTransformVecMult]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeTransformVecMult.methods]
@@ -44643,7 +43789,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeUIntConstant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeUIntConstant.methods]
@@ -44657,7 +43802,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeUIntFunc]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeUIntFunc.methods]
@@ -44671,7 +43815,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeUIntOp]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeUIntOp.methods]
@@ -44685,7 +43828,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeUIntParameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeUIntParameter.methods]
@@ -44705,7 +43847,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeUVFunc]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeUVFunc.methods]
@@ -44719,7 +43860,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeUVPolarCoord]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeUVPolarCoord.methods]
@@ -44727,7 +43867,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeVarying]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVarying.methods]
@@ -44747,7 +43886,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVaryingGetter]
-inherits = "VisualShaderNodeVarying"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVaryingGetter.methods]
@@ -44755,7 +43893,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeVaryingSetter]
-inherits = "VisualShaderNodeVarying"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVaryingSetter.methods]
@@ -44763,7 +43900,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeVec2Constant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVec2Constant.methods]
@@ -44777,7 +43913,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVec2Parameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVec2Parameter.methods]
@@ -44797,7 +43932,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVec3Constant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVec3Constant.methods]
@@ -44811,7 +43945,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVec3Parameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVec3Parameter.methods]
@@ -44831,7 +43964,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVec4Constant]
-inherits = "VisualShaderNodeConstant"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVec4Constant.methods]
@@ -44845,7 +43977,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVec4Parameter]
-inherits = "VisualShaderNodeParameter"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVec4Parameter.methods]
@@ -44865,7 +43996,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVectorBase]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorBase.methods]
@@ -44879,7 +44009,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVectorCompose]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorCompose.methods]
@@ -44887,7 +44016,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeVectorDecompose]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorDecompose.methods]
@@ -44895,7 +44023,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeVectorDistance]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorDistance.methods]
@@ -44903,7 +44030,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeVectorFunc]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorFunc.methods]
@@ -44917,7 +44043,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVectorLen]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorLen.methods]
@@ -44925,7 +44050,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeVectorOp]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorOp.methods]
@@ -44939,7 +44063,6 @@ permissions = "INHERIT" #
 #############################
 
 [VisualShaderNodeVectorRefract]
-inherits = "VisualShaderNodeVectorBase"
 default_permissions = "BASE" #
 
 [VisualShaderNodeVectorRefract.methods]
@@ -44947,7 +44070,6 @@ default_permissions = "BASE" #
 #############################
 
 [VisualShaderNodeWorldPositionFromDepth]
-inherits = "VisualShaderNode"
 default_permissions = "BASE" #
 
 [VisualShaderNodeWorldPositionFromDepth.methods]
@@ -44955,7 +44077,6 @@ default_permissions = "BASE" #
 #############################
 
 [VoxelGI]
-inherits = "VisualInstance3D"
 default_permissions = "BASE" #
 
 [VoxelGI.methods]
@@ -44993,7 +44114,6 @@ permissions = "INHERIT" #
 #############################
 
 [VoxelGIData]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [VoxelGIData.methods]
@@ -45064,7 +44184,6 @@ permissions = "INHERIT" #
 #############################
 
 [WeakRef]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [WeakRef.methods]
@@ -45075,7 +44194,6 @@ permissions = "INHERIT" #
 #############################
 
 [WebRTCDataChannel]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [WebRTCDataChannel.methods]
@@ -45125,7 +44243,6 @@ permissions = "INHERIT" #
 #############################
 
 [WebRTCDataChannelExtension]
-inherits = "WebRTCDataChannel"
 default_permissions = "BASE" #
 
 [WebRTCDataChannelExtension.methods]
@@ -45133,7 +44250,6 @@ default_permissions = "BASE" #
 #############################
 
 [WebRTCMultiplayerPeer]
-inherits = "MultiplayerPeer"
 default_permissions = "BASE" #
 
 [WebRTCMultiplayerPeer.methods]
@@ -45165,7 +44281,6 @@ permissions = "INHERIT" #
 #############################
 
 [WebRTCPeerConnection]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [WebRTCPeerConnection.methods]
@@ -45209,7 +44324,6 @@ permissions = "INHERIT" #
 #############################
 
 [WebRTCPeerConnectionExtension]
-inherits = "WebRTCPeerConnection"
 default_permissions = "BASE" #
 
 [WebRTCPeerConnectionExtension.methods]
@@ -45217,7 +44331,6 @@ default_permissions = "BASE" #
 #############################
 
 [WebSocketMultiplayerPeer]
-inherits = "MultiplayerPeer"
 default_permissions = "BASE" #
 
 [WebSocketMultiplayerPeer.methods]
@@ -45276,7 +44389,6 @@ permissions = "INHERIT" #
 #############################
 
 [WebSocketPeer]
-inherits = "PacketPeer"
 default_permissions = "BASE" #
 
 [WebSocketPeer.methods]
@@ -45362,7 +44474,6 @@ permissions = "INHERIT" #
 #############################
 
 [WebXRInterface]
-inherits = "XRInterface"
 default_permissions = "BASE" #
 
 [WebXRInterface.methods]
@@ -45424,7 +44535,6 @@ permissions = "INHERIT" #
 #############################
 
 [Window]
-inherits = "Viewport"
 default_permissions = "BASE" #
 
 [Window.methods]
@@ -45789,7 +44899,6 @@ permissions = "INHERIT" #
 #############################
 
 [WorkerThreadPool]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [WorkerThreadPool.methods]
@@ -45818,7 +44927,6 @@ permissions = "INHERIT" #
 #############################
 
 [World2D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [World2D.methods]
@@ -45838,7 +44946,6 @@ permissions = "INHERIT" #
 #############################
 
 [World3D]
-inherits = "Resource"
 default_permissions = "BASE" #
 
 [World3D.methods]
@@ -45876,7 +44983,6 @@ permissions = "INHERIT" #
 #############################
 
 [WorldBoundaryShape2D]
-inherits = "Shape2D"
 default_permissions = "BASE" #
 
 [WorldBoundaryShape2D.methods]
@@ -45896,7 +45002,6 @@ permissions = "INHERIT" #
 #############################
 
 [WorldBoundaryShape3D]
-inherits = "Shape3D"
 default_permissions = "BASE" #
 
 [WorldBoundaryShape3D.methods]
@@ -45910,7 +45015,6 @@ permissions = "INHERIT" #
 #############################
 
 [WorldEnvironment]
-inherits = "Node"
 default_permissions = "BASE" #
 
 [WorldEnvironment.methods]
@@ -45937,7 +45041,6 @@ permissions = "INHERIT" #
 
 [X509Certificate]
 #* CORRECT: 4.0-beta13
-inherits = "Resource"
 default_permissions = "INTERNAL"
 
 [X509Certificate.methods]
@@ -45957,7 +45060,6 @@ permissions = "INHERIT" #
 #############################
 
 [XMLParser]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [XMLParser.methods]
@@ -46016,7 +45118,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRAnchor3D]
-inherits = "XRNode3D"
 default_permissions = "BASE" #
 
 [XRAnchor3D.methods]
@@ -46030,7 +45131,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRBodyModifier3D]
-inherits = "SkeletonModifier3D"
 default_permissions = "BASE" #
 
 [XRBodyModifier3D.methods]
@@ -46056,7 +45156,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRBodyTracker]
-inherits = "XRPositionalTracker"
 default_permissions = "BASE" #
 
 [XRBodyTracker.methods]
@@ -46088,7 +45187,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRCamera3D]
-inherits = "Camera3D"
 default_permissions = "BASE" #
 
 [XRCamera3D.methods]
@@ -46096,7 +45194,6 @@ default_permissions = "BASE" #
 #############################
 
 [XRController3D]
-inherits = "XRNode3D"
 default_permissions = "BASE" #
 
 [XRController3D.methods]
@@ -46119,7 +45216,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRControllerTracker]
-inherits = "XRPositionalTracker"
 default_permissions = "BASE" #
 
 [XRControllerTracker.methods]
@@ -46127,7 +45223,6 @@ default_permissions = "BASE" #
 #############################
 
 [XRFaceModifier3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [XRFaceModifier3D.methods]
@@ -46147,7 +45242,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRFaceTracker]
-inherits = "XRTracker"
 default_permissions = "BASE" #
 
 [XRFaceTracker.methods]
@@ -46167,7 +45261,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRHandModifier3D]
-inherits = "SkeletonModifier3D"
 default_permissions = "BASE" #
 
 [XRHandModifier3D.methods]
@@ -46187,7 +45280,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRHandTracker]
-inherits = "XRPositionalTracker"
 default_permissions = "BASE" #
 
 [XRHandTracker.methods]
@@ -46237,7 +45329,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRInterface]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [XRInterface.methods]
@@ -46329,7 +45420,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRInterfaceExtension]
-inherits = "XRInterface"
 default_permissions = "BASE" #
 
 [XRInterfaceExtension.methods]
@@ -46352,7 +45442,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRNode3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [XRNode3D.methods]
@@ -46390,7 +45479,6 @@ permissions = "INHERIT" #
 #############################
 
 [XROrigin3D]
-inherits = "Node3D"
 default_permissions = "BASE" #
 
 [XROrigin3D.methods]
@@ -46410,7 +45498,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRPose]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [XRPose.methods]
@@ -46457,7 +45544,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRPositionalTracker]
-inherits = "XRTracker"
 default_permissions = "BASE" #
 
 [XRPositionalTracker.methods]
@@ -46495,7 +45581,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRServer]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [XRServer.methods]
@@ -46563,7 +45648,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRTracker]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [XRTracker.methods]
@@ -46589,7 +45673,6 @@ permissions = "INHERIT" #
 #############################
 
 [XRVRS]
-inherits = "Object"
 default_permissions = "INTERNAL" #
 
 [XRVRS.methods]
@@ -46612,7 +45695,6 @@ permissions = "INHERIT" #
 #############################
 
 [ZIPPacker]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ZIPPacker.methods]
@@ -46635,7 +45717,6 @@ permissions = "INHERIT" #
 #############################
 
 [ZIPReader]
-inherits = "RefCounted"
 default_permissions = "BASE" #
 
 [ZIPReader.methods]
