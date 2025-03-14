@@ -578,7 +578,6 @@ def generate_class_method(
     class_name,
     metatable_name,
     classes,
-    settings,
     method,
     variant_values,
     variant_value_map,
@@ -602,8 +601,8 @@ def generate_class_method(
     write_string(io, method_debug_name)  # String debug_name
 
     # permissions
-    permission = ThreadPermissions[settings["methods"][method_name_luau]["permissions"]]
-    write_int32(io, permission)  # ThreadPermissions permissions
+    # ThreadPermissions permissions
+    write_int32(io, ThreadPermissions[method["permissions"]])
 
     # more properties
     write_bool(io, is_const)  # bool is_const
@@ -632,9 +631,7 @@ def generate_class_method(
         generate_class_type(io, "Nil", classes)  # ApiClassType return_type
 
 
-def generate_class(
-    io, g_class, classes, class_settings, singletons, variant_values, variant_value_map
-):
+def generate_class(io, g_class, classes, singletons, variant_values, variant_value_map):
     # ApiClass
 
     class_name = g_class["name"]
@@ -655,10 +652,8 @@ def generate_class(
         write_int32(io, -1)  # int32_t parent_idx
 
     # permissions
-    settings = class_settings[class_name]
-
     # ThreadPermissions default_permissions
-    write_int32(io, ThreadPermissions[settings["default_permissions"]])
+    write_int32(io, ThreadPermissions[g_class["permissions"]])
 
     # enums
     if "enums" in g_class:
@@ -701,7 +696,6 @@ def generate_class(
                 class_name,
                 metatable_name,
                 classes,
-                settings,
                 method,
                 variant_values,
                 variant_value_map,
@@ -721,7 +715,6 @@ def generate_class(
                 class_name,
                 metatable_name,
                 classes,
-                settings,
                 method,
                 variant_values,
                 variant_value_map,
@@ -816,7 +809,7 @@ def generate_class(
 ########
 
 
-def generate_api_bin(src_dir, api, class_settings):
+def generate_api_bin(src_dir, api):
     ###################
     # Generate binary #
     ###################
@@ -892,7 +885,6 @@ def generate_api_bin(src_dir, api, class_settings):
             api_bin,
             g_class,
             classes,
-            class_settings,
             singletons,
             variant_values,
             variant_value_map,

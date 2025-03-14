@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
 import os
-from luau_binding_generator import scons_emit_files, scons_generate_bindings
+import bindgen.luau_api_generator as luau_api_generator
+import bindgen.luau_binding_generator as luau_binding_generator
 
 Import("env")
 
@@ -9,23 +10,22 @@ env_gen = env.Clone()
 
 env_gen.Append(
     BUILDERS={
+        "GenerateLuauApi": Builder(
+            action=luau_api_generator.generate_bindings,
+            emitter=luau_api_generator.emit_files,
+        ),
         "GenerateLuauBindings": Builder(
-            action=scons_generate_bindings, emitter=scons_emit_files
-        )
+            action=luau_binding_generator.generate_bindings,
+            emitter=luau_binding_generator.emit_files,
+        ),
     }
 )
 
-luau_bindings = env_gen.GenerateLuauBindings(
-    Dir("."),
-    [
-        os.path.join(os.getcwd(), "extern/godot-cpp/gdextension/extension_api.json"),
-        os.path.join(os.getcwd(), "bindgen/class_settings.toml"),
-        os.path.join(os.getcwd(), "definitions/luauLibTypes.part.d.lua"),
-        os.path.join(os.getcwd(), "definitions/godotTypes.part.d.lua"),
-    ],
-)
+luau_api = env_gen.GenerateLuauApi()
+luau_bindings = env_gen.GenerateLuauBindings()
 
 if env["generate_luau_bindings"]:
+    AlwaysBuild(luau_api)
     AlwaysBuild(luau_bindings)
 
 sources = [f for f in luau_bindings if str(f).endswith(".cpp")]
