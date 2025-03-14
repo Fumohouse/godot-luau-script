@@ -6,13 +6,11 @@ from . import constants
 
 
 def load_cpp_binding_generator():
-    # lol
-
-    godot_cpp_path = Path(__file__).parent / \
-        "../extern/godot-cpp/binding_generator.py"
+    godot_cpp_path = Path(__file__).parent / "../extern/godot-cpp/binding_generator.py"
 
     loader = importlib.machinery.SourceFileLoader(
-        "binding_generator", str(godot_cpp_path))
+        "binding_generator", str(godot_cpp_path)
+    )
 
     spec = importlib.util.spec_from_loader("binding_generator", loader)
     binding_generator = importlib.util.module_from_spec(spec)
@@ -45,7 +43,7 @@ def snake_to_pascal(snake):
     segments = [s[0].upper() + s[1:] for s in snake.split("_") if len(s) > 0]
     output = "".join(segments)
 
-    if (snake.startswith("_")):
+    if snake.startswith("_"):
         output = "_" + output
 
     return output.replace("2d", "2D").replace("3d", "3D")
@@ -54,9 +52,8 @@ def snake_to_pascal(snake):
 def snake_to_camel(snake):
     pascal = snake_to_pascal(snake)
 
-    begin_idx = [idx for idx, c in enumerate(
-        pascal) if c.upper() != c.lower()][0]
-    return pascal[:(begin_idx + 1)].lower() + pascal[(begin_idx + 1):]
+    begin_idx = [idx for idx, c in enumerate(pascal) if c.upper() != c.lower()][0]
+    return pascal[: (begin_idx + 1)].lower() + pascal[(begin_idx + 1) :]
 
 
 def get_enum_name(enum_name):
@@ -96,7 +93,7 @@ def get_enum_value_name(enum, value_name):
 
     # Find value
     if value_name.startswith(enum_prefix):
-        value_name = value_name[len(enum_prefix):]
+        value_name = value_name[len(enum_prefix) :]
 
     if value_name[0].isdigit():
         # Key codes, etc.
@@ -134,7 +131,6 @@ utils_to_bind = {
     "pingpong": (None, False),
     "is_equal_approx": (None, False),
     "is_zero_approx": (None, False),
-
     # print
     "print": (None, True),
     "printraw": (None, True),
@@ -143,7 +139,6 @@ utils_to_bind = {
     "print_rich": (None, True),
     "push_error": (None, True),
     "push_warning": (None, True),
-
     # variant
     "var_to_str": (None, False),
     "str_to_var": (None, False),
@@ -151,7 +146,6 @@ utils_to_bind = {
     "var_to_bytes_with_objects": (None, False),
     "bytes_to_var": (None, False),
     "bytes_to_var_with_objects": (None, False),
-
     # other
     "hash": (None, False),
     "is_instance_valid": (None, False),
@@ -166,7 +160,7 @@ variant_op_map = {
     "*": "mul",
     "/": "div",
     "%": "mod",
-    "unary-": "unm"
+    "unary-": "unm",
 }
 
 
@@ -206,10 +200,10 @@ def get_operators(class_name, operators):
                 continue
 
             # basically, if there was a float right_type previously then skip the int one
-            if right_type == "int" and (True in [
-                "right_type" in op and op["right_type"] == "float"
-                for op in output
-            ]):
+            if right_type == "int" and (
+                True
+                in ["right_type" in op and op["right_type"] == "float" for op in output]
+            ):
                 continue
 
         output.append(op)
@@ -226,12 +220,17 @@ def get_builtin_methods(b_class):
         if b_class["name"] == "String" and method["name"] in [
             # Remove methods which are almost entirely redundant.
             # Some versions which use Godot types instead of Lua types are kept.
-            "length", "is_empty",
-            "to_lower", "to_upper",
-            "to_int", "to_float",
-            "is_valid_int", "is_valid_float",
+            "length",
+            "is_empty",
+            "to_lower",
+            "to_upper",
+            "to_int",
+            "to_float",
+            "is_valid_int",
+            "is_valid_float",
             "repeat",
-            "left", "right",
+            "left",
+            "right",
             "contains",
             "format",
         ]:
@@ -254,7 +253,9 @@ def get_class_methods(g_class):
             return True
 
         # Not of any concern to Luau
-        if "arguments" in method and (True in [arg["type"] == "const void*" for arg in method["arguments"]]):
+        if "arguments" in method and (
+            True in [arg["type"] == "const void*" for arg in method["arguments"]]
+        ):
             return True
 
         return False
@@ -268,7 +269,9 @@ def get_property_setget(prop, g_class, classes):
 
     def has_setget(method_name, chk_class):
         # Currently, no funny business with inheriters having the method
-        in_class = "methods" in chk_class and True in [m["name"] == method_name for m in chk_class["methods"]]
+        in_class = "methods" in chk_class and True in [
+            m["name"] == method_name for m in chk_class["methods"]
+        ]
 
         # Check base class (e.g. InputEventMouseMotion::pressed -> getter is InputEvent::is_pressed)
         if not in_class and "inherits" in chk_class:
@@ -287,6 +290,7 @@ def get_property_setget(prop, g_class, classes):
         elif has_setget(method_name.strip("_"), g_class):
             return method_name.strip("_"), False
         else:
+            # This is possible and expected (for now); see https://github.com/godotengine/godot/issues/64429
             return "", True
 
     setter, setter_not_found = get_actual_setget(setter)

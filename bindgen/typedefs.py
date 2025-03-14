@@ -23,15 +23,17 @@ def get_luau_type(type_string, api, is_ret=False, is_obj_nullable=True):
 
     if type_string.startswith(constants.typed_array_prefix):
         array_type_name = type_string.split(":")[-1]
-        return f"TypedArray<{get_luau_type(array_type_name, api, is_obj_nullable=False)}>"
+        return (
+            f"TypedArray<{get_luau_type(array_type_name, api, is_obj_nullable=False)}>"
+        )
 
     enum_name = None
 
     if type_string.startswith(constants.enum_prefix):
-        enum_name = type_string[len(constants.enum_prefix):]
+        enum_name = type_string[len(constants.enum_prefix) :]
 
     if type_string.startswith(constants.bitfield_prefix):
-        enum_name = type_string[len(constants.bitfield_prefix):]
+        enum_name = type_string[len(constants.bitfield_prefix) :]
 
     if enum_name:
         if enum_name == "Variant.Type":
@@ -88,7 +90,9 @@ def generate_args(method, api, with_self=True, is_type=False, self_annot=""):
     return out
 
 
-def generate_method(src, class_name, method, api, is_def_static=False, is_obj_nullable=True):
+def generate_method(
+    src, class_name, method, api, is_def_static=False, is_obj_nullable=True
+):
     method_name = utils.snake_to_pascal(method["name"])
 
     # Special cases
@@ -100,9 +104,13 @@ def generate_method(src, class_name, method, api, is_def_static=False, is_obj_nu
     method_ret_str = ""
 
     if "return_type" in method:
-        method_ret_str = get_luau_type(method["return_type"], api, True, is_obj_nullable)
+        method_ret_str = get_luau_type(
+            method["return_type"], api, True, is_obj_nullable
+        )
     elif "return_value" in method:
-        method_ret_str = get_luau_type(method["return_value"]["type"], api, True, is_obj_nullable)
+        method_ret_str = get_luau_type(
+            method["return_value"]["type"], api, True, is_obj_nullable
+        )
 
     if is_def_static:
         is_method_static = "is_static" in method and method["is_static"]
@@ -111,13 +119,19 @@ def generate_method(src, class_name, method, api, is_def_static=False, is_obj_nu
             method_ret_str = "()"
 
         append(
-            src, 1, f"{method_name}: ({generate_args(method, api, not is_method_static, True, get_luau_type(class_name, api, is_obj_nullable=False))}) -> {method_ret_str}")
+            src,
+            1,
+            f"{method_name}: ({generate_args(method, api, not is_method_static, True, get_luau_type(class_name, api, is_obj_nullable=False))}) -> {method_ret_str}",
+        )
     else:
         if method_ret_str != "":
             method_ret_str = ": " + method_ret_str
 
         append(
-            src, 1, f"function {method_name}({generate_args(method, api)}){method_ret_str}")
+            src,
+            1,
+            f"function {method_name}({generate_args(method, api)}){method_ret_str}",
+        )
 
 
 def generate_enum(src, enum, class_name=""):
@@ -169,9 +183,17 @@ def generate_builtin_class(src, builtin_class, api):
         if "indexing_return_type" in builtin_class:
             indexing_type_name = builtin_class["indexing_return_type"]
 
-            append(src, 1, f"function Get(self, key: number): {get_luau_type(indexing_type_name, api, True)}")
+            append(
+                src,
+                1,
+                f"function Get(self, key: number): {get_luau_type(indexing_type_name, api, True)}",
+            )
             if has_set_method:
-                append(src, 1, f"function Set(self, key: number, value: {get_luau_type(indexing_type_name, api)})")
+                append(
+                    src,
+                    1,
+                    f"function Set(self, key: number, value: {get_luau_type(indexing_type_name, api)})",
+                )
 
         # Members
         if "members" in builtin_class:
@@ -179,7 +201,7 @@ def generate_builtin_class(src, builtin_class, api):
                 member_name = member["name"]
                 member_type = get_luau_type(member["type"], api, True)
 
-                append(src, 1, f"[\"{member_name}\"]: {member_type}")
+                append(src, 1, f'["{member_name}"]: {member_type}')
 
         # Methods
         if "methods" in builtin_class:
@@ -201,17 +223,23 @@ def generate_builtin_class(src, builtin_class, api):
                     op_right_type = get_luau_type(op["right_type"], api)
 
                     append(
-                        src, 1, f"function {op_mt_name}(self, other: {op_right_type}): {op_return_type}")
+                        src,
+                        1,
+                        f"function {op_mt_name}(self, other: {op_right_type}): {op_return_type}",
+                    )
                 else:
-                    append(
-                        src, 1, f"function {op_mt_name}(self): {op_return_type}")
+                    append(src, 1, f"function {op_mt_name}(self): {op_return_type}")
 
             # Special cases
             if name.endswith("Array"):
-                append(src, 1, """\
+                append(
+                    src,
+                    1,
+                    """\
 function __len(self): number
 function __iter(self): any\
-    """)
+    """,
+                )
             elif name == "Dictionary":
                 append(src, 1, "function __iter(self): any")
 
@@ -226,10 +254,8 @@ function __iter(self): any\
 
     if "enums" in builtin_class:
         for enum in builtin_class["enums"]:
-            enum_name, type_name, internal_type_name = generate_enum(
-                src, enum, name)
-            class_enum_types.append((
-                enum_name, type_name, internal_type_name))
+            enum_name, type_name, internal_type_name = generate_enum(src, enum, name)
+            class_enum_types.append((enum_name, type_name, internal_type_name))
 
             src.append("")
 
@@ -254,7 +280,10 @@ function __iter(self): any\
     elif name != "String":
         for constructor in builtin_class["constructors"]:
             append(
-                src, 1, f"new: ({generate_args(constructor, api, False, True)}) -> {name}")
+                src,
+                1,
+                f"new: ({generate_args(constructor, api, False, True)}) -> {name}",
+            )
 
     # Statics
     if "methods" in builtin_class:
@@ -264,11 +293,13 @@ function __iter(self): any\
 
             generate_method(src, name, method, api, True)
 
-    src.append(f"""\
+    src.append(
+        f"""\
 end
 
 declare {name}: {name}_GLOBAL
-""")
+"""
+    )
 
 
 def generate_class(src, g_class, api):
@@ -279,8 +310,7 @@ def generate_class(src, g_class, api):
     # Class declaration
     #
 
-    extends_str = " extends " + \
-        g_class["inherits"] if "inherits" in g_class else ""
+    extends_str = " extends " + g_class["inherits"] if "inherits" in g_class else ""
 
     src.append(f"declare class {name}{extends_str}")
 
@@ -294,12 +324,16 @@ def generate_class(src, g_class, api):
 
     # Custom Object methods
     if name == "Object":
-        append(src, 1, """\
+        append(
+            src,
+            1,
+            """\
 function Set(self, key: string | StringName, value: Variant)
 function Get(self, key: string | StringName): Variant
 function IsA(self, type: string | GDClass | ClassGlobal): boolean
 function Free(self)\
-""")
+""",
+        )
 
     # Signals
     if "signals" in g_class:
@@ -310,7 +344,9 @@ function Free(self)\
     # Properties
     if "properties" in g_class:
         for prop in g_class["properties"]:
-            setter, getter, _, _ = utils.get_property_setget(prop, g_class, api["classes"])
+            setter, getter, _, _ = utils.get_property_setget(
+                prop, g_class, api["classes"]
+            )
             if setter == "" and getter == "":
                 continue
 
@@ -322,7 +358,9 @@ function Free(self)\
             # Enum properties are registered as integers, so reference their setter/getter to find real type
             if "methods" in g_class:
                 prop_method_ref = prop["getter"] if "getter" in prop else prop["setter"]
-                prop_method = [m for m in g_class["methods"] if m["name"] == prop_method_ref]
+                prop_method = [
+                    m for m in g_class["methods"] if m["name"] == prop_method_ref
+                ]
 
                 if len(prop_method) == 1:
                     prop_method = prop_method[0]
@@ -334,10 +372,14 @@ function Free(self)\
                         prop_type = prop_method["arguments"][arg_idx]["type"]
 
             # BaseMaterial/ShaderMaterial multiple types
-            prop_type = " | ".join([get_luau_type(t, api, True, is_obj_nullable=True)
-                                   for t in prop_type.split(",")])
+            prop_type = " | ".join(
+                [
+                    get_luau_type(t, api, True, is_obj_nullable=True)
+                    for t in prop_type.split(",")
+                ]
+            )
 
-            append(src, 1, f"[\"{prop_name}\"]: {prop_type}")
+            append(src, 1, f'["{prop_name}"]: {prop_type}')
 
     src.append("end\n")
 
@@ -350,8 +392,7 @@ function Free(self)\
 
     if "enums" in g_class:
         for enum in g_class["enums"]:
-            enum_name, type_name, internal_type_name = generate_enum(
-                src, enum, name)
+            enum_name, type_name, internal_type_name = generate_enum(src, enum, name)
             class_enum_types.append((enum_name, type_name, internal_type_name))
 
             src.append("")
@@ -385,11 +426,13 @@ function Free(self)\
 
             generate_method(src, name, method, api, True, is_obj_nullable=True)
 
-    src.append(f"""\
+    src.append(
+        f"""\
 end
 
 declare {name}: {name}_GLOBAL
-""")
+"""
+    )
 
 
 def generate_typedefs(defs_dir, api, lib_types, godot_types):
@@ -398,18 +441,19 @@ def generate_typedefs(defs_dir, api, lib_types, godot_types):
     # Global enums
     global_enums = []
 
-    src.append("""\
+    src.append(
+        """\
 ------------------
 -- GLOBAL ENUMS --
 ------------------
-""")
+"""
+    )
 
     for enum in api["global_enums"]:
         enum_name = enum["name"]
         src.append(f"-- {enum_name}")
 
-        name, type_name, internal_type_name = generate_enum(
-            src, enum)
+        name, type_name, internal_type_name = generate_enum(src, enum)
         global_enums.append((name, type_name, internal_type_name))
 
         src.append("")
@@ -425,11 +469,13 @@ def generate_typedefs(defs_dir, api, lib_types, godot_types):
     src.append("}\n")
 
     # Global constants
-    src.append("""\
+    src.append(
+        """\
 ----------------------
 -- GLOBAL CONSTANTS --
 ----------------------
-""")
+"""
+    )
 
     src.append("declare Constants: {")
 
@@ -440,11 +486,13 @@ def generate_typedefs(defs_dir, api, lib_types, godot_types):
     src.append("}\n")
 
     # Utility functions
-    src.append("""\
+    src.append(
+        """\
 -----------------------
 -- UTILITY FUNCTIONS --
 -----------------------
-""")
+"""
+    )
 
     for func in api["utility_functions"]:
         func_name = func["name"]
@@ -457,22 +505,28 @@ def generate_typedefs(defs_dir, api, lib_types, godot_types):
         if is_print_func:
             src.append(f"declare function {func_name}(...: any)")
         else:
-            func_ret_str = ": " + \
-                get_luau_type(func["return_type"], api, True) if "return_type" in func else ""
+            func_ret_str = (
+                ": " + get_luau_type(func["return_type"], api, True)
+                if "return_type" in func
+                else ""
+            )
 
             src.append(
-                f"declare function {func_name}({generate_args(func, api, False)}){func_ret_str}")
+                f"declare function {func_name}({generate_args(func, api, False)}){func_ret_str}"
+            )
 
     src.append("")
 
     # Builtin classes
-    src.append("""\
+    src.append(
+        """\
 ---------------------
 -- BUILTIN CLASSES --
 ---------------------
 
 declare class ClassGlobal end
-""")
+"""
+    )
 
     builtin_classes = api["builtin_classes"]
 
@@ -486,11 +540,13 @@ declare class ClassGlobal end
         generate_builtin_class(src, builtin_class, api)
 
     # Classes
-    src.append("""\
+    src.append(
+        """\
 -------------
 -- CLASSES --
 -------------
-""")
+"""
+    )
 
     classes = api["classes"]
 
@@ -503,8 +559,9 @@ declare class ClassGlobal end
                 if "inherits" not in check_class:
                     return parent_count
 
-                check_class = [c for c in class_list if c["name"]
-                               == check_class["inherits"]][0]
+                check_class = [
+                    c for c in class_list if c["name"] == check_class["inherits"]
+                ][0]
                 parent_count += 1
 
         return key_func
@@ -515,11 +572,13 @@ declare class ClassGlobal end
         generate_class(src, g_class, api)
 
     # Special types
-    src.append("""\
+    src.append(
+        """\
 -------------------
 -- SPECIAL TYPES --
 -------------------
-""")
+"""
+    )
 
     var_def = "export type Variant = nil | boolean | number | string | Object | "
 

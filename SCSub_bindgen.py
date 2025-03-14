@@ -7,21 +7,22 @@ Import("env")
 
 env_gen = env.Clone()
 
-env_gen.Append(BUILDERS={"GenerateLuauBindings": Builder(
-    action=scons_generate_bindings, emitter=scons_emit_files)})
+env_gen.Append(
+    BUILDERS={
+        "GenerateLuauBindings": Builder(
+            action=scons_generate_bindings, emitter=scons_emit_files
+        )
+    }
+)
 
 luau_bindings = env_gen.GenerateLuauBindings(
     Dir("."),
     [
-        os.path.join(
-            os.getcwd(), "extern/godot-cpp/gdextension/extension_api.json"),
-        os.path.join(
-            os.getcwd(), "bindgen/class_settings.toml"),
-        os.path.join(
-            os.getcwd(), "definitions/luauLibTypes.part.d.lua"),
-        os.path.join(
-            os.getcwd(), "definitions/godotTypes.part.d.lua")
-    ]
+        os.path.join(os.getcwd(), "extern/godot-cpp/gdextension/extension_api.json"),
+        os.path.join(os.getcwd(), "bindgen/class_settings.toml"),
+        os.path.join(os.getcwd(), "definitions/luauLibTypes.part.d.lua"),
+        os.path.join(os.getcwd(), "definitions/godotTypes.part.d.lua"),
+    ],
 )
 
 if env["generate_luau_bindings"]:

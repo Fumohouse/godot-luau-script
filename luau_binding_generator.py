@@ -23,9 +23,8 @@ def scons_emit_files(target, source, env):
         # Stack
         env.File("gen/include/core/builtins_stack.gen.inc"),
         env.File("gen/src/builtins_stack.gen.cpp"),
-
         # Extension API
-        env.File("gen/src/extension_api_bin.gen.cpp")
+        env.File("gen/src/extension_api_bin.gen.cpp"),
     ]
 
     env.Clean(files, target)

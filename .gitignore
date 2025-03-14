@@ -1,6 +1,3 @@
-gen/
-definitions/*.gen.d.lua
-__pycache__/
 *.a
 *.o
 *.os
@@ -14,3 +11,9 @@ __pycache__/
 # clangd
 .cache/
 compile_commands.json
+
+/.direnv/
+
+/gen/
+/definitions/*.gen.d.lua
+__pycache__/
