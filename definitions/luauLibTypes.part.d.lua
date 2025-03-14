@@ -79,7 +79,7 @@ declare function wait(duration: number): number
 --- @return The first return value is whether the signal was emitted (true) or timed out (false), and subsequent values are the arguments passed to the signal when it was emitted.
 declare function wait_signal<T...>(signal: Signal, timeout: number?): (boolean, T...) -- FIXME: This type should be `(true, T...) | false` but that's no longer valid
 
---- Gets a global constant (e.g. AutoLoad) which was defined in the Godot
+--- Gets a global constant (i.e., AutoLoad) that was defined in the Godot
 --- editor.
 --- @param name The name of the global constant.
 declare function gdglobal(name: StringNameLike): Variant

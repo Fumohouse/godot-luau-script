@@ -39,7 +39,8 @@ Indicates the script is instantiable/runnable in the editor.
 
 ## `@permissions <...permissionsFlags>`
 
-Declares the script's permissions (see ["Core Scripts", VMs, and Permissions](../../core-scripts-vms-permissions.md)).
+Declares the script's permissions (see ["Core Scripts", VMs, and
+Permissions](../../core-scripts-vms-permissions.md)).
 
 - `permissionsFlags`: Valid permissions flags.
 

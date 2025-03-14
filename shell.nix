@@ -8,6 +8,8 @@ pkgs.mkShell.override { stdenv = pkgs.clang19Stdenv; } {
     # Formatter
     python312
     python312Packages.black
+
+    mdbook
   ];
 
   shellHook = ''

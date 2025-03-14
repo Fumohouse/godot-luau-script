@@ -8,9 +8,9 @@ To find out what APIs are exposed, you can refer to the
 is large!) or rely on [autocomplete](./typechecking-autocomplete.md) to tell
 you.
 
-For the most part, you can refer to [Godot's documentation](https://docs.godotengine.org/en/latest/)
-to discover the API. After learning the rules below, this should become
-relatively intuitive.
+For the most part, you can refer to [Godot's
+documentation](https://docs.godotengine.org/en/latest/) to discover the API.
+After learning the rules below, this should become relatively intuitive.
 
 ## Renaming rules
 
@@ -84,7 +84,7 @@ operators do not work.
     of Lua's parsing rules.
 - Luau's `number` type (represented as double-precision floating point) cannot
   exactly store integers with an absolute value of more than `2^53`. Numbers
-  outside this range are converted transparently to a custom type `Int64` which
+  outside this range are converted transparently to a custom type `Int64` that
   is designed to mimic `number` as closely as possible (as such, `Int64` is not
   generated in type definitions or treated separately from `number`). The value
   in `Int64` is exact, but operations on `Int64` *will return `number`* (i.e.

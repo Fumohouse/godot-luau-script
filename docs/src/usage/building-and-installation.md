@@ -2,7 +2,8 @@
 
 ## Download
 
-Prebuilt binaries for each tagged release can be found on the [releases page](https://codeberg.org/ksk/godot-luau-script/releases).
+Prebuilt binaries for each tagged release can be found on the [releases
+page](https://codeberg.org/ksk/godot-luau-script/releases).
 
 ## Installation
 
@@ -13,7 +14,7 @@ through the script creation dialog.
 
 ## Building yourself
 
-`godot-luau-script` uses [SConstruct](https://scons.org/) to build.
+`godot-luau-script` uses [SCons](https://scons.org/) as its build system.
 
 ### Cloning
 
@@ -21,7 +22,8 @@ The three dependencies this project has, godot-cpp, Luau, and Catch2, are added
 as submodules in `extern/`. As such, make sure to clone submodules when cloning
 this project:
 
-- `git clone https://github.com/Fumohouse/godot-luau-script --recurse-submodules`, or
+- `git clone https://github.com/Fumohouse/godot-luau-script
+  --recurse-submodules`, or
 - `git submodule update --recursive` if the repository is already cloned.
 
 ### Supported platforms
@@ -34,8 +36,8 @@ MinGW, and MSVC, and building for Windows, macOS, and Linux. LLVM (`clang++`,
 
 Ensure that a supported toolchain is installed. You will also need to install
 [Python 3](https://www.python.org/) and run `python -m pip install scons` to
-install SConstruct. If on Linux, SConstruct is also available through some
-package repositories.
+install SCons. If on Linux, SCons is also available through some package
+repositories.
 
 If you are running a Python version older than 3.11, you will need to
 `python -m pip install tomli` for TOML support.
@@ -77,7 +79,8 @@ Scripts should not be run outside the directory they are in.
 
 ### Preparing `osxcross`
 
-Go to [tpoechtrager/osxcross](https://github.com/tpoechtrager/osxcross/tree/master)
+Go to
+[tpoechtrager/osxcross](https://github.com/tpoechtrager/osxcross/tree/master)
 and follow an appropriate procedure for downloading Xcode and packaging the SDK
 on your system.
 

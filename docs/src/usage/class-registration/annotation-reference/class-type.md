@@ -1,8 +1,8 @@
 # Class Type
 
 The class type is the Luau type with the same name as the `local` that the
-[`@class` annotation](./class-definition.md#class-globalclassname) refers to.
-It is used to enable type checking for the class and declare the its associated
+[`@class` annotation](./class-definition.md#class-globalclassname) refers to. It
+is used to enable type checking for the class and declare the its associated
 properties/signals.
 
 Example:
@@ -117,7 +117,7 @@ property in the Godot editor.
 
 #### `@flags <...flagValues>`
 
-Valid only for `integer` properties. Defines a set of bit flags which are easily
+Valid only for `integer` properties. Defines a set of bit flags that are easily
 set in the Godot editor.
 
 - `flagValues`: The names of the flag values.
@@ -172,5 +172,6 @@ should not have an editable alpha channel.
 
 ### `@signal`
 
-Indicates a property with the `Signal` or [`SignalWithArgs<F>`](../type-conversion.md#signalwithargsf)
-type should be registered as a signal.
+Indicates a property with the `Signal` or
+[`SignalWithArgs<F>`](../type-conversion.md#signalwithargsf) type should be
+registered as a signal.

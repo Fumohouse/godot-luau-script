@@ -1,7 +1,7 @@
 # Methods
 
-The following annotations should be attached to methods defined directly on
-the table indicated by `@class`. For example:
+The following annotations should be attached to methods defined directly on the
+table indicated by `@class`. For example:
 
 ```lua
 -- <truncated>
@@ -27,8 +27,8 @@ end
 Indicates a method should be accessible to Godot, registered based on its type
 annotations.
 
-If there are no type annotations, `Variant` is assumed for all arguments,
-and the return value is `Variant` if the method returns anything.
+If there are no type annotations, `Variant` is assumed for all arguments, and
+the return value is `Variant` if the method returns anything.
 
 ## `@param <name> [comment]`
 
@@ -56,7 +56,8 @@ The `@return` annotation documents a return value. It is not currently used by
 
 Overrides a method's flags.
 
-See the [Godot documentation](https://docs.godotengine.org/en/stable/classes/class_@globalscope.html#enum-globalscope-methodflags)
+See the [Godot
+documentation](https://docs.godotengine.org/en/stable/classes/class_@globalscope.html#enum-globalscope-methodflags)
 for a list of flags and their meanings (omit `METHOD_FLAG_`).
 
 - `methodFlags`: The flag values.
@@ -65,7 +66,9 @@ for a list of flags and their meanings (omit `METHOD_FLAG_`).
 
 Registers a remote procedure call with Godot.
 
-See the [this Godot blog post](https://godotengine.org/article/multiplayer-changes-godot-4-0-report-2/) for details.
+See the [this Godot blog
+post](https://godotengine.org/article/multiplayer-changes-godot-4-0-report-2/)
+for details.
 
 - `anyPeer`: Allow the RPC to be called by any peer.
 - `authority`: Only allow the RPC to be called by the multiplayer authority.

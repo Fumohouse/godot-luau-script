@@ -30,5 +30,6 @@
 - Allow consumers to override permissions
 - Less verbose/confusing class definition syntax
 - Investigate type-safe Object equality (without using IDs)
+- A better way of declaring and propagating permissions
 - Regression: Investigate crashes on first start (previous "restart required"
   hack invalidated by https://github.com/godotengine/godot/pull/93972)

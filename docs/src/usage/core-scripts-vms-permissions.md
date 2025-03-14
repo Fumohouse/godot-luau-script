@@ -8,8 +8,9 @@ security.
 Core scripts have special privileges such as being able to set their own
 permissions. By default, no scripts are considered core scripts.
 
-Scripts can be designated as core scripts through the [`SandboxService`](./luau-script-api.md),
-typically using [`init.lua`](./init-file.md).
+Scripts can be designated as core scripts through the
+[`SandboxService`](./luau-script-api.md), typically using
+[`init.lua`](./init-file.md).
 
 ## VMs
 
@@ -40,14 +41,19 @@ permissions to receive them.
 The specific permission levels are listed [here](./class-registration.md). As
 noted above, only a core script can declare its own permissions.
 
-Certain APIs receive special permissions, with `INTERNAL` being the default.
-Permissions are set on the thread level, and are inherited to child threads.
-If a thread ever tries to execute a method or other code of a permission level
-it does not have, it will cause an error.
+Certain APIs receive special permissions. The defaults are as follows:
 
-Note that only methods which are registered to Godot are executed on their
+1. `RefCounted` and `Node` classes are in `BASE`.
+2. All editor-specific classes are in `BASE`.
+3. All other classes are `INTERNAL`.
+
+All deviations from the default permissions are recorded in
+`bindgen/class_settings.toml`.
+
+Permissions are set on the thread level and are inherited to child threads. If a
+thread ever tries to execute a method or other code of a permission level it
+does not have, it will cause an error.
+
+Note that only methods that are registered to Godot are executed on their
 script's thread. If any non-registered methods use protected APIs, classes with
 Godot-registered methods that use them must declare the necessary permissions.
-
-A comprehensive list of the permissions assigned to every Object class and
-method can be seen at `bindgen/class_settings.toml`.

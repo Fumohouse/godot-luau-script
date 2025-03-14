@@ -10,7 +10,7 @@ registering it to Godot.
 
 ## Built into `godot-luau-script`
 
-This project comes with a number of built-in virtual methods, which can be
+This project comes with a number of built-in virtual methods that can be
 overridden just by defining them on your implementation table. They do not need
 to be registered to Godot.
 
@@ -37,8 +37,8 @@ your object.
 
 These methods should be used in combination to define custom properties for your
 object, typically so they can show up in the editor. Keep in mind you must set
-[`@tool`](./annotation-reference/class-definition.md#tool) on your class for these methods to run
-in the editor.
+[`@tool`](./annotation-reference/class-definition.md#tool) on your class for
+these methods to run in the editor.
 
 #### `function _GetPropertyList(self): {GDProperty}`
 
@@ -57,7 +57,7 @@ property or `nil` if the property doesn't exist.
 
 #### `function _PropertyCanRevert(self, name: string): boolean`
 
-Return `true` if the given property has a default value which the editor should
+Return `true` if the given property has a default value that the editor should
 be able to revert to.
 
 #### `function _PropertyGetRevert(self, name: string): Variant`
