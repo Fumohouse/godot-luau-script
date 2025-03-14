@@ -271,14 +271,9 @@ declare {name}: {name}_GLOBAL
 """)
 
 
-def generate_class(src, g_class, api, class_settings):
+def generate_class(src, g_class, api):
     name = g_class["name"]
     src.append(f"-- {name}")
-
-    method_settings = class_settings[name]["methods"]
-    def is_obj_nullable(method):
-        method_name_luau = utils.snake_to_pascal(method["name"])
-        return method_settings[method_name_luau]["ret_nullable"] if "ret_nullable" in method_settings[method_name_luau] else True
 
     #
     # Class declaration
@@ -295,7 +290,7 @@ def generate_class(src, g_class, api, class_settings):
             if method["is_static"]:
                 continue
 
-            generate_method(src, name, method, api, is_obj_nullable=is_obj_nullable(method))
+            generate_method(src, name, method, api, is_obj_nullable=True)
 
     # Custom Object methods
     if name == "Object":
@@ -331,7 +326,6 @@ function Free(self)\
 
                 if len(prop_method) == 1:
                     prop_method = prop_method[0]
-                    is_prop_nullable = is_obj_nullable(prop_method)
 
                     if "return_value" in prop_method:
                         prop_type = prop_method["return_value"]["type"]
@@ -340,7 +334,7 @@ function Free(self)\
                         prop_type = prop_method["arguments"][arg_idx]["type"]
 
             # BaseMaterial/ShaderMaterial multiple types
-            prop_type = " | ".join([get_luau_type(t, api, True, is_prop_nullable)
+            prop_type = " | ".join([get_luau_type(t, api, True, is_obj_nullable=True)
                                    for t in prop_type.split(",")])
 
             append(src, 1, f"[\"{prop_name}\"]: {prop_type}")
@@ -389,7 +383,7 @@ function Free(self)\
             if not method["is_static"]:
                 continue
 
-            generate_method(src, name, method, api, True, is_obj_nullable=is_obj_nullable(method))
+            generate_method(src, name, method, api, True, is_obj_nullable=True)
 
     src.append(f"""\
 end
@@ -398,7 +392,7 @@ declare {name}: {name}_GLOBAL
 """)
 
 
-def generate_typedefs(defs_dir, api, class_settings, lib_types, godot_types):
+def generate_typedefs(defs_dir, api, lib_types, godot_types):
     src = [constants.header_comment_lua, ""]
 
     # Global enums
@@ -518,7 +512,7 @@ declare class ClassGlobal end
     classes = sorted(classes, key=sort_classes(classes))
 
     for g_class in classes:
-        generate_class(src, g_class, api, class_settings)
+        generate_class(src, g_class, api)
 
     # Special types
     src.append("""\

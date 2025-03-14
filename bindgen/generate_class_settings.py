@@ -74,8 +74,6 @@ for g_class in classes:
             method_name = utils.snake_to_pascal(method["name"])
             print(f"[{class_name}.methods.{method_name}]")
             print("permissions = \"INHERIT\" #")
-            if "return_value" in method and True in [c["name"] == method["return_value"]["type"] for c in api["classes"]]:
-                print("ret_nullable = true #")
             print("")
 
     print("#############################\n")

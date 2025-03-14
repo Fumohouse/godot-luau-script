@@ -295,11 +295,9 @@ default_permissions = "BASE" #
 
 [AcceptDialog.methods.AddButton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AcceptDialog.methods.AddCancelButton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AcceptDialog.methods.GetCloseOnEscape]
 permissions = "INHERIT" #
@@ -309,11 +307,9 @@ permissions = "INHERIT" #
 
 [AcceptDialog.methods.GetLabel]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AcceptDialog.methods.GetOkButton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AcceptDialog.methods.GetOkButtonText]
 permissions = "INHERIT" #
@@ -404,7 +400,6 @@ permissions = "INHERIT" #
 
 [AnimatedSprite2D.methods.GetSpriteFrames]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimatedSprite2D.methods.IsCentered]
 permissions = "INHERIT" #
@@ -491,7 +486,6 @@ permissions = "INHERIT" #
 
 [AnimatedSprite3D.methods.GetSpriteFrames]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimatedSprite3D.methods.IsPlaying]
 permissions = "INHERIT" #
@@ -545,7 +539,6 @@ permissions = "INHERIT" #
 
 [AnimatedTexture.methods.GetFrameTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimatedTexture.methods.GetFrames]
 permissions = "INHERIT" #
@@ -608,7 +601,6 @@ permissions = "INHERIT" #
 
 [Animation.methods.AudioTrackGetKeyStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Animation.methods.AudioTrackInsertKey]
 permissions = "INHERIT" #
@@ -824,7 +816,6 @@ permissions = "INHERIT" #
 
 [AnimationLibrary.methods.GetAnimation]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationLibrary.methods.GetAnimationList]
 permissions = "INHERIT" #
@@ -866,11 +857,9 @@ permissions = "INHERIT" #
 
 [AnimationMixer.methods.GetAnimation]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationMixer.methods.GetAnimationLibrary]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationMixer.methods.GetAnimationLibraryList]
 permissions = "INHERIT" #
@@ -1116,7 +1105,6 @@ permissions = "INHERIT" #
 
 [AnimationNodeBlendSpace1D.methods.GetBlendPointNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeBlendSpace1D.methods.GetBlendPointPosition]
 permissions = "INHERIT" #
@@ -1188,7 +1176,6 @@ permissions = "INHERIT" #
 
 [AnimationNodeBlendSpace2D.methods.GetBlendPointNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeBlendSpace2D.methods.GetBlendPointPosition]
 permissions = "INHERIT" #
@@ -1275,7 +1262,6 @@ permissions = "INHERIT" #
 
 [AnimationNodeBlendTree.methods.GetNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeBlendTree.methods.GetNodePosition]
 permissions = "INHERIT" #
@@ -1311,14 +1297,12 @@ permissions = "INHERIT" #
 
 [AnimationNodeOneShot.methods.GetFadeinCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeOneShot.methods.GetFadeinTime]
 permissions = "INHERIT" #
 
 [AnimationNodeOneShot.methods.GetFadeoutCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeOneShot.methods.GetFadeoutTime]
 permissions = "INHERIT" #
@@ -1389,7 +1373,6 @@ permissions = "INHERIT" #
 
 [AnimationNodeStateMachine.methods.GetNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeStateMachine.methods.GetNodeName]
 permissions = "INHERIT" #
@@ -1402,7 +1385,6 @@ permissions = "INHERIT" #
 
 [AnimationNodeStateMachine.methods.GetTransition]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeStateMachine.methods.GetTransitionCount]
 permissions = "INHERIT" #
@@ -1515,7 +1497,6 @@ permissions = "INHERIT" #
 
 [AnimationNodeStateMachineTransition.methods.GetXfadeCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeStateMachineTransition.methods.GetXfadeTime]
 permissions = "INHERIT" #
@@ -1601,7 +1582,6 @@ default_permissions = "BASE" #
 
 [AnimationNodeTransition.methods.GetXfadeCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationNodeTransition.methods.GetXfadeTime]
 permissions = "INHERIT" #
@@ -1803,7 +1783,6 @@ permissions = "INHERIT" #
 
 [AnimationTree.methods.GetTreeRoot]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AnimationTree.methods.SetAdvanceExpressionBaseNode]
 permissions = "INHERIT" #
@@ -2125,7 +2104,6 @@ permissions = "INHERIT" #
 
 [ArrayMesh.methods.GetShadowMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ArrayMesh.methods.LightmapUnwrap]
 permissions = "INHERIT" #
@@ -2234,7 +2212,6 @@ default_permissions = "BASE" #
 
 [AtlasTexture.methods.GetAtlas]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AtlasTexture.methods.GetMargin]
 permissions = "INHERIT" #
@@ -2844,7 +2821,6 @@ permissions = "INHERIT" #
 
 [AudioEffectRecord.methods.GetRecording]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioEffectRecord.methods.IsRecordingActive]
 permissions = "INHERIT" #
@@ -3043,7 +3019,6 @@ permissions = "INHERIT" #
 
 [AudioServer.methods.GenerateBusLayout]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioServer.methods.GetBusChannels]
 permissions = "INHERIT" #
@@ -3053,14 +3028,12 @@ permissions = "INHERIT" #
 
 [AudioServer.methods.GetBusEffect]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioServer.methods.GetBusEffectCount]
 permissions = "INHERIT" #
 
 [AudioServer.methods.GetBusEffectInstance]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioServer.methods.GetBusIndex]
 permissions = "INHERIT" #
@@ -3198,14 +3171,12 @@ permissions = "INHERIT" #
 
 [AudioStream.methods.GenerateSample]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStream.methods.GetLength]
 permissions = "INHERIT" #
 
 [AudioStream.methods.InstantiatePlayback]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStream.methods.IsMetaStream]
 permissions = "INHERIT" #
@@ -3287,7 +3258,6 @@ permissions = "INHERIT" #
 
 [AudioStreamInteractive.methods.GetClipStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamInteractive.methods.GetInitialClip]
 permissions = "INHERIT" #
@@ -3411,18 +3381,15 @@ permissions = "INHERIT" #
 
 [AudioStreamOggVorbis.methods.GetPacketSequence]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamOggVorbis.methods.HasLoop]
 permissions = "INHERIT" #
 
 [AudioStreamOggVorbis.methods.LoadFromBuffer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamOggVorbis.methods.LoadFromFile]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamOggVorbis.methods.SetBarBeats]
 permissions = "INHERIT" #
@@ -3452,7 +3419,6 @@ default_permissions = "BASE" #
 
 [AudioStreamPlayback.methods.GetSamplePlayback]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlayback.methods.SetSamplePlayback]
 permissions = "INHERIT" #
@@ -3557,14 +3523,12 @@ permissions = "INHERIT" #
 
 [AudioStreamPlayer.methods.GetStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlayer.methods.GetStreamPaused]
 permissions = "INHERIT" #
 
 [AudioStreamPlayer.methods.GetStreamPlayback]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlayer.methods.GetVolumeDb]
 permissions = "INHERIT" #
@@ -3651,14 +3615,12 @@ permissions = "INHERIT" #
 
 [AudioStreamPlayer2D.methods.GetStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlayer2D.methods.GetStreamPaused]
 permissions = "INHERIT" #
 
 [AudioStreamPlayer2D.methods.GetStreamPlayback]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlayer2D.methods.GetVolumeDb]
 permissions = "INHERIT" #
@@ -3772,14 +3734,12 @@ permissions = "INHERIT" #
 
 [AudioStreamPlayer3D.methods.GetStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlayer3D.methods.GetStreamPaused]
 permissions = "INHERIT" #
 
 [AudioStreamPlayer3D.methods.GetStreamPlayback]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlayer3D.methods.GetUnitSize]
 permissions = "INHERIT" #
@@ -3884,7 +3844,6 @@ permissions = "INHERIT" #
 
 [AudioStreamPlaylist.methods.GetListStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamPlaylist.methods.GetShuffle]
 permissions = "INHERIT" #
@@ -3946,7 +3905,6 @@ permissions = "INHERIT" #
 
 [AudioStreamRandomizer.methods.GetStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamRandomizer.methods.GetStreamProbabilityWeight]
 permissions = "INHERIT" #
@@ -3991,7 +3949,6 @@ permissions = "INHERIT" #
 
 [AudioStreamSynchronized.methods.GetSyncStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [AudioStreamSynchronized.methods.GetSyncStreamVolume]
 permissions = "INHERIT" #
@@ -4091,7 +4048,6 @@ permissions = "INHERIT" #
 
 [BaseButton.methods.GetButtonGroup]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [BaseButton.methods.GetButtonMask]
 permissions = "INHERIT" #
@@ -4101,7 +4057,6 @@ permissions = "INHERIT" #
 
 [BaseButton.methods.GetShortcut]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [BaseButton.methods.IsDisabled]
 permissions = "INHERIT" #
@@ -4326,7 +4281,6 @@ permissions = "INHERIT" #
 
 [BaseMaterial3D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [BaseMaterial3D.methods.GetTextureFilter]
 permissions = "INHERIT" #
@@ -4584,7 +4538,6 @@ default_permissions = "BASE" #
 
 [BitMap.methods.ConvertToImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [BitMap.methods.Create]
 permissions = "INHERIT" #
@@ -4717,7 +4670,6 @@ permissions = "INHERIT" #
 
 [BoneMap.methods.GetProfile]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [BoneMap.methods.GetSkeletonBoneName]
 permissions = "INHERIT" #
@@ -4738,7 +4690,6 @@ default_permissions = "BASE" #
 
 [BoxContainer.methods.AddSpacer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [BoxContainer.methods.GetAlignment]
 permissions = "INHERIT" #
@@ -4825,7 +4776,6 @@ permissions = "INHERIT" #
 
 [Button.methods.GetButtonIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Button.methods.GetClipText]
 permissions = "INHERIT" #
@@ -4906,7 +4856,6 @@ permissions = "INHERIT" #
 
 [ButtonGroup.methods.GetPressedButton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ButtonGroup.methods.IsAllowUnpress]
 permissions = "INHERIT" #
@@ -4933,11 +4882,9 @@ permissions = "INHERIT" #
 
 [CPUParticles2D.methods.GetColorInitialRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles2D.methods.GetColorRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles2D.methods.GetDirection]
 permissions = "INHERIT" #
@@ -4986,7 +4933,6 @@ permissions = "INHERIT" #
 
 [CPUParticles2D.methods.GetParamCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles2D.methods.GetParamMax]
 permissions = "INHERIT" #
@@ -5005,11 +4951,9 @@ permissions = "INHERIT" #
 
 [CPUParticles2D.methods.GetScaleCurveX]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles2D.methods.GetScaleCurveY]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles2D.methods.GetSpeedScale]
 permissions = "INHERIT" #
@@ -5022,7 +4966,6 @@ permissions = "INHERIT" #
 
 [CPUParticles2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles2D.methods.GetUseLocalCoordinates]
 permissions = "INHERIT" #
@@ -5151,11 +5094,9 @@ permissions = "INHERIT" #
 
 [CPUParticles3D.methods.GetColorInitialRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles3D.methods.GetColorRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles3D.methods.GetDirection]
 permissions = "INHERIT" #
@@ -5216,14 +5157,12 @@ permissions = "INHERIT" #
 
 [CPUParticles3D.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles3D.methods.GetOneShot]
 permissions = "INHERIT" #
 
 [CPUParticles3D.methods.GetParamCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles3D.methods.GetParamMax]
 permissions = "INHERIT" #
@@ -5242,15 +5181,12 @@ permissions = "INHERIT" #
 
 [CPUParticles3D.methods.GetScaleCurveX]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles3D.methods.GetScaleCurveY]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles3D.methods.GetScaleCurveZ]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CPUParticles3D.methods.GetSpeedScale]
 permissions = "INHERIT" #
@@ -5403,7 +5339,6 @@ default_permissions = "BASE" #
 
 [CSGBox3D.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CSGBox3D.methods.GetSize]
 permissions = "INHERIT" #
@@ -5435,7 +5370,6 @@ permissions = "INHERIT" #
 
 [CSGCylinder3D.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CSGCylinder3D.methods.GetRadius]
 permissions = "INHERIT" #
@@ -5477,11 +5411,9 @@ default_permissions = "BASE" #
 
 [CSGMesh3D.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CSGMesh3D.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CSGMesh3D.methods.SetMaterial]
 permissions = "INHERIT" #
@@ -5502,7 +5434,6 @@ permissions = "INHERIT" #
 
 [CSGPolygon3D.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CSGPolygon3D.methods.GetMode]
 permissions = "INHERIT" #
@@ -5686,7 +5617,6 @@ default_permissions = "BASE" #
 
 [CSGSphere3D.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CSGSphere3D.methods.GetRadialSegments]
 permissions = "INHERIT" #
@@ -5728,7 +5658,6 @@ permissions = "INHERIT" #
 
 [CSGTorus3D.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CSGTorus3D.methods.GetOuterRadius]
 permissions = "INHERIT" #
@@ -5770,7 +5699,6 @@ default_permissions = "BASE" #
 
 [CallbackTweener.methods.SetDelay]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 #############################
 
@@ -5791,7 +5719,6 @@ permissions = "INHERIT" #
 
 [Camera2D.methods.GetCustomViewport]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Camera2D.methods.GetDragHorizontalOffset]
 permissions = "INHERIT" #
@@ -5941,7 +5868,6 @@ permissions = "INHERIT" #
 
 [Camera3D.methods.GetAttributes]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Camera3D.methods.GetCameraProjection]
 permissions = "INHERIT" #
@@ -5954,7 +5880,6 @@ permissions = "INHERIT" #
 
 [Camera3D.methods.GetCompositor]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Camera3D.methods.GetCullMask]
 permissions = "INHERIT" #
@@ -5967,7 +5892,6 @@ permissions = "INHERIT" #
 
 [Camera3D.methods.GetEnvironment]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Camera3D.methods.GetFar]
 permissions = "INHERIT" #
@@ -6293,7 +6217,6 @@ permissions = "INHERIT" #
 
 [CameraServer.methods.GetFeed]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CameraServer.methods.GetFeedCount]
 permissions = "INHERIT" #
@@ -6462,7 +6385,6 @@ permissions = "INHERIT" #
 
 [CanvasItem.methods.GetCanvasLayerNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CanvasItem.methods.GetCanvasTransform]
 permissions = "INHERIT" #
@@ -6487,7 +6409,6 @@ permissions = "INHERIT" #
 
 [CanvasItem.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CanvasItem.methods.GetModulate]
 permissions = "INHERIT" #
@@ -6524,7 +6445,6 @@ permissions = "INHERIT" #
 
 [CanvasItem.methods.GetWorld2D]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Very unlikely
 
 [CanvasItem.methods.GetZIndex]
 permissions = "INHERIT" #
@@ -6561,7 +6481,6 @@ permissions = "INHERIT" #
 
 [CanvasItem.methods.MakeInputLocal]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CanvasItem.methods.MoveToFront]
 permissions = "INHERIT" #
@@ -6683,7 +6602,6 @@ permissions = "INHERIT" #
 
 [CanvasLayer.methods.GetCustomViewport]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CanvasLayer.methods.GetFinalTransform]
 permissions = "INHERIT" #
@@ -6769,11 +6687,9 @@ default_permissions = "BASE" #
 
 [CanvasTexture.methods.GetDiffuseTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CanvasTexture.methods.GetNormalTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CanvasTexture.methods.GetSpecularColor]
 permissions = "INHERIT" #
@@ -6783,7 +6699,6 @@ permissions = "INHERIT" #
 
 [CanvasTexture.methods.GetSpecularTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CanvasTexture.methods.GetTextureFilter]
 permissions = "INHERIT" #
@@ -7012,7 +6927,6 @@ permissions = "INHERIT" #
 
 [CharacterBody2D.methods.GetLastSlideCollision]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CharacterBody2D.methods.GetMaxSlides]
 permissions = "INHERIT" #
@@ -7043,7 +6957,6 @@ permissions = "INHERIT" #
 
 [CharacterBody2D.methods.GetSlideCollision]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CharacterBody2D.methods.GetSlideCollisionCount]
 permissions = "INHERIT" #
@@ -7166,7 +7079,6 @@ permissions = "INHERIT" #
 
 [CharacterBody3D.methods.GetLastSlideCollision]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CharacterBody3D.methods.GetMaxSlides]
 permissions = "INHERIT" #
@@ -7200,7 +7112,6 @@ permissions = "INHERIT" #
 
 [CharacterBody3D.methods.GetSlideCollision]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CharacterBody3D.methods.GetSlideCollisionCount]
 permissions = "INHERIT" #
@@ -7920,11 +7831,9 @@ permissions = "INHERIT" #
 
 [CollisionObject2D.methods.ShapeOwnerGetOwner]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CollisionObject2D.methods.ShapeOwnerGetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CollisionObject2D.methods.ShapeOwnerGetShapeCount]
 permissions = "INHERIT" #
@@ -8032,11 +7941,9 @@ permissions = "INHERIT" #
 
 [CollisionObject3D.methods.ShapeOwnerGetOwner]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CollisionObject3D.methods.ShapeOwnerGetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CollisionObject3D.methods.ShapeOwnerGetShapeCount]
 permissions = "INHERIT" #
@@ -8142,7 +8049,6 @@ permissions = "INHERIT" #
 
 [CollisionShape2D.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CollisionShape2D.methods.IsDisabled]
 permissions = "INHERIT" #
@@ -8175,7 +8081,6 @@ default_permissions = "BASE" #
 
 [CollisionShape3D.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CollisionShape3D.methods.IsDisabled]
 permissions = "INHERIT" #
@@ -8297,11 +8202,9 @@ permissions = "INHERIT" #
 
 [ColorPickerButton.methods.GetPicker]
 permissions = "INHERIT" #
-ret_nullable = false # 4.2.1-stable: Never null
 
 [ColorPickerButton.methods.GetPopup]
 permissions = "INHERIT" #
-ret_nullable = false # 4.2.1-stable: Never null
 
 [ColorPickerButton.methods.IsEditingAlpha]
 permissions = "INHERIT" #
@@ -8573,7 +8476,6 @@ default_permissions = "BASE" #
 
 [ConfirmationDialog.methods.GetCancelButton]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [ConfirmationDialog.methods.GetCancelButtonText]
 permissions = "INHERIT" #
@@ -8632,15 +8534,12 @@ permissions = "INHERIT" #
 
 [Control.methods.FindNextValidFocus]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.FindPrevValidFocus]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.FindValidFocusNeighbor]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.ForceDrag]
 permissions = "INHERIT" #
@@ -8707,7 +8606,6 @@ permissions = "INHERIT" #
 
 [Control.methods.GetParentControl]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.GetPivotOffset]
 permissions = "INHERIT" #
@@ -8732,7 +8630,6 @@ permissions = "INHERIT" #
 
 [Control.methods.GetShortcutContext]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.GetSize]
 permissions = "INHERIT" #
@@ -8742,7 +8639,6 @@ permissions = "INHERIT" #
 
 [Control.methods.GetTheme]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.GetThemeColor]
 permissions = "INHERIT" #
@@ -8755,25 +8651,21 @@ permissions = "INHERIT" #
 
 [Control.methods.GetThemeDefaultFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.GetThemeDefaultFontSize]
 permissions = "INHERIT" #
 
 [Control.methods.GetThemeFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.GetThemeFontSize]
 permissions = "INHERIT" #
 
 [Control.methods.GetThemeIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.GetThemeStylebox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Control.methods.GetThemeTypeVariation]
 permissions = "INHERIT" #
@@ -9050,11 +8942,9 @@ permissions = "INHERIT" #
 
 [Crypto.methods.GenerateRsa]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Crypto.methods.GenerateSelfSignedCertificate]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Crypto.methods.HmacDigest]
 permissions = "INHERIT" #
@@ -9098,7 +8988,6 @@ default_permissions = "BASE" #
 
 [Cubemap.methods.CreatePlaceholder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -9110,7 +8999,6 @@ default_permissions = "BASE" #
 
 [CubemapArray.methods.CreatePlaceholder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -9383,7 +9271,6 @@ default_permissions = "BASE" #
 
 [CurveTexture.methods.GetCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CurveTexture.methods.GetTextureMode]
 permissions = "INHERIT" #
@@ -9407,15 +9294,12 @@ default_permissions = "BASE" #
 
 [CurveXYZTexture.methods.GetCurveX]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CurveXYZTexture.methods.GetCurveY]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CurveXYZTexture.methods.GetCurveZ]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [CurveXYZTexture.methods.SetCurveX]
 permissions = "INHERIT" #
@@ -9512,7 +9396,6 @@ permissions = "INHERIT" #
 
 [DTLSServer.methods.TakeConnection]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -9583,7 +9466,6 @@ permissions = "INHERIT" #
 
 [Decal.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Decal.methods.GetUpperFade]
 permissions = "INHERIT" #
@@ -9725,7 +9607,6 @@ permissions = "INHERIT" #
 
 [DirAccess.methods.Open]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [DirAccess.methods.ReadLink]
 permissions = "INHERIT" #
@@ -9801,7 +9682,6 @@ permissions = "INHERIT" #
 
 [DisplayServer.methods.ClipboardGetImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [DisplayServer.methods.ClipboardGetPrimary]
 permissions = "INHERIT" #
@@ -9928,7 +9808,6 @@ permissions = "INHERIT" #
 
 [DisplayServer.methods.GlobalMenuGetItemIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [DisplayServer.methods.GlobalMenuGetItemIndentationLevel]
 permissions = "INHERIT" #
@@ -10106,7 +9985,6 @@ permissions = "INHERIT" #
 
 [DisplayServer.methods.ScreenGetImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [DisplayServer.methods.ScreenGetMaxScale]
 permissions = "INHERIT" #
@@ -10373,7 +10251,6 @@ permissions = "INHERIT" #
 
 [ENetConnection.methods.ConnectToHost]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ENetConnection.methods.CreateHost]
 permissions = "INHERIT" #
@@ -10436,11 +10313,9 @@ permissions = "INHERIT" #
 
 [ENetMultiplayerPeer.methods.GetHost]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ENetMultiplayerPeer.methods.GetPeer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ENetMultiplayerPeer.methods.SetBindIp]
 permissions = "INHERIT" #
@@ -10522,7 +10397,6 @@ default_permissions = "BASE" #
 
 [EditorDebuggerPlugin.methods.GetSession]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorDebuggerPlugin.methods.GetSessions]
 permissions = "INHERIT" #
@@ -10754,7 +10628,6 @@ permissions = "INHERIT" #
 
 [EditorFileDialog.methods.GetLineEdit]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorFileDialog.methods.GetOptionCount]
 permissions = "INHERIT" #
@@ -10773,7 +10646,6 @@ permissions = "INHERIT" #
 
 [EditorFileDialog.methods.GetVbox]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorFileDialog.methods.Invalidate]
 permissions = "INHERIT" #
@@ -10839,11 +10711,9 @@ permissions = "INHERIT" #
 
 [EditorFileSystem.methods.GetFilesystem]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorFileSystem.methods.GetFilesystemPath]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorFileSystem.methods.GetScanningProgress]
 permissions = "INHERIT" #
@@ -10903,14 +10773,12 @@ permissions = "INHERIT" #
 
 [EditorFileSystemDirectory.methods.GetParent]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorFileSystemDirectory.methods.GetPath]
 permissions = "INHERIT" #
 
 [EditorFileSystemDirectory.methods.GetSubdir]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorFileSystemDirectory.methods.GetSubdirCount]
 permissions = "INHERIT" #
@@ -10944,7 +10812,6 @@ default_permissions = "BASE" #
 
 [EditorInspector.methods.GetEditedObject]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorInspector.methods.GetSelectedPath]
 permissions = "INHERIT" #
@@ -10985,11 +10852,9 @@ permissions = "INHERIT" #
 
 [EditorInterface.methods.GetBaseControl]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetCommandPalette]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetCurrentDirectory]
 permissions = "INHERIT" #
@@ -11002,42 +10867,33 @@ permissions = "INHERIT" #
 
 [EditorInterface.methods.GetEditedSceneRoot]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorInterface.methods.GetEditorMainScreen]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorInterface.methods.GetEditorPaths]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorInterface.methods.GetEditorScale]
 permissions = "INHERIT" #
 
 [EditorInterface.methods.GetEditorSettings]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetEditorTheme]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorInterface.methods.GetEditorViewport2D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorInterface.methods.GetEditorViewport3D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorInterface.methods.GetFileSystemDock]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetInspector]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetOpenScenes]
 permissions = "INHERIT" #
@@ -11047,22 +10903,18 @@ permissions = "INHERIT" #
 
 [EditorInterface.methods.GetResourceFilesystem]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetResourcePreviewer]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetScriptEditor]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [EditorInterface.methods.GetSelectedPaths]
 permissions = "INHERIT" #
 
 [EditorInterface.methods.GetSelection]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Never null
 
 [EditorInterface.methods.InspectObject]
 permissions = "INHERIT" #
@@ -11185,11 +11037,9 @@ permissions = "INHERIT" #
 
 [EditorNode3DGizmo.methods.GetNode3D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorNode3DGizmo.methods.GetPlugin]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorNode3DGizmo.methods.GetSubgizmoSelection]
 permissions = "INHERIT" #
@@ -11225,7 +11075,6 @@ permissions = "INHERIT" #
 
 [EditorNode3DGizmoPlugin.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -11266,7 +11115,6 @@ permissions = "INHERIT" #
 
 [EditorPlugin.methods.AddControlToBottomPanel]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorPlugin.methods.AddControlToContainer]
 permissions = "INHERIT" #
@@ -11315,22 +11163,18 @@ permissions = "INHERIT" #
 
 [EditorPlugin.methods.GetEditorInterface]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Never null
 
 [EditorPlugin.methods.GetExportAsMenu]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorPlugin.methods.GetPluginVersion]
 permissions = "INHERIT" #
 
 [EditorPlugin.methods.GetScriptCreateDialog]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorPlugin.methods.GetUndoRedo]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorPlugin.methods.HideBottomPanel]
 permissions = "INHERIT" #
@@ -11417,7 +11261,6 @@ permissions = "INHERIT" #
 
 [EditorProperty.methods.GetEditedObject]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorProperty.methods.GetEditedProperty]
 permissions = "INHERIT" #
@@ -11494,7 +11337,6 @@ permissions = "INHERIT" #
 
 [EditorResourcePicker.methods.GetEditedResource]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorResourcePicker.methods.IsEditable]
 permissions = "INHERIT" #
@@ -11640,11 +11482,9 @@ permissions = "INHERIT" #
 
 [EditorScript.methods.GetEditorInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorScript.methods.GetScene]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -11656,7 +11496,6 @@ default_permissions = "BASE" #
 
 [EditorScriptPicker.methods.GetScriptOwner]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorScriptPicker.methods.SetScriptOwner]
 permissions = "INHERIT" #
@@ -11832,7 +11671,6 @@ permissions = "INHERIT" #
 
 [EditorUndoRedoManager.methods.GetHistoryUndoRedo]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [EditorUndoRedoManager.methods.GetObjectHistoryId]
 permissions = "INHERIT" #
@@ -11922,7 +11760,6 @@ permissions = "BASE"
 
 [Engine.methods.GetMainLoop]
 permissions = "BASE"
-ret_nullable = false #* 4.0-stable: Basically never null
 
 [Engine.methods.GetMaxFps]
 permissions = "BASE"
@@ -11947,14 +11784,12 @@ permissions = "BASE"
 
 [Engine.methods.GetScriptLanguage]
 permissions = "BASE"
-ret_nullable = true #
 
 [Engine.methods.GetScriptLanguageCount]
 permissions = "BASE"
 
 [Engine.methods.GetSingleton]
 permissions = "BASE"
-ret_nullable = true #
 
 [Engine.methods.GetSingletonList]
 permissions = "BASE"
@@ -12108,7 +11943,6 @@ permissions = "INHERIT" #
 
 [Environment.methods.GetAdjustmentColorCorrection]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Environment.methods.GetAdjustmentContrast]
 permissions = "INHERIT" #
@@ -12205,7 +12039,6 @@ permissions = "INHERIT" #
 
 [Environment.methods.GetGlowMap]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Environment.methods.GetGlowMapStrength]
 permissions = "INHERIT" #
@@ -12248,7 +12081,6 @@ permissions = "INHERIT" #
 
 [Environment.methods.GetSky]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Environment.methods.GetSkyCustomFov]
 permissions = "INHERIT" #
@@ -12944,19 +12776,15 @@ permissions = "INHERIT" #
 
 [FileAccess.methods.Open]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FileAccess.methods.OpenCompressed]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FileAccess.methods.OpenEncrypted]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FileAccess.methods.OpenEncryptedWithPass]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FileAccess.methods.Resize]
 permissions = "INHERIT" #
@@ -13058,7 +12886,6 @@ permissions = "INHERIT" #
 
 [FileDialog.methods.GetLineEdit]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FileDialog.methods.GetOptionCount]
 permissions = "INHERIT" #
@@ -13083,7 +12910,6 @@ permissions = "INHERIT" #
 
 [FileDialog.methods.GetVbox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FileDialog.methods.Invalidate]
 permissions = "INHERIT" #
@@ -13204,7 +13030,6 @@ permissions = "INHERIT" #
 
 [FogMaterial.methods.GetDensityTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FogMaterial.methods.GetEdgeFade]
 permissions = "INHERIT" #
@@ -13243,7 +13068,6 @@ default_permissions = "BASE" #
 
 [FogVolume.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FogVolume.methods.GetShape]
 permissions = "INHERIT" #
@@ -13509,7 +13333,6 @@ permissions = "INHERIT" #
 
 [FontFile.methods.GetTextureImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FontFile.methods.GetTextureOffsets]
 permissions = "INHERIT" #
@@ -13695,7 +13518,6 @@ default_permissions = "BASE" #
 
 [FontVariation.methods.GetBaseFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [FontVariation.methods.GetBaselineOffset]
 permissions = "INHERIT" #
@@ -13771,7 +13593,6 @@ default_permissions = "INTERNAL" #
 
 [GDExtensionManager.methods.GetExtension]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GDExtensionManager.methods.GetLoadedExtensions]
 permissions = "INHERIT" #
@@ -13980,11 +13801,9 @@ default_permissions = "BASE" #
 
 [GLTFCamera.methods.FromDictionary]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFCamera.methods.FromNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFCamera.methods.GetDepthFar]
 permissions = "INHERIT" #
@@ -14021,7 +13840,6 @@ permissions = "INHERIT" #
 
 [GLTFCamera.methods.ToNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -14045,7 +13863,6 @@ permissions = "INHERIT" #
 
 [GLTFDocument.methods.GenerateScene]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFDocument.methods.GetImageFormat]
 permissions = "INHERIT" #
@@ -14100,11 +13917,9 @@ default_permissions = "BASE" #
 
 [GLTFLight.methods.FromDictionary]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFLight.methods.FromNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFLight.methods.GetAdditionalData]
 permissions = "INHERIT" #
@@ -14153,7 +13968,6 @@ permissions = "INHERIT" #
 
 [GLTFLight.methods.ToNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -14174,7 +13988,6 @@ permissions = "INHERIT" #
 
 [GLTFMesh.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFMesh.methods.GetOriginalName]
 permissions = "INHERIT" #
@@ -14296,11 +14109,9 @@ default_permissions = "BASE" #
 
 [GLTFPhysicsBody.methods.FromDictionary]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFPhysicsBody.methods.FromNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFPhysicsBody.methods.GetAngularVelocity]
 permissions = "INHERIT" #
@@ -14355,7 +14166,6 @@ permissions = "INHERIT" #
 
 [GLTFPhysicsBody.methods.ToNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -14367,22 +14177,18 @@ default_permissions = "BASE" #
 
 [GLTFPhysicsShape.methods.FromDictionary]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFPhysicsShape.methods.FromNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFPhysicsShape.methods.FromResource]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFPhysicsShape.methods.GetHeight]
 permissions = "INHERIT" #
 
 [GLTFPhysicsShape.methods.GetImporterMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFPhysicsShape.methods.GetIsTrigger]
 permissions = "INHERIT" #
@@ -14425,11 +14231,9 @@ permissions = "INHERIT" #
 
 [GLTFPhysicsShape.methods.ToNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFPhysicsShape.methods.ToResource]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -14441,7 +14245,6 @@ default_permissions = "BASE" #
 
 [GLTFSkeleton.methods.GetBoneAttachment]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFSkeleton.methods.GetBoneAttachmentCount]
 permissions = "INHERIT" #
@@ -14451,7 +14254,6 @@ permissions = "INHERIT" #
 
 [GLTFSkeleton.methods.GetGodotSkeleton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFSkeleton.methods.GetJoints]
 permissions = "INHERIT" #
@@ -14484,7 +14286,6 @@ default_permissions = "BASE" #
 
 [GLTFSkin.methods.GetGodotSkin]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFSkin.methods.GetInverseBinds]
 permissions = "INHERIT" #
@@ -14556,14 +14357,12 @@ permissions = "INHERIT" #
 
 [GLTFSpecGloss.methods.GetDiffuseImg]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFSpecGloss.methods.GetGlossFactor]
 permissions = "INHERIT" #
 
 [GLTFSpecGloss.methods.GetSpecGlossImg]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFSpecGloss.methods.GetSpecularFactor]
 permissions = "INHERIT" #
@@ -14605,7 +14404,6 @@ permissions = "INHERIT" #
 
 [GLTFState.methods.GetAnimationPlayer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFState.methods.GetAnimationPlayersCount]
 permissions = "INHERIT" #
@@ -14681,7 +14479,6 @@ permissions = "INHERIT" #
 
 [GLTFState.methods.GetSceneNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GLTFState.methods.GetSkeletons]
 permissions = "INHERIT" #
@@ -14904,7 +14701,6 @@ permissions = "INHERIT" #
 
 [GPUParticles2D.methods.GetProcessMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GPUParticles2D.methods.GetRandomnessRatio]
 permissions = "INHERIT" #
@@ -14917,7 +14713,6 @@ permissions = "INHERIT" #
 
 [GPUParticles2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GPUParticles2D.methods.GetTrailLifetime]
 permissions = "INHERIT" #
@@ -15046,7 +14841,6 @@ permissions = "INHERIT" #
 
 [GPUParticles3D.methods.GetDrawPassMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GPUParticles3D.methods.GetDrawPasses]
 permissions = "INHERIT" #
@@ -15077,14 +14871,12 @@ permissions = "INHERIT" #
 
 [GPUParticles3D.methods.GetProcessMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GPUParticles3D.methods.GetRandomnessRatio]
 permissions = "INHERIT" #
 
 [GPUParticles3D.methods.GetSkin]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GPUParticles3D.methods.GetSpeedScale]
 permissions = "INHERIT" #
@@ -15261,7 +15053,6 @@ permissions = "INHERIT" #
 
 [GPUParticlesAttractorVectorField3D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GPUParticlesAttractorVectorField3D.methods.SetSize]
 permissions = "INHERIT" #
@@ -15351,7 +15142,6 @@ permissions = "INHERIT" #
 
 [GPUParticlesCollisionSDF3D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GPUParticlesCollisionSDF3D.methods.GetThickness]
 permissions = "INHERIT" #
@@ -15593,11 +15383,9 @@ permissions = "INHERIT" #
 
 [GeometryInstance3D.methods.GetMaterialOverlay]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GeometryInstance3D.methods.GetMaterialOverride]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GeometryInstance3D.methods.GetTransparency]
 permissions = "INHERIT" #
@@ -15737,7 +15525,6 @@ default_permissions = "BASE" #
 
 [GradientTexture1D.methods.GetGradient]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GradientTexture1D.methods.IsUsingHdr]
 permissions = "INHERIT" #
@@ -15770,7 +15557,6 @@ permissions = "INHERIT" #
 
 [GradientTexture2D.methods.GetGradient]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GradientTexture2D.methods.GetRepeat]
 permissions = "INHERIT" #
@@ -15863,14 +15649,12 @@ permissions = "INHERIT" #
 
 [GraphEdit.methods.GetElementFrame]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GraphEdit.methods.GetGridPattern]
 permissions = "INHERIT" #
 
 [GraphEdit.methods.GetMenuHbox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GraphEdit.methods.GetMinimapOpacity]
 permissions = "INHERIT" #
@@ -16082,7 +15866,6 @@ permissions = "INHERIT" #
 
 [GraphFrame.methods.GetTitlebarHbox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GraphFrame.methods.IsAutoshrinkEnabled]
 permissions = "INHERIT" #
@@ -16160,11 +15943,9 @@ permissions = "INHERIT" #
 
 [GraphNode.methods.GetSlotCustomIconLeft]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GraphNode.methods.GetSlotCustomIconRight]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GraphNode.methods.GetSlotTypeLeft]
 permissions = "INHERIT" #
@@ -16177,7 +15958,6 @@ permissions = "INHERIT" #
 
 [GraphNode.methods.GetTitlebarHbox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GraphNode.methods.IsIgnoringValidConnectionType]
 permissions = "INHERIT" #
@@ -16305,7 +16085,6 @@ permissions = "INHERIT" #
 
 [GridMap.methods.GetMeshLibrary]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GridMap.methods.GetMeshes]
 permissions = "INHERIT" #
@@ -16321,7 +16100,6 @@ permissions = "INHERIT" #
 
 [GridMap.methods.GetPhysicsMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [GridMap.methods.GetUsedCells]
 permissions = "INHERIT" #
@@ -16494,7 +16272,6 @@ permissions = "INHERIT" #
 
 [HTTPClient.methods.GetConnection]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [HTTPClient.methods.GetReadChunkSize]
 permissions = "INHERIT" #
@@ -16787,15 +16564,12 @@ permissions = "INHERIT" #
 
 [Image.methods.Create]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Image.methods.CreateEmpty]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Image.methods.CreateFromData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Image.methods.Crop]
 permissions = "INHERIT" #
@@ -16853,7 +16627,6 @@ permissions = "INHERIT" #
 
 [Image.methods.GetRegion]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Image.methods.GetSize]
 permissions = "INHERIT" #
@@ -16884,7 +16657,6 @@ permissions = "INHERIT" #
 
 [Image.methods.LoadFromFile]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Image.methods.LoadJpgFromBuffer]
 permissions = "INHERIT" #
@@ -16921,7 +16693,6 @@ permissions = "INHERIT" #
 
 [Image.methods.RgbeToSrgb]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Image.methods.Rotate180]
 permissions = "INHERIT" #
@@ -17000,7 +16771,6 @@ default_permissions = "BASE" #
 
 [ImageTexture.methods.CreateFromImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ImageTexture.methods.GetFormat]
 permissions = "INHERIT" #
@@ -17114,7 +16884,6 @@ permissions = "INHERIT" #
 
 [ImporterMesh.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ImporterMesh.methods.GetSurfaceArrays]
 permissions = "INHERIT" #
@@ -17139,7 +16908,6 @@ permissions = "INHERIT" #
 
 [ImporterMesh.methods.GetSurfaceMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ImporterMesh.methods.GetSurfaceName]
 permissions = "INHERIT" #
@@ -17175,14 +16943,12 @@ permissions = "INHERIT" #
 
 [ImporterMeshInstance3D.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ImporterMeshInstance3D.methods.GetSkeletonPath]
 permissions = "INHERIT" #
 
 [ImporterMeshInstance3D.methods.GetSkin]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ImporterMeshInstance3D.methods.GetVisibilityRangeBegin]
 permissions = "INHERIT" #
@@ -17452,7 +17218,6 @@ permissions = "INHERIT" #
 
 [InputEvent.methods.XformedBy]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -17915,7 +17680,6 @@ default_permissions = "BASE" #
 
 [InputEventShortcut.methods.GetShortcut]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [InputEventShortcut.methods.SetShortcut]
 permissions = "INHERIT" #
@@ -18021,7 +17785,6 @@ default_permissions = "BASE" #
 
 [InstancePlaceholder.methods.CreateInstance]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [InstancePlaceholder.methods.GetInstancePath]
 permissions = "INHERIT" #
@@ -18101,7 +17864,6 @@ permissions = "INHERIT" #
 
 [ItemList.methods.GetItemIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ItemList.methods.GetItemIconModulate]
 permissions = "INHERIT" #
@@ -18144,7 +17906,6 @@ permissions = "INHERIT" #
 
 [ItemList.methods.GetVScrollBar]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ItemList.methods.HasAutoHeight]
 permissions = "INHERIT" #
@@ -18353,7 +18114,6 @@ default_permissions = "INTERNAL" #
 
 [JavaClassWrapper.methods.Wrap]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -18365,7 +18125,6 @@ default_permissions = "INTERNAL" #
 
 [JavaScriptBridge.methods.CreateCallback]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [JavaScriptBridge.methods.CreateObject]
 permissions = "INHERIT" #
@@ -18381,7 +18140,6 @@ permissions = "INHERIT" #
 
 [JavaScriptBridge.methods.GetInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [JavaScriptBridge.methods.PwaNeedsUpdate]
 permissions = "INHERIT" #
@@ -18480,7 +18238,6 @@ permissions = "INHERIT" #
 
 [KinematicCollision2D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [KinematicCollision2D.methods.GetColliderId]
 permissions = "INHERIT" #
@@ -18490,7 +18247,6 @@ permissions = "INHERIT" #
 
 [KinematicCollision2D.methods.GetColliderShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [KinematicCollision2D.methods.GetColliderShapeIndex]
 permissions = "INHERIT" #
@@ -18503,7 +18259,6 @@ permissions = "INHERIT" #
 
 [KinematicCollision2D.methods.GetLocalShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [KinematicCollision2D.methods.GetNormal]
 permissions = "INHERIT" #
@@ -18530,7 +18285,6 @@ permissions = "INHERIT" #
 
 [KinematicCollision3D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [KinematicCollision3D.methods.GetColliderId]
 permissions = "INHERIT" #
@@ -18540,7 +18294,6 @@ permissions = "INHERIT" #
 
 [KinematicCollision3D.methods.GetColliderShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [KinematicCollision3D.methods.GetColliderShapeIndex]
 permissions = "INHERIT" #
@@ -18556,7 +18309,6 @@ permissions = "INHERIT" #
 
 [KinematicCollision3D.methods.GetLocalShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [KinematicCollision3D.methods.GetNormal]
 permissions = "INHERIT" #
@@ -18595,7 +18347,6 @@ permissions = "INHERIT" #
 
 [Label.methods.GetLabelSettings]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Label.methods.GetLanguage]
 permissions = "INHERIT" #
@@ -18724,7 +18475,6 @@ default_permissions = "BASE" #
 
 [Label3D.methods.GenerateTriangleMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Label3D.methods.GetAlphaAntialiasing]
 permissions = "INHERIT" #
@@ -18752,7 +18502,6 @@ permissions = "INHERIT" #
 
 [Label3D.methods.GetFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Label3D.methods.GetFontSize]
 permissions = "INHERIT" #
@@ -18911,7 +18660,6 @@ default_permissions = "BASE" #
 
 [LabelSettings.methods.GetFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LabelSettings.methods.GetFontColor]
 permissions = "INHERIT" #
@@ -19102,7 +18850,6 @@ permissions = "INHERIT" #
 
 [Light3D.methods.GetProjector]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Light3D.methods.GetShadowReverseCullFace]
 permissions = "INHERIT" #
@@ -19177,7 +18924,6 @@ permissions = "INHERIT" #
 
 [LightOccluder2D.methods.GetOccluderPolygon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LightOccluder2D.methods.IsSetAsSdfCollision]
 permissions = "INHERIT" #
@@ -19213,7 +18959,6 @@ permissions = "INHERIT" #
 
 [LightmapGI.methods.GetCameraAttributes]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LightmapGI.methods.GetDenoiserRange]
 permissions = "INHERIT" #
@@ -19229,7 +18974,6 @@ permissions = "INHERIT" #
 
 [LightmapGI.methods.GetEnvironmentCustomSky]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LightmapGI.methods.GetEnvironmentMode]
 permissions = "INHERIT" #
@@ -19239,7 +18983,6 @@ permissions = "INHERIT" #
 
 [LightmapGI.methods.GetLightData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LightmapGI.methods.GetMaxTextureSize]
 permissions = "INHERIT" #
@@ -19332,7 +19075,6 @@ permissions = "INHERIT" #
 
 [LightmapGIData.methods.GetLightTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LightmapGIData.methods.GetLightmapTextures]
 permissions = "INHERIT" #
@@ -19401,7 +19143,6 @@ permissions = "INHERIT" #
 
 [Line2D.methods.GetCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Line2D.methods.GetDefaultColor]
 permissions = "INHERIT" #
@@ -19411,7 +19152,6 @@ permissions = "INHERIT" #
 
 [Line2D.methods.GetGradient]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Line2D.methods.GetJointMode]
 permissions = "INHERIT" #
@@ -19433,7 +19173,6 @@ permissions = "INHERIT" #
 
 [Line2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Line2D.methods.GetTextureMode]
 permissions = "INHERIT" #
@@ -19532,14 +19271,12 @@ permissions = "INHERIT" #
 
 [LineEdit.methods.GetMenu]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LineEdit.methods.GetPlaceholder]
 permissions = "INHERIT" #
 
 [LineEdit.methods.GetRightIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [LineEdit.methods.GetScrollOffset]
 permissions = "INHERIT" #
@@ -19857,11 +19594,9 @@ default_permissions = "BASE" #
 
 [Material.methods.CreatePlaceholder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Material.methods.GetNextPass]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Material.methods.GetRenderPriority]
 permissions = "INHERIT" #
@@ -19891,7 +19626,6 @@ permissions = "INHERIT" #
 
 [MenuBar.methods.GetMenuPopup]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MenuBar.methods.GetMenuTitle]
 permissions = "INHERIT" #
@@ -19969,7 +19703,6 @@ permissions = "INHERIT" #
 
 [MenuButton.methods.GetPopup]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [MenuButton.methods.IsSwitchOnHover]
 permissions = "INHERIT" #
@@ -19996,23 +19729,18 @@ default_permissions = "BASE" #
 
 [Mesh.methods.CreateConvexShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Mesh.methods.CreateOutline]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Mesh.methods.CreatePlaceholder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Mesh.methods.CreateTrimeshShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Mesh.methods.GenerateTriangleMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Mesh.methods.GetAabb]
 permissions = "INHERIT" #
@@ -20037,7 +19765,6 @@ permissions = "INHERIT" #
 
 [Mesh.methods.SurfaceGetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Mesh.methods.SurfaceSetMaterial]
 permissions = "INHERIT" #
@@ -20177,7 +19904,6 @@ permissions = "INHERIT" #
 
 [MeshDataTool.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshDataTool.methods.GetVertex]
 permissions = "INHERIT" #
@@ -20261,11 +19987,9 @@ default_permissions = "BASE" #
 
 [MeshInstance2D.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance2D.methods.SetMesh]
 permissions = "INHERIT" #
@@ -20283,7 +20007,6 @@ default_permissions = "BASE" #
 
 [MeshInstance3D.methods.BakeMeshFromCurrentBlendShapeMix]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance3D.methods.CreateConvexCollision]
 permissions = "INHERIT" #
@@ -20302,7 +20025,6 @@ permissions = "INHERIT" #
 
 [MeshInstance3D.methods.GetActiveMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance3D.methods.GetBlendShapeCount]
 permissions = "INHERIT" #
@@ -20312,22 +20034,18 @@ permissions = "INHERIT" #
 
 [MeshInstance3D.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance3D.methods.GetSkeletonPath]
 permissions = "INHERIT" #
 
 [MeshInstance3D.methods.GetSkin]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance3D.methods.GetSkinReference]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance3D.methods.GetSurfaceOverrideMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshInstance3D.methods.GetSurfaceOverrideMaterialCount]
 permissions = "INHERIT" #
@@ -20369,7 +20087,6 @@ permissions = "INHERIT" #
 
 [MeshLibrary.methods.GetItemMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshLibrary.methods.GetItemMeshTransform]
 permissions = "INHERIT" #
@@ -20382,14 +20099,12 @@ permissions = "INHERIT" #
 
 [MeshLibrary.methods.GetItemNavigationMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshLibrary.methods.GetItemNavigationMeshTransform]
 permissions = "INHERIT" #
 
 [MeshLibrary.methods.GetItemPreview]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshLibrary.methods.GetItemShapes]
 permissions = "INHERIT" #
@@ -20434,14 +20149,12 @@ default_permissions = "BASE" #
 
 [MeshTexture.methods.GetBaseTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshTexture.methods.GetImageSize]
 permissions = "INHERIT" #
 
 [MeshTexture.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MeshTexture.methods.SetBaseTexture]
 permissions = "INHERIT" #
@@ -20462,15 +20175,12 @@ default_permissions = "BASE" #
 
 [MethodTweener.methods.SetDelay]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [MethodTweener.methods.SetEase]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [MethodTweener.methods.SetTrans]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 #############################
 
@@ -20631,7 +20341,6 @@ permissions = "INHERIT" #
 
 [MultiMesh.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MultiMesh.methods.GetTransformFormat]
 permissions = "INHERIT" #
@@ -20691,11 +20400,9 @@ default_permissions = "BASE" #
 
 [MultiMeshInstance2D.methods.GetMultimesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MultiMeshInstance2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MultiMeshInstance2D.methods.SetMultimesh]
 permissions = "INHERIT" #
@@ -20713,7 +20420,6 @@ default_permissions = "BASE" #
 
 [MultiMeshInstance3D.methods.GetMultimesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MultiMeshInstance3D.methods.SetMultimesh]
 permissions = "INHERIT" #
@@ -20728,14 +20434,12 @@ default_permissions = "BASE" #
 
 [MultiplayerAPI.methods.CreateDefaultInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MultiplayerAPI.methods.GetDefaultInterface]
 permissions = "INHERIT" #
 
 [MultiplayerAPI.methods.GetMultiplayerPeer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MultiplayerAPI.methods.GetPeers]
 permissions = "INHERIT" #
@@ -20885,7 +20589,6 @@ permissions = "INHERIT" #
 
 [MultiplayerSpawner.methods.Spawn]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -20903,7 +20606,6 @@ permissions = "INHERIT" #
 
 [MultiplayerSynchronizer.methods.GetReplicationConfig]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [MultiplayerSynchronizer.methods.GetReplicationInterval]
 permissions = "INHERIT" #
@@ -21028,7 +20730,6 @@ permissions = "INHERIT" #
 
 [NativeMenu.methods.GetItemIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NativeMenu.methods.GetItemIndentationLevel]
 permissions = "INHERIT" #
@@ -21208,7 +20909,6 @@ permissions = "INHERIT" #
 
 [NavigationAgent2D.methods.GetCurrentNavigationResult]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NavigationAgent2D.methods.GetDebugEnabled]
 permissions = "INHERIT" #
@@ -21430,7 +21130,6 @@ permissions = "INHERIT" #
 
 [NavigationAgent3D.methods.GetCurrentNavigationResult]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NavigationAgent3D.methods.GetDebugEnabled]
 permissions = "INHERIT" #
@@ -22462,7 +22161,6 @@ permissions = "INHERIT" #
 
 [NavigationPolygon.methods.GetNavigationMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NavigationPolygon.methods.GetOutline]
 permissions = "INHERIT" #
@@ -22561,7 +22259,6 @@ permissions = "INHERIT" #
 
 [NavigationRegion2D.methods.GetNavigationPolygon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NavigationRegion2D.methods.GetRegionRid]
 permissions = "INHERIT" #
@@ -22630,7 +22327,6 @@ permissions = "INHERIT" #
 
 [NavigationRegion3D.methods.GetNavigationMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NavigationRegion3D.methods.GetRegionRid]
 permissions = "INHERIT" #
@@ -23516,7 +23212,6 @@ permissions = "INHERIT" #
 
 [NinePatchRect.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NinePatchRect.methods.GetVAxisStretchMode]
 permissions = "INHERIT" #
@@ -23576,29 +23271,24 @@ permissions = "INHERIT" #
 
 [Node.methods.CreateTween]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Only null when not in tree
 
 [Node.methods.Duplicate]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.FindChild]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.FindChildren]
 permissions = "INHERIT" #
 
 [Node.methods.FindParent]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.GetAutoTranslateMode]
 permissions = "INHERIT" #
 
 [Node.methods.GetChild]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.GetChildCount]
 permissions = "INHERIT" #
@@ -23617,11 +23307,9 @@ permissions = "INHERIT" #
 
 [Node.methods.GetLastExclusiveWindow]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.GetMultiplayer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.GetMultiplayerAuthority]
 permissions = "INHERIT" #
@@ -23631,22 +23319,18 @@ permissions = "INHERIT" #
 
 [Node.methods.GetNode]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Errors (to Godot) if null.
 
 [Node.methods.GetNodeAndResource]
 permissions = "INHERIT" #
 
 [Node.methods.GetNodeOrNull]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.GetOwner]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.GetParent]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node.methods.GetPath]
 permissions = "INHERIT" #
@@ -23689,7 +23373,6 @@ permissions = "INHERIT" #
 
 [Node.methods.GetTree]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc2: Don't expect null unless not in tree
 
 [Node.methods.GetTreeString]
 permissions = "INHERIT" #
@@ -23699,11 +23382,9 @@ permissions = "INHERIT" #
 
 [Node.methods.GetViewport]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Same as GetTree
 
 [Node.methods.GetWindow]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Same as GetTree
 
 [Node.methods.HasNode]
 permissions = "INHERIT" #
@@ -24059,7 +23740,6 @@ permissions = "INHERIT" #
 
 [Node3D.methods.GetParentNode3D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Node3D.methods.GetPosition]
 permissions = "INHERIT" #
@@ -24090,7 +23770,6 @@ permissions = "INHERIT" #
 
 [Node3D.methods.GetWorld3D]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Very unlikely
 
 [Node3D.methods.GlobalRotate]
 permissions = "INHERIT" #
@@ -24254,7 +23933,6 @@ default_permissions = "BASE" #
 
 [Noise.methods.GetImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Noise.methods.GetImage3D]
 permissions = "INHERIT" #
@@ -24276,7 +23954,6 @@ permissions = "INHERIT" #
 
 [Noise.methods.GetSeamlessImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Noise.methods.GetSeamlessImage3D]
 permissions = "INHERIT" #
@@ -24294,14 +23971,12 @@ permissions = "INHERIT" #
 
 [NoiseTexture2D.methods.GetColorRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NoiseTexture2D.methods.GetInvert]
 permissions = "INHERIT" #
 
 [NoiseTexture2D.methods.GetNoise]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NoiseTexture2D.methods.GetSeamless]
 permissions = "INHERIT" #
@@ -24367,14 +24042,12 @@ default_permissions = "BASE" #
 
 [NoiseTexture3D.methods.GetColorRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NoiseTexture3D.methods.GetInvert]
 permissions = "INHERIT" #
 
 [NoiseTexture3D.methods.GetNoise]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [NoiseTexture3D.methods.GetSeamless]
 permissions = "INHERIT" #
@@ -24821,7 +24494,6 @@ permissions = "INHERIT" #
 
 [OccluderInstance3D.methods.GetOccluder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OccluderInstance3D.methods.SetBakeMask]
 permissions = "INHERIT" #
@@ -25030,15 +24702,12 @@ permissions = "INHERIT" #
 
 [OpenXRActionMap.methods.FindActionSet]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRActionMap.methods.FindInteractionProfile]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRActionMap.methods.GetActionSet]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRActionMap.methods.GetActionSetCount]
 permissions = "INHERIT" #
@@ -25048,7 +24717,6 @@ permissions = "INHERIT" #
 
 [OpenXRActionMap.methods.GetInteractionProfile]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRActionMap.methods.GetInteractionProfileCount]
 permissions = "INHERIT" #
@@ -25119,7 +24787,6 @@ permissions = "INHERIT" #
 
 [OpenXRCompositionLayer.methods.GetLayerViewport]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRCompositionLayer.methods.GetSortOrder]
 permissions = "INHERIT" #
@@ -25236,7 +24903,6 @@ default_permissions = "INTERNAL" #
 
 [OpenXRExtensionWrapperExtension.methods.GetOpenxrApi]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRExtensionWrapperExtension.methods.RegisterExtensionWrapper]
 permissions = "INHERIT" #
@@ -25292,7 +24958,6 @@ permissions = "INHERIT" #
 
 [OpenXRIPBinding.methods.GetAction]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRIPBinding.methods.GetPathCount]
 permissions = "INHERIT" #
@@ -25322,7 +24987,6 @@ default_permissions = "BASE" #
 
 [OpenXRInteractionProfile.methods.GetBinding]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OpenXRInteractionProfile.methods.GetBindingCount]
 permissions = "INHERIT" #
@@ -25493,7 +25157,6 @@ permissions = "INHERIT" #
 
 [OptionButton.methods.GetItemIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [OptionButton.methods.GetItemId]
 permissions = "INHERIT" #
@@ -25512,7 +25175,6 @@ permissions = "INHERIT" #
 
 [OptionButton.methods.GetPopup]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0.2-stable: Never null
 
 [OptionButton.methods.GetSelectableItem]
 permissions = "INHERIT" #
@@ -25632,11 +25294,9 @@ permissions = "INHERIT" #
 
 [PackedScene.methods.GetState]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PackedScene.methods.Instantiate]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Unlikely to be null unless scene is invalid
 
 [PackedScene.methods.Pack]
 permissions = "INHERIT" #
@@ -25717,7 +25377,6 @@ permissions = "INHERIT" #
 
 [PacketPeerStream.methods.GetStreamPeer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PacketPeerStream.methods.SetInputBufferMaxSize]
 permissions = "INHERIT" #
@@ -25804,7 +25463,6 @@ permissions = "INHERIT" #
 
 [PanoramaSkyMaterial.methods.GetPanorama]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PanoramaSkyMaterial.methods.IsFilteringEnabled]
 permissions = "INHERIT" #
@@ -25966,7 +25624,6 @@ default_permissions = "BASE" #
 
 [ParticleProcessMaterial.methods.GetAlphaCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetCollisionBounce]
 permissions = "INHERIT" #
@@ -25982,11 +25639,9 @@ permissions = "INHERIT" #
 
 [ParticleProcessMaterial.methods.GetColorInitialRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetColorRamp]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetDirection]
 permissions = "INHERIT" #
@@ -25996,22 +25651,18 @@ permissions = "INHERIT" #
 
 [ParticleProcessMaterial.methods.GetEmissionColorTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetEmissionCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetEmissionNormalTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetEmissionPointCount]
 permissions = "INHERIT" #
 
 [ParticleProcessMaterial.methods.GetEmissionPointTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetEmissionRingAxis]
 permissions = "INHERIT" #
@@ -26060,7 +25711,6 @@ permissions = "INHERIT" #
 
 [ParticleProcessMaterial.methods.GetParamTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetParticleFlag]
 permissions = "INHERIT" #
@@ -26100,7 +25750,6 @@ permissions = "INHERIT" #
 
 [ParticleProcessMaterial.methods.GetVelocityLimitCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ParticleProcessMaterial.methods.GetVelocityPivot]
 permissions = "INHERIT" #
@@ -26259,7 +25908,6 @@ default_permissions = "BASE" #
 
 [Path2D.methods.GetCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Path2D.methods.SetCurve]
 permissions = "INHERIT" #
@@ -26274,7 +25922,6 @@ default_permissions = "BASE" #
 
 [Path3D.methods.GetCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Path3D.methods.SetCurve]
 permissions = "INHERIT" #
@@ -26445,7 +26092,6 @@ permissions = "INHERIT" #
 
 [PhysicalBone2D.methods.GetJoint]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicalBone2D.methods.GetSimulatePhysics]
 permissions = "INHERIT" #
@@ -26635,7 +26281,6 @@ permissions = "INHERIT" #
 
 [PhysicalSkyMaterial.methods.GetNightSky]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicalSkyMaterial.methods.GetRayleighCoefficient]
 permissions = "INHERIT" #
@@ -26704,7 +26349,6 @@ permissions = "INHERIT" #
 
 [PhysicsBody2D.methods.MoveAndCollide]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsBody2D.methods.RemoveCollisionExceptionWith]
 permissions = "INHERIT" #
@@ -26734,7 +26378,6 @@ permissions = "INHERIT" #
 
 [PhysicsBody3D.methods.MoveAndCollide]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsBody3D.methods.RemoveCollisionExceptionWith]
 permissions = "INHERIT" #
@@ -26803,7 +26446,6 @@ permissions = "INHERIT" #
 
 [PhysicsDirectBodyState2D.methods.GetContactColliderObject]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsDirectBodyState2D.methods.GetContactColliderPosition]
 permissions = "INHERIT" #
@@ -26843,7 +26485,6 @@ permissions = "INHERIT" #
 
 [PhysicsDirectBodyState2D.methods.GetSpaceState]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsDirectBodyState2D.methods.GetStep]
 permissions = "INHERIT" #
@@ -26953,7 +26594,6 @@ permissions = "INHERIT" #
 
 [PhysicsDirectBodyState3D.methods.GetContactColliderObject]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsDirectBodyState3D.methods.GetContactColliderPosition]
 permissions = "INHERIT" #
@@ -26999,7 +26639,6 @@ permissions = "INHERIT" #
 
 [PhysicsDirectBodyState3D.methods.GetSpaceState]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsDirectBodyState3D.methods.GetStep]
 permissions = "INHERIT" #
@@ -27251,7 +26890,6 @@ default_permissions = "BASE" #
 
 [PhysicsRayQueryParameters2D.methods.Create]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsRayQueryParameters2D.methods.GetCollisionMask]
 permissions = "INHERIT" #
@@ -27305,7 +26943,6 @@ default_permissions = "BASE" #
 
 [PhysicsRayQueryParameters3D.methods.Create]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsRayQueryParameters3D.methods.GetCollisionMask]
 permissions = "INHERIT" #
@@ -27512,7 +27149,6 @@ permissions = "INHERIT" #
 
 [PhysicsServer2D.methods.BodyGetDirectState]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsServer2D.methods.BodyGetMaxContactsReported]
 permissions = "INHERIT" #
@@ -27705,7 +27341,6 @@ permissions = "INHERIT" #
 
 [PhysicsServer2D.methods.SpaceGetDirectState]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsServer2D.methods.SpaceGetParam]
 permissions = "INHERIT" #
@@ -27895,7 +27530,6 @@ permissions = "INHERIT" #
 
 [PhysicsServer3D.methods.BodyGetDirectState]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsServer3D.methods.BodyGetMaxContactsReported]
 permissions = "INHERIT" #
@@ -28247,7 +27881,6 @@ permissions = "INHERIT" #
 
 [PhysicsServer3D.methods.SpaceGetDirectState]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsServer3D.methods.SpaceGetParam]
 permissions = "INHERIT" #
@@ -28334,7 +27967,6 @@ permissions = "INHERIT" #
 
 [PhysicsShapeQueryParameters2D.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsShapeQueryParameters2D.methods.GetShapeRid]
 permissions = "INHERIT" #
@@ -28397,7 +28029,6 @@ permissions = "INHERIT" #
 
 [PhysicsShapeQueryParameters3D.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsShapeQueryParameters3D.methods.GetShapeRid]
 permissions = "INHERIT" #
@@ -28554,7 +28185,6 @@ default_permissions = "BASE" #
 
 [PhysicsTestMotionResult2D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsTestMotionResult2D.methods.GetColliderId]
 permissions = "INHERIT" #
@@ -28602,7 +28232,6 @@ default_permissions = "BASE" #
 
 [PhysicsTestMotionResult3D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PhysicsTestMotionResult3D.methods.GetColliderId]
 permissions = "INHERIT" #
@@ -28834,7 +28463,6 @@ default_permissions = "BASE" #
 
 [PointLight2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PointLight2D.methods.GetTextureOffset]
 permissions = "INHERIT" #
@@ -28914,7 +28542,6 @@ permissions = "INHERIT" #
 
 [Polygon2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Polygon2D.methods.GetTextureOffset]
 permissions = "INHERIT" #
@@ -29112,7 +28739,6 @@ permissions = "INHERIT" #
 
 [PopupMenu.methods.GetItemIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PopupMenu.methods.GetItemIconMaxWidth]
 permissions = "INHERIT" #
@@ -29143,14 +28769,12 @@ permissions = "INHERIT" #
 
 [PopupMenu.methods.GetItemShortcut]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PopupMenu.methods.GetItemSubmenu]
 permissions = "INHERIT" #
 
 [PopupMenu.methods.GetItemSubmenuNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PopupMenu.methods.GetItemText]
 permissions = "INHERIT" #
@@ -29370,7 +28994,6 @@ permissions = "INHERIT" #
 
 [PrimitiveMesh.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PrimitiveMesh.methods.GetMeshArrays]
 permissions = "INHERIT" #
@@ -29459,7 +29082,6 @@ permissions = "INHERIT" #
 
 [ProceduralSkyMaterial.methods.GetSkyCover]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ProceduralSkyMaterial.methods.GetSkyCoverModulate]
 permissions = "INHERIT" #
@@ -29631,31 +29253,24 @@ default_permissions = "BASE" #
 
 [PropertyTweener.methods.AsRelative]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.From]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.FromCurrent]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.SetCustomInterpolator]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [PropertyTweener.methods.SetDelay]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.SetEase]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [PropertyTweener.methods.SetTrans]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 #############################
 
@@ -30235,7 +29850,6 @@ permissions = "INHERIT" #
 
 [RDShaderFile.methods.GetSpirv]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RDShaderFile.methods.GetVersionList]
 permissions = "INHERIT" #
@@ -30599,7 +30213,6 @@ permissions = "INHERIT" #
 
 [RayCast2D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RayCast2D.methods.GetColliderRid]
 permissions = "INHERIT" #
@@ -30692,7 +30305,6 @@ permissions = "INHERIT" #
 
 [RayCast3D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RayCast3D.methods.GetColliderRid]
 permissions = "INHERIT" #
@@ -30952,7 +30564,6 @@ permissions = "INHERIT" #
 
 [RegEx.methods.CreateFromString]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RegEx.methods.GetGroupCount]
 permissions = "INHERIT" #
@@ -30968,7 +30579,6 @@ permissions = "INHERIT" #
 
 [RegEx.methods.Search]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RegEx.methods.SearchAll]
 permissions = "INHERIT" #
@@ -31103,11 +30713,9 @@ permissions = "INHERIT" #
 
 [RenderData.methods.GetRenderSceneBuffers]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderData.methods.GetRenderSceneData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -31264,7 +30872,6 @@ permissions = "INHERIT" #
 
 [RenderSceneBuffersRD.methods.GetTextureFormat]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderSceneBuffersRD.methods.GetTextureSamples]
 permissions = "INHERIT" #
@@ -31396,7 +31003,6 @@ permissions = "INHERIT" #
 
 [RenderingDevice.methods.CreateLocalDevice]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingDevice.methods.DrawCommandBeginLabel]
 permissions = "INHERIT" #
@@ -31556,7 +31162,6 @@ permissions = "INHERIT" #
 
 [RenderingDevice.methods.ShaderCompileSpirvFromSource]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingDevice.methods.ShaderCreateFromBytecode]
 permissions = "INHERIT" #
@@ -31605,7 +31210,6 @@ permissions = "INHERIT" #
 
 [RenderingDevice.methods.TextureGetFormat]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingDevice.methods.TextureGetNativeHandle]
 permissions = "INHERIT" #
@@ -32004,7 +31608,6 @@ permissions = "INHERIT" #
 
 [RenderingServer.methods.CreateLocalRenderingDevice]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingServer.methods.DebugCanvasItemGetRect]
 permissions = "INHERIT" #
@@ -32053,7 +31656,6 @@ permissions = "INHERIT" #
 
 [RenderingServer.methods.EnvironmentBakePanorama]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingServer.methods.EnvironmentCreate]
 permissions = "INHERIT" #
@@ -32162,7 +31764,6 @@ permissions = "INHERIT" #
 
 [RenderingServer.methods.GetRenderingDevice]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingServer.methods.GetRenderingInfo]
 permissions = "INHERIT" #
@@ -32832,7 +32433,6 @@ permissions = "INHERIT" #
 
 [RenderingServer.methods.SkyBakePanorama]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingServer.methods.SkyCreate]
 permissions = "INHERIT" #
@@ -32860,11 +32460,9 @@ permissions = "INHERIT" #
 
 [RenderingServer.methods.Texture2DGet]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingServer.methods.Texture2DLayerGet]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RenderingServer.methods.Texture2DLayeredCreate]
 permissions = "INHERIT" #
@@ -33149,7 +32747,6 @@ default_permissions = "BASE" #
 
 [Resource.methods.Duplicate]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Resource.methods.EmitChanged]
 permissions = "INHERIT" #
@@ -33159,7 +32756,6 @@ permissions = "INHERIT" #
 
 [Resource.methods.GetLocalScene]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Resource.methods.GetName]
 permissions = "INHERIT" #
@@ -33300,11 +32896,9 @@ default_permissions = "BASE" #
 
 [ResourceImporterOggVorbis.methods.LoadFromBuffer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ResourceImporterOggVorbis.methods.LoadFromFile]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -33374,11 +32968,9 @@ permissions = "INHERIT" #
 
 [ResourceLoader.methods.Load]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ResourceLoader.methods.LoadThreadedGet]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ResourceLoader.methods.LoadThreadedGetStatus]
 permissions = "INHERIT" #
@@ -33405,7 +32997,6 @@ permissions = "INHERIT" #
 
 [ResourcePreloader.methods.GetResource]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ResourcePreloader.methods.GetResourceList]
 permissions = "INHERIT" #
@@ -33481,7 +33072,6 @@ default_permissions = "BASE" #
 
 [RibbonTrailMesh.methods.GetCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RibbonTrailMesh.methods.GetSectionLength]
 permissions = "INHERIT" #
@@ -33576,7 +33166,6 @@ permissions = "INHERIT" #
 
 [RichTextLabel.methods.GetMenu]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RichTextLabel.methods.GetParagraphCount]
 permissions = "INHERIT" #
@@ -33619,7 +33208,6 @@ permissions = "INHERIT" #
 
 [RichTextLabel.methods.GetVScrollBar]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RichTextLabel.methods.GetVisibleCharacters]
 permissions = "INHERIT" #
@@ -33976,7 +33564,6 @@ permissions = "INHERIT" #
 
 [RigidBody2D.methods.GetPhysicsMaterialOverride]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RigidBody2D.methods.IsAbleToSleep]
 permissions = "INHERIT" #
@@ -34159,7 +33746,6 @@ permissions = "INHERIT" #
 
 [RigidBody3D.methods.GetPhysicsMaterialOverride]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [RigidBody3D.methods.IsAbleToSleep]
 permissions = "INHERIT" #
@@ -34456,7 +34042,6 @@ permissions = "INHERIT" #
 
 [SceneState.methods.GetNodeInstance]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SceneState.methods.GetNodeInstancePlaceholder]
 permissions = "INHERIT" #
@@ -34508,23 +34093,18 @@ permissions = "INHERIT" #
 
 [SceneTree.methods.CreateTimer]
 permissions = "BASE"
-ret_nullable = false #* 4.0-stabe: Never null
 
 [SceneTree.methods.CreateTween]
 permissions = "BASE"
-ret_nullable = false #* 4.0-rc3: Never null
 
 [SceneTree.methods.GetCurrentScene]
 permissions = "BASE"
-ret_nullable = true #
 
 [SceneTree.methods.GetEditedSceneRoot]
 permissions = "BASE"
-ret_nullable = true #
 
 [SceneTree.methods.GetFirstNodeInGroup]
 permissions = "BASE"
-ret_nullable = true #
 
 # On frame information: See Engine
 [SceneTree.methods.GetFrame]
@@ -34532,7 +34112,6 @@ permissions = "BASE"
 
 [SceneTree.methods.GetMultiplayer]
 permissions = "BASE"
-ret_nullable = true #
 
 [SceneTree.methods.GetNodeCount]
 permissions = "BASE"
@@ -34548,7 +34127,6 @@ permissions = "INHERIT" #
 
 [SceneTree.methods.GetRoot]
 permissions = "BASE" #
-ret_nullable = false #* 4.0-rc2: Essentially not possible
 
 [SceneTree.methods.HasGroup]
 permissions = "BASE"
@@ -34662,7 +34240,6 @@ permissions = "INHERIT" #
 
 [Script.methods.GetBaseScript]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Script.methods.GetGlobalName]
 permissions = "INHERIT" #
@@ -34730,11 +34307,9 @@ default_permissions = "BASE" #
 
 [ScriptEditor.methods.GetCurrentEditor]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ScriptEditor.methods.GetCurrentScript]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ScriptEditor.methods.GetOpenScriptEditors]
 permissions = "INHERIT" #
@@ -34770,7 +34345,6 @@ permissions = "INHERIT" #
 
 [ScriptEditorBase.methods.GetBaseEditor]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -34830,7 +34404,6 @@ permissions = "INHERIT" #
 
 [ScrollContainer.methods.GetHScrollBar]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ScrollContainer.methods.GetHorizontalCustomStep]
 permissions = "INHERIT" #
@@ -34843,7 +34416,6 @@ permissions = "INHERIT" #
 
 [ScrollContainer.methods.GetVScrollBar]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ScrollContainer.methods.GetVerticalCustomStep]
 permissions = "INHERIT" #
@@ -34976,7 +34548,6 @@ permissions = "INHERIT" #
 
 [Shader.methods.GetDefaultTextureParameter]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Shader.methods.GetMode]
 permissions = "INHERIT" #
@@ -35022,7 +34593,6 @@ default_permissions = "BASE" #
 
 [ShaderMaterial.methods.GetShader]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ShaderMaterial.methods.GetShaderParameter]
 permissions = "INHERIT" #
@@ -35078,7 +34648,6 @@ permissions = "INHERIT" #
 
 [Shape3D.methods.GetDebugMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Shape3D.methods.GetMargin]
 permissions = "INHERIT" #
@@ -35117,7 +34686,6 @@ permissions = "INHERIT" #
 
 [ShapeCast2D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ShapeCast2D.methods.GetColliderRid]
 permissions = "INHERIT" #
@@ -35151,7 +34719,6 @@ permissions = "INHERIT" #
 
 [ShapeCast2D.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ShapeCast2D.methods.GetTargetPosition]
 permissions = "INHERIT" #
@@ -35232,7 +34799,6 @@ permissions = "INHERIT" #
 
 [ShapeCast3D.methods.GetCollider]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ShapeCast3D.methods.GetColliderRid]
 permissions = "INHERIT" #
@@ -35269,7 +34835,6 @@ permissions = "INHERIT" #
 
 [ShapeCast3D.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ShapeCast3D.methods.GetTargetPosition]
 permissions = "INHERIT" #
@@ -35364,7 +34929,6 @@ permissions = "INHERIT" #
 
 [Skeleton2D.methods.GetBone]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Skeleton2D.methods.GetBoneCount]
 permissions = "INHERIT" #
@@ -35374,7 +34938,6 @@ permissions = "INHERIT" #
 
 [Skeleton2D.methods.GetModificationStack]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Skeleton2D.methods.GetSkeleton]
 permissions = "INHERIT" #
@@ -35404,7 +34967,6 @@ permissions = "INHERIT" #
 
 [Skeleton3D.methods.CreateSkinFromRestTransforms]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Skeleton3D.methods.FindBone]
 permissions = "INHERIT" #
@@ -35495,7 +35057,6 @@ permissions = "INHERIT" #
 
 [Skeleton3D.methods.RegisterSkin]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Skeleton3D.methods.ResetBonePose]
 permissions = "INHERIT" #
@@ -35570,7 +35131,6 @@ permissions = "INHERIT" #
 
 [SkeletonIK3D.methods.GetParentSkeleton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SkeletonIK3D.methods.GetRootBone]
 permissions = "INHERIT" #
@@ -35654,7 +35214,6 @@ permissions = "INHERIT" #
 
 [SkeletonModification2D.methods.GetModificationStack]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SkeletonModification2D.methods.SetEditorDrawGizmo]
 permissions = "INHERIT" #
@@ -35985,7 +35544,6 @@ default_permissions = "BASE" #
 
 [SkeletonModification2DStackHolder.methods.GetHeldModificationStack]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SkeletonModification2DStackHolder.methods.SetHeldModificationStack]
 permissions = "INHERIT" #
@@ -36074,14 +35632,12 @@ permissions = "INHERIT" #
 
 [SkeletonModificationStack2D.methods.GetModification]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SkeletonModificationStack2D.methods.GetModificationCount]
 permissions = "INHERIT" #
 
 [SkeletonModificationStack2D.methods.GetSkeleton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SkeletonModificationStack2D.methods.GetStrength]
 permissions = "INHERIT" #
@@ -36114,7 +35670,6 @@ permissions = "INHERIT" #
 
 [SkeletonModifier3D.methods.GetSkeleton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SkeletonModifier3D.methods.IsActive]
 permissions = "INHERIT" #
@@ -36174,7 +35729,6 @@ permissions = "INHERIT" #
 
 [SkeletonProfile.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SkeletonProfile.methods.IsRequired]
 permissions = "INHERIT" #
@@ -36283,7 +35837,6 @@ permissions = "INHERIT" #
 
 [SkinReference.methods.GetSkin]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -36295,7 +35848,6 @@ default_permissions = "BASE" #
 
 [Sky.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Sky.methods.GetProcessMode]
 permissions = "INHERIT" #
@@ -36550,7 +36102,6 @@ permissions = "INHERIT" #
 
 [SpinBox.methods.GetLineEdit]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SpinBox.methods.GetPrefix]
 permissions = "INHERIT" #
@@ -36659,7 +36210,6 @@ permissions = "INHERIT" #
 
 [SpringArm3D.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SpringArm3D.methods.RemoveExcludedObject]
 permissions = "INHERIT" #
@@ -36704,7 +36254,6 @@ permissions = "INHERIT" #
 
 [Sprite2D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Sprite2D.methods.GetVframes]
 permissions = "INHERIT" #
@@ -36785,7 +36334,6 @@ permissions = "INHERIT" #
 
 [Sprite3D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Sprite3D.methods.GetVframes]
 permissions = "INHERIT" #
@@ -36824,7 +36372,6 @@ default_permissions = "BASE" #
 
 [SpriteBase3D.methods.GenerateTriangleMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SpriteBase3D.methods.GetAlphaAntialiasing]
 permissions = "INHERIT" #
@@ -36962,7 +36509,6 @@ permissions = "INHERIT" #
 
 [SpriteFrames.methods.GetFrameTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SpriteFrames.methods.HasAnimation]
 permissions = "INHERIT" #
@@ -37009,7 +36555,6 @@ permissions = "INHERIT" #
 
 [StaticBody2D.methods.GetPhysicsMaterialOverride]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [StaticBody2D.methods.SetConstantAngularVelocity]
 permissions = "INHERIT" #
@@ -37036,7 +36581,6 @@ permissions = "INHERIT" #
 
 [StaticBody3D.methods.GetPhysicsMaterialOverride]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [StaticBody3D.methods.SetConstantAngularVelocity]
 permissions = "INHERIT" #
@@ -37057,7 +36601,6 @@ default_permissions = "BASE" #
 
 [StatusIndicator.methods.GetIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [StatusIndicator.methods.GetMenu]
 permissions = "INHERIT" #
@@ -37203,7 +36746,6 @@ permissions = "INHERIT" #
 
 [StreamPeerBuffer.methods.Duplicate]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [StreamPeerBuffer.methods.GetDataArray]
 permissions = "INHERIT" #
@@ -37308,7 +36850,6 @@ permissions = "INHERIT" #
 
 [StreamPeerTLS.methods.GetStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [StreamPeerTLS.methods.Poll]
 permissions = "INHERIT" #
@@ -37329,7 +36870,6 @@ permissions = "INHERIT" #
 
 [StyleBox.methods.GetCurrentItemDrawn]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [StyleBox.methods.GetMargin]
 permissions = "INHERIT" #
@@ -37521,7 +37061,6 @@ permissions = "INHERIT" #
 
 [StyleBoxTexture.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [StyleBoxTexture.methods.GetTextureMargin]
 permissions = "INHERIT" #
@@ -37648,7 +37187,6 @@ permissions = "INHERIT" #
 
 [SurfaceTool.methods.Commit]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SurfaceTool.methods.CommitToArrays]
 permissions = "INHERIT" #
@@ -37744,7 +37282,6 @@ permissions = "INHERIT" #
 
 [SyntaxHighlighter.methods.GetTextEdit]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [SyntaxHighlighter.methods.UpdateCache]
 permissions = "INHERIT" #
@@ -37867,7 +37404,6 @@ permissions = "INHERIT" #
 
 [TCPServer.methods.TakeConnection]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -37879,26 +37415,21 @@ default_permissions = "BASE" #
 
 [TLSOptions.methods.Client]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TLSOptions.methods.ClientUnsafe]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TLSOptions.methods.GetCommonNameOverride]
 permissions = "INHERIT" #
 
 [TLSOptions.methods.GetOwnCertificate]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TLSOptions.methods.GetPrivateKey]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TLSOptions.methods.GetTrustedCaChain]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TLSOptions.methods.IsServer]
 permissions = "INHERIT" #
@@ -37908,7 +37439,6 @@ permissions = "INHERIT" #
 
 [TLSOptions.methods.Server]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -37962,7 +37492,6 @@ permissions = "INHERIT" #
 
 [TabBar.methods.GetTabButtonIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabBar.methods.GetTabCloseDisplayPolicy]
 permissions = "INHERIT" #
@@ -37972,7 +37501,6 @@ permissions = "INHERIT" #
 
 [TabBar.methods.GetTabIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabBar.methods.GetTabIconMaxWidth]
 permissions = "INHERIT" #
@@ -38107,7 +37635,6 @@ permissions = "INHERIT" #
 
 [TabContainer.methods.GetCurrentTabControl]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabContainer.methods.GetDeselectEnabled]
 permissions = "INHERIT" #
@@ -38117,7 +37644,6 @@ permissions = "INHERIT" #
 
 [TabContainer.methods.GetPopup]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabContainer.methods.GetPreviousTab]
 permissions = "INHERIT" #
@@ -38127,15 +37653,12 @@ permissions = "INHERIT" #
 
 [TabContainer.methods.GetTabBar]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabContainer.methods.GetTabButtonIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabContainer.methods.GetTabControl]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabContainer.methods.GetTabCount]
 permissions = "INHERIT" #
@@ -38145,7 +37668,6 @@ permissions = "INHERIT" #
 
 [TabContainer.methods.GetTabIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TabContainer.methods.GetTabIconMaxWidth]
 permissions = "INHERIT" #
@@ -38379,7 +37901,6 @@ permissions = "INHERIT" #
 
 [TextEdit.methods.GetHScrollBar]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextEdit.methods.GetIndentLevel]
 permissions = "INHERIT" #
@@ -38410,7 +37931,6 @@ permissions = "INHERIT" #
 
 [TextEdit.methods.GetLineGutterIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextEdit.methods.GetLineGutterItemColor]
 permissions = "INHERIT" #
@@ -38447,7 +37967,6 @@ permissions = "INHERIT" #
 
 [TextEdit.methods.GetMenu]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextEdit.methods.GetMinimapLineAtPos]
 permissions = "INHERIT" #
@@ -38523,7 +38042,6 @@ permissions = "INHERIT" #
 
 [TextEdit.methods.GetSyntaxHighlighter]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextEdit.methods.GetTabSize]
 permissions = "INHERIT" #
@@ -38545,7 +38063,6 @@ permissions = "INHERIT" #
 
 [TextEdit.methods.GetVScrollBar]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextEdit.methods.GetVScrollSpeed]
 permissions = "INHERIT" #
@@ -39096,7 +38613,6 @@ permissions = "INHERIT" #
 
 [TextMesh.methods.GetFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextMesh.methods.GetFontSize]
 permissions = "INHERIT" #
@@ -39545,7 +39061,6 @@ permissions = "INHERIT" #
 
 [TextServer.methods.FontGetTextureImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextServer.methods.FontGetTextureOffsets]
 permissions = "INHERIT" #
@@ -40055,11 +39570,9 @@ permissions = "INHERIT" #
 
 [TextServerManager.methods.FindInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextServerManager.methods.GetInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextServerManager.methods.GetInterfaceCount]
 permissions = "INHERIT" #
@@ -40069,7 +39582,6 @@ permissions = "INHERIT" #
 
 [TextServerManager.methods.GetPrimaryInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextServerManager.methods.RemoveInterface]
 permissions = "INHERIT" #
@@ -40095,7 +39607,6 @@ default_permissions = "BASE" #
 
 [Texture2D.methods.CreatePlaceholder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Texture2D.methods.Draw]
 permissions = "INHERIT" #
@@ -40111,7 +39622,6 @@ permissions = "INHERIT" #
 
 [Texture2D.methods.GetImage]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Texture2D.methods.GetSize]
 permissions = "INHERIT" #
@@ -40132,7 +39642,6 @@ default_permissions = "BASE" #
 
 [Texture2DArray.methods.CreatePlaceholder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -40166,7 +39675,6 @@ default_permissions = "BASE" #
 
 [Texture3D.methods.CreatePlaceholder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Texture3D.methods.GetData]
 permissions = "INHERIT" #
@@ -40210,7 +39718,6 @@ default_permissions = "BASE" #
 
 [TextureButton.methods.GetClickMask]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureButton.methods.GetIgnoreTextureSize]
 permissions = "INHERIT" #
@@ -40220,23 +39727,18 @@ permissions = "INHERIT" #
 
 [TextureButton.methods.GetTextureDisabled]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureButton.methods.GetTextureFocused]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureButton.methods.GetTextureHover]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureButton.methods.GetTextureNormal]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureButton.methods.GetTexturePressed]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureButton.methods.IsFlippedH]
 permissions = "INHERIT" #
@@ -40306,7 +39808,6 @@ permissions = "INHERIT" #
 
 [TextureLayered.methods.GetLayerData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureLayered.methods.GetLayeredType]
 permissions = "INHERIT" #
@@ -40353,11 +39854,9 @@ permissions = "INHERIT" #
 
 [TextureProgressBar.methods.GetOverTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureProgressBar.methods.GetProgressTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureProgressBar.methods.GetRadialCenterOffset]
 permissions = "INHERIT" #
@@ -40382,7 +39881,6 @@ permissions = "INHERIT" #
 
 [TextureProgressBar.methods.GetUnderTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureProgressBar.methods.SetFillDegrees]
 permissions = "INHERIT" #
@@ -40439,7 +39937,6 @@ permissions = "INHERIT" #
 
 [TextureRect.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TextureRect.methods.IsFlippedH]
 permissions = "INHERIT" #
@@ -40523,14 +40020,12 @@ permissions = "INHERIT" #
 
 [Theme.methods.GetDefaultFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Theme.methods.GetDefaultFontSize]
 permissions = "INHERIT" #
 
 [Theme.methods.GetFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Theme.methods.GetFontList]
 permissions = "INHERIT" #
@@ -40549,7 +40044,6 @@ permissions = "INHERIT" #
 
 [Theme.methods.GetIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Theme.methods.GetIconList]
 permissions = "INHERIT" #
@@ -40559,7 +40053,6 @@ permissions = "INHERIT" #
 
 [Theme.methods.GetStylebox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Theme.methods.GetStyleboxList]
 permissions = "INHERIT" #
@@ -40688,29 +40181,24 @@ default_permissions = "INTERNAL" #
 
 [ThemeDB.methods.GetDefaultTheme]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ThemeDB.methods.GetFallbackBaseScale]
 permissions = "INHERIT" #
 
 [ThemeDB.methods.GetFallbackFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ThemeDB.methods.GetFallbackFontSize]
 permissions = "INHERIT" #
 
 [ThemeDB.methods.GetFallbackIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ThemeDB.methods.GetFallbackStylebox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ThemeDB.methods.GetProjectTheme]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [ThemeDB.methods.SetFallbackBaseScale]
 permissions = "INHERIT" #
@@ -40794,18 +40282,15 @@ permissions = "INHERIT" #
 
 [TileData.methods.GetMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileData.methods.GetModulate]
 permissions = "INHERIT" #
 
 [TileData.methods.GetNavigationPolygon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileData.methods.GetOccluder]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileData.methods.GetProbability]
 permissions = "INHERIT" #
@@ -40943,7 +40428,6 @@ permissions = "INHERIT" #
 
 [TileMap.methods.GetCellTileData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileMap.methods.GetCollisionVisibilityMode]
 permissions = "INHERIT" #
@@ -40983,7 +40467,6 @@ permissions = "INHERIT" #
 
 [TileMap.methods.GetPattern]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileMap.methods.GetRenderingQuadrantSize]
 permissions = "INHERIT" #
@@ -40993,7 +40476,6 @@ permissions = "INHERIT" #
 
 [TileMap.methods.GetTileset]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileMap.methods.GetUsedCells]
 permissions = "INHERIT" #
@@ -41119,7 +40601,6 @@ permissions = "INHERIT" #
 
 [TileMapLayer.methods.GetCellTileData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileMapLayer.methods.GetCollisionVisibilityMode]
 permissions = "INHERIT" #
@@ -41138,7 +40619,6 @@ permissions = "INHERIT" #
 
 [TileMapLayer.methods.GetPattern]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileMapLayer.methods.GetRenderingQuadrantSize]
 permissions = "INHERIT" #
@@ -41151,7 +40631,6 @@ permissions = "INHERIT" #
 
 [TileMapLayer.methods.GetTileSet]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileMapLayer.methods.GetUsedCells]
 permissions = "INHERIT" #
@@ -41363,7 +40842,6 @@ permissions = "INHERIT" #
 
 [TileSet.methods.GetPattern]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileSet.methods.GetPatternsCount]
 permissions = "INHERIT" #
@@ -41376,14 +40854,12 @@ permissions = "INHERIT" #
 
 [TileSet.methods.GetPhysicsLayerPhysicsMaterial]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileSet.methods.GetPhysicsLayersCount]
 permissions = "INHERIT" #
 
 [TileSet.methods.GetSource]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileSet.methods.GetSourceCount]
 permissions = "INHERIT" #
@@ -41581,7 +41057,6 @@ permissions = "INHERIT" #
 
 [TileSetAtlasSource.methods.GetRuntimeTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileSetAtlasSource.methods.GetRuntimeTileTextureRegion]
 permissions = "INHERIT" #
@@ -41591,7 +41066,6 @@ permissions = "INHERIT" #
 
 [TileSetAtlasSource.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileSetAtlasSource.methods.GetTextureRegionSize]
 permissions = "INHERIT" #
@@ -41622,7 +41096,6 @@ permissions = "INHERIT" #
 
 [TileSetAtlasSource.methods.GetTileData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileSetAtlasSource.methods.GetTileSizeInAtlas]
 permissions = "INHERIT" #
@@ -41709,7 +41182,6 @@ permissions = "INHERIT" #
 
 [TileSetScenesCollectionSource.methods.GetSceneTileScene]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TileSetScenesCollectionSource.methods.GetSceneTilesCount]
 permissions = "INHERIT" #
@@ -41921,19 +41393,15 @@ permissions = "INHERIT" #
 
 [TouchScreenButton.methods.GetBitmask]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TouchScreenButton.methods.GetShape]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TouchScreenButton.methods.GetTextureNormal]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TouchScreenButton.methods.GetTexturePressed]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TouchScreenButton.methods.GetVisibilityMode]
 permissions = "INHERIT" #
@@ -42064,7 +41532,6 @@ permissions = "INHERIT" #
 
 [TranslationServer.methods.GetTranslationObject]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TranslationServer.methods.IsPseudolocalizationEnabled]
 permissions = "INHERIT" #
@@ -42109,7 +41576,6 @@ permissions = "INHERIT" #
 
 [Tree.methods.CreateItem]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Tree.methods.DeselectAll]
 permissions = "INHERIT" #
@@ -42167,7 +41633,6 @@ permissions = "INHERIT" #
 
 [Tree.methods.GetEdited]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Tree.methods.GetEditedColumn]
 permissions = "INHERIT" #
@@ -42177,18 +41642,15 @@ permissions = "INHERIT" #
 
 [Tree.methods.GetItemAtPosition]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Tree.methods.GetNextSelected]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Tree.methods.GetPressedButton]
 permissions = "INHERIT" #
 
 [Tree.methods.GetRoot]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Tree.methods.GetScroll]
 permissions = "INHERIT" #
@@ -42198,7 +41660,6 @@ permissions = "INHERIT" #
 
 [Tree.methods.GetSelected]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Tree.methods.GetSelectedColumn]
 permissions = "INHERIT" #
@@ -42315,7 +41776,6 @@ permissions = "INHERIT" #
 
 [TreeItem.methods.CreateChild]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.Deselect]
 permissions = "INHERIT" #
@@ -42328,7 +41788,6 @@ permissions = "INHERIT" #
 
 [TreeItem.methods.GetButton]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetButtonById]
 permissions = "INHERIT" #
@@ -42350,7 +41809,6 @@ permissions = "INHERIT" #
 
 [TreeItem.methods.GetChild]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetChildCount]
 permissions = "INHERIT" #
@@ -42369,7 +41827,6 @@ permissions = "INHERIT" #
 
 [TreeItem.methods.GetCustomFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetCustomFontSize]
 permissions = "INHERIT" #
@@ -42382,11 +41839,9 @@ permissions = "INHERIT" #
 
 [TreeItem.methods.GetFirstChild]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetIconMaxWidth]
 permissions = "INHERIT" #
@@ -42408,31 +41863,24 @@ permissions = "INHERIT" #
 
 [TreeItem.methods.GetNext]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetNextInTree]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetNextVisible]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetParent]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetPrev]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetPrevInTree]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetPrevVisible]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.GetRange]
 permissions = "INHERIT" #
@@ -42466,7 +41914,6 @@ permissions = "INHERIT" #
 
 [TreeItem.methods.GetTree]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TreeItem.methods.IsAnyCollapsed]
 permissions = "INHERIT" #
@@ -42663,7 +42110,6 @@ default_permissions = "BASE" #
 
 [TubeTrailMesh.methods.GetCurve]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [TubeTrailMesh.methods.GetRadialSteps]
 permissions = "INHERIT" #
@@ -42720,11 +42166,9 @@ default_permissions = "BASE" #
 
 [Tween.methods.BindNode]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.Chain]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.CustomStep]
 permissions = "INHERIT" #
@@ -42749,7 +42193,6 @@ permissions = "INHERIT" #
 
 [Tween.methods.Parallel]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.Pause]
 permissions = "INHERIT" #
@@ -42759,50 +42202,39 @@ permissions = "INHERIT" #
 
 [Tween.methods.SetEase]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetLoops]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetParallel]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetPauseMode]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetProcessMode]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetSpeedScale]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.SetTrans]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Never null
 
 [Tween.methods.Stop]
 permissions = "INHERIT" #
 
 [Tween.methods.TweenCallback]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.TweenInterval]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.TweenMethod]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Unlikely
 
 [Tween.methods.TweenProperty]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc3: Unlikely
 
 #############################
 
@@ -42846,7 +42278,6 @@ permissions = "INHERIT" #
 
 [UDPServer.methods.TakeConnection]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 #############################
 
@@ -42873,7 +42304,6 @@ permissions = "INHERIT" #
 
 [UPNP.methods.GetDevice]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [UPNP.methods.GetDeviceCount]
 permissions = "INHERIT" #
@@ -42886,7 +42316,6 @@ permissions = "INHERIT" #
 
 [UPNP.methods.GetGateway]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [UPNP.methods.IsDiscoverIpv6]
 permissions = "INHERIT" #
@@ -43140,7 +42569,6 @@ permissions = "INHERIT" #
 
 [VehicleWheel3D.methods.GetContactBody]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VehicleWheel3D.methods.GetDampingCompression]
 permissions = "INHERIT" #
@@ -43276,7 +42704,6 @@ permissions = "INHERIT" #
 
 [VideoStreamPlayer.methods.GetStream]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VideoStreamPlayer.methods.GetStreamLength]
 permissions = "INHERIT" #
@@ -43289,7 +42716,6 @@ permissions = "INHERIT" #
 
 [VideoStreamPlayer.methods.GetVideoTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VideoStreamPlayer.methods.GetVolume]
 permissions = "INHERIT" #
@@ -43369,19 +42795,15 @@ default_permissions = "BASE" #
 
 [Viewport.methods.FindWorld2D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.FindWorld3D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.GetCamera2D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.GetCamera3D]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.GetCanvasCullMask]
 permissions = "INHERIT" #
@@ -43466,7 +42888,6 @@ permissions = "INHERIT" #
 
 [Viewport.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.GetTextureMipmapBias]
 permissions = "INHERIT" #
@@ -43482,29 +42903,24 @@ permissions = "INHERIT" #
 
 [Viewport.methods.GetVrsTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.GetVrsUpdateMode]
 permissions = "INHERIT" #
 
 [Viewport.methods.GetWorld2D]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Very unlikely
 
 [Viewport.methods.GetWorld3D]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Very unlikely
 
 [Viewport.methods.GuiGetDragData]
 permissions = "INHERIT" #
 
 [Viewport.methods.GuiGetFocusOwner]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.GuiGetHoveredControl]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Viewport.methods.GuiIsDragSuccessful]
 permissions = "INHERIT" #
@@ -43882,7 +43298,6 @@ permissions = "INHERIT" #
 
 [VisualShader.methods.GetNode]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShader.methods.GetNodeConnections]
 permissions = "INHERIT" #
@@ -44149,7 +43564,6 @@ default_permissions = "BASE" #
 
 [VisualShaderNodeCubemap.methods.GetCubeMap]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShaderNodeCubemap.methods.GetSource]
 permissions = "INHERIT" #
@@ -44184,7 +43598,6 @@ default_permissions = "BASE" #
 
 [VisualShaderNodeCurveTexture.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShaderNodeCurveTexture.methods.SetTexture]
 permissions = "INHERIT" #
@@ -44199,7 +43612,6 @@ default_permissions = "BASE" #
 
 [VisualShaderNodeCurveXYZTexture.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShaderNodeCurveXYZTexture.methods.SetTexture]
 permissions = "INHERIT" #
@@ -44783,7 +44195,6 @@ default_permissions = "BASE" #
 
 [VisualShaderNodeParticleMeshEmitter.methods.GetMesh]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShaderNodeParticleMeshEmitter.methods.GetSurfaceIndex]
 permissions = "INHERIT" #
@@ -45010,7 +44421,6 @@ permissions = "INHERIT" #
 
 [VisualShaderNodeTexture.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShaderNodeTexture.methods.GetTextureType]
 permissions = "INHERIT" #
@@ -45034,7 +44444,6 @@ default_permissions = "BASE" #
 
 [VisualShaderNodeTexture2DArray.methods.GetTextureArray]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShaderNodeTexture2DArray.methods.SetTextureArray]
 permissions = "INHERIT" #
@@ -45065,7 +44474,6 @@ default_permissions = "BASE" #
 
 [VisualShaderNodeTexture3D.methods.GetTexture]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VisualShaderNodeTexture3D.methods.SetTexture]
 permissions = "INHERIT" #
@@ -45560,11 +44968,9 @@ permissions = "INHERIT" #
 
 [VoxelGI.methods.GetCameraAttributes]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VoxelGI.methods.GetProbeData]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [VoxelGI.methods.GetSize]
 permissions = "INHERIT" #
@@ -45772,7 +45178,6 @@ permissions = "INHERIT" #
 
 [WebRTCPeerConnection.methods.CreateDataChannel]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [WebRTCPeerConnection.methods.CreateOffer]
 permissions = "INHERIT" #
@@ -45840,7 +45245,6 @@ permissions = "INHERIT" #
 
 [WebSocketMultiplayerPeer.methods.GetPeer]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [WebSocketMultiplayerPeer.methods.GetPeerAddress]
 permissions = "INHERIT" #
@@ -45977,7 +45381,6 @@ permissions = "INHERIT" #
 
 [WebXRInterface.methods.GetInputSourceTracker]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [WebXRInterface.methods.GetOptionalFeatures]
 permissions = "INHERIT" #
@@ -46118,7 +45521,6 @@ permissions = "INHERIT" #
 
 [Window.methods.GetTheme]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Window.methods.GetThemeColor]
 permissions = "INHERIT" #
@@ -46131,25 +45533,21 @@ permissions = "INHERIT" #
 
 [Window.methods.GetThemeDefaultFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Window.methods.GetThemeDefaultFontSize]
 permissions = "INHERIT" #
 
 [Window.methods.GetThemeFont]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Window.methods.GetThemeFontSize]
 permissions = "INHERIT" #
 
 [Window.methods.GetThemeIcon]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Window.methods.GetThemeStylebox]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [Window.methods.GetThemeTypeVariation]
 permissions = "INHERIT" #
@@ -46430,7 +45828,6 @@ permissions = "INHERIT" #
 
 [World2D.methods.GetDirectSpaceState]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Not null in correct usage, error otherwise
 
 [World2D.methods.GetNavigationMap]
 permissions = "INHERIT" #
@@ -46448,19 +45845,15 @@ default_permissions = "BASE" #
 
 [World3D.methods.GetCameraAttributes]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [World3D.methods.GetDirectSpaceState]
 permissions = "INHERIT" #
-ret_nullable = false #* 4.0-rc1: Same as World2D.GetDirectSpaceState
 
 [World3D.methods.GetEnvironment]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [World3D.methods.GetFallbackEnvironment]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [World3D.methods.GetNavigationMap]
 permissions = "INHERIT" #
@@ -46524,15 +45917,12 @@ default_permissions = "BASE" #
 
 [WorldEnvironment.methods.GetCameraAttributes]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [WorldEnvironment.methods.GetCompositor]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [WorldEnvironment.methods.GetEnvironment]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [WorldEnvironment.methods.SetCameraAttributes]
 permissions = "INHERIT" #
@@ -46975,7 +46365,6 @@ permissions = "INHERIT" #
 
 [XRNode3D.methods.GetPose]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [XRNode3D.methods.GetPoseName]
 permissions = "INHERIT" #
@@ -47078,7 +46467,6 @@ permissions = "INHERIT" #
 
 [XRPositionalTracker.methods.GetPose]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [XRPositionalTracker.methods.GetTrackerHand]
 permissions = "INHERIT" #
@@ -47126,14 +46514,12 @@ permissions = "INHERIT" #
 
 [XRServer.methods.FindInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [XRServer.methods.GetHmdTransform]
 permissions = "INHERIT" #
 
 [XRServer.methods.GetInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [XRServer.methods.GetInterfaceCount]
 permissions = "INHERIT" #
@@ -47143,14 +46529,12 @@ permissions = "INHERIT" #
 
 [XRServer.methods.GetPrimaryInterface]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [XRServer.methods.GetReferenceFrame]
 permissions = "INHERIT" #
 
 [XRServer.methods.GetTracker]
 permissions = "INHERIT" #
-ret_nullable = true #
 
 [XRServer.methods.GetTrackers]
 permissions = "INHERIT" #
