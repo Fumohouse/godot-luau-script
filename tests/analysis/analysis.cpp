@@ -140,7 +140,7 @@ TEST_CASE("luau analysis") {
 			REQUIRE(def.properties[2].property.name == "testProperty2");
 			REQUIRE(def.properties[2].property.type == GDEXTENSION_VARIANT_TYPE_FLOAT);
 			REQUIRE(def.properties[2].property.hint == PROPERTY_HINT_RANGE);
-			REQUIRE(def.properties[2].property.hint_string == "0,100,3,degrees");
+			REQUIRE(def.properties[2].property.hint_string == "0.0,100.0,3.0,degrees");
 		}
 	}
 

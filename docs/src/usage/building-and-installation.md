@@ -55,8 +55,9 @@ Additionally, you may want to use the following flags from godot-cpp:
 - `target=template_release`: Build for release templates.
 - `use_llvm=yes`: Force usage of LLVM for compilation (over GCC).
 - `debug_symbols=yes`: Build the project with debug symbols.
-- Run `scons compiledb target=editor tests=yes` to generate a compilation
-  commands database, typically for use with a language server like `clangd`.
+- Run `scons compiledb target=editor tests=yes use_llvm=yes` to generate a
+  compilation commands database, typically for use with a language server like
+  `clangd`.
 
 After building, the output will be present in the `bin/` folder.
 

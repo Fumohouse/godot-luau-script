@@ -17,7 +17,8 @@ using namespace godot;
 static int luaGD_class_ctor(lua_State *L) {
 	StringName class_name = lua_tostring(L, lua_upvalueindex(1));
 
-	GDExtensionObjectPtr obj = internal::gdextension_interface_classdb_construct_object(&class_name);
+	GDExtensionObjectPtr obj = internal::gdextension_interface_classdb_construct_object2(&class_name);
+	nb::Object(obj).notification(Object::NOTIFICATION_POSTINITIALIZE);
 	LuaStackOp<Object *>::push(L, obj);
 	return 1;
 }

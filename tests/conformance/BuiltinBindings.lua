@@ -106,7 +106,7 @@ end
 
 do
     -- tostring
-    assert(tostring(Vector3.new(0, 1, 2)) == "(0, 1, 2)")
+    assert(tostring(Vector3.new(0, 1, 2)) == "(0.0, 1.0, 2.0)")
 end
 
 do

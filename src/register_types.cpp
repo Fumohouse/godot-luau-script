@@ -81,15 +81,6 @@ GDExtensionBool GDE_EXPORT luau_script_init(GDExtensionInterfaceGetProcAddress p
 	init_obj.register_initializer(initialize_luau_script_module);
 	init_obj.register_terminator(uninitialize_luau_script_module);
 
-	// HACK: 4.1.1-stable: Godot uses this value to determine whether an editor
-	// restart is required when extensions are loaded/unloaded. Due to the odd
-	// initialization order when this extension is first detected, continuing
-	// the import process when this extension is first loaded will cause the
-	// engine to crash. Therefore, although we do not perform any initialization
-	// before SCENE, it is necessary to set the minimum init level to SERVERS
-	// to prompt a restart before the engine crashes.
-	init_obj.set_minimum_library_initialization_level(MODULE_INITIALIZATION_LEVEL_SERVERS);
-
 	return init_obj.init();
 }
 }

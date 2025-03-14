@@ -764,7 +764,9 @@ def generate_class(io, g_class, classes, singletons, variant_values, variant_val
 
             write_string(io, name_luau)  # String name
 
-            types = prop["type"].split(",")
+            # Ignore them for now; property types are not even checked in the bindings.
+            # https://github.com/godotengine/godot/pull/88349
+            types = [t for t in prop["type"].split(",") if not t.startswith("-")]
             write_size(io, len(types))  # size num_types
             for t in types:  # ApiClassType types[num_types]
                 generate_class_type(io, t, classes)
