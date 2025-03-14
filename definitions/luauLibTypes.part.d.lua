@@ -77,7 +77,7 @@ declare function wait(duration: number): number
 --- @param signal The signal.
 --- @param timeout The number of seconds to wait before timing out (default: 10 seconds).
 --- @return The first return value is whether the signal was emitted (true) or timed out (false), and subsequent values are the arguments passed to the signal when it was emitted.
-declare function wait_signal<T...>(signal: Signal, timeout: number?): (true, T...) | false
+declare function wait_signal<T...>(signal: Signal, timeout: number?): (boolean, T...) -- FIXME: This type should be `(true, T...) | false` but that's no longer valid
 
 --- Gets a global constant (e.g. AutoLoad) which was defined in the Godot
 --- editor.
@@ -92,14 +92,6 @@ declare function breakpoint(): boolean
 --------------
 -- SERVICES --
 --------------
-
-export type EnumSandboxViolations = number
-
-declare class EnumSandboxViolations_INTERNAL
-    UNTRUSTED_EXT_SCRIPT_VIOLATION: EnumSandboxViolations
-    RESOURCE_SANDBOX_VIOLATION: EnumSandboxViolations
-    UNTRUSTED_INT_SCRIPT_VIOLATION: EnumSandboxViolations
-end
 
 export type EnumPermissions = number
 

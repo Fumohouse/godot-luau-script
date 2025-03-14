@@ -4,7 +4,7 @@
         "**/*.o": true,
         "**/*.os": true
     },
-    "luau-lsp.types.roblox": false,
+    "luau-lsp.platform.type": "standard",
     "luau-lsp.types.definitionFiles": [
         "definitions/luauScriptTypes.gen.d.lua"
     ],

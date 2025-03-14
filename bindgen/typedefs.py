@@ -451,7 +451,6 @@ def generate_typedefs(defs_dir, api, lib_types, godot_types):
     for name, type_name, internal_type_name in global_enums:
         append(src, 1, f"{name}: {internal_type_name},")
 
-    append(src, 1, "SandboxViolations: EnumSandboxViolations_INTERNAL,")
     append(src, 1, "Permissions: EnumPermissions_INTERNAL,")
 
     src.append("}\n")
