@@ -615,12 +615,10 @@ void luaGD_openbuiltins(lua_State *L) {
 			lua_setfield(L, -2, "new");
 		}
 
-		// Static methods
-		if (strcmp(builtin_class.name, "String") == 0) {
-			for (const KeyValue<String, ApiVariantMethod> &pair : builtin_class.methods) {
-				push_builtin_method(L, builtin_class, pair.value);
-				lua_setfield(L, -2, pair.value.name);
-			}
+		// All methods (global table)
+		for (const KeyValue<String, ApiVariantMethod> &pair : builtin_class.methods) {
+			push_builtin_method(L, builtin_class, pair.value);
+			lua_setfield(L, -2, pair.value.name);
 		}
 
 		for (const ApiVariantMethod &static_method : builtin_class.static_methods) {

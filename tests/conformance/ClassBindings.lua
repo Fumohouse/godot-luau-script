@@ -47,6 +47,9 @@ do
     -- IsA
     assert(rc:IsA(Object))
 
+    -- Global table
+    assert(PhysicsRayQueryParameters3D.IsCollideWithAreasEnabled(params) == false)
+
     -- Varargs
     params:Call("set", "collide_with_areas", true)
     assert(params.collideWithAreas == true)

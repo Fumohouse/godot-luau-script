@@ -21,6 +21,9 @@ do
     local vec = Vector2.FromAngle(5)
     assert(is_equal_approx(vec.x, math.cos(5)))
 
+    -- Global table
+    assert(Vector2.Dot(Vector2.new(3, 4), Vector2.new(5, 6)) == 39)
+
     -- Varargs
     local styleBox = StyleBox.new()
     local callable = Callable.new(styleBox, "SetContentMargin")

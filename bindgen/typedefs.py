@@ -288,9 +288,6 @@ function __iter(self): any\
     # Statics
     if "methods" in builtin_class:
         for method in utils.get_builtin_methods(builtin_class):
-            if not method["is_static"] and name != "String":
-                continue
-
             generate_method(src, name, method, api, True)
 
     src.append(
@@ -317,10 +314,7 @@ def generate_class(src, g_class, api):
     # Methods
     if "methods" in g_class:
         for method in utils.get_class_methods(g_class):
-            if method["is_static"]:
-                continue
-
-            generate_method(src, name, method, api, is_obj_nullable=True)
+            generate_method(src, name, method, api)
 
     # Custom Object methods
     if name == "Object":
@@ -373,10 +367,7 @@ function Free(self)\
 
             # BaseMaterial/ShaderMaterial multiple types
             prop_type = " | ".join(
-                [
-                    get_luau_type(t, api, True, is_obj_nullable=True)
-                    for t in prop_type.split(",")
-                ]
+                [get_luau_type(t, api, True) for t in prop_type.split(",")]
             )
 
             append(src, 1, f'["{prop_name}"]: {prop_type}')
@@ -421,10 +412,7 @@ function Free(self)\
     # Statics
     if "methods" in g_class:
         for method in utils.get_class_methods(g_class):
-            if not method["is_static"]:
-                continue
-
-            generate_method(src, name, method, api, True, is_obj_nullable=True)
+            generate_method(src, name, method, api, True)
 
     src.append(
         f"""\

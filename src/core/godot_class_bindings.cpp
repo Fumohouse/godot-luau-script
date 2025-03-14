@@ -549,7 +549,12 @@ void luaGD_openclasses(lua_State *L) {
 			lua_setfield(L, -2, "singleton");
 		}
 
-		// Static methods
+		// All methods (global table)
+		for (const KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
+			push_class_method(L, g_class, pair.value);
+			lua_setfield(L, -2, pair.value.name);
+		}
+
 		for (const ApiClassMethod &static_method : g_class.static_methods) {
 			push_class_method(L, g_class, static_method);
 			lua_setfield(L, -2, static_method.name);
