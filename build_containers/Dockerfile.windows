@@ -2,6 +2,4 @@ ARG tag
 FROM gls-base:${tag}
 
 RUN dnf install -y --setopt=install_weak_deps=False \
-        mingw64-gcc mingw64-gcc-c++ && \
-    # Circumvent Luau issue (https://github.com/Roblox/luau/issues/873)
-    ln -s /usr/x86_64-w64-mingw32/sys-root/mingw/include/windows.h /usr/x86_64-w64-mingw32/sys-root/mingw/include/Windows.h
+        mingw64-gcc mingw64-gcc-c++
