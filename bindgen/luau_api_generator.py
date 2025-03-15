@@ -92,7 +92,11 @@ def generate_bindings(target, source, env):
     luau_api["global_constants"] = godot_api["global_constants"]
     luau_api["global_enums"] = godot_api["global_enums"]
     luau_api["utility_functions"] = godot_api["utility_functions"]
-    luau_api["builtin_classes"] = godot_api["builtin_classes"]
+    luau_api["builtin_classes"] = [
+        bc
+        for bc in godot_api["builtin_classes"]
+        if bc["name"] not in ["Nil", "bool", "int", "float"]
+    ]
     luau_api["singletons"] = godot_api["singletons"]
 
     # Classes
@@ -125,6 +129,26 @@ def generate_bindings(target, source, env):
                 l_class["methods"].append(l_method)
 
         luau_api["classes"].append(l_class)
+
+    #
+    # Post processing
+    #
+
+    # Sort by inheritance (mainly for typedefs)
+    def sort_classes(g_class):
+        check_class = g_class
+        parent_count = 0
+
+        while True:
+            if "inherits" not in check_class:
+                return parent_count
+
+            check_class = [
+                c for c in luau_api["classes"] if c["name"] == check_class["inherits"]
+            ][0]
+            parent_count += 1
+
+    luau_api["classes"] = sorted(luau_api["classes"], key=sort_classes)
 
     with open(target[0].abspath, "w") as f:
         json.dump(luau_api, f, indent="\t")

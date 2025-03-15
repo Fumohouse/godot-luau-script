@@ -1,5 +1,5 @@
 from . import constants
-from .utils import should_skip_class, write_file
+from .utils import write_file
 
 
 def generate_stack_ops(src_dir, include_dir, api):
@@ -26,20 +26,14 @@ using namespace godot;
     )
 
     # Builtin classes
-    builtins_filtered = [
-        b_class
-        for b_class in api["builtin_classes"]
-        if not should_skip_class(b_class["name"])
-    ]
-
-    for b_class in builtins_filtered:
+    for b_class in api["builtin_classes"]:
         class_name = b_class["name"]
         metatable_name = constants.builtin_metatable_prefix + class_name
 
         if class_name in ["StringName", "NodePath", "String"]:
             # Special cases
             continue
-        elif "has_destructor" in b_class and b_class["has_destructor"]:
+        elif b_class.get("has_destructor"):
             src.append(
                 f'UDATA_STACK_OP_IMPL({class_name}, "{metatable_name}", DTOR({class_name}));'
             )

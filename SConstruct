@@ -6,8 +6,7 @@ env = Environment(tools=["default"], PLATFORM="")
 env["disable_exceptions"] = False
 
 # clang terminal colors
-if "TERM" in os.environ:
-    env["ENV"]["TERM"] = os.environ["TERM"]
+env["ENV"]["TERM"] = os.environ.get("TERM")
 
 Export("env")
 SConscript("extern/godot-cpp/SConstruct")

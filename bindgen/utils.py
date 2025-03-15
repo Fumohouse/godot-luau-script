@@ -5,37 +5,13 @@ from pathlib import Path
 from . import constants
 
 
-def load_cpp_binding_generator():
-    godot_cpp_path = Path(__file__).parent / "../extern/godot-cpp/binding_generator.py"
-
-    loader = importlib.machinery.SourceFileLoader(
-        "binding_generator", str(godot_cpp_path)
-    )
-
-    spec = importlib.util.spec_from_loader("binding_generator", loader)
-    binding_generator = importlib.util.module_from_spec(spec)
-    loader.exec_module(binding_generator)
-
-    return binding_generator
-
-
-binding_generator = load_cpp_binding_generator()
-
-
 def write_file(path, lines):
     with path.open("w+") as file:
         file.write("\n".join(lines))
 
 
-def should_skip_class(class_name):
-    return class_name in ["Nil", "bool", "int", "float"]
-
-
 def append(source, indent_level, line):
-    lines = [
-        constants.indent * indent_level + l if len(l) > 0 else ""
-        for l in line.split("\n")
-    ]
+    lines = ["\t" * indent_level + l if len(l) > 0 else "" for l in line.split("\n")]
     source.append("\n".join(lines))
 
 
@@ -164,15 +140,15 @@ variant_op_map = {
 }
 
 
-def get_operators(class_name, operators):
+def get_operators(class_name, builtin_class):
     # since Variant is basically a catch-all type, comparison to Variant should always be last
     # otherwise the output could be unexpected
     # int is sorted after other types because it may be removed if a float operator exists
     def op_priority(op):
-        if "right_type" not in op:
-            return 0
+        right_type = op.get("right_type")
 
-        right_type = op["right_type"]
+        if not right_type:
+            return 0
         if right_type == "int":
             return 1
         if right_type == "Variant":
@@ -180,7 +156,7 @@ def get_operators(class_name, operators):
 
         return 0
 
-    operators = sorted(operators, key=op_priority)
+    operators = sorted(builtin_class.get("operators", []), key=op_priority)
 
     # filter results
     output = []
@@ -192,9 +168,8 @@ def get_operators(class_name, operators):
         if name not in variant_op_map:
             continue
 
-        if "right_type" in op:
-            right_type = op["right_type"]
-
+        right_type = op.get("right_type")
+        if right_type:
             # Luau does not support __eq between objects that aren't the same type
             if name == "==" and right_type != class_name:
                 continue
@@ -238,7 +213,7 @@ def get_builtin_methods(b_class):
 
         return False
 
-    return [m for m in b_class["methods"] if not should_skip(m)]
+    return [m for m in b_class.get("methods", []) if not should_skip(m)]
 
 
 def get_class_methods(g_class):
@@ -260,12 +235,12 @@ def get_class_methods(g_class):
 
         return False
 
-    return [m for m in g_class["methods"] if not should_skip(m)]
+    return [m for m in g_class.get("methods", []) if not should_skip(m)]
 
 
 def get_property_setget(prop, g_class, classes):
-    setter = prop["setter"] if "setter" in prop else ""
-    getter = prop["getter"] if "getter" in prop else ""
+    setter = prop.get("setter")
+    getter = prop.get("getter")
 
     def has_setget(method_name, chk_class):
         # Currently, no funny business with inheriters having the method
@@ -282,7 +257,7 @@ def get_property_setget(prop, g_class, classes):
 
     def get_actual_setget(method_name):
         # Attempt to strip _ to ensure any virtual setters/getters have the correct method name
-        if method_name == "":
+        if not method_name:
             return "", False
 
         if has_setget(method_name, g_class):
