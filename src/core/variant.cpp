@@ -12,6 +12,8 @@
 #include "core/stack.h"
 #include "utils/wrapped_no_binding.h"
 
+// ! SYNC WITH godot::Variant
+
 struct VariantMethods {
 	virtual void initialize(LuauVariant &p_self) const = 0;
 	virtual void destroy(LuauVariant &p_self) const {}

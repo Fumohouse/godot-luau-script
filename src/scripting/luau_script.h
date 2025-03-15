@@ -319,7 +319,7 @@ public:
 	~LuauScriptInstance();
 };
 
-// ! sync with core/object/script_language
+// ! SYNC WITH core/object/script_language
 // need to reimplement here because Godot does not expose placeholders to GDExtension.
 // doing this is okay because all Godot functions which request a placeholder instance assign it to a ScriptInstance *
 #ifdef TOOLS_ENABLED

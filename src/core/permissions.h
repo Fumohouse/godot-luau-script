@@ -8,7 +8,7 @@ using namespace godot;
 
 struct ApiEnum;
 
-// ! Must update ApiEnum and luau_analysis whenever this is changed
+// ! Must update ApiEnum, luau_analysis, api_bin.py whenever this is changed
 enum ThreadPermissions {
 	PERMISSION_INHERIT = -1,
 	PERMISSION_BASE = 0,

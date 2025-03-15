@@ -1,8 +1,9 @@
-from . import constants, utils
+from . import constants, utils, godot
 
 from io import BytesIO
 import struct
 
+# ! SYNC WITH core/extension/extension_api_dump.cpp
 
 #########
 # Utils #
@@ -65,89 +66,6 @@ def is_object_type(type_name, classes):
     return True in [c["name"] == type_name for c in classes]
 
 
-# ! must keep in sync with Variant::Type
-variant_types = [
-    "Variant",
-    "bool",
-    "int",
-    "float",
-    "String",
-    "Vector2",
-    "Vector2i",
-    "Rect2",
-    "Rect2i",
-    "Vector3",
-    "Vector3i",
-    "Transform2D",
-    "Vector4",
-    "Vector4i",
-    "Plane",
-    "Quaternion",
-    "AABB",
-    "Basis",
-    "Transform3D",
-    "Projection",
-    "Color",
-    "StringName",
-    "NodePath",
-    "RID",
-    "Object",
-    "Callable",
-    "Signal",
-    "Dictionary",
-    "Array",
-    "PackedByteArray",
-    "PackedInt32Array",
-    "PackedInt64Array",
-    "PackedFloat32Array",
-    "PackedFloat64Array",
-    "PackedStringArray",
-    "PackedVector2Array",
-    "PackedVector3Array",
-    "PackedColorArray",
-    "PackedVector4Array",
-]
-
-
-def get_variant_type(type_name):
-    return variant_types.index(type_name)
-
-
-# ! must keep in sync with Variant::Operator
-# ! core/variant/variant_op.cpp
-variant_ops = [
-    "==",
-    "!=",
-    "<",
-    "<=",
-    ">",
-    ">=",
-    "+",
-    "-",
-    "*",
-    "/",
-    "unary-",
-    "unary+",
-    "%",
-    "**",
-    "<<",
-    ">>",
-    "&",
-    "|",
-    "^",
-    "~",
-    "and",
-    "or",
-    "xor",
-    "not",
-    "in",
-]
-
-
-def get_variant_op(op_name):
-    return variant_ops.index(op_name)
-
-
 def get_variant_idx(value, variant_values, variant_value_map):
     if value.isdigit():
         # For MSVC (will use unsigned long if not)
@@ -197,7 +115,7 @@ def generate_constant(io, constant):
 def generate_argument_no_default(io, argument):
     # ApiArgumentNoDefault
     write_string(io, argument["name"])  # String name
-    write_uint32(io, get_variant_type(argument["type"]))  # Variant::Type type
+    write_uint32(io, godot.get_variant_type(argument["type"]))  # Variant::Type type
 
 
 #####################
@@ -229,7 +147,7 @@ def generate_utility_function(io, utility_function):
     write_int32(
         io,
         (
-            get_variant_type(utility_function["return_type"])
+            godot.get_variant_type(utility_function["return_type"])
             if "return_type" in utility_function
             else -1
         ),
@@ -272,7 +190,7 @@ def generate_builtin_class_method(
     for argument in arguments:
         write_string(io, argument["name"])  # String name
         # Variant::Type type
-        write_uint32(io, get_variant_type(argument["type"]))
+        write_uint32(io, godot.get_variant_type(argument["type"]))
 
         default_value = argument.get("default_value")
         if default_value:
@@ -289,7 +207,7 @@ def generate_builtin_class_method(
 
     if "return_type" in method:
         # int32_t return_type
-        write_int32(io, get_variant_type(method["return_type"]))
+        write_int32(io, godot.get_variant_type(method["return_type"]))
     else:
         write_int32(io, -1)  # int32_t return_type
 
@@ -322,14 +240,14 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
     write_string(io, class_name)  # String name
     write_string(io, metatable_name)  # String metatable_name
 
-    variant_type = get_variant_type(class_name)
+    variant_type = godot.get_variant_type(class_name)
     write_uint32(io, variant_type)  # Variant::Type type
 
     write_bool(io, builtin_class["is_keyed"])  # bool is_keyed
 
     # int32_t indexing_return_type
     if "indexing_return_type" in builtin_class:
-        write_int32(io, get_variant_type(builtin_class["indexing_return_type"]))
+        write_int32(io, godot.get_variant_type(builtin_class["indexing_return_type"]))
     else:
         write_int32(io, -1)
 
@@ -376,7 +294,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
     for member in members:
         write_string(io, member["name"])  # String name
-        write_uint32(io, get_variant_type(member["type"]))  # Variant::Type type
+        write_uint32(io, godot.get_variant_type(member["type"]))  # Variant::Type type
 
     # String newindex_debug_name
     write_string(io, f"{metatable_name}.__newindex")
@@ -425,9 +343,9 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
         right_type = None
         right_type = 0
         if "right_type" in variant_op:
-            right_type = get_variant_type(variant_op["right_type"])
+            right_type = godot.get_variant_type(variant_op["right_type"])
 
-        return_type = get_variant_type(variant_op["return_type"])
+        return_type = godot.get_variant_type(variant_op["return_type"])
 
         if name not in operators_map:
             operators_map[name] = []
@@ -444,7 +362,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
     for variant_op_name, ops in operators_map.items():
         # Variant::Operator op
-        write_uint32(io, get_variant_op(variant_op_name))
+        write_uint32(io, godot.get_variant_op(variant_op_name))
         write_size(io, len(ops))  # size num_operators
 
         for op in ops:
@@ -473,21 +391,21 @@ def generate_class_type(io, type_string, classes):
     if type_string == "Nil":
         pass
     elif is_object_type(type_string, classes):
-        variant_type = get_variant_type("Object")
+        variant_type = godot.get_variant_type("Object")
         type_name = type_string
     elif type_string.startswith(constants.typed_array_prefix):
-        variant_type = get_variant_type("Array")
+        variant_type = godot.get_variant_type("Array")
         type_name = type_string.split(":")[-1]
     elif type_string.startswith(constants.enum_prefix):
-        variant_type = get_variant_type("int")
+        variant_type = godot.get_variant_type("int")
         type_name = type_string[len(constants.enum_prefix) :]
         is_enum = True
     elif type_string.startswith(constants.bitfield_prefix):
-        variant_type = get_variant_type("int")
+        variant_type = godot.get_variant_type("int")
         type_name = type_string[len(constants.bitfield_prefix) :]
         is_bitfield = True
     else:
-        variant_type = get_variant_type(type_string)
+        variant_type = godot.get_variant_type(type_string)
         type_name = type_string
 
     write_int32(io, variant_type)  # int32_t type
@@ -510,24 +428,28 @@ def generate_class_argument(io, argument, classes, variant_values, variant_value
         default_value = argument["default_value"]
 
         if default_value == "null":
-            if variant_type == get_variant_type("Variant"):
+            if variant_type == godot.get_variant_type("Variant"):
                 default_value = "Variant()"
             else:
                 default_value = "nullptr"
         elif (
             default_value == ""
-            and variant_type != get_variant_type("Variant")
-            and variant_type != get_variant_type("Object")
+            and variant_type != godot.get_variant_type("Variant")
+            and variant_type != godot.get_variant_type("Object")
         ):
             default_value = f"{type_name}()"
-        elif variant_type == get_variant_type("Array"):
+        elif variant_type == godot.get_variant_type("Array"):
             if default_value == "[]" or (
                 type_name != "" and default_value.endswith("([])")
             ):
                 default_value = f"Array()"
-        elif default_value == "{}" and variant_type == get_variant_type("Dictionary"):
+        elif default_value == "{}" and variant_type == godot.get_variant_type(
+            "Dictionary"
+        ):
             default_value = f"Dictionary()"
-        elif default_value == '&""' and variant_type == get_variant_type("StringName"):
+        elif default_value == '&""' and variant_type == godot.get_variant_type(
+            "StringName"
+        ):
             default_value = f"StringName()"
 
         index = get_variant_idx(default_value, variant_values, variant_value_map)
@@ -848,8 +770,8 @@ def generate_api_bin(src_dir, api):
 
 using namespace godot;
 
-static_assert(GDEXTENSION_VARIANT_TYPE_VARIANT_MAX == {len(variant_types)}, "variant type list in api_bin is outdated");
-static_assert(GDEXTENSION_VARIANT_OP_MAX == {len(variant_ops)}, "variant operator list in api_bin is outdated");
+static_assert(GDEXTENSION_VARIANT_TYPE_VARIANT_MAX == {len(godot.VariantType)}, "variant type list in api_bin is outdated");
+static_assert(GDEXTENSION_VARIANT_OP_MAX == {len(godot.VariantOperator)}, "variant operator list in api_bin is outdated");
 
 // a static const variable would result in initialization before the Variant type itself is ready
 const Variant &get_variant_value(int p_idx) {{

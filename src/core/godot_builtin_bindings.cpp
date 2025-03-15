@@ -66,7 +66,7 @@ struct ArrayTypeInfo {
 		return &type##_info;                      \
 	}
 
-// ! sync with any new arrays
+// ! SYNC WITH Variant::Type
 static const ArrayTypeInfo *get_array_type_info(GDExtensionVariantType p_type) {
 	switch (p_type) {
 		case GDEXTENSION_VARIANT_TYPE_ARRAY:

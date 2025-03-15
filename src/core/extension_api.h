@@ -12,8 +12,6 @@
 
 using namespace godot;
 
-// ! sync with core/extension/extension_api_dump.cpp
-
 ///////////////////
 // Generic stuff //
 ///////////////////

@@ -3,6 +3,7 @@
 ## Recurring tasks
 
 - Keeping up-to-date with GDExtension changes
+- Areas that must be synced with Godot (`grep "! SYNC WITH"`)
 
 ## Other
 

@@ -117,7 +117,7 @@ void ClassReader::ann_return(const Annotation &p_annotation, GDMethod &p_method)
 }
 
 void ClassReader::ann_method_flags(const Annotation &p_annotation, GDMethod &p_method) {
-	// ! must update with global_constants.hpp
+	// ! SYNC WITH global_constants.hpp
 	static HashMap<String, int> flags_map;
 	static bool did_init = false;
 
@@ -159,7 +159,7 @@ enum RpcOption {
 };
 
 void ClassReader::ann_rpc(const Annotation &p_annotation, GDMethod &p_method) {
-	// ! must update with relevant features
+	// ! SYNC WITH Relevant RPC features
 	static HashMap<String, Pair<RpcOption, int>> options_map;
 	static bool did_init = false;
 
