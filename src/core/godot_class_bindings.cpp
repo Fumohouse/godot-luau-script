@@ -282,7 +282,7 @@ struct CrossVMMethod {
 };
 
 STACK_OP_PTR_DEF(CrossVMMethod)
-UDATA_STACK_OP_IMPL(CrossVMMethod, "Luau.CrossVMMethod", DTOR(CrossVMMethod))
+UDATA_STACK_OP_IMPL(CrossVMMethod, "Luau.CrossVMMethod", UDATA_TAG_CROSS_VM_METHOD, DTOR(CrossVMMethod))
 
 static int luaGD_crossvm_call(lua_State *L) {
 	CrossVMMethod m = LuaStackOp<CrossVMMethod>::check(L, 1);
@@ -582,6 +582,6 @@ void luaGD_openclasses(lua_State *L) {
 		lua_setfield(L, -2, "__call");
 
 		lua_setreadonly(L, -1, true);
-		lua_pop(L, 1);
+		lua_setuserdatametatable(L, UDATA_TAG_CROSS_VM_METHOD);
 	}
 }

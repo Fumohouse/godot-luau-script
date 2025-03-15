@@ -18,31 +18,26 @@
 		static m_type *check(lua_State *L, int p_index); \
 	};
 
-#define SVC_STACK_OP_IMPL(m_type, m_metatable_name)                                         \
-	void LuaStackOp<m_type *>::push(lua_State *L, m_type *p_value) {                        \
-		m_type **udata = reinterpret_cast<m_type **>(lua_newuserdata(L, sizeof(void *)));   \
-		*udata = p_value;                                                                   \
-                                                                                            \
-		luaL_getmetatable(L, m_metatable_name);                                             \
-		if (lua_isnil(L, -1))                                                               \
-			luaGD_mtnotfounderror(L, m_metatable_name);                                     \
-                                                                                            \
-		lua_setmetatable(L, -2);                                                            \
-	}                                                                                       \
-                                                                                            \
-	m_type *LuaStackOp<m_type *>::get(lua_State *L, int p_index) {                          \
-		if (!luaGD_metatables_match(L, p_index, m_metatable_name))                          \
-			return nullptr;                                                                 \
-                                                                                            \
-		return *reinterpret_cast<m_type **>(lua_touserdata(L, p_index));                    \
-	}                                                                                       \
-                                                                                            \
-	bool LuaStackOp<m_type *>::is(lua_State *L, int p_index) {                              \
-		return luaGD_metatables_match(L, p_index, m_metatable_name);                        \
-	}                                                                                       \
-                                                                                            \
-	m_type *LuaStackOp<m_type *>::check(lua_State *L, int p_index) {                        \
-		return *reinterpret_cast<m_type **>(luaL_checkudata(L, p_index, m_metatable_name)); \
+#define SVC_STACK_OP_IMPL(m_type, m_metatable_name, m_tag)                                                          \
+	void LuaStackOp<m_type *>::push(lua_State *L, m_type *p_value) {                                                \
+		m_type **udata = reinterpret_cast<m_type **>(lua_newuserdatataggedwithmetatable(L, sizeof(void *), m_tag)); \
+		*udata = p_value;                                                                                           \
+	}                                                                                                               \
+                                                                                                                    \
+	m_type *LuaStackOp<m_type *>::get(lua_State *L, int p_index) {                                                  \
+		m_type **udata = reinterpret_cast<m_type **>(lua_touserdatatagged(L, p_index, m_tag));                      \
+		return udata ? *udata : nullptr;                                                                            \
+	}                                                                                                               \
+                                                                                                                    \
+	bool LuaStackOp<m_type *>::is(lua_State *L, int p_index) {                                                      \
+		return lua_touserdatatagged(L, p_index, m_tag);                                                             \
+	}                                                                                                               \
+                                                                                                                    \
+	m_type *LuaStackOp<m_type *>::check(lua_State *L, int p_index) {                                                \
+		m_type **udata = reinterpret_cast<m_type **>(lua_touserdatatagged(L, p_index, m_tag));                      \
+		if (udata)                                                                                                  \
+			return *udata;                                                                                          \
+		luaL_typeerrorL(L, p_index, m_metatable_name);                                                              \
 	}
 
 class Service {

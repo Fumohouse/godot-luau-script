@@ -17,12 +17,12 @@
 
 #define DEBUG_SERVICE_NAME "DebugService"
 #define DEBUG_SERVICE_MT_NAME "Luau." DEBUG_SERVICE_NAME
-SVC_STACK_OP_IMPL(DebugService, DEBUG_SERVICE_MT_NAME)
+SVC_STACK_OP_IMPL(DebugService, DEBUG_SERVICE_MT_NAME, UDATA_TAG_DEBUG_SERVICE)
 
 DebugService *DebugService::singleton = nullptr;
 
 const LuaGDClass &DebugService::get_lua_class() const {
-	static LuaGDClass lua_class;
+	static LuaGDClass lua_class(UDATA_TAG_DEBUG_SERVICE);
 	static bool did_init = false;
 
 	if (!did_init) {

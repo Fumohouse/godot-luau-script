@@ -17,6 +17,17 @@
 
 using namespace godot;
 
+// Variant types are reserved.
+// 126-127 are reserved for tests.
+enum UserdataTags {
+	UDATA_TAG_INT64 = 100,
+	UDATA_TAG_CROSS_VM_METHOD = 101,
+
+	UDATA_TAG_LUAU_INTERFACE = 110,
+	UDATA_TAG_DEBUG_SERVICE = 111,
+	UDATA_TAG_SANDBOX_SERVICE = 112
+};
+
 #define luaGD_objnullerror(L, p_i) luaL_error(L, "argument #%d: Object is null or freed", p_i)
 #define luaGD_nonamecallatomerror(L) luaL_error(L, "no namecallatom")
 

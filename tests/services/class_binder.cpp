@@ -121,11 +121,11 @@ struct TestClass {
 };
 
 STACK_OP_SVC_DEF(TestClass)
-SVC_STACK_OP_IMPL(TestClass, "Tests.TestClass")
+SVC_STACK_OP_IMPL(TestClass, "Tests.TestClass", 126)
 
 TEST_CASE_METHOD(LuauFixture, "binder: basic instance binding") {
 	luaL_newmetatable(L, "Tests.TestClass");
-	lua_pop(L, 1);
+	lua_setuserdatametatable(L, 126);
 
 	TestClass test_instance;
 	LuaStackOp<TestClass *>::push(L, &test_instance);
@@ -212,10 +212,10 @@ struct TestFullClass {
 };
 
 STACK_OP_SVC_DEF(TestFullClass)
-SVC_STACK_OP_IMPL(TestFullClass, "Tests.TestFullClass")
+SVC_STACK_OP_IMPL(TestFullClass, "Tests.TestFullClass", 127)
 
 TEST_CASE_METHOD(LuauFixture, "binder: class binding") {
-	LuaGDClass test_class;
+	LuaGDClass test_class(127);
 	test_class.set_name("TestFullClass", "Tests.TestFullClass");
 
 	test_class.bind_method_static("TestStaticMethod", FID(TestFullClass::test_static_method), PERMISSION_INTERNAL);

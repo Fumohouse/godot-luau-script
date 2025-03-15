@@ -106,5 +106,6 @@ void LuaGDClass::init_metatable(lua_State *L) const {
 	lua_pushcclosure(L, lua_index, "LuaGDClass.__index", 1);
 	lua_setfield(L, -2, "__index");
 
-	lua_pop(L, 1); // metatable
+	lua_setreadonly(L, -1, true);
+	lua_setuserdatametatable(L, udata_tag);
 }

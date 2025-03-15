@@ -8,6 +8,7 @@
 #include <godot_cpp/variant/dictionary.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
+#include "core/lua_utils.h"
 #include "core/permissions.h"
 #include "scripting/luau_script.h"
 #include "scripting/resource_format_luau_script.h"
@@ -16,12 +17,12 @@
 
 #define SANDBOX_SERVICE_NAME "SandboxService"
 #define SANDBOX_SERVICE_MT_NAME "Luau." SANDBOX_SERVICE_NAME
-SVC_STACK_OP_IMPL(SandboxService, SANDBOX_SERVICE_MT_NAME)
+SVC_STACK_OP_IMPL(SandboxService, SANDBOX_SERVICE_MT_NAME, UDATA_TAG_SANDBOX_SERVICE)
 
 SandboxService *SandboxService::singleton = nullptr;
 
 const LuaGDClass &SandboxService::get_lua_class() const {
-	static LuaGDClass lua_class;
+	static LuaGDClass lua_class(UDATA_TAG_SANDBOX_SERVICE);
 	static bool did_init = false;
 
 	if (!did_init) {

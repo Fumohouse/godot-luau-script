@@ -492,7 +492,7 @@ static void luaGD_builtin_unbound(lua_State *L, GDExtensionVariantType p_variant
 	lua_setfield(L, -2, MT_VARIANT_TYPE);
 
 	lua_setreadonly(L, -1, true);
-	lua_pop(L, 1); // metatable
+	lua_setuserdatametatable(L, p_variant_type);
 }
 
 void luaGD_openbuiltins(lua_State *L) {
@@ -500,95 +500,104 @@ void luaGD_openbuiltins(lua_State *L) {
 
 	const ExtensionApi &extension_api = get_extension_api();
 
+	// Register metatables first (ensure all available before continuing)
 	for (const ApiBuiltinClass &builtin_class : extension_api.builtin_classes) {
-		if (builtin_class.type != GDEXTENSION_VARIANT_TYPE_STRING) {
-			luaL_newmetatable(L, builtin_class.metatable_name);
-			luaGD_initmetatable(L, -1, builtin_class.type, builtin_class.name);
+		if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_STRING)
+			continue;
 
-			// Members (__newindex, __index)
-			lua_pushstring(L, builtin_class.name);
-			lua_pushcclosure(L, luaGD_builtin_newindex, builtin_class.newindex_debug_name, 1);
-			lua_setfield(L, -2, "__newindex");
+		luaL_newmetatable(L, builtin_class.metatable_name);
+		luaGD_initmetatable(L, -1, builtin_class.type, builtin_class.name);
 
-			lua_pushlightuserdata(L, (void *)&builtin_class);
-			lua_pushcclosure(L, luaGD_builtin_index, builtin_class.index_debug_name, 1);
-			lua_setfield(L, -2, "__index");
+		// Members (__newindex, __index)
+		lua_pushstring(L, builtin_class.name);
+		lua_pushcclosure(L, luaGD_builtin_newindex, builtin_class.newindex_debug_name, 1);
+		lua_setfield(L, -2, "__newindex");
 
-			// Methods (__namecall)
-			lua_pushlightuserdata(L, (void *)&builtin_class);
-			lua_pushcclosure(L, luaGD_builtin_namecall, builtin_class.namecall_debug_name, 1);
-			lua_setfield(L, -2, "__namecall");
+		lua_pushlightuserdata(L, (void *)&builtin_class);
+		lua_pushcclosure(L, luaGD_builtin_index, builtin_class.index_debug_name, 1);
+		lua_setfield(L, -2, "__index");
 
-			// Operators (misc metatable)
-			for (const KeyValue<GDExtensionVariantOperator, Vector<ApiVariantOperator>> &pair : builtin_class.operators) {
-				lua_pushinteger(L, builtin_class.type);
-				lua_pushlightuserdata(L, (void *)&pair.value);
-				lua_pushcclosure(L, luaGD_builtin_operator, builtin_class.operator_debug_names[pair.key], 2);
+		// Methods (__namecall)
+		lua_pushlightuserdata(L, (void *)&builtin_class);
+		lua_pushcclosure(L, luaGD_builtin_namecall, builtin_class.namecall_debug_name, 1);
+		lua_setfield(L, -2, "__namecall");
 
-				const char *op_mt_name = nullptr;
+		// Operators (misc metatable)
+		for (const KeyValue<GDExtensionVariantOperator, Vector<ApiVariantOperator>> &pair : builtin_class.operators) {
+			lua_pushinteger(L, builtin_class.type);
+			lua_pushlightuserdata(L, (void *)&pair.value);
+			lua_pushcclosure(L, luaGD_builtin_operator, builtin_class.operator_debug_names[pair.key], 2);
 
-				switch (pair.key) {
-					case GDEXTENSION_VARIANT_OP_EQUAL:
-						op_mt_name = "__eq";
-						break;
-					case GDEXTENSION_VARIANT_OP_LESS:
-						op_mt_name = "__lt";
-						break;
-					case GDEXTENSION_VARIANT_OP_LESS_EQUAL:
-						op_mt_name = "__le";
-						break;
-					case GDEXTENSION_VARIANT_OP_ADD:
-						op_mt_name = "__add";
-						break;
-					case GDEXTENSION_VARIANT_OP_SUBTRACT:
-						op_mt_name = "__sub";
-						break;
-					case GDEXTENSION_VARIANT_OP_MULTIPLY:
-						op_mt_name = "__mul";
-						break;
-					case GDEXTENSION_VARIANT_OP_DIVIDE:
-						op_mt_name = "__div";
-						break;
-					case GDEXTENSION_VARIANT_OP_MODULE:
-						op_mt_name = "__mod";
-						break;
-					case GDEXTENSION_VARIANT_OP_NEGATE:
-						op_mt_name = "__unm";
-						break;
-					case GDEXTENSION_VARIANT_OP_POWER:
-						op_mt_name = "__pow";
-						break;
+			const char *op_mt_name = nullptr;
 
-					default:
-						ERR_FAIL_MSG("Variant operator not handled");
-				}
+			switch (pair.key) {
+				case GDEXTENSION_VARIANT_OP_EQUAL:
+					op_mt_name = "__eq";
+					break;
+				case GDEXTENSION_VARIANT_OP_LESS:
+					op_mt_name = "__lt";
+					break;
+				case GDEXTENSION_VARIANT_OP_LESS_EQUAL:
+					op_mt_name = "__le";
+					break;
+				case GDEXTENSION_VARIANT_OP_ADD:
+					op_mt_name = "__add";
+					break;
+				case GDEXTENSION_VARIANT_OP_SUBTRACT:
+					op_mt_name = "__sub";
+					break;
+				case GDEXTENSION_VARIANT_OP_MULTIPLY:
+					op_mt_name = "__mul";
+					break;
+				case GDEXTENSION_VARIANT_OP_DIVIDE:
+					op_mt_name = "__div";
+					break;
+				case GDEXTENSION_VARIANT_OP_MODULE:
+					op_mt_name = "__mod";
+					break;
+				case GDEXTENSION_VARIANT_OP_NEGATE:
+					op_mt_name = "__unm";
+					break;
+				case GDEXTENSION_VARIANT_OP_POWER:
+					op_mt_name = "__pow";
+					break;
 
-				lua_setfield(L, -2, op_mt_name);
+				default:
+					ERR_FAIL_MSG("Variant operator not handled");
 			}
 
-			// Array type handling
-			if (const ArrayTypeInfo *arr_type_info = get_array_type_info(builtin_class.type)) {
-				// __len
-				lua_pushcfunction(L, arr_type_info->len, arr_type_info->len_debug_name);
-				lua_setfield(L, -2, "__len");
-
-				// __iter
-				lua_pushcfunction(L, arr_type_info->iter_next, arr_type_info->iter_next_debug_name);
-				lua_pushcclosure(L, luaGD_array_iter, BUILTIN_MT_NAME(Array) ".__iter", 1);
-				lua_setfield(L, -2, "__iter");
-			}
-
-			// Dictionary iteration
-			if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
-				lua_pushcfunction(L, luaGD_dict_next, BUILTIN_MT_NAME(Dictionary) ".next");
-				lua_pushcclosure(L, luaGD_dict_iter, BUILTIN_MT_NAME(Dictionary) ".__iter", 1);
-				lua_setfield(L, -2, "__iter");
-			}
-
-			lua_setreadonly(L, -1, true);
-			lua_pop(L, 1);
+			lua_setfield(L, -2, op_mt_name);
 		}
 
+		// Array type handling
+		if (const ArrayTypeInfo *arr_type_info = get_array_type_info(builtin_class.type)) {
+			// __len
+			lua_pushcfunction(L, arr_type_info->len, arr_type_info->len_debug_name);
+			lua_setfield(L, -2, "__len");
+
+			// __iter
+			lua_pushcfunction(L, arr_type_info->iter_next, arr_type_info->iter_next_debug_name);
+			lua_pushcclosure(L, luaGD_array_iter, BUILTIN_MT_NAME(Array) ".__iter", 1);
+			lua_setfield(L, -2, "__iter");
+		}
+
+		// Dictionary iteration
+		if (builtin_class.type == GDEXTENSION_VARIANT_TYPE_DICTIONARY) {
+			lua_pushcfunction(L, luaGD_dict_next, BUILTIN_MT_NAME(Dictionary) ".next");
+			lua_pushcclosure(L, luaGD_dict_iter, BUILTIN_MT_NAME(Dictionary) ".__iter", 1);
+			lua_setfield(L, -2, "__iter");
+		}
+
+		lua_setreadonly(L, -1, true);
+		lua_setuserdatametatable(L, builtin_class.type);
+	}
+
+	// Special cases
+	luaGD_builtin_unbound(L, GDEXTENSION_VARIANT_TYPE_STRING_NAME, "StringName", BUILTIN_MT_NAME(StringName));
+	luaGD_builtin_unbound(L, GDEXTENSION_VARIANT_TYPE_NODE_PATH, "NodePath", BUILTIN_MT_NAME(NodePath));
+
+	// Register global tables
+	for (const ApiBuiltinClass &builtin_class : extension_api.builtin_classes) {
 		lua_newtable(L);
 		luaGD_initglobaltable(L, -1, builtin_class.name);
 
@@ -628,8 +637,4 @@ void luaGD_openbuiltins(lua_State *L) {
 
 		lua_pop(L, 1);
 	}
-
-	// Special cases
-	luaGD_builtin_unbound(L, GDEXTENSION_VARIANT_TYPE_STRING_NAME, "StringName", BUILTIN_MT_NAME(StringName));
-	luaGD_builtin_unbound(L, GDEXTENSION_VARIANT_TYPE_NODE_PATH, "NodePath", BUILTIN_MT_NAME(NodePath));
 }

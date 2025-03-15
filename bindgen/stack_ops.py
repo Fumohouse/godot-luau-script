@@ -1,4 +1,4 @@
-from . import constants
+from . import constants, godot
 from .utils import write_file
 
 
@@ -29,17 +29,18 @@ using namespace godot;
     for b_class in api["builtin_classes"]:
         class_name = b_class["name"]
         metatable_name = constants.builtin_metatable_prefix + class_name
+        variant_type = godot.get_variant_type(class_name)
 
         if class_name in ["StringName", "NodePath", "String"]:
             # Special cases
             continue
         elif b_class.get("has_destructor"):
             src.append(
-                f'UDATA_STACK_OP_IMPL({class_name}, "{metatable_name}", DTOR({class_name}));'
+                f'UDATA_STACK_OP_IMPL({class_name}, "{metatable_name}", {variant_type}, DTOR({class_name}));'
             )
         else:
             src.append(
-                f'UDATA_STACK_OP_IMPL({class_name}, "{metatable_name}", NO_DTOR);'
+                f'UDATA_STACK_OP_IMPL({class_name}, "{metatable_name}", {variant_type}, NO_DTOR);'
             )
 
         header.append(f"STACK_OP_PTR_DEF({class_name})")

@@ -112,6 +112,8 @@ class LuaGDClass {
 	const char *metatable_name = nullptr;
 	IndexOverride index_override = nullptr;
 
+	int udata_tag;
+
 	HashMap<String, Method> static_methods;
 	HashMap<String, Method> methods;
 	HashMap<String, Property> properties;
@@ -150,6 +152,9 @@ public:
 
 	// Must be called when this LuaGDClass's pointer is stable
 	void init_metatable(lua_State *L) const;
+
+	LuaGDClass(int p_udata_tag) :
+			udata_tag(p_udata_tag) {}
 };
 
 template <>

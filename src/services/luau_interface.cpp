@@ -5,6 +5,7 @@
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/string.hpp>
 
+#include "core/lua_utils.h"
 #include "services/class_binder.h"
 #include "services/debug_service.h"
 #include "services/sandbox_service.h"
@@ -19,12 +20,12 @@ void Service::register_metatables(lua_State *L) {
 
 #define LUAU_INTERFACE_NAME "LuauInterface"
 #define LUAU_INTERFACE_MT_NAME "Luau." LUAU_INTERFACE_NAME
-SVC_STACK_OP_IMPL(LuauInterface, LUAU_INTERFACE_MT_NAME)
+SVC_STACK_OP_IMPL(LuauInterface, LUAU_INTERFACE_MT_NAME, UDATA_TAG_LUAU_INTERFACE)
 
 LuauInterface *LuauInterface::singleton = nullptr;
 
 const LuaGDClass &LuauInterface::get_lua_class() const {
-	static LuaGDClass lua_class;
+	static LuaGDClass lua_class(UDATA_TAG_LUAU_INTERFACE);
 	static bool did_init = false;
 
 	if (!did_init) {
