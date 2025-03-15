@@ -321,7 +321,11 @@ GDExtensionObjectPtr LuaStackOp<Object *>::check(lua_State *L, int p_index) {
 	if (!LuaStackOp<Object *>::is(L, p_index))
 		luaL_typeerrorL(L, p_index, "Object");
 
-	return LuaStackOp<Object *>::get(L, p_index);
+	GDObjectInstanceID *udata = LuaStackOp<Object *>::get_id(L, p_index);
+	if (!udata || *udata == 0)
+		return nullptr;
+
+	return internal::gdextension_interface_object_get_instance_from_id(*udata);
 }
 
 /* VARIANT */

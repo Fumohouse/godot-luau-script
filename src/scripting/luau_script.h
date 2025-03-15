@@ -12,6 +12,7 @@
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/list.hpp>
+#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/self_list.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -21,6 +22,7 @@
 #include <godot_cpp/variant/typed_array.hpp>
 #include <godot_cpp/variant/variant.hpp>
 #include <string>
+#include <vector>
 
 #include "analysis/analysis.h"
 #include "core/permissions.h"
@@ -386,8 +388,8 @@ class LuauLanguage : public ScriptLanguageExtension {
 
 	struct DebugInfo {
 		struct StackInfo {
-			String source;
-			String name;
+			std::string source;
+			std::string name;
 			int line = 0;
 
 			operator Dictionary() const;
@@ -401,8 +403,10 @@ class LuauLanguage : public ScriptLanguageExtension {
 		};
 
 		Ref<Mutex> call_lock;
-		Vector<StackInfo> call_stack;
-		Vector<BreakStackInfo> break_call_stack;
+		// STL is faster. The call_stack path especially is extremely hot (made
+		// on every engine call in the editor).
+		std::vector<StackInfo> call_stack;
+		std::vector<BreakStackInfo> break_call_stack;
 
 		int thread_ref = 0;
 		lua_State *L = nullptr;

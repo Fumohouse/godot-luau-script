@@ -61,8 +61,8 @@ void LuauScript::remove_breakpoint(int p_line) {
 
 LuauLanguage::DebugInfo::StackInfo::operator Dictionary() const {
 	Dictionary d;
-	d["file"] = source;
-	d["func"] = name;
+	d["file"] = source.c_str();
+	d["func"] = name.c_str();
 	d["line"] = line;
 
 	return d;
@@ -311,7 +311,7 @@ void LuauLanguage::debug_break(const ThreadHandle &L, bool p_is_step) {
 			}
 		}
 
-		debug.break_call_stack.push_back(si);
+		debug.break_call_stack.push_back(std::move(si));
 	}
 
 	debug.break_depth = lua_stackdepth(L);
@@ -349,7 +349,7 @@ void LuauLanguage::set_call_stack(lua_State *L) {
 	for (int level = 1; lua_getinfo(L, level, "snl", &ar); level++) {
 		DebugInfo::StackInfo si;
 		if (ar_to_si(ar, si))
-			debug.call_stack.push_back(si);
+			debug.call_stack.push_back(std::move(si));
 	}
 }
 
@@ -385,7 +385,7 @@ int32_t LuauLanguage::_debug_get_stack_level_line(int32_t p_level) const {
 
 String LuauLanguage::_debug_get_stack_level_function(int32_t p_level) const {
 #ifdef TOOLS_ENABLED
-	return debug.break_call_stack[p_level].name;
+	return debug.break_call_stack[p_level].name.c_str();
 #else
 	return "";
 #endif // TOOLS_ENABLED
@@ -393,7 +393,7 @@ String LuauLanguage::_debug_get_stack_level_function(int32_t p_level) const {
 
 String LuauLanguage::_debug_get_stack_level_source(int32_t p_level) const {
 #ifdef TOOLS_ENABLED
-	return debug.break_call_stack[p_level].source;
+	return debug.break_call_stack[p_level].source.c_str();
 #else
 	return "";
 #endif // TOOLS_ENABLED
@@ -452,7 +452,7 @@ TypedArray<Dictionary> LuauLanguage::_debug_get_current_stack_info() {
 	TypedArray<Dictionary> stack_info;
 
 #ifdef TOOLS_ENABLED
-	if (!debug.call_stack.is_empty()) {
+	if (!debug.call_stack.empty()) {
 		for (const DebugInfo::StackInfo &si : debug.call_stack) {
 			stack_info.push_back(si.operator Dictionary());
 		}

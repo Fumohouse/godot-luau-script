@@ -32,5 +32,7 @@
 - Less verbose/confusing class definition syntax
 - Investigate type-safe Object equality (without using IDs)
 - A better way of declaring and propagating permissions
+- Improving engine call overheads (about an order of magnitude slower than
+  GDScript)
 - Regression: Investigate crashes on first start (previous "restart required"
   hack invalidated by https://github.com/godotengine/godot/pull/93972)
