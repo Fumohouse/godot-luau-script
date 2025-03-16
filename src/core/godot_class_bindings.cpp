@@ -57,7 +57,7 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
 
 	if (!p_method.is_static) {
 		LuauVariant self_var;
-		self_var.lua_check(L, 1, GDEXTENSION_VARIANT_TYPE_OBJECT, p_class.name);
+		self_var.lua_check(L, 1, GDEXTENSION_VARIANT_TYPE_OBJECT, p_class.name_str);
 
 		self = *self_var.get_ptr<GDExtensionObjectPtr>();
 
@@ -237,7 +237,7 @@ static int luaGD_class_namecall(lua_State *L) {
 		}
 
 		while (true) {
-			HashMap<String, ApiClassMethod>::ConstIterator E = current_class->methods.find(name);
+			HashMapCString<ApiClassMethod>::ConstIterator E = current_class->methods.find(name);
 			if (E)
 				return call_class_method(L, *current_class, E->value);
 
@@ -250,7 +250,7 @@ static int luaGD_class_namecall(lua_State *L) {
 	luaGD_nonamecallatomerror(L);
 }
 
-static int call_property_setget(lua_State *L, int p_class_idx, const ApiClassProperty &p_property, const String &p_method) {
+static int call_property_setget(lua_State *L, int p_class_idx, const ApiClassProperty &p_property, const char *p_method) {
 	if (p_property.index != -1) {
 		lua_pushinteger(L, p_property.index);
 		lua_insert(L, 2);
@@ -261,7 +261,7 @@ static int call_property_setget(lua_State *L, int p_class_idx, const ApiClassPro
 	while (p_class_idx != -1) {
 		const ApiClass &current_class = classes[p_class_idx];
 
-		HashMap<String, ApiClassMethod>::ConstIterator E = current_class.methods.find(p_method);
+		HashMapCString<ApiClassMethod>::ConstIterator E = current_class.methods.find(p_method);
 
 		if (E) {
 			return call_class_method(L, current_class, E->value);
@@ -270,7 +270,7 @@ static int call_property_setget(lua_State *L, int p_class_idx, const ApiClassPro
 		p_class_idx = current_class.parent_idx;
 	}
 
-	luaL_error(L, "setter/getter '%s' was not found", p_method.utf8().get_data());
+	luaL_error(L, "setter/getter '%s' was not found", p_method);
 }
 
 struct CrossVMMethod {
@@ -369,25 +369,25 @@ static int luaGD_class_index(lua_State *L) {
 	}
 
 	while (true) {
-		HashMap<String, ApiClassMethod>::ConstIterator E = current_class->methods.find(key);
+		HashMapCString<ApiClassMethod>::ConstIterator E = current_class->methods.find(key);
 
 		if (E) {
 			push_class_method(L, *current_class, E->value);
 			return 1;
 		}
 
-		HashMap<String, ApiClassProperty>::ConstIterator F = current_class->properties.find(key);
+		HashMapCString<ApiClassProperty>::ConstIterator F = current_class->properties.find(key);
 
 		if (F) {
 			lua_remove(L, 2); // key
 
-			if (F->value.getter == "")
+			if (!*F->value.getter)
 				luaGD_propwriteonlyerror(L, key);
 
 			return call_property_setget(L, class_idx, F->value, F->value.getter);
 		}
 
-		HashMap<String, ApiClassSignal>::ConstIterator G = current_class->signals.find(key);
+		HashMapCString<ApiClassSignal>::ConstIterator G = current_class->signals.find(key);
 
 		if (G) {
 			nb::Object self_obj = self;
@@ -444,12 +444,12 @@ static int luaGD_class_newindex(lua_State *L) {
 	}
 
 	while (true) {
-		HashMap<String, ApiClassProperty>::ConstIterator E = current_class->properties.find(key);
+		HashMapCString<ApiClassProperty>::ConstIterator E = current_class->properties.find(key);
 
 		if (E) {
 			lua_remove(L, 2); // key
 
-			if (E->value.setter == "")
+			if (!*E->value.setter)
 				luaGD_propreadonlyerror(L, key);
 
 			return call_property_setget(L, class_idx, E->value, E->value.setter);
@@ -544,7 +544,7 @@ void luaGD_openclasses(lua_State *L) {
 		}
 
 		// All methods (global table)
-		for (const KeyValue<String, ApiClassMethod> &pair : g_class.methods) {
+		for (const KeyValue<const char *, ApiClassMethod> &pair : g_class.methods) {
 			push_class_method(L, g_class, pair.value);
 			lua_setfield(L, -2, pair.value.name);
 		}

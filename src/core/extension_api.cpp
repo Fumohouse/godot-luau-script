@@ -433,6 +433,7 @@ const ExtensionApi &get_extension_api() {
 				ApiClass &new_class = classes[i];
 
 				new_class.name = read_string(idx);
+				new_class.name_str = new_class.name;
 				new_class.metatable_name = read_string(idx);
 				new_class.parent_idx = read<int32_t>(idx);
 				new_class.default_permissions = read_enum<ThreadPermissions>(idx);

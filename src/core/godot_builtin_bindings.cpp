@@ -224,7 +224,7 @@ static int luaGD_callable_ctor(lua_State *L) {
 	while (class_idx != -1) {
 		const ApiClass &g_class = classes.get(class_idx);
 
-		HashMap<String, ApiClassMethod>::ConstIterator E = g_class.methods.find(method);
+		HashMapCString<ApiClassMethod>::ConstIterator E = g_class.methods.find(method);
 		if (E) {
 			luaGD_checkpermissions(L, E->value.debug_name, get_method_permissions(g_class, E->value));
 
@@ -250,10 +250,10 @@ static int luaGD_builtin_index(lua_State *L) {
 	LuauVariant self;
 	self.lua_check(L, 1, builtin_class->type);
 
-	String key = LuaStackOp<String>::check(L, 2);
+	const char *key = luaL_checkstring(L, 2);
 
 	// Members
-	HashMap<String, ApiVariantMember>::ConstIterator E = builtin_class->members.find(key);
+	HashMapCString<ApiVariantMember>::ConstIterator E = builtin_class->members.find(key);
 	if (E) {
 		LuauVariant ret;
 		ret.initialize(E->value.type);
@@ -264,7 +264,7 @@ static int luaGD_builtin_index(lua_State *L) {
 		return 1;
 	}
 
-	luaGD_indexerror(L, key.utf8().get_data(), builtin_class->name);
+	luaGD_indexerror(L, key, builtin_class->name);
 }
 
 static int call_builtin_method(lua_State *L, const ApiBuiltinClass &p_builtin_class, const ApiVariantMethod &p_method) {
@@ -420,7 +420,7 @@ static int luaGD_builtin_namecall(lua_State *L) {
 			luaL_error(L, "class %s does not have any indexed or keyed getter", builtin_class->name);
 		}
 
-		HashMap<String, ApiVariantMethod>::ConstIterator E = builtin_class->methods.find(name);
+		HashMapCString<ApiVariantMethod>::ConstIterator E = builtin_class->methods.find(name);
 		if (E)
 			return call_builtin_method(L, *builtin_class, E->value);
 
@@ -618,7 +618,7 @@ void luaGD_openbuiltins(lua_State *L) {
 		}
 
 		// All methods (global table)
-		for (const KeyValue<String, ApiVariantMethod> &pair : builtin_class.methods) {
+		for (const KeyValue<const char *, ApiVariantMethod> &pair : builtin_class.methods) {
 			push_builtin_method(L, builtin_class, pair.value);
 			lua_setfield(L, -2, pair.value.name);
 		}

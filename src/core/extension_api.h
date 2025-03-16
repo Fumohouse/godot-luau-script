@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gdextension_interface.h>
+#include <cstring>
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -11,6 +12,19 @@
 #include "core/variant.h"
 
 using namespace godot;
+
+struct HashMapCStringHasher {
+	static _FORCE_INLINE_ uint32_t hash(const char *p_cstr) { return hash_djb2(p_cstr); }
+};
+
+struct HashMapCStringComparator {
+	static bool compare(const char *p_lhs, const char *p_rhs) {
+		return strcmp(p_lhs, p_rhs) == 0;
+	}
+};
+
+template <typename T>
+using HashMapCString = HashMap<const char *, T, HashMapCStringHasher, HashMapCStringComparator>;
 
 ///////////////////
 // Generic stuff //
@@ -137,11 +151,11 @@ struct ApiBuiltinClass {
 	const char *constructor_debug_name;
 	const char *constructor_error_string;
 
-	HashMap<String, ApiVariantMember> members;
+	HashMapCString<ApiVariantMember> members;
 	const char *newindex_debug_name;
 	const char *index_debug_name;
 
-	HashMap<String, ApiVariantMethod> methods;
+	HashMapCString<ApiVariantMethod> methods;
 	const char *namecall_debug_name;
 
 	Vector<ApiVariantMethod> static_methods;
@@ -204,8 +218,8 @@ struct ApiClassProperty {
 
 	Vector<ApiClassType> type;
 
-	String setter;
-	String getter;
+	const char *setter;
+	const char *getter;
 
 	// added in https://github.com/godotengine/godot/pull/10117#issuecomment-320532035
 	// pass to set/get as first argument if present
@@ -214,6 +228,7 @@ struct ApiClassProperty {
 
 struct ApiClass {
 	const char *name;
+	String name_str; // Use to validate Object types without a lot of allocations
 	const char *metatable_name;
 	int32_t parent_idx = -1;
 
@@ -225,13 +240,13 @@ struct ApiClass {
 	bool is_instantiable;
 	const char *constructor_debug_name;
 
-	HashMap<String, ApiClassMethod> methods;
+	HashMapCString<ApiClassMethod> methods;
 	const char *namecall_debug_name;
 
 	Vector<ApiClassMethod> static_methods;
 
-	HashMap<String, ApiClassSignal> signals;
-	HashMap<String, ApiClassProperty> properties;
+	HashMapCString<ApiClassSignal> signals;
+	HashMapCString<ApiClassProperty> properties;
 	const char *newindex_debug_name;
 	const char *index_debug_name;
 

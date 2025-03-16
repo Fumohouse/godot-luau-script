@@ -188,8 +188,8 @@ const Luau::CompileOptions &luaGD_compileopts() {
 			if (!g_class.singleton || g_class.properties.size() == 0)
 				continue;
 
-			for (const KeyValue<String, ApiClassProperty> &E : g_class.properties) {
-				if (!E.value.setter.is_empty()) {
+			for (const KeyValue<const char *, ApiClassProperty> &E : g_class.properties) {
+				if (!*E.value.setter) {
 					mutable_globals.push_back(g_class.name);
 					break;
 				}
