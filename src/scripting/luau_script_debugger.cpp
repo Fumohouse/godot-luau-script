@@ -61,8 +61,8 @@ void LuauScript::remove_breakpoint(int p_line) {
 
 LuauLanguage::DebugInfo::StackInfo::operator Dictionary() const {
 	Dictionary d;
-	d["file"] = source.c_str();
-	d["func"] = name.c_str();
+	d["file"] = source;
+	d["func"] = name;
 	d["line"] = line;
 
 	return d;
@@ -385,7 +385,7 @@ int32_t LuauLanguage::_debug_get_stack_level_line(int32_t p_level) const {
 
 String LuauLanguage::_debug_get_stack_level_function(int32_t p_level) const {
 #ifdef TOOLS_ENABLED
-	return debug.break_call_stack[p_level].name.c_str();
+	return debug.break_call_stack[p_level].name;
 #else
 	return "";
 #endif // TOOLS_ENABLED
@@ -393,7 +393,7 @@ String LuauLanguage::_debug_get_stack_level_function(int32_t p_level) const {
 
 String LuauLanguage::_debug_get_stack_level_source(int32_t p_level) const {
 #ifdef TOOLS_ENABLED
-	return debug.break_call_stack[p_level].source.c_str();
+	return debug.break_call_stack[p_level].source;
 #else
 	return "";
 #endif // TOOLS_ENABLED

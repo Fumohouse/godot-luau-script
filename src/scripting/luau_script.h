@@ -12,7 +12,6 @@
 #include <godot_cpp/templates/hash_map.hpp>
 #include <godot_cpp/templates/hash_set.hpp>
 #include <godot_cpp/templates/list.hpp>
-#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/templates/self_list.hpp>
 #include <godot_cpp/templates/vector.hpp>
@@ -388,8 +387,10 @@ class LuauLanguage : public ScriptLanguageExtension {
 
 	struct DebugInfo {
 		struct StackInfo {
-			std::string source;
-			std::string name;
+			// These are presumably unstable pointers, but they should be read
+			// by Godot by the time they are collected/changed.
+			const char *source;
+			const char *name;
 			int line = 0;
 
 			operator Dictionary() const;

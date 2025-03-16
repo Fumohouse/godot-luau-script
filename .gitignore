@@ -17,3 +17,5 @@ compile_commands.json
 /gen/
 /definitions/*.gen.d.lua
 __pycache__/
+
+/build/

@@ -9,10 +9,12 @@
 #include <godot_cpp/core/mutex_lock.hpp>
 #include <godot_cpp/core/type_info.hpp>
 #include <godot_cpp/variant/string.hpp>
+#include <godot_cpp/variant/variant.hpp>
 
 #include "core/permissions.h"
 #include "core/runtime.h"
 #include "core/stack.h"
+#include "core/variant.h"
 #include "scripting/luau_script.h"
 
 using namespace godot;
@@ -39,6 +41,22 @@ enum UserdataTags {
 #define luaGD_propreadonlyerror(L, p_prop) luaL_error(L, "property '%s' is read-only", p_prop)
 #define luaGD_propwriteonlyerror(L, p_prop) luaL_error(L, "property '%s' is write-only", p_prop)
 
+// A sort of "virtual stack" that stores arguments. Prevents reallocating these
+// frequently on hot paths.
+struct GDThreadStack {
+	LuauVariant *args = nullptr;
+	Variant *varargs = nullptr;
+	const void **ptr_args = nullptr;
+
+	uint64_t size = 0;
+	uint64_t capacity = 0;
+
+	void resize(uint64_t p_capacity);
+
+	GDThreadStack();
+	~GDThreadStack();
+};
+
 struct GDThreadData {
 	LuauRuntime::VMType vm_type = LuauRuntime::VM_MAX;
 	BitField<ThreadPermissions> permissions = 0;
@@ -46,6 +64,8 @@ struct GDThreadData {
 	uint64_t interrupt_deadline = 0;
 
 	Ref<LuauScript> script;
+
+	GDThreadStack *stack = nullptr;
 };
 
 lua_State *luaGD_newstate(LuauRuntime::VMType p_vm_type, BitField<ThreadPermissions> p_base_permissions);

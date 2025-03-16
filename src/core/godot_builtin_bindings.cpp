@@ -148,13 +148,11 @@ static int luaGD_builtin_ctor(lua_State *L) {
 	const ApiBuiltinClass *builtin_class = luaGD_lightudataup<ApiBuiltinClass>(L, 1);
 	const char *error_string = lua_tostring(L, lua_upvalueindex(2));
 
+	GDThreadStack &stack = *luaGD_getthreaddata(L)->stack;
+
 	int nargs = lua_gettop(L);
 
-	LocalVector<LuauVariant> args;
-	args.resize(nargs);
-
-	LocalVector<const void *> pargs;
-	pargs.resize(nargs);
+	stack.resize(nargs);
 
 	for (const ApiVariantConstructor &ctor : builtin_class->constructors) {
 		if (nargs != ctor.arguments.size())
@@ -170,8 +168,8 @@ static int luaGD_builtin_ctor(lua_State *L) {
 				break;
 			}
 
-			args[i].lua_check(L, i + 1, type);
-			pargs[i] = args[i].get_opaque_pointer();
+			stack.args[i].lua_check(L, i + 1, type);
+			stack.ptr_args[i] = stack.args[i].get_opaque_pointer();
 		}
 
 		if (!valid)
@@ -180,7 +178,7 @@ static int luaGD_builtin_ctor(lua_State *L) {
 		LuauVariant ret;
 		ret.initialize(builtin_class->type);
 
-		ctor.func(ret.get_opaque_pointer(), pargs.ptr());
+		ctor.func(ret.get_opaque_pointer(), stack.ptr_args);
 
 		ret.lua_push(L);
 		return 1;
@@ -227,7 +225,6 @@ static int luaGD_callable_ctor(lua_State *L) {
 		const ApiClass &g_class = classes.get(class_idx);
 
 		HashMap<String, ApiClassMethod>::ConstIterator E = g_class.methods.find(method);
-
 		if (E) {
 			luaGD_checkpermissions(L, E->value.debug_name, get_method_permissions(g_class, E->value));
 
@@ -256,13 +253,12 @@ static int luaGD_builtin_index(lua_State *L) {
 	String key = LuaStackOp<String>::check(L, 2);
 
 	// Members
-	if (builtin_class->members.has(key)) {
-		const ApiVariantMember &member = builtin_class->members.get(key);
-
+	HashMap<String, ApiVariantMember>::ConstIterator E = builtin_class->members.find(key);
+	if (E) {
 		LuauVariant ret;
-		ret.initialize(member.type);
+		ret.initialize(E->value.type);
 
-		member.getter(self.get_opaque_pointer(), ret.get_opaque_pointer());
+		E->value.getter(self.get_opaque_pointer(), ret.get_opaque_pointer());
 
 		ret.lua_push(L);
 		return 1;
@@ -272,23 +268,19 @@ static int luaGD_builtin_index(lua_State *L) {
 }
 
 static int call_builtin_method(lua_State *L, const ApiBuiltinClass &p_builtin_class, const ApiVariantMethod &p_method) {
-	LocalVector<Variant> varargs;
-	LocalVector<LuauVariant> args;
-	LocalVector<const void *> pargs;
-
-	get_arguments<ApiVariantMethod, ApiArgument>(L, p_method.name, &varargs, &args, &pargs, p_method);
+	const GDThreadStack &stack = get_arguments<ApiVariantMethod, ApiArgument>(L, p_method.name, p_method);
 
 	if (p_method.is_vararg) {
 		Variant ret;
 
 		if (p_method.is_static) {
 			SET_CALL_STACK(L);
-			internal::gdextension_interface_variant_call_static(p_builtin_class.type, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+			internal::gdextension_interface_variant_call_static(p_builtin_class.type, &p_method.gd_name, stack.ptr_args, stack.size, &ret, nullptr);
 			CLEAR_CALL_STACK;
 		} else {
 			Variant self = LuaStackOp<Variant>::check(L, 1);
 			SET_CALL_STACK(L);
-			internal::gdextension_interface_variant_call(&self, &p_method.gd_name, pargs.ptr(), pargs.size(), &ret, nullptr);
+			internal::gdextension_interface_variant_call(&self, &p_method.gd_name, stack.ptr_args, stack.size, &ret, nullptr);
 			CLEAR_CALL_STACK;
 
 			// HACK: since the value in self is copied,
@@ -322,14 +314,14 @@ static int call_builtin_method(lua_State *L, const ApiBuiltinClass &p_builtin_cl
 			ret.initialize((GDExtensionVariantType)p_method.return_type);
 
 			SET_CALL_STACK(L);
-			p_method.func(self_ptr, pargs.ptr(), ret.get_opaque_pointer(), pargs.size());
+			p_method.func(self_ptr, stack.ptr_args, ret.get_opaque_pointer(), stack.size);
 			CLEAR_CALL_STACK;
 
 			ret.lua_push(L);
 			return 1;
 		} else {
 			SET_CALL_STACK(L);
-			p_method.func(self_ptr, pargs.ptr(), nullptr, pargs.size());
+			p_method.func(self_ptr, stack.ptr_args, nullptr, stack.size);
 			CLEAR_CALL_STACK;
 			return 0;
 		}
@@ -428,8 +420,9 @@ static int luaGD_builtin_namecall(lua_State *L) {
 			luaL_error(L, "class %s does not have any indexed or keyed getter", builtin_class->name);
 		}
 
-		if (builtin_class->methods.has(name))
-			return call_builtin_method(L, *builtin_class, builtin_class->methods.get(name));
+		HashMap<String, ApiVariantMethod>::ConstIterator E = builtin_class->methods.find(name);
+		if (E)
+			return call_builtin_method(L, *builtin_class, E->value);
 
 		luaGD_nomethoderror(L, name, builtin_class->name);
 	}

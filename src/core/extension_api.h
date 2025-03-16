@@ -23,7 +23,10 @@ struct ApiArgument {
 	LuauVariant default_value;
 
 	GDExtensionVariantType get_arg_type() const { return type; }
-	String get_arg_type_name() const { return ""; }
+	const String &get_arg_type_name() const {
+		static String x;
+		return x;
+	}
 };
 
 struct ApiArgumentNoDefault {
@@ -31,7 +34,10 @@ struct ApiArgumentNoDefault {
 	GDExtensionVariantType type;
 
 	GDExtensionVariantType get_arg_type() const { return type; }
-	String get_arg_type_name() const { return ""; }
+	const String &get_arg_type_name() const {
+		static String x;
+		return x;
+	}
 };
 
 struct ApiEnum {

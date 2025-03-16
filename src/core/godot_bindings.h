@@ -2,17 +2,16 @@
 
 #include <gdextension_interface.h>
 #include <lua.h>
-#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/variant/variant.hpp>
 
 #include "core/permissions.h"
-#include "core/variant.h"
 
 using namespace godot;
 
 struct ApiClass;
 struct ApiClassMethod;
 struct ApiEnum;
+struct GDThreadStack;
 
 #define BUILTIN_MT_PREFIX "Godot.Builtin."
 #define BUILTIN_MT_NAME(m_type) BUILTIN_MT_PREFIX #m_type
@@ -50,11 +49,8 @@ void luaGD_initglobaltable(lua_State *L, int p_idx, const char *p_global_name);
 ThreadPermissions get_method_permissions(const ApiClass &p_class, const ApiClassMethod &p_method);
 
 template <typename T, typename TArg>
-int get_arguments(lua_State *L,
+const GDThreadStack &get_arguments(lua_State *L,
 		const char *p_method_name,
-		LocalVector<Variant> *r_varargs,
-		LocalVector<LuauVariant> *r_args,
-		LocalVector<const void *> *r_pargs,
 		const T &p_method);
 
 void luaGD_openbuiltins(lua_State *L);

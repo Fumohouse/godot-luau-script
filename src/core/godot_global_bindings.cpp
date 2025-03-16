@@ -2,7 +2,6 @@
 
 #include <lua.h>
 #include <lualib.h>
-#include <godot_cpp/templates/local_vector.hpp>
 
 #include "core/extension_api.h"
 #include "core/lua_utils.h"
@@ -14,15 +13,11 @@ using namespace godot;
 static int luaGD_utility_function(lua_State *L) {
 	const ApiUtilityFunction *func = luaGD_lightudataup<ApiUtilityFunction>(L, 1);
 
-	LocalVector<Variant> varargs;
-	LocalVector<LuauVariant> args;
-	LocalVector<const void *> pargs;
-
-	int nargs = get_arguments<ApiUtilityFunction, ApiArgumentNoDefault>(L, func->name, &varargs, &args, &pargs, *func);
+	const GDThreadStack &stack = get_arguments<ApiUtilityFunction, ApiArgumentNoDefault>(L, func->name, *func);
 
 	if (func->return_type == -1) {
 		SET_CALL_STACK(L);
-		func->func(nullptr, pargs.ptr(), nargs);
+		func->func(nullptr, stack.ptr_args, stack.size);
 		CLEAR_CALL_STACK;
 		return 0;
 	} else {
@@ -30,7 +25,7 @@ static int luaGD_utility_function(lua_State *L) {
 		ret.initialize(GDExtensionVariantType(func->return_type));
 
 		SET_CALL_STACK(L);
-		func->func(ret.get_opaque_pointer(), pargs.ptr(), nargs);
+		func->func(ret.get_opaque_pointer(), stack.ptr_args, stack.size);
 		CLEAR_CALL_STACK;
 
 		ret.lua_push(L);
@@ -40,26 +35,23 @@ static int luaGD_utility_function(lua_State *L) {
 
 static int luaGD_print_function(lua_State *L) {
 	GDExtensionPtrUtilityFunction func = (GDExtensionPtrUtilityFunction)lua_tolightuserdata(L, lua_upvalueindex(1));
+	GDThreadStack &stack = *luaGD_getthreaddata(L)->stack;
 
 	int nargs = lua_gettop(L);
 
-	LocalVector<Variant> varargs;
-	LocalVector<const void *> pargs;
-
-	varargs.resize(nargs);
-	pargs.resize(nargs);
+	stack.resize(nargs);
 
 	for (int i = 0; i < nargs; i++) {
 		if (LuaStackOp<Variant>::is(L, i + 1)) {
-			varargs[i] = LuaStackOp<Variant>::get(L, i + 1);
+			stack.varargs[i] = LuaStackOp<Variant>::get(L, i + 1);
 		} else {
-			varargs[i] = luaL_tolstring(L, i + 1, nullptr);
+			stack.varargs[i] = luaL_tolstring(L, i + 1, nullptr);
 		}
 
-		pargs[i] = &varargs[i];
+		stack.ptr_args[i] = &stack.varargs[i];
 	}
 
-	func(nullptr, pargs.ptr(), pargs.size());
+	func(nullptr, stack.ptr_args, stack.size);
 	return 0;
 }
 

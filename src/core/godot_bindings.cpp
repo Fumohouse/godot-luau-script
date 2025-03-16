@@ -6,7 +6,6 @@
 #include <godot_cpp/classes/object.hpp>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/core/error_macros.hpp>
-#include <godot_cpp/templates/local_vector.hpp>
 #include <godot_cpp/templates/pair.hpp>
 #include <godot_cpp/variant/string.hpp>
 #include <godot_cpp/variant/variant.hpp>
@@ -61,7 +60,9 @@ template <>
 struct has_default_value_trait<ApiArgumentNoDefault> : std::false_type {};
 
 template <typename TMethod, typename TArg>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int p_nargs, LocalVector<const void *> *pargs, const TMethod &p_method, std::true_type const &) {
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int p_nargs, const TMethod &p_method, std::true_type const &) {
+	GDThreadStack &stack = *luaGD_getthreaddata(L)->stack;
+
 	for (int i = p_nargs; i < p_method.arguments.size(); i++) {
 		const TArg &arg = p_method.arguments[i];
 
@@ -73,9 +74,9 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int 
 					ERR_PRINT("Could not set non-null object argument default value");
 				}
 
-				pargs->ptr()[i] = nullptr;
+				stack.ptr_args[i] = nullptr;
 			} else {
-				pargs->ptr()[i] = arg.default_value.get_opaque_pointer();
+				stack.ptr_args[i] = arg.default_value.get_opaque_pointer();
 			}
 		} else {
 			LuauVariant dummy;
@@ -86,7 +87,9 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int 
 
 template <>
 _FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
-		lua_State *L, int p_arg_offset, int p_nargs, LocalVector<const void *> *pargs, const GDMethod &p_method, std::true_type const &) {
+		lua_State *L, int p_arg_offset, int p_nargs, const GDMethod &p_method, std::true_type const &) {
+	GDThreadStack &stack = *luaGD_getthreaddata(L)->stack;
+
 	int args_allowed = p_method.arguments.size();
 	int args_default = p_method.default_arguments.size();
 	int args_required = args_allowed - args_default;
@@ -95,7 +98,7 @@ _FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
 		const GDProperty &arg = p_method.arguments[i];
 
 		if (i >= args_required) {
-			pargs->ptr()[i] = &p_method.default_arguments[i - args_required];
+			stack.ptr_args[i] = &p_method.default_arguments[i - args_required];
 		} else {
 			LuauVariant dummy;
 			get_argument(L, i + 1 + p_arg_offset, arg, dummy);
@@ -104,7 +107,7 @@ _FORCE_INLINE_ void get_default_args<GDMethod, GDProperty>(
 }
 
 template <typename TMethod, typename>
-_FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int p_nargs, LocalVector<const void *> *pargs, const TMethod &p_method, std::false_type const &) {
+_FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int p_nargs, const TMethod &p_method, std::false_type const &) {
 	LuauVariant dummy;
 	get_argument(L, p_nargs + 1 + p_arg_offset, p_method.arguments[p_nargs], dummy);
 }
@@ -117,60 +120,53 @@ _FORCE_INLINE_ static void get_default_args(lua_State *L, int p_arg_offset, int 
 // - TArg::get_arg_type
 // - TArg::get_arg_type_name
 template <typename T, typename TArg>
-int get_arguments(lua_State *L,
+const GDThreadStack &get_arguments(lua_State *L,
 		const char *p_method_name,
-		LocalVector<Variant> *r_varargs,
-		LocalVector<LuauVariant> *r_args,
-		LocalVector<const void *> *r_pargs,
 		const T &p_method) {
+	GDThreadStack &stack = *luaGD_getthreaddata(L)->stack;
+
 	// arg 1 is self for instance methods
 	int arg_offset = p_method.is_method_static() ? 0 : 1;
 	int nargs = lua_gettop(L) - arg_offset;
+	uint64_t nargs_required = p_method.arguments.size();
 
-	if (p_method.arguments.size() > nargs)
-		r_pargs->resize(p_method.arguments.size());
+	if (nargs_required > nargs)
+		stack.resize(nargs_required);
 	else
-		r_pargs->resize(nargs);
+		stack.resize(nargs);
 
 	if (p_method.is_method_vararg()) {
-		r_varargs->resize(nargs);
-
 		LuauVariant arg;
 
 		for (int i = 0; i < nargs; i++) {
-			if (i < p_method.arguments.size()) {
+			if (i < nargs_required) {
 				get_argument(L, i + 1 + arg_offset, p_method.arguments[i], arg);
-				r_varargs->ptr()[i] = arg.to_variant();
+				stack.varargs[i] = arg.to_variant();
 			} else {
-				r_varargs->ptr()[i] = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
+				stack.varargs[i] = LuaStackOp<Variant>::check(L, i + 1 + arg_offset);
 			}
 
-			r_pargs->ptr()[i] = &r_varargs->ptr()[i];
+			stack.ptr_args[i] = &stack.varargs[i];
 		}
 	} else {
-		r_args->resize(nargs);
-
-		if (nargs > p_method.arguments.size())
-			luaL_error(L, "too many arguments to '%s' (expected at most %ld)", p_method_name, p_method.arguments.size());
+		if (nargs > nargs_required)
+			luaL_error(L, "too many arguments to '%s' (expected at most %ld)", p_method_name, nargs_required);
 
 		for (int i = 0; i < nargs; i++) {
-			get_argument(L, i + 1 + arg_offset, p_method.arguments[i], r_args->ptr()[i]);
-			r_pargs->ptr()[i] = r_args->ptr()[i].get_opaque_pointer();
+			get_argument(L, i + 1 + arg_offset, p_method.arguments[i], stack.args[i]);
+			stack.ptr_args[i] = stack.args[i].get_opaque_pointer();
 		}
 	}
 
-	if (nargs < p_method.arguments.size())
-		get_default_args<T, TArg>(L, arg_offset, nargs, r_pargs, p_method, has_default_value_trait<TArg>());
+	if (nargs < nargs_required)
+		get_default_args<T, TArg>(L, arg_offset, nargs, p_method, has_default_value_trait<TArg>());
 
-	return nargs;
+	return stack;
 }
 
-#define ARGUMENT_TYPE(m_method, m_arg)                         \
-	template int get_arguments<m_method, m_arg>(lua_State * L, \
-			const char *p_method_name,                         \
-			LocalVector<Variant> *r_varargs,                   \
-			LocalVector<LuauVariant> *r_args,                  \
-			LocalVector<const void *> *r_pargs,                \
+#define ARGUMENT_TYPE(m_method, m_arg)                                          \
+	template const GDThreadStack &get_arguments<m_method, m_arg>(lua_State * L, \
+			const char *p_method_name,                                          \
 			const m_method &p_method);
 
 ARGUMENT_TYPE(ApiVariantMethod, ApiArgument); // Godot builtin classes (e.g. Vector2)

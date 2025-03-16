@@ -17,6 +17,38 @@
 
 using namespace godot;
 
+void GDThreadStack::resize(uint64_t p_capacity) {
+	size = p_capacity;
+	if (p_capacity <= capacity)
+		return;
+
+	if (args)
+		memdelete_arr(args);
+	if (varargs)
+		memdelete_arr(varargs);
+	if (ptr_args)
+		memdelete_arr(ptr_args);
+
+	args = memnew_arr(LuauVariant, p_capacity);
+	varargs = memnew_arr(Variant, p_capacity);
+	ptr_args = memnew_arr(const void *, p_capacity);
+
+	capacity = p_capacity;
+}
+
+GDThreadStack::GDThreadStack() {
+	resize(16);
+}
+
+GDThreadStack::~GDThreadStack() {
+	if (args)
+		memdelete_arr(args);
+	if (varargs)
+		memdelete_arr(varargs);
+	if (ptr_args)
+		memdelete_arr(ptr_args);
+}
+
 // Based on the default implementation seen in the Lua 5.1 reference
 static void *luaGD_alloc(void *, void *p_ptr, size_t, size_t p_nsize) {
 	if (p_nsize == 0) {
@@ -39,6 +71,7 @@ static GDThreadData *luaGD_initthreaddata(lua_State *LP, lua_State *L) {
 		udata->permissions = parent_udata->permissions;
 		udata->lock = parent_udata->lock;
 		udata->script = parent_udata->script;
+		udata->stack = parent_udata->stack;
 	}
 
 	return udata;
@@ -69,6 +102,7 @@ lua_State *luaGD_newstate(LuauRuntime::VMType p_vm_type, BitField<ThreadPermissi
 	udata->vm_type = p_vm_type;
 	udata->permissions = p_base_permissions;
 	udata->lock.instantiate();
+	udata->stack = memnew(GDThreadStack);
 
 	lua_Callbacks *callbacks = lua_callbacks(L);
 	callbacks->userthread = luaGD_userthread;
@@ -95,6 +129,7 @@ void luaGD_close(lua_State *L) {
 	GDThreadData *udata = luaGD_getthreaddata(L);
 	if (udata) {
 		lua_setthreaddata(L, nullptr);
+		memdelete(udata->stack);
 		memdelete(udata);
 	}
 

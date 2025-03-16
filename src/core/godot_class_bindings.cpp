@@ -53,10 +53,6 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
 
 	luaGD_checkpermissions(L, p_method.debug_name, get_method_permissions(p_class, p_method));
 
-	LocalVector<Variant> varargs;
-	LocalVector<LuauVariant> args;
-	LocalVector<const void *> pargs;
-
 	GDExtensionObjectPtr self = nullptr;
 
 	if (!p_method.is_static) {
@@ -72,14 +68,14 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
 		}
 	}
 
-	get_arguments<ApiClassMethod, ApiClassArgument>(L, p_method.name, &varargs, &args, &pargs, p_method);
+	const GDThreadStack &stack = get_arguments<ApiClassMethod, ApiClassArgument>(L, p_method.name, p_method);
 
 	if (p_method.is_vararg) {
 		Variant ret;
 		GDExtensionCallError error;
 
 		SET_CALL_STACK(L);
-		internal::gdextension_interface_object_method_bind_call(p_method.bind, self, pargs.ptr(), pargs.size(), &ret, &error);
+		internal::gdextension_interface_object_method_bind_call(p_method.bind, self, stack.ptr_args, stack.size, &ret, &error);
 		CLEAR_CALL_STACK;
 
 		if (p_method.return_type.type != -1) {
@@ -104,7 +100,7 @@ static int call_class_method(lua_State *L, const ApiClass &p_class, const ApiCla
 		}
 
 		SET_CALL_STACK(L);
-		internal::gdextension_interface_object_method_bind_ptrcall(p_method.bind, self, pargs.ptr(), ret_ptr);
+		internal::gdextension_interface_object_method_bind_ptrcall(p_method.bind, self, stack.ptr_args, ret_ptr);
 		CLEAR_CALL_STACK;
 
 		if (ret.get_type() != -1) {
@@ -241,8 +237,9 @@ static int luaGD_class_namecall(lua_State *L) {
 		}
 
 		while (true) {
-			if (current_class->methods.has(name))
-				return call_class_method(L, *current_class, current_class->methods[name]);
+			HashMap<String, ApiClassMethod>::ConstIterator E = current_class->methods.find(name);
+			if (E)
+				return call_class_method(L, *current_class, E->value);
 
 			INHERIT_OR_BREAK
 		}
@@ -288,14 +285,11 @@ static int luaGD_crossvm_call(lua_State *L) {
 	CrossVMMethod m = LuaStackOp<CrossVMMethod>::check(L, 1);
 	lua_remove(L, 1); // To get args
 
-	LocalVector<Variant> varargs;
-	LocalVector<const void *> pargs;
-
-	get_arguments<GDMethod, GDProperty>(L, m.method->name.utf8().get_data(), &varargs, nullptr, &pargs, *m.method);
+	const GDThreadStack &stack = get_arguments<GDMethod, GDProperty>(L, m.method->name.utf8().get_data(), *m.method);
 
 	Variant ret;
 	GDExtensionCallError err;
-	m.inst->call(m.method->name, reinterpret_cast<const Variant *const *>(pargs.ptr()), pargs.size(), &ret, &err);
+	m.inst->call(m.method->name, reinterpret_cast<const Variant *const *>(stack.ptr_args), stack.size, &ret, &err);
 
 	// Error should have been sent out when getting arguments, so ignore it.
 
