@@ -135,10 +135,7 @@ def generate_method(
 
 def generate_enum(src, enum, class_name=""):
     # Based on https://github.com/JohnnyMorganz/luau-lsp/blob/main/scripts/globalTypes.d.lua
-
-    orig_name = enum["name"]
-    name = utils.get_enum_name(orig_name)
-    values = utils.get_enum_values(enum)
+    name = enum["name"]
 
     type_name = "Enum" + name
     if class_name != "":
@@ -151,9 +148,8 @@ def generate_enum(src, enum, class_name=""):
     internal_type_name = type_name + "_INTERNAL"
     src.append(f"declare class {internal_type_name}")
 
-    for value in values:
-        value_name = utils.get_enum_value_name(enum, value["name"])
-        append(src, 1, f"{value_name}: {type_name}")
+    for value in enum["values"]:
+        append(src, 1, f"{value["name"]}: {type_name}")
 
     src.append("end")
 
@@ -201,16 +197,15 @@ def generate_builtin_class(src, builtin_class, api):
             append(src, 1, f'["{member_name}"]: {member_type}')
 
         # Methods
-        for method in utils.get_builtin_methods(builtin_class):
+        for method in builtin_class.get("methods", []):
             if method["is_static"]:
                 continue
 
             generate_method(src, name, method, api)
 
         # Operators
-        operators = utils.get_operators(name, builtin_class)
-        for op in operators:
-            op_mt_name = "__" + utils.variant_op_map[op["name"]]
+        for op in builtin_class.get("operators", []):
+            op_mt_name = op["luau_name"]
             op_return_type = get_luau_type(op["return_type"], api, True)
 
             if "right_type" in op:
@@ -278,7 +273,7 @@ function __iter(self): any\
             )
 
     # Statics
-    for method in utils.get_builtin_methods(builtin_class):
+    for method in builtin_class.get("methods", []):
         generate_method(src, name, method, api, True)
 
     src.append(
@@ -303,7 +298,7 @@ def generate_class(src, g_class, api):
     src.append(f"declare class {name}{extends_str}")
 
     # Methods
-    for method in utils.get_class_methods(g_class):
+    for method in g_class.get("methods", []):
         generate_method(src, name, method, api)
 
     # Custom Object methods
@@ -326,34 +321,16 @@ function Free(self)\
 
     # Properties
     for prop in g_class.get("properties", []):
-        setter, getter, _, _ = utils.get_property_setget(prop, g_class, api["classes"])
-        if setter == "" and getter == "":
+        setter = prop["setter"]
+        getter = prop["getter"]
+        if not setter and not getter:
             continue
 
         prop_name = utils.snake_to_camel(prop["name"])
 
-        prop_type = prop["type"]
-        is_prop_nullable = True
-
-        # Enum properties are registered as integers, so reference their setter/getter to find real type
-        if "methods" in g_class:
-            prop_method_ref = prop["getter"] if "getter" in prop else prop["setter"]
-            prop_method = [
-                m for m in g_class["methods"] if m["name"] == prop_method_ref
-            ]
-
-            if len(prop_method) == 1:
-                prop_method = prop_method[0]
-
-                if "return_value" in prop_method:
-                    prop_type = prop_method["return_value"]["type"]
-                else:
-                    arg_idx = 0 if "index" not in prop else 1
-                    prop_type = prop_method["arguments"][arg_idx]["type"]
-
         # BaseMaterial/ShaderMaterial multiple types
         prop_type = " | ".join(
-            [get_luau_type(t, api, True) for t in prop_type.split(",")]
+            [get_luau_type(t, api, True) for t in prop["type"].split(",")]
         )
 
         append(src, 1, f'["{prop_name}"]: {prop_type}')
@@ -389,12 +366,11 @@ function Free(self)\
         append(src, 1, f"new: () -> {name}")
 
     # Singleton
-    singleton_matches = utils.get_singletons(name, api["singletons"])
-    if len(singleton_matches) > 0:
+    if "singleton" in g_class:
         append(src, 1, f"singleton: {name}")
 
     # Statics
-    for method in utils.get_class_methods(g_class):
+    for method in g_class.get("methods", []):
         generate_method(src, name, method, api, True)
 
     src.append(

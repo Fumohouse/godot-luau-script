@@ -89,20 +89,17 @@ def filter_methods(methods):
 
 def generate_enum(io, enum):
     # ApiEnum
-    enum_name = utils.get_enum_name(enum["name"])
-    write_string(io, enum_name)  # String name
+    write_string(io, enum["name"])  # String name
 
     is_bitfield = enum["is_bitfield"] if "is_bitfield" in enum else False
     write_bool(io, is_bitfield)  # bool is_bitfield
 
-    values = utils.get_enum_values(enum)
+    values = enum["values"]
     write_size(io, len(values))  # size num_values
 
     # Pair<String, int32_t> values[num_values]
     for value in values:
-        value_name = utils.get_enum_value_name(enum, value["name"])
-
-        write_string(io, value_name)  # String name
+        write_string(io, value["name"])  # String name
         write_int32(io, value["value"])  # int32_t value
 
 
@@ -299,7 +296,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
     write_string(io, f"{metatable_name}.__index")  # String index_debug_name
 
     # methods
-    methods = utils.get_builtin_methods(builtin_class)
+    methods = builtin_class.get("methods", [])
     inst_methods, static_methods = filter_methods(methods)
 
     # instance methods
@@ -332,10 +329,9 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
         )
 
     # operators
-    operators = utils.get_operators(class_name, builtin_class)
     operators_map = {}
 
-    for variant_op in operators:
+    for variant_op in builtin_class.get("operators", []):
         name = variant_op["name"]
 
         right_type = None
@@ -350,7 +346,7 @@ def generate_builtin_class(io, builtin_class, variant_values, variant_value_map)
 
         operators_map[name].append(
             {
-                "metatable_name": "__" + utils.variant_op_map[name],
+                "metatable_name": variant_op["luau_name"],
                 "right_type": right_type,
                 "return_type": return_type,
             }
@@ -556,7 +552,7 @@ def generate_class(io, g_class, classes, singletons, variant_values, variant_val
     write_string(io, f"{metatable_name}.new" if is_instantiable else "")
 
     # methods
-    methods = utils.get_class_methods(g_class)
+    methods = g_class.get("methods", [])
     inst_methods, static_methods = filter_methods(methods)
 
     # instance methods
@@ -631,20 +627,8 @@ def generate_class(io, g_class, classes, singletons, variant_values, variant_val
         for t in types:  # ApiClassType types[num_types]
             generate_class_type(io, t, classes)
 
-        setter, getter, setter_not_found, getter_not_found = utils.get_property_setget(
-            prop, g_class, classes
-        )
-
-        if setter_not_found:
-            setter = prop["setter"]
-            print(f"INFO: setter not found: {class_name}::{setter}")
-
-        if getter_not_found:
-            getter = prop["getter"]
-            print(f"INFO: getter not found: {class_name}::{getter}")
-
-        write_string(io, utils.snake_to_pascal(setter))  # String setter
-        write_string(io, utils.snake_to_pascal(getter))  # String getter
+        write_string(io, utils.snake_to_pascal(prop["setter"]))  # String setter
+        write_string(io, utils.snake_to_pascal(prop["getter"]))  # String getter
 
         write_int32(io, prop.get("index", -1))  # int32_t index
 
@@ -654,13 +638,7 @@ def generate_class(io, g_class, classes, singletons, variant_values, variant_val
     write_string(io, f"{metatable_name}.__index")
 
     # singleton
-    singleton_matches = utils.get_singletons(class_name, singletons)
-
-    singleton = ""
-    if len(singleton_matches) > 0:
-        singleton = singleton_matches[0]["name"]
-
-    write_string(io, singleton)  # String singleton
+    write_string(io, g_class.get("singleton") or "")  # String singleton
 
 
 ########

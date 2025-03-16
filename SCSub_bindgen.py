@@ -25,6 +25,8 @@ luau_api = env_gen.GenerateLuauApi()
 luau_bindings = env_gen.GenerateLuauBindings()
 
 if env["generate_luau_bindings"]:
+    NoCache(luau_api)
+    NoCache(luau_bindings)
     AlwaysBuild(luau_api)
     AlwaysBuild(luau_bindings)
 
