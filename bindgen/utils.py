@@ -90,43 +90,6 @@ def get_enum_values(enum):
     return [val for val in enum["values"] if valid_enum_value(val)]
 
 
-utils_to_bind = {
-    # math functions not provided by Luau
-    "ease": (None, False),
-    "lerpf": ("lerp", False),
-    "cubic_interpolate": (None, False),
-    "bezier_interpolate": (None, False),
-    "lerp_angle": (None, False),
-    "inverse_lerp": (None, False),
-    "range_lerp": (None, False),
-    "smoothstep": (None, False),
-    "move_toward": (None, False),
-    "linear_to_db": (None, False),
-    "db_to_linear": (None, False),
-    "wrapf": ("wrap", False),
-    "pingpong": (None, False),
-    "is_equal_approx": (None, False),
-    "is_zero_approx": (None, False),
-    # print
-    "print": (None, True),
-    "printraw": (None, True),
-    "printerr": (None, True),
-    "print_verbose": (None, True),
-    "print_rich": (None, True),
-    "push_error": (None, True),
-    "push_warning": (None, True),
-    # variant
-    "var_to_str": (None, False),
-    "str_to_var": (None, False),
-    "var_to_bytes": (None, False),
-    "var_to_bytes_with_objects": (None, False),
-    "bytes_to_var": (None, False),
-    "bytes_to_var_with_objects": (None, False),
-    # other
-    "hash": (None, False),
-    "is_instance_valid": (None, False),
-}
-
 variant_op_map = {
     "==": "eq",
     "<": "lt",

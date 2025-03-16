@@ -9,6 +9,42 @@ if int(major) > 3 or (int(major) == 3 and int(minor) >= 11):
 else:
     import tomli as tomllib
 
+utils_to_bind = {
+    # math functions not provided by Luau
+    "ease": (None, False),
+    "cubic_interpolate": (None, False),
+    "bezier_interpolate": (None, False),
+    "lerp_angle": (None, False),
+    "inverse_lerp": (None, False),
+    "range_lerp": (None, False),
+    "smoothstep": (None, False),
+    "move_toward": (None, False),
+    "linear_to_db": (None, False),
+    "db_to_linear": (None, False),
+    "wrapf": ("wrap", False),
+    "pingpong": (None, False),
+    "is_equal_approx": (None, False),
+    "is_zero_approx": (None, False),
+    # print
+    "print": (None, True),
+    "printraw": (None, True),
+    "printerr": (None, True),
+    "print_verbose": (None, True),
+    "print_rich": (None, True),
+    "push_error": (None, True),
+    "push_warning": (None, True),
+    # variant
+    "var_to_str": (None, False),
+    "str_to_var": (None, False),
+    "var_to_bytes": (None, False),
+    "var_to_bytes_with_objects": (None, False),
+    "bytes_to_var": (None, False),
+    "bytes_to_var_with_objects": (None, False),
+    # other
+    "hash": (None, False),
+    "is_instance_valid": (None, False),
+}
+
 
 def check_class_settings(class_settings, godot_api):
     for class_name in class_settings:
@@ -91,13 +127,26 @@ def generate_bindings(target, source, env):
     # Direct copy
     luau_api["global_constants"] = godot_api["global_constants"]
     luau_api["global_enums"] = godot_api["global_enums"]
-    luau_api["utility_functions"] = godot_api["utility_functions"]
     luau_api["builtin_classes"] = [
         bc
         for bc in godot_api["builtin_classes"]
         if bc["name"] not in ["Nil", "bool", "int", "float"]
     ]
     luau_api["singletons"] = godot_api["singletons"]
+
+    # Utility functions
+    luau_api["utility_functions"] = []
+    for func in godot_api["utility_functions"]:
+        name = func["name"]
+        if name not in utils_to_bind:
+            continue
+
+        l_func = func.copy()
+        luau_name, is_print_func = utils_to_bind[name]
+        l_func["luau_name"] = luau_name or name
+        l_func["is_print_func"] = is_print_func
+
+        luau_api["utility_functions"].append(l_func)
 
     # Classes
     luau_api["classes"] = []

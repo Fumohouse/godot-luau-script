@@ -39,7 +39,7 @@ prepended to the name -> `N9`.
 | ---------------- | -------------- | ---------------------- | ---------------------- | ------------------- |
 | Global enum      | `@GlobalScope` | `Enum.` namespace      | `MARGIN_LEFT`          | `Enum.Margin.LEFT`  |
 | Global constant  | `@GlobalScope` | `Constants.` namespace | *N/A*                  | *N/A*               |
-| Utility function | `@GlobalScope` | `_G`                   | `lerpf(0.0, 1.0, 0.5)` | `lerp(0, 1, 0.5)` * |
+| Utility function | `@GlobalScope` | `_G`                   | `wrapf(0.0, 1.0, 1.1)` | `wrap(0, 1, 1.1)` * |
 
 *: This is one of the renamed functions mentioned above.
 

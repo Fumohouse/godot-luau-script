@@ -465,15 +465,10 @@ def generate_typedefs(defs_dir, api, lib_types, godot_types):
     )
 
     for func in api["utility_functions"]:
-        func_name = func["name"]
-        if func_name not in utils.utils_to_bind:
-            continue
+        func_name_luau = func["luau_name"]
 
-        func_name_luau, is_print_func = utils.utils_to_bind[func_name]
-        func_name = func_name_luau if func_name_luau else func_name
-
-        if is_print_func:
-            src.append(f"declare function {func_name}(...: any)")
+        if func["is_print_func"]:
+            src.append(f"declare function {func_name_luau}(...: any)")
         else:
             func_ret_str = (
                 ": " + get_luau_type(func["return_type"], api, True)
@@ -482,7 +477,7 @@ def generate_typedefs(defs_dir, api, lib_types, godot_types):
             )
 
             src.append(
-                f"declare function {func_name}({generate_args(func, api, False)}){func_ret_str}"
+                f"declare function {func_name_luau}({generate_args(func, api, False)}){func_ret_str}"
             )
 
     src.append("")

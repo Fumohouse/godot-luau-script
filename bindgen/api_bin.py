@@ -125,15 +125,13 @@ def generate_argument_no_default(io, argument):
 
 def generate_utility_function(io, utility_function):
     # ApiUtilityFunction
-    name = utility_function["name"]
-    luau_name, is_print_func = utils.utils_to_bind[name]
-    luau_name = luau_name if luau_name else name
+    luau_name = utility_function["luau_name"]
 
     write_string(io, luau_name)  # String luau_name
-    write_string(io, name)  # String gd_name
-    write_string(io, f"Godot.UtilityFunctions.{name}")  # String debug_name
+    write_string(io, utility_function["name"])  # String gd_name
+    write_string(io, f"Godot.UtilityFunctions.{luau_name}")  # String debug_name
     write_bool(io, utility_function["is_vararg"])  # bool is_vararg
-    write_bool(io, is_print_func)  # bool is_print_func
+    write_bool(io, utility_function["is_print_func"])  # bool is_print_func
 
     write_uint32(io, utility_function["hash"])  # uint32_t hash
 
@@ -710,9 +708,7 @@ def generate_api_bin(src_dir, api):
         generate_constant(api_bin, constant)
 
     # Utility functions
-    utility_functions = [
-        uf for uf in api["utility_functions"] if uf["name"] in utils.utils_to_bind
-    ]
+    utility_functions = api["utility_functions"]
     # size num_utility_functions
     write_size(api_bin, len(utility_functions))
 

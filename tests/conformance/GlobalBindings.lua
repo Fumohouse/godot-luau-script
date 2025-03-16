@@ -17,6 +17,6 @@ end
 
 do
     -- Utility functions
-    assert(lerp(0.0, 1.0, 0.75) == 0.75)
+    assert(str_to_var("Vector3(1, 1, 1)") == Vector3.new(1, 1, 1))
     print_rich(1, 2, false, "[color=red]hey![/color]", " ", {})
 end
