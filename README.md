@@ -31,6 +31,11 @@ Fumohouse as a secondary language.
 The timing and reliability of these updates is not guaranteed. New releases may
 not be published during this time.
 
+## Recurring maintenance tasks
+
+- Keeping up-to-date with GDExtension changes
+- Areas that must be synced with Godot (`grep "! SYNC WITH"`)
+
 ## License
 
 See `LICENSE.txt`.
