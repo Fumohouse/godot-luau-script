@@ -27,7 +27,6 @@ This project is still in relatively early stages. Please keep in mind:
 - This project will usually track the latest Godot version (including preview
   releases). Support for older versions is not planned.
 - This documentation may be incomplete or out-of-date. Please report an issue
-  ([Codeberg](https://codeberg.org/ksk/godot-luau-script/issues/new),
-  [GitHub](https://github.com/Fumohouse/godot-luau-script/issues/new/choose)) if
-  this is the case.
+  ([GitHub](https://github.com/Fumohouse/godot-luau-script/issues/new/choose))
+  if this is the case.
 - Some security issues may remain. Please report an issue if you encounter one.

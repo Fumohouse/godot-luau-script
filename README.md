@@ -6,9 +6,9 @@
 > **Note**
 >
 > This repository is mirrored from
-> [Codeberg](https://codeberg.org/ksk/godot-luau-script) to
+> [Forgejo](https://git.seki.pw/Fumohouse/godot-luau-script) to
 > [GitHub](https://github.com/Fumohouse/godot-luau-script). Issues and pull
-> requests are accepted from both sites, but pushes only occur from Codeberg.
+> requests are accepted from both sites, but pushes only occur from Forgejo.
 
 GDExtension for Godot 4 adding support for
 [Luau](https://github.com/Roblox/luau), a variant of Lua 5.1, to Godot as a

@@ -3,7 +3,7 @@
 ## Download
 
 Prebuilt binaries for each tagged release can be found on the [releases
-page](https://codeberg.org/ksk/godot-luau-script/releases).
+page](https://git.seki.pw/Fumohouse/godot-luau-script/releases).
 
 ## Installation
 

@@ -17,7 +17,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: godot-luau-script
 Upstream-Contact: voided_etc <contact@seki.pw>
-Source: https://codeberg.org/ksk/godot-luau-script
+Source: https://git.seki.pw/Fumohouse/godot-luau-script
 
 Files: *
 Comment: godot-luau-script (source code)
