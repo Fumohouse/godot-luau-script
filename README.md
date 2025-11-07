@@ -1,4 +1,4 @@
-# godot-luau-script
+# godot-luau-script (GLS)
 
 [![Godot Badge](https://img.shields.io/badge/Godot-4.4--stable-orange)](https://godotengine.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
@@ -18,18 +18,19 @@ scripting language.
 
 ## Development status
 
-godot-luau-script is currently under *probationary maintenance*.
+godot-luau-script has been discontinued and superseded by
+[shadowblox](https://git.seki.pw/Fumohouse/shadowblox).
 
-Fumohouse, the main user of GLS, has transitioned to GDScript as the primary
-language.
+In short, the added benefits of this project compared to GDScript (i.e.,
+sandboxing) do not justify its maintenance burden and fracturing of development
+between Luau and GDScript. If you are interested in forking or maintaining this
+project, feel free to reach out. Outstanding tasks and ideas are listed in
+`TASKS.md`.
 
-GLS is undergoing a gradual rework to resolve selected issues, stay up-to-date
-with upstream changes, and improve ergonomics. If the project reaches an
-acceptable state, it will re-enter active maintenance and be included in
-Fumohouse as a secondary language.
-
-The timing and reliability of these updates is not guaranteed. New releases may
-not be published during this time.
+shadowblox seeks to justify the maintenance burden of a GLS-like project by
+implementing an existing interface, that being the Roblox DataModel. It carries
+forward much of the code of GLS, while abstracting it away from Godot itself.
+Visit the repository link above if you are interested.
 
 ## Recurring maintenance tasks
 
